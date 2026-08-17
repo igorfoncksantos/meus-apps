@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -30,7 +30,14 @@
   .g3{background:linear-gradient(135deg,#0e2a2c,#0a1c1e);color:#2FD9C9}
   .g4{background:linear-gradient(135deg,#1a1533,#120f22);color:#a78bfa}
 </style>
-</head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2FD9C9">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Meus Apps">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></head>
 <body>
   <div class="wrap">
     <header>

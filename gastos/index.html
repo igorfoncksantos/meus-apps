@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -342,7 +342,14 @@
   .cmbtn.del { background:#2b1214; color:#f87171; border-color:#5c2a2f; }
   .cmbtn.del[disabled] { opacity:.35; cursor:not-allowed; }
 </style>
-</head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3ddb84">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Gastos">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></head>
 <body>
 <div id="flash"></div>
 <div class="wrap">
