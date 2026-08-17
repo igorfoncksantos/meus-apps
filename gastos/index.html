@@ -695,19 +695,19 @@
    (localStorage "vale-<ciclo>"); "Salvar no arquivo" grava TODOS de uma vez.
    Pra somar um mês novo, é só adicionar aqui na lista. */
 var CICLOS = [
-  { nome:"Julho/Agosto",      mes:6,  ano:2026 },
-  { nome:"Agosto/Setembro",   mes:7,  ano:2026 },
-  { nome:"Setembro/Outubro",  mes:8,  ano:2026 },
-  { nome:"Outubro/Novembro",  mes:9,  ano:2026 },
-  { nome:"Novembro/Dezembro", mes:10, ano:2026 },
-  { nome:"Dezembro/Janeiro",  mes:11, ano:2026 },
-  { nome:"Janeiro/Fevereiro", mes:0,  ano:2027 },
-  { nome:"Fevereiro/Março",   mes:1,  ano:2027 }
+  { nome:"Julho",      mes:6,  ano:2026 },
+  { nome:"Agosto",   mes:7,  ano:2026 },
+  { nome:"Setembro",  mes:8,  ano:2026 },
+  { nome:"Outubro",  mes:9,  ano:2026 },
+  { nome:"Novembro", mes:10, ano:2026 },
+  { nome:"Dezembro",  mes:11, ano:2026 },
+  { nome:"Janeiro", mes:0,  ano:2027 },
+  { nome:"Fevereiro",   mes:1,  ano:2027 }
 ];
 
 /* ===== DADOS GRAVADOS NO PRÓPRIO ARQUIVO (todos os ciclos) =====
    Reescrito pelo botão "Salvar no arquivo". Não editar à mão. */
-var DADOS = {"active":"Agosto/Setembro","ciclos":{}};
+var DADOS = {"active":"Agosto","ciclos":{}};
 /* ===== FIM DOS DADOS ===== */
 /* ===== AFAZERES gravados no arquivo (reescrito por "Salvar no arquivo") ===== */
 var AFZ_SEED = [];
@@ -766,9 +766,9 @@ function carregaCiclo(nome){
 }
 
 var CICLO, MES_INI, ANO_INI, KEY, st, salvoNoArquivo;
-var activeNome = "Agosto/Setembro";
-try { activeNome = localStorage.getItem("gastos-active") || DADOS.active || "Agosto/Setembro"; } catch(e){}
-if(!CICLOS.some(function(c){ return c.nome === activeNome; })) activeNome = "Agosto/Setembro";
+var activeNome = "Agosto";
+try { activeNome = localStorage.getItem("gastos-active") || DADOS.active || "Agosto"; } catch(e){}
+if(!CICLOS.some(function(c){ return c.nome === activeNome; })) activeNome = "Agosto";
 
 function ativarCiclo(nome){
   var cyc = null;
