@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meus Apps</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:#07090b}
+  body{font-family:"Segoe UI",system-ui,Arial,sans-serif;color:#e8ebed;min-height:100vh;padding:34px 18px 46px;
+       background:radial-gradient(1200px 600px at 50% -10%, #10171d 0%, #07090b 60%)}
+  .wrap{max-width:640px;margin:0 auto}
+  header{text-align:center;margin-bottom:28px}
+  .kick{font-size:11px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#2FD9C9}
+  h1{font-size:30px;font-weight:800;color:#fff;margin-top:6px;letter-spacing:-.5px}
+  .sub{font-size:13px;color:#7a8288;margin-top:8px}
+  .grid{display:flex;flex-direction:column;gap:13px;margin-top:26px}
+  a.app{display:flex;align-items:center;gap:16px;background:#0f1419;border:1px solid #20272e;border-radius:16px;
+        padding:18px 18px;text-decoration:none;color:inherit;transition:transform .12s, border-color .12s, background .12s}
+  a.app:active{transform:scale(.98)}
+  a.app:hover{border-color:#2f3a43;background:#121922}
+  .ic{width:52px;height:52px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px}
+  .tx{flex:1;min-width:0}
+  .tt{font-size:16.5px;font-weight:800;color:#f2f5f7}
+  .ds{font-size:12.5px;color:#8a97a0;margin-top:3px;line-height:1.35}
+  .go{font-size:22px;color:#4a5560;font-weight:800}
+  footer{text-align:center;margin-top:30px;font-size:11px;color:#5a636b;line-height:1.6}
+  .g1{background:linear-gradient(135deg,#123024,#0c1f18);color:#3ddb84}
+  .g2{background:linear-gradient(135deg,#2a2620,#17140f);color:#d9c9a8}
+  .g3{background:linear-gradient(135deg,#0e2a2c,#0a1c1e);color:#2FD9C9}
+  .g4{background:linear-gradient(135deg,#1a1533,#120f22);color:#a78bfa}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="kick">Igor</div>
+      <h1>Meus Apps</h1>
+      <div class="sub">Seus aplicativos, sempre à mão — abrem no navegador do celular ou do PC.</div>
+    </header>
+
+    <div class="grid">
+      <a class="app" href="gastos/">
+        <div class="ic g1">💸</div>
+        <div class="tx"><div class="tt">Gastos</div><div class="ds">Controle de gastos por ciclo, com categorias e virada do cartão</div></div>
+        <div class="go">›</div>
+      </a>
+      <a class="app" href="financas/">
+        <div class="ic g4">💰</div>
+        <div class="tx"><div class="tt">Minhas Finanças</div><div class="ds">Patrimônio por caixinha, plano de aporte e vale</div></div>
+        <div class="go">›</div>
+      </a>
+      <a class="app" href="afazeres/">
+        <div class="ic g3">✅</div>
+        <div class="tx"><div class="tt">Afazeres</div><div class="ds">Listas de tarefas com categorias, subitens e prazos</div></div>
+        <div class="go">›</div>
+      </a>
+      <a class="app" href="daybook/">
+        <div class="ic g2">📅</div>
+        <div class="tx"><div class="tt">DAYBOOK</div><div class="ds">Calendário + tarefas por dia — “your day, organized”</div></div>
+        <div class="go">›</div>
+      </a>
+    </div>
+
+    <footer>
+      Cada app guarda os dados no próprio navegador do aparelho.<br>
+      Pra levar dados de um aparelho pro outro, use “Salvar no arquivo / backup” dentro do app.
+    </footer>
+  </div>
+</body>
+</html>
