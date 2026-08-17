@@ -363,7 +363,7 @@
 
   <header>
     <div class="kicker">Cashbook</div>
-    <div class="sub">Todos os meses num lugar &middot; três orçamentos separados &middot; saídas e lanches · mercado · gastos livres</div>
+    <div class="sub">Todos os meses num lugar &middot; um or&ccedil;amento por categoria &middot; com o dia de virada do cart&atilde;o</div>
   </header>
 
   <div class="tabslab">Mês / ciclo — toque pra trocar</div>
@@ -407,8 +407,8 @@
     </div>
     <input class="desc" type="text" id="d" placeholder="Local — onde gastou…">
     <div class="selwrap">
-      <input type="hidden" id="c" value="S">
-      <button type="button" class="selbtn" id="catBtn"><span class="seldot" id="catDot"></span><span class="sellbl" id="catLbl">🍔 Saídas / Lanches</span><span class="selcar">▾</span></button>
+      <input type="hidden" id="c" value="">
+      <button type="button" class="selbtn" id="catBtn"><span class="seldot" id="catDot"></span><span class="sellbl" id="catLbl">Categoria</span><span class="selcar">▾</span></button>
       <div class="selpop" id="catPop"></div>
     </div>
     <input class="val" type="text" inputmode="decimal" id="v" placeholder="0,00">
@@ -715,11 +715,7 @@ var AFZ_SEED = [];
 
 /* ===== CATEGORIAS (globais, compartilhadas entre os meses) =====
    Reescrito pelo botão "Salvar no arquivo". */
-var CATEGORIAS = [
-  {id:"S", nome:"Saídas / Lanches", emoji:"🍔", cor:"#f0883e"},
-  {id:"M", nome:"Mercado", emoji:"🛒", cor:"#3ddb84"},
-  {id:"L", nome:"Gastos Livres", emoji:"💸", cor:"#a78bfa"}
-];
+var CATEGORIAS = [];
 /* ===== FIM CATEGORIAS ===== */
 var CATS;
 try { var _rc = localStorage.getItem("gastos-cats"); CATS = _rc ? JSON.parse(_rc) : JSON.parse(JSON.stringify(CATEGORIAS)); }
