@@ -532,5 +532,15 @@ var SEED = {"tasks":{},"notes":{}};
   render(); marcarSujo();
 })();
 </script>
+<div id="__welcome" style="position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(3,5,7,.74);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);font-family:system-ui,'Segoe UI',Arial,sans-serif">
+  <div style="max-width:380px;width:100%;background:#0e1319;border:1px solid #253039;border-radius:20px;padding:26px 24px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center">
+    <div style="font-size:46px;line-height:1">📅</div>
+    <div style="font-size:21px;font-weight:800;color:#fff;margin-top:10px">Bem-vindo ao DAYBOOK</div>
+    <div style="font-size:14px;color:#aeb8c0;margin-top:10px;line-height:1.5">Seu dia, organizado. Planeje tarefas e anotações num calendário simples e bonito.</div>
+    <div style="font-size:12px;color:#7a8690;margin-top:14px;line-height:1.5">🔒 Seus dados ficam só neste aparelho — ninguém mais vê.</div>
+    <button id="__welcomeBtn" style="margin-top:20px;width:100%;background:#d9c9a8;color:#1a140c;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer">Começar</button>
+  </div>
+</div>
+<script>(function(){try{var K="welcome-daybook";if(!localStorage.getItem(K)){var w=document.getElementById("__welcome");if(w){w.style.display="flex";var b=document.getElementById("__welcomeBtn");if(b){b.onclick=function(){w.style.display="none";try{localStorage.setItem(K,"1")}catch(e){}}}}}}catch(e){}})();</script>
 </body>
 </html>
