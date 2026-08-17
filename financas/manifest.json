@@ -1,15 +1,14 @@
 {
-  "name": "Minhas Finanças",
-  "short_name": "Finanças",
-  "description": "Patrimônio, aporte do mês e controle de gastos do ciclo.",
-  "start_url": "./index.html",
+  "name": "Stash",
+  "short_name": "Stash",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#05070c",
+  "theme_color": "#0c1117",
   "icons": [
-    { "src": "icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

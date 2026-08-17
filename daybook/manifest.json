@@ -1,12 +1,12 @@
 {
-  "name": "DAYBOOK",
-  "short_name": "DAYBOOK",
+  "name": "Daybook",
+  "short_name": "Daybook",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f1419",
-  "theme_color": "#0f1419",
+  "background_color": "#0b0a08",
+  "theme_color": "#141210",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
