@@ -532,7 +532,7 @@ function render(){
     if(!ts.length) return;
     const div=document.createElement('div'); div.className='cat';
     div.innerHTML=`<div class="chead"><span class="cbar" style="background:${c.color}"></span>
-      <span class="cname" style="color:${c.color};cursor:pointer" onclick="openCatActions('${c.id}')">${escapeHtml(c.name)}</span>
+      <span class="cname" style="color:${c.color};cursor:pointer" onclick="openCatActions('${c.id}')">${escapeHtml(c.name)} <span style="font-size:11px;opacity:.6">✎</span></span>
       <button class="cadd" onclick="openAdd('${c.id}')">+ tarefa</button></div>`;
     ts.forEach(t=> div.appendChild(itemEl(t,c)));
     host.appendChild(div);
