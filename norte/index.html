@@ -384,7 +384,7 @@
 
 <div class="legend" id="legend"></div>
 
-<div class="secttl" id="catsTitle">Minhas categorias</div>
+<div class="secttl" id="catsTitle" onclick="openCats()" style="cursor:pointer;align-items:center;gap:8px">Minhas categorias <span style="margin-left:auto;font-size:11px;color:var(--accent);font-weight:800">＋ gerenciar</span></div>
 <div id="cats"></div>
 
 <div class="obs">
@@ -453,11 +453,24 @@ function addCat(){ const n=document.getElementById('ncName').value.trim(); if(!n
   let id=slug(n); while(CATS.some(c=>c.id===id)) id+='x';
   CATS.push({id,name:n,color:ncColorSel}); save(); closeSheet(); render();
 }
-function delCat(id){
+function delCat(id){ if(removeCat(id)){ closeSheet(); openCats(); } }
+function delCatFromEdit(id){ if(removeCat(id)){ closeSheet(); render(); } }
+let _editCatId=null;
+function openCatActions(id){ const c=CATS.find(x=>x.id===id); if(!c)return; _editCatId=id; ncColorSel=c.color;
+  const sws=PALETTE.map(col=>`<div class="sw ${col===c.color?'sel':''}" style="background:${col}" onclick="pickSw(this,'${col}')"></div>`).join('');
+  sheet(`<h3>Editar categoria</h3>
+    <div class="field"><label>Nome</label><input id="ecName" value="${escapeAttr(c.name)}"></div>
+    <div class="field"><label>Cor</label><div class="swatches">${sws}</div></div>
+    <div class="actions"><button class="btn-danger" onclick="delCatFromEdit('${id}')">Apagar</button><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" onclick="saveCatEdit()">Salvar</button></div>`);
+}
+function saveCatEdit(){ const c=CATS.find(x=>x.id===_editCatId); if(!c)return;
+  const n=document.getElementById('ecName').value.trim(); if(n)c.name=n; c.color=ncColorSel; save(); closeSheet(); render(); }
+function removeCat(id){
   const used = Object.values(DB.days).some(d=>d.tasks.some(t=>t.cat===id));
-  if(used){ alert('Essa categoria tem tarefas. Mova ou apague as tarefas antes.'); return; }
-  if(!confirm('Apagar a categoria?'))return;
-  const i=CATS.findIndex(c=>c.id===id); if(i>=0)CATS.splice(i,1); save(); openCats();
+  if(used){ if(!confirm('Essa categoria tem tarefas. Apagar a categoria E todas as tarefas dela (em todos os dias)?'))return false;
+    Object.values(DB.days).forEach(d=>{ d.tasks=d.tasks.filter(t=>t.cat!==id); }); }
+  else { if(!confirm('Apagar a categoria?'))return false; }
+  const i=CATS.findIndex(c=>c.id===id); if(i>=0)CATS.splice(i,1); save(); return true;
 }
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
@@ -508,7 +521,7 @@ function render(){
     `<div class="lg"><span class="chip" style="background:#F97316"></span>★★ Máxima</div>`; }
 
   // título "Minhas categorias" (só quando há categorias)
-  document.getElementById('catsTitle').style.display = CATS.length ? 'block' : 'none';
+  document.getElementById('catsTitle').style.display = CATS.length ? 'flex' : 'none';
   // cats
   const host=document.getElementById('cats'); host.innerHTML='';
   CATS.forEach(c=>{
@@ -516,7 +529,7 @@ function render(){
     if(!ts.length) return;
     const div=document.createElement('div'); div.className='cat';
     div.innerHTML=`<div class="chead"><span class="cbar" style="background:${c.color}"></span>
-      <span class="cname" style="color:${c.color}">${c.name}</span>
+      <span class="cname" style="color:${c.color};cursor:pointer" onclick="openCatActions('${c.id}')">${escapeHtml(c.name)}</span>
       <button class="cadd" onclick="openAdd('${c.id}')">+ tarefa</button></div>`;
     ts.forEach(t=> div.appendChild(itemEl(t,c)));
     host.appendChild(div);
