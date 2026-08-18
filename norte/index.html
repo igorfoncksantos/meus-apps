@@ -516,7 +516,8 @@ function render(){
   const lg=document.getElementById('legend');
   if(!CATS.length){ lg.classList.add('hidden'); }
   else{ lg.classList.remove('hidden'); lg.innerHTML =
-    CATS.map(c=>`<div class="lg"><span class="chip" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('') +
+    CATS.map(c=>`<div class="lg" style="cursor:pointer" onclick="openCatActions('${c.id}')"><span class="chip" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('') +
+    `<div class="lg" style="cursor:pointer;color:var(--accent);font-weight:800" onclick="openCats()">＋ categoria</div>`+
     `<div class="lg" style="margin-left:auto"><span class="chip" style="background:#FBBF24"></span>★ Prioridade</div>`+
     `<div class="lg"><span class="chip" style="background:#F97316"></span>★★ Máxima</div>`; }
 
