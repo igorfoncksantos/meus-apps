@@ -447,9 +447,11 @@ function openCats(){ closeMenu();
     <div class="field"><label>Cor</label><div class="swatches" id="ncSw">${swatchesHtml()}</div></div>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button><button class="btn-primary" onclick="addCat()">+ Adicionar</button></div>`);
 }
-const PALETTE = ['#22C55E','#22D3EE','#3B82F6','#A78BFA','#EC4899','#EF4444','#F97316','#F59E0B','#EAB308','#14B8A6','#FFFFFF','#000000'];
+const PALETTE = ['#22C55E','#22D3EE','#3B82F6','#A78BFA','#EC4899','#EF4444','#F97316','#F59E0B','#EAB308','#14B8A6','#9CA3AF','#FFFFFF','#000000'];
+function palette(){ const t=document.documentElement.getAttribute('data-theme')||'dark';
+  return t==='dark' ? PALETTE.filter(c=>c!=='#000000') : PALETTE.filter(c=>c!=='#FFFFFF'); }
 let ncColorSel = PALETTE[0];
-function swatchesHtml(){ ncColorSel=PALETTE[0]; return PALETTE.map((c,i)=>`<div class="sw ${i===0?'sel':''}" style="background:${c}" onclick="pickSw(this,'${c}')"></div>`).join(''); }
+function swatchesHtml(){ const P=palette(); ncColorSel=P[0]; return P.map((c,i)=>`<div class="sw ${i===0?'sel':''}" style="background:${c}" onclick="pickSw(this,'${c}')"></div>`).join(''); }
 function pickSw(el,c){ ncColorSel=c; el.parentNode.querySelectorAll('.sw').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
 function addCat(){ const n=document.getElementById('ncName').value.trim(); if(!n){ alert('Dê um nome à categoria.'); return; }
   let id=slug(n); while(CATS.some(c=>c.id===id)) id+='x';
@@ -459,7 +461,7 @@ function delCat(id){ if(removeCat(id)){ closeSheet(); openCats(); } }
 function delCatFromEdit(id){ if(removeCat(id)){ closeSheet(); render(); } }
 let _editCatId=null;
 function openCatActions(id){ const c=CATS.find(x=>x.id===id); if(!c)return; _editCatId=id; ncColorSel=c.color;
-  const sws=PALETTE.map(col=>`<div class="sw ${col===c.color?'sel':''}" style="background:${col}" onclick="pickSw(this,'${col}')"></div>`).join('');
+  const sws=palette().map(col=>`<div class="sw ${col===c.color?'sel':''}" style="background:${col}" onclick="pickSw(this,'${col}')"></div>`).join('');
   sheet(`<h3>Editar categoria</h3>
     <div class="field"><label>Nome</label><input id="ecName" value="${escapeAttr(c.name)}"></div>
     <div class="field"><label>Cor</label><div class="swatches">${sws}</div></div>
@@ -703,7 +705,7 @@ function refreshCatrow(){ const row=document.getElementById('catrow'); if(!row)r
 function pickCat(el){ formCat=el.dataset.cat; document.querySelectorAll('#catrow .catopt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
 function quickAddCat(){ const n=prompt('Nome da nova categoria:'); if(!n||!n.trim())return;
   let id=slug(n); while(CATS.some(c=>c.id===id))id+='x';
-  CATS.push({id,name:n.trim(),color:PALETTE[CATS.length%PALETTE.length]}); save(); formCat=id; refreshCatrow(); }
+  const P=palette(); CATS.push({id,name:n.trim(),color:P[CATS.length%P.length]}); save(); formCat=id; refreshCatrow(); }
 function subRowHtml(val){ return `<div class="subrow" style="display:flex;gap:8px;margin-bottom:6px">
     <input class="subin" value="${escapeAttr(val||'')}" placeholder="ex.: Garrafa 1" style="flex:1">
     <button type="button" onclick="this.parentNode.remove()" style="width:40px;flex-shrink:0;background:#1a1e23;border:1px solid #2a2f35;color:#f87171;border-radius:9px;font-size:15px;cursor:pointer">✕</button></div>`; }
