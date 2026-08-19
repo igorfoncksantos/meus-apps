@@ -56,7 +56,12 @@
   [data-theme="light"] .rchip{ background:#dff5e8; color:#1f7a4d; border-color:#b6e2c8; }
   [data-theme="light"] .sheet{ background:#fff; }
   [data-theme="light"] .field input,[data-theme="light"] .field textarea,[data-theme="light"] .field select,
-  [data-theme="light"] .catopt,[data-theme="light"] .popt{ background:#f5f6f8; border-color:#d6dae0; color:#1a1d21; }
+  [data-theme="light"] .catopt,[data-theme="light"] .popt,[data-theme="light"] .wdopt{ background:#f5f6f8; border-color:#d6dae0; color:#1a1d21; }
+  [data-theme="light"] .wdopt.sel{ border-color:#2FD9C9; background:#e7fbfa; color:#12857c; }
+  [data-theme="light"] .recbtn,[data-theme="light"] .rtype{ background:#f5f6f8; border-color:#d6dae0; color:#1a1d21; }
+  [data-theme="light"] .rtype.sel{ border-color:#2FD9C9; background:#e7fbfa; color:#12857c; }
+  [data-theme="light"] .recpanel{ border-color:#e4e7eb; }
+  [data-theme="light"] .calpop.inline{ background:#fff; }
   [data-theme="light"] .btn-ghost{ background:#eef0f3; color:#1a1d21; }
   [data-theme="light"] .act-list button{ background:#f5f6f8; border-color:#e0e3e8; color:#1a1d21; }
   [data-theme="light"] .calpop{ background:#fff; }
@@ -108,7 +113,12 @@
   [data-theme="miri"] .rchip{ background:#e3efd9; color:#4a7a3d; border-color:#cfe0b8; }
   [data-theme="miri"] .sheet{ background:#FBF7EE; }
   [data-theme="miri"] .field input,[data-theme="miri"] .field textarea,[data-theme="miri"] .field select,
-  [data-theme="miri"] .catopt,[data-theme="miri"] .popt{ background:#F3EDE0; border-color:#DED2BC; color:#46423A; }
+  [data-theme="miri"] .catopt,[data-theme="miri"] .popt,[data-theme="miri"] .wdopt{ background:#F3EDE0; border-color:#DED2BC; color:#46423A; }
+  [data-theme="miri"] .wdopt.sel{ border-color:#c06a52; background:#f4e6df; color:#a6543c; }
+  [data-theme="miri"] .recbtn,[data-theme="miri"] .rtype{ background:#F3EDE0; border-color:#DED2BC; color:#46423A; }
+  [data-theme="miri"] .rtype.sel{ border-color:#c06a52; background:#f4e6df; color:#a6543c; }
+  [data-theme="miri"] .recpanel{ border-color:#E3D9C7; }
+  [data-theme="miri"] .calpop.inline{ background:#FBF7EE; }
   [data-theme="miri"] .btn-ghost{ background:#EFE7D8; color:#46423A; }
   [data-theme="miri"] .act-list button{ background:#F3EDE0; border-color:#E3D9C7; color:#46423A; }
   [data-theme="miri"] .calpop{ background:#FBF7EE; }
@@ -273,6 +283,19 @@
   .popt{ flex:1; text-align:center; padding:10px; border-radius:10px; border:1.5px solid #2a2f35; background:#0b0e11; cursor:pointer; font-size:12px; font-weight:700; }
   .popt.sel{ border-color:var(--star); background:#17140d; color:var(--star); }
   .popt.sel.max{ border-color:var(--orange); background:#1b1108; color:var(--orange); }
+  .wdrow{ display:flex; flex-wrap:wrap; gap:6px; }
+  .wdopt{ width:46px; text-align:center; padding:9px 0; border-radius:9px; border:1.5px solid #2a2f35; background:#0b0e11; cursor:pointer; font-size:11.5px; font-weight:700; color:var(--txt); transition:transform .1s; }
+  .wdopt:active{ transform:scale(.9); }
+  .wdopt.sel{ border-color:var(--accent); background:#0d1a1c; color:var(--accent); }
+  .recbtn{ width:100%; display:flex; align-items:center; gap:8px; background:#0b0e11; border:1px solid #2a2f35; color:var(--txt); border-radius:10px; padding:11px 12px; font-size:14px; font-family:inherit; cursor:pointer; }
+  .recbtn:active{ transform:scale(.99); }
+  .recpanel{ margin-top:10px; border:1px solid #22272c; border-radius:12px; padding:12px; }
+  .rtyperow{ display:flex; flex-wrap:wrap; gap:6px; }
+  .rtype{ padding:8px 13px; border-radius:9px; border:1.5px solid #2a2f35; background:#0b0e11; cursor:pointer; font-size:12px; font-weight:700; color:var(--txt); transition:transform .1s; }
+  .rtype:active{ transform:scale(.92); }
+  .rtype.sel{ border-color:var(--accent); background:#0d1a1c; color:var(--accent); }
+  .reclbl{ font-size:10.5px; color:var(--mut2); font-weight:700; text-transform:uppercase; letter-spacing:.4px; margin:12px 0 7px; }
+  .calpop.inline{ position:static; transform:none; left:auto; top:auto; width:auto; box-shadow:none; border:1px solid #22272c; padding:11px; }
   .sheet .actions{ display:flex; gap:10px; margin-top:8px; }
   .sheet .actions button{ flex:1; padding:13px; border-radius:11px; border:none; font-size:14px; font-weight:700; cursor:pointer; }
   .btn-primary{ background:var(--accent); color:#04191a; }
@@ -422,6 +445,7 @@ function load(){
   try{ DB = JSON.parse(localStorage.getItem(KEY)); }catch(e){ DB=null; }
   if(!DB || !DB.days){ DB = {days:{}}; DB.days[todayISO()] = emptyDay(); }
   if(!DB.cats) DB.cats = [];
+  if(!DB.recurring) DB.recurring = [];
   CATS = DB.cats;
   cur = DB.days[todayISO()] ? todayISO() : Object.keys(DB.days).sort().pop();
   if(!cur){ cur=todayISO(); DB.days[cur]=emptyDay(); }
@@ -673,7 +697,11 @@ function schedTask(id){ _schedId=id; const t=findTask(id);
 function saveSched(){ const el=document.getElementById('schedInput'); const v=el?el.value:''; if(!v){ alert('Escolha uma data.'); return; }
   const [y,m,d]=v.split('-'); const t=findTask(_schedId); t.status='sched'; t.sched=d+'/'+m; closeSheet(); render(); }
 function clearSched(){ const t=findTask(_schedId); if(t){ t.status='pend'; t.sched=null; } closeSheet(); render(); }
-function delTask(id){ if(!confirm('Apagar esta tarefa?'))return; day().tasks=day().tasks.filter(t=>t.id!==id); render(); }
+function delTask(id){ const t=findTask(id); if(!t)return;
+  const rec = t.rid && (DB.recurring||[]).some(x=>x.rid===t.rid);
+  if(!confirm(rec?'Apagar esta tarefa e PARAR a recorrência dela?':'Apagar esta tarefa?'))return;
+  if(t.rid)DB.recurring=(DB.recurring||[]).filter(x=>x.rid!==t.rid);
+  day().tasks=day().tasks.filter(x=>x.id!==id); render(); }
 
 /* ---- add / edit ---- */
 let editing=null;
@@ -681,6 +709,7 @@ function openAdd(catId){ if(!CATS.length){ alert('Crie uma categoria primeiro.')
 function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
   formCat=t.cat||(CATS[0]&&CATS[0].id)||null; formPrio=t.prio||null;
+  formRecur = t.rec ? JSON.parse(JSON.stringify(t.rec)) : {type:'none',days:[],dom:20,date:''};
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label)).join('');
   sheet(`<h3>${editing?'Editar tarefa':'Nova tarefa'}</h3>
     <div class="field"><label>Categoria</label><div class="catrow" id="catrow"></div></div>
@@ -693,11 +722,95 @@ function showForm(t){
     <div class="field"><label>Subtarefas (opcional)</label>
       <div id="subRows">${subRows}</div>
       <button type="button" class="cadd" style="margin-top:2px" onclick="addSubRow()">+ subtarefa</button></div>
-    <div class="field"><label>Recorrência (opcional)</label><input id="fRecur" value="${escapeAttr(t.recur||'')}" placeholder="ex.: diária / todo dia 20"></div>
+    <div class="field"><label>Recorrência</label>
+      <button type="button" class="recbtn" onclick="toggleRecPanel()"><span id="recBtnTxt">Não se repete</span><span style="margin-left:auto;opacity:.55">▾</span></button>
+      <div id="recPanel" class="recpanel hidden">
+        <div class="reclbl" style="margin-top:0">Com que frequência?</div>
+        <div class="rtyperow">
+          <div class="rtype" data-r="none" onclick="pickRecType('none')">Não repete</div>
+          <div class="rtype" data-r="diario" onclick="pickRecType('diario')">Diário</div>
+          <div class="rtype" data-r="semanal" onclick="pickRecType('semanal')">Semanal</div>
+          <div class="rtype" data-r="mensal" onclick="pickRecType('mensal')">Mensal</div>
+          <div class="rtype" data-r="anual" onclick="pickRecType('anual')">Anual</div>
+        </div>
+        <div id="recSub"></div>
+      </div>
+    </div>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" onclick="saveForm()">Salvar</button></div>`);
-  refreshCatrow();
+  refreshCatrow(); syncRecBtn();
 }
 let formCat='pessoal', formPrio=null;
+let formRecur={type:'none',days:[],dom:20,date:''};
+const WDSHORT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MESSHORT=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+let recCalM='';
+function daysLabel(days){ if(!days||!days.length)return ''; const s=[...days].sort((a,b)=>a-b); const j=s.join(',');
+  if(j==='0,1,2,3,4,5,6')return 'todos os dias'; if(j==='1,2,3,4,5')return 'dias úteis'; if(j==='0,6')return 'fim de semana';
+  return s.map(i=>WDSHORT[i]).join(' · '); }
+function recLabel(fr){ if(!fr||fr.type==='none')return 'Não se repete';
+  if(fr.type==='diario')return 'Diário';
+  if(fr.type==='semanal')return (fr.days&&fr.days.length)?('Semanal · '+daysLabel(fr.days)):'Semanal';
+  if(fr.type==='mensal')return 'Mensal · dia '+(fr.dom||1);
+  if(fr.type==='anual'){ if(!fr.date)return 'Anual'; const [m,d]=fr.date.split('-'); return 'Anual · '+(+d)+' de '+MESSHORT[(+m)-1]; }
+  return 'Não se repete'; }
+function syncRecBtn(){ const b=document.getElementById('recBtnTxt'); if(b)b.textContent=recLabel(formRecur); }
+function toggleRecPanel(){ const p=document.getElementById('recPanel'); if(!p)return;
+  p.classList.toggle('hidden'); if(!p.classList.contains('hidden')){ markRecType(); renderRecSub(); } }
+function markRecType(){ document.querySelectorAll('.rtype').forEach(x=>x.classList.toggle('sel', x.dataset.r===formRecur.type)); }
+function pickRecType(tp){ formRecur.type=tp;
+  if(tp==='semanal'&&!formRecur.days)formRecur.days=[];
+  if(tp==='mensal'&&!formRecur.dom)formRecur.dom=(+cur.slice(8,10)||1);
+  if(tp==='anual'&&!formRecur.date)formRecur.date=cur.slice(5);
+  markRecType(); syncRecBtn();
+  if(tp==='none'||tp==='diario'){ document.getElementById('recSub').innerHTML=''; document.getElementById('recPanel').classList.add('hidden'); return; }
+  renderRecSub();
+}
+function renderRecSub(){ const h=document.getElementById('recSub'); if(!h)return; let html='';
+  if(formRecur.type==='semanal'){
+    html=`<div class="reclbl">Em quais dias?</div><div class="wdrow">`+
+      WDSHORT.map((w,i)=>`<div class="wdopt ${(formRecur.days||[]).includes(i)?'sel':''}" data-d="${i}" onclick="toggleWd(this)">${w}</div>`).join('')+`</div>`;
+  } else if(formRecur.type==='mensal'||formRecur.type==='anual'){
+    recCalM = formRecur.type==='anual'&&formRecur.date ? (cur.slice(0,4)+'-'+formRecur.date.split('-')[0]+'-01') : (cur.slice(0,8)+'01');
+    html=`<div class="reclbl">${formRecur.type==='mensal'?'Escolha o dia do mês':'Escolha a data'}</div><div id="recCalHost"></div>`;
+  }
+  h.innerHTML=html; if(formRecur.type==='mensal'||formRecur.type==='anual')renderRecCal();
+}
+function toggleWd(el){ el.classList.toggle('sel'); const i=+el.dataset.d; formRecur.days=formRecur.days||[];
+  if(el.classList.contains('sel')){ if(!formRecur.days.includes(i))formRecur.days.push(i); }
+  else formRecur.days=formRecur.days.filter(x=>x!==i);
+  syncRecBtn(); }
+function recCalShift(n){ const [y,m]=recCalM.split('-').map(Number); const d=new Date(y,m-1+n,1);
+  recCalM=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01'; renderRecCal(); }
+function renderRecCal(){ const host=document.getElementById('recCalHost'); if(!host)return;
+  const [y,m]=recCalM.split('-').map(Number);
+  const start=new Date(y,m-1,1).getDay(), dim=new Date(y,m,0).getDate();
+  let cells='';
+  const cell=(dt,other)=>{ const iso=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    let cls='cell'; if(other)cls+=' other';
+    if(formRecur.type==='mensal'){ if(!other && dt.getDate()===(+formRecur.dom))cls+=' sel'; }
+    else { if(iso.slice(5)===formRecur.date && !other)cls+=' sel'; }
+    return `<div class="${cls}" onclick="pickRecCal('${iso}',${other?1:0})">${dt.getDate()}</div>`; };
+  for(let i=0;i<start;i++)cells+=cell(new Date(y,m-1,1-(start-i)),true);
+  for(let d=1;d<=dim;d++)cells+=cell(new Date(y,m-1,d),false);
+  const rest=(start+dim)%7; if(rest)for(let i=1;i<=7-rest;i++)cells+=cell(new Date(y,m,i),true);
+  host.innerHTML=`<div class="calpop inline"><div class="ch"><button type="button" onclick="recCalShift(-1)">‹</button><b>${MESSHORT[m-1]} ${y}</b><button type="button" onclick="recCalShift(1)">›</button></div>
+    <div class="wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+    <div class="grid">${cells}</div></div>`;
+}
+function pickRecCal(iso,other){
+  if(formRecur.type==='mensal'){ formRecur.dom=+iso.split('-')[2]; }
+  else { formRecur.date=iso.slice(5); if(other){ recCalM=iso.slice(0,8)+'01'; } }
+  syncRecBtn(); renderRecCal();
+}
+function syncRecurring(t){ DB.recurring=DB.recurring||[];
+  if(t.rec && t.rec.type!=='none'){ if(!t.rid)t.rid='r'+uid();
+    const e={rid:t.rid,cat:t.cat,title:t.title,meta:t.meta||'',prio:t.prio||null,rec:t.rec,recur:t.recur||null};
+    if(t.goals)e.goals={posts:[0,t.goals.posts[1]],stories:[0,t.goals.stories[1]],ads:[0,t.goals.ads[1]]};
+    if(t.cota)e.cota=[0,t.cota[1]];
+    if(t.subs)e.subLabels=t.subs.map(s=>s.label);
+    const i=DB.recurring.findIndex(x=>x.rid===t.rid); if(i>=0)DB.recurring[i]=e; else DB.recurring.push(e);
+  } else if(t.rid){ DB.recurring=DB.recurring.filter(x=>x.rid!==t.rid); delete t.rid; }
+}
 function refreshCatrow(){ const row=document.getElementById('catrow'); if(!row)return;
   row.innerHTML = CATS.map(c=>`<div class="catopt ${formCat===c.id?'sel':''}" data-cat="${c.id}" onclick="pickCat(this)"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('')
     + `<div class="catopt" style="border-style:dashed" onclick="quickAddCat()"><span class="dot" style="background:#555"></span>+ nova</div>`;
@@ -716,13 +829,16 @@ function pickPrio(el){ formPrio=el.dataset.p||null; el.parentNode.querySelectorA
 function saveForm(){
   const title=document.getElementById('fTitle').value.trim(); if(!title){ alert('Escreva o que fazer.'); return; }
   const meta=document.getElementById('fMeta').value.trim();
-  const recur=document.getElementById('fRecur').value.trim()||null;
+  const fr=(formRecur&&formRecur.type&&formRecur.type!=='none')?JSON.parse(JSON.stringify(formRecur)):null;
+  const recur=fr?recLabel(fr):null;
   const subs=[...document.querySelectorAll('#subRows .subin')].map(i=>i.value.trim()).filter(Boolean).map(l=>({label:l,done:false}));
   if(editing){ const t=findTask(editing); t.title=title; t.meta=meta; t.cat=formCat; t.prio=formPrio; t.recur=recur;
+    if(fr)t.rec=fr; else delete t.rec;
     if(subs.length){ // preserva o done das que continuam
       t.subs=subs.map(ns=>{ const old=(t.subs||[]).find(o=>o.label===ns.label); return {label:ns.label,done:old?old.done:false}; }); }
-    else delete t.subs; }
-  else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; day().tasks.push(t); }
+    else delete t.subs;
+    syncRecurring(t); }
+  else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr; day().tasks.push(t); syncRecurring(t); }
   editing=null; closeSheet(); render();
 }
 function escapeAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
@@ -783,9 +899,25 @@ function buildNewDay(iso){
   tasks.push({id:uid(),cat:'lever',title:'METAS',meta:'Cota de produção do dia · zera todo dia',status:'pend',prio:'max',recur:'diária',goals:{posts:[0,1],stories:[0,4],ads:[0,2]}});
   tasks.push({id:uid(),cat:'lever',title:'Criativos do dia',meta:'Espelho da cota · 1 post · 4 stories · 2 ads',status:'pend',prio:null,recur:'diária',cota:[0,7]});
   tasks.push({id:uid(),cat:'pessoal',title:'Beber 2 garrafas de água',meta:'',status:'pend',prio:null,recur:'diária',subs:[{label:'Garrafa 1',done:false},{label:'Garrafa 2',done:false}]});
+  // recorrências do usuário (diário/semanal/mensal/anual)
+  const [Y,M,D]=iso.split('-').map(Number); const wd=new Date(Y,M-1,D).getDay(); const dim=new Date(Y,M,0).getDate();
+  (DB.recurring||[]).forEach(e=>{ const r=e.rec; if(!r)return; if(!CATS.find(c=>c.id===e.cat))return;
+    let hit=false;
+    if(r.type==='diario')hit=true;
+    else if(r.type==='semanal')hit=(r.days||[]).includes(wd);
+    else if(r.type==='mensal')hit=(D===Math.min(r.dom||1,dim));
+    else if(r.type==='anual'&&r.date){ const [rm,rd]=r.date.split('-').map(Number); const dd=(rm===M&&rd>dim)?dim:rd; hit=(M===rm&&D===dd); }
+    if(!hit)return;
+    const nt={id:uid(),rid:e.rid,cat:e.cat,title:e.title,meta:e.meta||'',status:'pend',prio:e.prio||null,recur:e.recur||recLabel(r),rec:r};
+    if(e.goals)nt.goals=JSON.parse(JSON.stringify(e.goals));
+    if(e.cota)nt.cota=[0,e.cota[1]];
+    if(e.subLabels)nt.subs=e.subLabels.map(l=>({label:l,done:false}));
+    tasks.push(nt);
+  });
   // carry-over do dia anterior
   if(prev){ prev.tasks.forEach(t=>{
     if(t.recur==='diária') return;                 // diárias já recriadas
+    if(t.rid) return;                              // recorrências do usuário já recriadas acima
     if(t.status==='done'||t.status==='canc') return; // feitas/canceladas ficam pra trás
     const nt=JSON.parse(JSON.stringify(t)); nt.id=uid();
     if(t.prio) nt.prio=null;                        // prioridade é do dia (METAS é exceção, mas ela é diária)
