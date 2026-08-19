@@ -16,7 +16,7 @@
 <style>
   :root{
     --bg:#000; --panel:#121417; --panel2:#0e1013; --line:#262a2e; --line2:#23272b;
-    --txt:#e8ebed; --txt2:#f0f2f4; --mut:#7a8288; --mut2:#8a97a0;
+    --txt:#e8ebed; --txt2:#f0f2f4; --mut:#98a1a8; --mut2:#a4adb4;
     --accent:#2FD9C9; --green:#22c55e; --amber:#F0B45E; --orange:#F97316;
     --star:#FBBF24; --sched:#a99bf0; --canc:#f87171; --adia:#8fb3d9;
   }
@@ -206,7 +206,7 @@
 
   .subs{ margin-top:9px; display:flex; flex-direction:column; gap:6px; }
   .sub{ display:flex; align-items:center; gap:9px; font-size:12px; color:#b7c0c6; cursor:pointer; }
-  .sub .sbox{ width:16px; height:16px; border-radius:4px; border:2px solid #3a3f45; flex-shrink:0; transition:transform .12s; }
+  .sub .sbox{ width:18px; height:18px; border-radius:5px; border:2px solid #3a3f45; flex-shrink:0; transition:transform .12s; }
   .sub:active .sbox{ transform:scale(.82); }
   .sub.sdone .sbox{ background:var(--green); border-color:var(--green); position:relative; }
   .sub.sdone .sbox::after{ content:"✓"; color:#05130b; font-size:10px; font-weight:800; position:absolute; top:-2px; left:2px; }
@@ -816,9 +816,19 @@ function refreshCatrow(){ const row=document.getElementById('catrow'); if(!row)r
     + `<div class="catopt" style="border-style:dashed" onclick="quickAddCat()"><span class="dot" style="background:#555"></span>+ nova</div>`;
 }
 function pickCat(el){ formCat=el.dataset.cat; document.querySelectorAll('#catrow .catopt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
-function quickAddCat(){ const n=prompt('Nome da nova categoria:'); if(!n||!n.trim())return;
-  let id=slug(n); while(CATS.some(c=>c.id===id))id+='x';
-  const P=palette(); CATS.push({id,name:n.trim(),color:P[CATS.length%P.length]}); save(); formCat=id; refreshCatrow(); }
+function quickAddCat(){ const row=document.getElementById('catrow'); if(!row)return;
+  const chip=document.createElement('div'); chip.className='catopt sel'; chip.style.borderStyle='dashed';
+  chip.innerHTML='<span class="dot" style="background:var(--accent)"></span><input id="qcName" placeholder="Nova categoria" maxlength="24" style="background:transparent;border:none;outline:none;color:var(--txt);font-size:12.5px;font-weight:600;font-family:inherit;width:118px">';
+  row.appendChild(chip);
+  const inp=document.getElementById('qcName'); if(inp)inp.focus();
+  let done=false;
+  const commit=(keep)=>{ if(done)return; const n=inp.value.trim();
+    if(!n){ refreshCatrow(); return; }
+    done=true; let id=slug(n); while(CATS.some(c=>c.id===id))id+='x';
+    const P=palette(); CATS.push({id,name:n,color:P[CATS.length%P.length]}); save(); formCat=id; refreshCatrow(); };
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); commit(); } else if(e.key==='Escape'){ done=true; refreshCatrow(); } });
+  inp.addEventListener('blur',()=>commit());
+}
 function subRowHtml(val){ return `<div class="subrow" style="display:flex;gap:8px;margin-bottom:6px">
     <input class="subin" value="${escapeAttr(val||'')}" placeholder="ex.: Garrafa 1" style="flex:1">
     <button type="button" onclick="this.parentNode.remove()" style="width:40px;flex-shrink:0;background:#1a1e23;border:1px solid #2a2f35;color:#f87171;border-radius:9px;font-size:15px;cursor:pointer">✕</button></div>`; }
@@ -1043,7 +1053,9 @@ function openSharedEditable(p){
 }
 
 /* tema */
-function applyTheme(t){ document.documentElement.setAttribute('data-theme',t); localStorage.setItem('assist-theme',t); }
+function applyTheme(t){ document.documentElement.setAttribute('data-theme',t); localStorage.setItem('assist-theme',t);
+  var mc={dark:'#000000',light:'#f4f5f7',miri:'#F3EFE5'}[t]||'#000000';
+  var m=document.querySelector('meta[name="theme-color"]'); if(m)m.setAttribute('content',mc); }
 function openThemePicker(){ const cur=document.documentElement.getAttribute('data-theme')||'dark';
   const sw=(a,b)=>`<span style="display:inline-flex;gap:3px;margin-left:auto"><span style="width:16px;height:16px;border-radius:4px;background:${a};border:1px solid rgba(128,128,128,.3)"></span><span style="width:16px;height:16px;border-radius:4px;background:${b};border:1px solid rgba(128,128,128,.3)"></span></span>`;
   const opt=(id,label,desc,a,b)=>`<button onclick="applyTheme('${id}');closeSheet()"><span class="ic">${cur===id?'✅':'　'}</span><b style="min-width:64px">${label}</b><span style="font-size:11px;color:var(--mut)">${desc}</span>${sw(a,b)}</button>`;
