@@ -58,6 +58,28 @@
   .cx .met b{color:#cfd6db}
   .cx .met .pz{color:var(--amber)}
   .cx .met .atr{color:var(--red)}
+
+  /* nichos (grupos de caixinhas por dono) */
+  .persum{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+  .persum .pchip{font-size:11.5px;font-weight:700;color:var(--txt2);background:var(--panel);border:1px solid var(--line);
+    border-radius:20px;padding:6px 12px;font-variant-numeric:tabular-nums}
+  .persum .pchip i{font-style:normal;font-weight:800;text-transform:uppercase;letter-spacing:.4px;font-size:9.5px;margin-right:6px;color:var(--mut)}
+  .persum .pchip.tot{border-color:var(--accent);color:#fff}
+  .persum .pchip.tot i{color:var(--accent)}
+  .grp{margin-bottom:11px}
+  .ghead{display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;cursor:pointer;user-select:none}
+  .ghead .chev{color:var(--mut);font-size:11px;transition:transform .2s;flex-shrink:0;width:11px}
+  .grp.col .ghead .chev{transform:rotate(-90deg)}
+  .ghead .gdot{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  .ghead .gnm{font-size:14px;font-weight:800;color:var(--txt2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ghead .gsub{font-size:11.5px;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ghead .gcog{border:none;background:transparent;color:var(--mut);font-size:15px;cursor:pointer;padding:0 4px}
+  .ghead .gcog:hover{color:var(--accent)}
+  .gbody{margin-top:8px}
+  .grp.col .gbody{display:none}
+  .ged{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:8px}
+  .gadd{display:inline-block;font-size:12px;font-weight:800;color:var(--accent);cursor:pointer;padding:6px 2px 2px}
   .tr{height:8px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:8px;border-radius:20px}
   .fl{height:100%;border-radius:20px}
   .ed{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
@@ -170,7 +192,7 @@
     </div>
   </div>
 
-  <h2>Caixinhas <span class="add" id="btNovaCx">+ nova</span></h2>
+  <h2>Caixinhas <span class="add" id="btNovoNicho">+ nicho</span></h2>
   <div id="listaCx"></div>
 
   <h2>Entrada avulsa</h2>
@@ -302,6 +324,7 @@ var PADRAO = {
   cx: [],
   hist: [], aportes: [], entradas: [],
   ap: {sal:"", con:""},
+  owners: [], ownerColors: {}, collapsed: {},
   vale: {ciclo:"Este mÃªs", mesIni:0, anoIni:2026, dia:20, orcS:"", orcM:"", l:[]}
 };
 
@@ -321,6 +344,14 @@ if(!D.cx.some(function(x){ return x.vale; })){
   var vv = D.cx.filter(function(x){ return /vale/i.test(x.n); })[0];
   if(vv) vv.vale = true;
 }
+/* nichos (de quem sao as caixinhas) */
+if(!Array.isArray(D.owners)) D.owners = [];
+if(!D.collapsed || typeof D.collapsed !== "object") D.collapsed = {};
+D.cx.forEach(function(x){ if(!x.own) x.own = "Minhas"; });
+D.cx.forEach(function(x){ if(D.owners.indexOf(x.own) < 0) D.owners.push(x.own); });
+if(!D.ownerColors || typeof D.ownerColors !== "object") D.ownerColors = {};
+var OWPAL = ["#2FD9C9","#A78BFA","#22C55E","#FBBF24","#f0883e","#38bdf8","#e878a8"];
+D.owners.forEach(function(o,i){ if(!D.ownerColors[o]) D.ownerColors[o] = OWPAL[i % OWPAL.length]; });
 
 var MES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 function brl(n){ return (n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -361,6 +392,7 @@ Array.prototype.forEach.call(document.querySelectorAll("nav button"),function(b)
 
 /* ================== 1. PATRIMONIO ================== */
 var abertos = {};
+var GOWN = [];   // ordem dos nichos no render atual (indice -> nome)
 
 function mesesAte(pz){
   if(!pz) return null;
@@ -385,8 +417,8 @@ function renderPatrimonio(){
       (d>=0?"▲ +":"▼ −")+"R$ "+brl(Math.abs(d))+" ("+brl(Math.abs(pc))+"%)</b> desde "+D.hist[D.hist.length-1].mes;
   } else { document.getElementById("pVar").textContent="primeiro registro — feche o mês para começar o histórico"; }
 
-  var h="";
-  D.cx.forEach(function(x){
+  function attr(s){ return String(s==null?"":s).replace(/"/g,"&quot;"); }
+  function cardCx(x){
     var met="";
     if(x.m>0){
       var q=Math.min(100,x.v/x.m*100), falta=Math.max(0,x.m-x.v);
@@ -405,22 +437,60 @@ function renderPatrimonio(){
       }
       met+='</div>';
     }
-    h+='<div class="cx" style="border-left-color:'+x.c+'" data-cx="'+x.id+'">' +
+    var opts=""; D.owners.forEach(function(o){ opts+='<option value="'+encodeURIComponent(o)+'"'+(o===x.own?" selected":"")+'>'+o+'</option>'; });
+    return '<div class="cx" style="border-left-color:'+x.c+'" data-cx="'+x.id+'">' +
          '<div class="lin"><span class="nm">'+x.n+(x.vale?' <span style="font-size:9px;color:#22C55E">· banca o vale</span>':'')+'</span>' +
          '<input class="r" inputmode="decimal" style="max-width:112px" data-v="'+x.id+'" value="'+brl(x.v)+'">' +
          '<button class="cog" data-cog="'+x.id+'">⚙</button></div>' + met +
          '<div class="ed'+(abertos[x.id]?" on":"")+'" data-ed="'+x.id+'">' +
-           '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+x.n+'"></div>' +
+           '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+attr(x.n)+'"></div>' +
            '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-c="'+x.id+'" value="'+x.c+'"></div></div>' +
            '<div class="gr">' +
              '<div><label class="lb">% do aporte</label><input class="r" inputmode="decimal" data-p="'+x.id+'" value="'+x.p+'"></div>' +
              '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
              '<div><label class="lb">Até (mês)</label><input type="month" data-pz="'+x.id+'" value="'+(x.pz||"")+'" style="color-scheme:dark"></div>' +
            '</div>' +
+           '<div class="gr"><div style="flex:1"><label class="lb">Nicho (de quem é)</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
            '<div class="acoes"><button class="bt n" data-vale="'+x.id+'">'+(x.vale?"✓ banca o vale":"marcar: banca o vale")+'</button>' +
            '<button class="bt d" data-del="'+x.id+'">Apagar caixinha</button></div>' +
          '</div></div>';
-  });
+  }
+
+  var owners=D.owners.slice();
+  D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
+  GOWN=owners;
+  var h="";
+  if(owners.length>=2){
+    var chips="";
+    owners.forEach(function(ow){ var s=0; D.cx.forEach(function(x){ if(x.own===ow) s+=x.v||0; });
+      chips+='<span class="pchip" style="border-color:'+(D.ownerColors[ow]||"#2FD9C9")+'55"><i style="color:'+(D.ownerColors[ow]||"#2FD9C9")+'">'+ow+'</i> R$ '+brl(s)+'</span>'; });
+    chips+='<span class="pchip tot"><i>Juntos</i> R$ '+brl(tc)+'</span>';
+    h+='<div class="persum">'+chips+'</div>';
+  }
+  if(!owners.length){
+    h+='<div class="vazio">Crie um nicho (ex.: Minhas, da Miri) e adicione as caixinhas de cada um.</div>';
+  } else {
+    owners.forEach(function(ow,gi){
+      var oc=D.ownerColors[ow]||"#2FD9C9";
+      var itens=D.cx.filter(function(x){ return x.own===ow; });
+      var sub=0; itens.forEach(function(x){ sub+=x.v||0; });
+      var col=!!D.collapsed[ow];
+      h+='<div class="grp'+(col?" col":"")+'">' +
+         '<div class="ghead" data-tog="'+gi+'" style="border-left:3px solid '+oc+'">' +
+           '<span class="chev">▾</span><span class="gdot" style="background:'+oc+'"></span>' +
+           '<span class="gnm">'+ow+'</span>' +
+           '<span class="gsub">R$ '+brl(sub)+' · '+itens.length+'</span>' +
+           '<button class="gcog" data-gedit="'+gi+'">⚙</button></div>' +
+         '<div class="gbody">' +
+           '<div class="ged" data-ged="'+gi+'" style="display:none">' +
+             '<div class="gr"><div style="flex:2"><label class="lb">Nome do nicho</label><input data-gname="'+gi+'" value="'+attr(ow)+'"></div>' +
+             '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-gcolor="'+gi+'" value="'+oc+'"></div></div>' +
+             '<div class="acoes"><button class="bt d" data-gdel="'+gi+'">Apagar nicho</button></div></div>';
+      itens.forEach(function(x){ h+=cardCx(x); });
+      h+= '<span class="gadd" data-gadd="'+gi+'">+ caixinha</span>' +
+         '</div></div>';
+    });
+  }
   document.getElementById("listaCx").innerHTML=h;
 
   var sel=document.getElementById("eDest"), sv=sel.value;
@@ -481,22 +551,62 @@ function ligarPatr(){
     if(!confirm("Remover a entrada de R$ "+brl(e.v)+"?\n\nO valor será descontado de onde foi lançado.")) return;
     if(e.dest==="cart") D.carteira-=e.v; else { var c=acharCx(e.dest); if(c) c.v-=e.v; }
     D.entradas.splice(i,1); salvar(); renderTudo(); }); });
+
+  /* ---- nichos ---- */
+  Array.prototype.forEach.call(q("[data-tog]"),function(hd){ hd.addEventListener("click",function(e){
+    if(e.target.closest("[data-gedit]")) return;
+    var ow=GOWN[+this.getAttribute("data-tog")]; D.collapsed[ow]=!D.collapsed[ow];
+    this.parentNode.classList.toggle("col"); salvar(); }); });
+  Array.prototype.forEach.call(q("[data-gedit]"),function(b){ b.addEventListener("click",function(e){ e.stopPropagation();
+    var gi=+this.getAttribute("data-gedit"), ow=GOWN[gi], grp=this.closest(".grp");
+    if(grp){ grp.classList.remove("col"); D.collapsed[ow]=false; salvar(); }
+    var ged=document.querySelector('[data-ged="'+gi+'"]'); if(ged) ged.style.display = ged.style.display==="none" ? "block" : "none"; }); });
+  Array.prototype.forEach.call(q("[data-gname]"),function(i){ i.addEventListener("change",function(){
+    var gi=+this.getAttribute("data-gname"), old=GOWN[gi], nn=this.value.trim()||old; if(nn===old) return;
+    var oi=D.owners.indexOf(old); if(oi>=0){ D.owners[oi]=nn; } else { D.owners.push(nn); }
+    D.cx.forEach(function(x){ if(x.own===old) x.own=nn; });
+    if(D.ownerColors[old]!==undefined){ if(!D.ownerColors[nn]) D.ownerColors[nn]=D.ownerColors[old]; delete D.ownerColors[old]; }
+    if(D.collapsed[old]!==undefined){ D.collapsed[nn]=D.collapsed[old]; delete D.collapsed[old]; }
+    salvar(); renderTudo(); }); });
+  Array.prototype.forEach.call(q("[data-gcolor]"),function(i){ i.addEventListener("change",function(){
+    var ow=GOWN[+this.getAttribute("data-gcolor")]; D.ownerColors[ow]=this.value; salvar(); renderTudo(); }); });
+  Array.prototype.forEach.call(q("[data-gdel]"),function(b){ b.addEventListener("click",function(){
+    var ow=GOWN[+this.getAttribute("data-gdel")], itens=D.cx.filter(function(x){return x.own===ow;});
+    if(itens.length){ if(!confirm('Apagar o nicho "'+ow+'" e as '+itens.length+' caixinhas dele?\n\nOs saldos somem do patrimônio.')) return;
+      D.cx=D.cx.filter(function(x){return x.own!==ow;}); }
+    else { if(!confirm('Apagar o nicho "'+ow+'"?')) return; }
+    var oi=D.owners.indexOf(ow); if(oi>=0) D.owners.splice(oi,1); delete D.ownerColors[ow]; delete D.collapsed[ow];
+    salvar(); renderTudo(); }); });
+  Array.prototype.forEach.call(q("[data-own]"),function(s){ s.addEventListener("change",function(){
+    var c=acharCx(this.getAttribute("data-own")); if(c){ c.own=decodeURIComponent(this.value); salvar(); renderTudo(); } }); });
+  Array.prototype.forEach.call(q("[data-gadd]"),function(b){ b.addEventListener("click",function(){
+    var ow=GOWN[+this.getAttribute("data-gadd")], span=this;
+    if(span.parentNode.querySelector(".novacxi")) { span.parentNode.querySelector(".novacxi").focus(); return; }
+    var wrap=document.createElement("div"); wrap.className="cx new"; wrap.style.borderLeftColor="#2FD9C9";
+    wrap.innerHTML='<div class="lin"><input class="novacxi" placeholder="Nome da caixinha — Enter" style="flex:1" maxlength="30"></div>';
+    span.parentNode.insertBefore(wrap, span);
+    var inp=wrap.querySelector(".novacxi"); inp.focus(); var feito=false;
+    function criar(){ if(feito)return; var n=inp.value.trim(); if(!n){ wrap.remove(); return; } feito=true;
+      maxId++; D.cx.push({id:maxId,n:n,c:"#8a97a0",v:0,p:0,m:0,pz:"",own:ow}); salvar(); renderTudo(); animarNovo("listaCx","first"); toast("Caixinha criada.","ok"); }
+    inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); criar(); } else if(e.key==="Escape"){ feito=true; wrap.remove(); } });
+    inp.addEventListener("blur",function(){ setTimeout(criar,120); }); }); });
 }
 
 document.getElementById("iCart").addEventListener("change",function(){ D.carteira=num(this.value); salvar(); renderTudo(); });
 
-document.getElementById("btNovaCx").addEventListener("click",function(){
-  var existente=document.getElementById("novaCxInp"); if(existente){ existente.focus(); return; }
+document.getElementById("btNovoNicho").addEventListener("click",function(){
+  var existente=document.getElementById("novoNichoInp"); if(existente){ existente.focus(); return; }
   var lista=document.getElementById("listaCx");
-  var wrap=document.createElement("div"); wrap.className="cx new"; wrap.style.borderLeftColor="#2FD9C9";
-  wrap.innerHTML='<div class="lin"><input id="novaCxInp" placeholder="Nome da nova caixinha — Enter para criar" style="flex:1" maxlength="30"></div>';
+  var wrap=document.createElement("div"); wrap.className="grp";
+  wrap.innerHTML='<div class="ghead" style="border-left:3px solid #2FD9C9"><span class="gdot" style="background:#2FD9C9"></span>' +
+    '<input id="novoNichoInp" placeholder="Nome do nicho (ex.: da Miri) — Enter" maxlength="24" ' +
+    'style="flex:1;background:transparent;border:none;color:var(--txt2);font-size:14px;font-weight:800;outline:none;padding:0"></div>';
   lista.insertBefore(wrap, lista.firstChild);
-  var inp=document.getElementById("novaCxInp"); inp.focus();
-  var feito=false;
+  var inp=document.getElementById("novoNichoInp"); inp.focus();
+  var feito=false, OWPAL=["#2FD9C9","#A78BFA","#22C55E","#FBBF24","#f0883e","#38bdf8","#e878a8"];
   function criar(){ if(feito) return; var n=inp.value.trim(); if(!n){ wrap.remove(); return; }
-    feito=true; maxId++;
-    D.cx.push({id:maxId, n:n, c:"#8a97a0", v:0, p:0, m:0, pz:""});
-    abertos[maxId]=true; salvar(); renderTudo(); animarNovo("listaCx","last"); toast("Caixinha criada.","ok"); }
+    feito=true; if(D.owners.indexOf(n)<0){ D.owners.push(n); if(!D.ownerColors[n]) D.ownerColors[n]=OWPAL[(D.owners.length-1)%OWPAL.length]; }
+    salvar(); renderTudo(); toast("Nicho criado.","ok"); }
   inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); criar(); } else if(e.key==="Escape"){ feito=true; wrap.remove(); } });
   inp.addEventListener("blur",function(){ setTimeout(criar,120); });
 });
