@@ -93,11 +93,18 @@
   .dz-tx{flex:1;cursor:pointer;word-break:break-word}
   .dz-x{color:var(--soft);font-size:21px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0}
   .dz-x:active{color:#b0503a}
-  .dz-add{margin-top:12px}
-  .dz-inp{width:100%;border:1.4px solid var(--soft);border-radius:12px;background:#fff;font-family:inherit;font-size:15px;padding:12px 13px;outline:none;color:var(--ink);
-    caret-color:var(--accent);box-shadow:0 2px 8px rgba(80,60,30,.07);transition:border-color .16s,box-shadow .16s}
+  .dz-add{display:flex;align-items:center;gap:9px;margin-top:14px;border:1.5px solid var(--soft);border-radius:15px;
+    background:#fff;padding:4px 6px 4px 13px;box-shadow:0 3px 12px rgba(80,60,30,.08);transition:border-color .16s,box-shadow .16s}
+  .dz-add:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,102,86,.16)}
+  .dz-addico{flex-shrink:0;color:var(--accent);font-size:20px;line-height:1;font-weight:700;transition:transform .16s}
+  .dz-add:focus-within .dz-addico{transform:rotate(90deg)}
+  .dz-inp{flex:1;min-width:0;border:none;background:transparent;font-family:inherit;font-size:15px;padding:11px 0;outline:none;color:var(--ink);caret-color:var(--accent)}
   .dz-inp::placeholder{color:var(--soft)}
-  .dz-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,102,86,.16)}
+  .dz-send{flex-shrink:0;width:36px;height:36px;border:none;border-radius:11px;background:var(--today);color:#F6EFE4;
+    font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    opacity:0;transform:scale(.6);transition:opacity .18s,transform .22s cubic-bezier(.3,1.4,.5,1)}
+  .dz-add.has .dz-send{opacity:1;transform:scale(1)}
+  .dz-send:active{transform:scale(.86)}
   .dz-foot{display:flex;gap:10px;margin-top:16px}
   .dz-foot button{flex:1;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .dz-open{background:var(--today);color:#F6EFE4}
@@ -450,7 +457,7 @@ var SEED = {"tasks":{},"notes":{}};
     c.appendChild(n);
     tarefas(s).forEach(function(t){ c.appendChild(taskBar(s,t)); });
     var add=el("div","badd"); add.textContent="+ tarefa";
-    add.addEventListener("click",function(e){ e.stopPropagation(); inlineAdd(c,s); });
+    add.addEventListener("click",function(e){ e.stopPropagation(); openDayZoom(s,true); });
     c.appendChild(add);
     c.addEventListener("click",function(e){ if(e.target===c) openDayZoom(s); });
     return c;
@@ -459,7 +466,7 @@ var SEED = {"tasks":{},"notes":{}};
   // ---------- ZOOM DO DIA (salta do calendário e amplia no centro)
   var WDFULL=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
   function findDayCell(s){ return document.querySelector('.bcell[data-day="'+s+'"]'); }
-  function openDayZoom(s){
+  function openDayZoom(s,focusAdd){
     var ov=el("div","dzoom-ov"); var card=el("div","dzoom");
     var mn=el("div","dz-min"); mn.textContent="−"; mn.title="voltar ao calendário";
     mn.addEventListener("click",function(){ closeZoom(); }); card.appendChild(mn);
@@ -470,9 +477,14 @@ var SEED = {"tasks":{},"notes":{}};
     head.appendChild(num); head.appendChild(wk); card.appendChild(head);
     var body=el("div","dz-body"); card.appendChild(body);
     var add=el("div","dz-add");
-    var inp=document.createElement("input"); inp.className="dz-inp"; inp.placeholder="+ nova tarefa"; inp.setAttribute("enterkeyhint","done");
-    inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ var v=inp.value.trim(); if(v){ addTarefa(s,v); inp.value=""; paint(); inp.focus(); } } });
-    add.appendChild(inp); card.appendChild(add);
+    var ico=el("span","dz-addico"); ico.textContent="+";
+    var inp=document.createElement("input"); inp.className="dz-inp"; inp.placeholder="Escrever uma tarefa…"; inp.setAttribute("enterkeyhint","done");
+    var send=document.createElement("button"); send.className="dz-send"; send.textContent="↑"; send.title="adicionar";
+    function commitAdd(){ var v=inp.value.trim(); if(!v){ inp.focus(); return; } addTarefa(s,v); inp.value=""; add.classList.remove("has"); paint(); inp.focus(); }
+    inp.addEventListener("input",function(){ add.classList.toggle("has", !!inp.value.trim()); });
+    inp.addEventListener("keydown",function(e){ if(e.key==="Enter") commitAdd(); });
+    send.addEventListener("click",commitAdd);
+    add.appendChild(ico); add.appendChild(inp); add.appendChild(send); card.appendChild(add);
     var foot=el("div","dz-foot");
     var opn=el("button","dz-open"); opn.textContent="Abrir dia completo →";
     opn.addEventListener("click",function(){ ov.remove(); sel=s; setTab("dia"); render(); });
@@ -519,6 +531,7 @@ var SEED = {"tasks":{},"notes":{}};
       ],{duration:360,easing:"cubic-bezier(.22,1,.3,1)"});
     } else { card.animate([{transform:"scale(.6)",opacity:0},{transform:"scale(1.06)",opacity:1,offset:.7},{transform:"scale(1)",opacity:1}],{duration:320,easing:"cubic-bezier(.22,1,.3,1)"}); }
     ov.animate([{opacity:0},{opacity:1}],{duration:220});
+    if(focusAdd) setTimeout(function(){ inp.focus(); },340);
   }
 
   // ---------- VIEW MÊS (board estilo planner)
