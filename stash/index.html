@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#04060c">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icone-192.png"><link rel="apple-touch-icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
 <title>Stash</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -148,6 +148,20 @@
   nav button.on .ic{filter:none;drop-shadow:0 0 8px #00F0FF}
   nav button.on::before{content:"";position:absolute;top:-8px;left:22%;right:22%;height:2px;background:#00F0FF;
                         box-shadow:0 0 12px #00F0FF}
+
+  /* entrada de itens novos */
+  @keyframes rowIn{from{opacity:0;transform:translateY(-9px) scale(.985)}to{opacity:1;transform:none}}
+  .lc.new,.cx.new{animation:rowIn .34s cubic-bezier(.2,.9,.3,1)}
+  /* toast (substitui alert nativo) */
+  #__toast{position:fixed;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+    z-index:60;max-width:88%;padding:11px 16px;font-size:12px;font-weight:800;letter-spacing:.4px;color:#04060c;
+    background:#00F0FF;border:1px solid #00F0FF;box-shadow:0 0 22px rgba(0,240,255,.5);opacity:0;pointer-events:none;
+    transition:opacity .22s, transform .22s cubic-bezier(.2,.9,.3,1);
+    clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
+  #__toast.show{opacity:1;transform:translate(-50%,0)}
+  #__toast.err{background:#FF2E97;border-color:#FF2E97;color:#fff;box-shadow:0 0 22px rgba(255,46,151,.5)}
+  #__toast.ok{background:#39FF88;border-color:#39FF88;color:#04140a;box-shadow:0 0 22px rgba(57,255,136,.5)}
+  @media (prefers-reduced-motion:reduce){.lc.new,.cx.new{animation:none}}
 </style>
 </head>
 <body>
@@ -168,7 +182,7 @@
   <div class="duo">
     <div class="cd" style="border-left-color:#a78bfa">
       <div class="cl">Carteira de investimentos</div>
-      <div class="cv"><input class="r" id="iCart" style="border:none;background:transparent;padding:0;font-size:18px"></div>
+      <div class="cv"><input class="r" id="iCart" inputmode="decimal" style="border:none;background:transparent;padding:0;font-size:18px"></div>
       <div class="cm" id="pCartPc">—</div>
     </div>
     <div class="cd" style="border-left-color:#22C55E">
@@ -306,11 +320,24 @@
 <script>
 /* ================== DADOS ================== */
 var PADRAO = {
-  carteira: 0,
-  cx: [],
+  carteira: 5119.96,
+  cx: [
+    {id:1,  n:"Reserva de emergência", c:"#6ea8f0", v:3136.59, p:15, m:10000,  pz:""},
+    {id:2,  n:"Casa",                  c:"#f97316", v:453.92,  p:13, m:10000,  pz:""},
+    {id:3,  n:"Moto / Carro",          c:"#94a3b8", v:291.96,  p:12, m:5000,   pz:""},
+    {id:4,  n:"Viagem",                c:"#fcd34d", v:133.36,  p:12, m:2000,   pz:""},
+    {id:5,  n:"Casamento",             c:"#e878a8", v:1464.80, p:10, m:30000,  pz:""},
+    {id:6,  n:"Igor do futuro",        c:"#2FD9C9", v:1073.11, p:10, m:100000, pz:""},
+    {id:7,  n:"Igor do presente",      c:"#38bdf8", v:401.37,  p:10, m:800,    pz:""},
+    {id:8,  n:"Mês",                   c:"#FBBF24", v:825.47,  p:5,  m:1500,   pz:""},
+    {id:9,  n:"Saúde",                 c:"#f87171", v:61.66,   p:5,  m:5000,   pz:""},
+    {id:10, n:"Educação",              c:"#c084fc", v:473.65,  p:5,  m:5000,   pz:""},
+    {id:11, n:"Bitcoin",               c:"#f7931a", v:191.06,  p:3,  m:0,      pz:""},
+    {id:12, n:"Vale",                  c:"#22C55E", v:1013.19, p:0,  m:0,      pz:"", vale:true}
+  ],
   hist: [], aportes: [], entradas: [],
   ap: {sal:"", con:""},
-  vale: {ciclo:"Julho", mesIni:6, anoIni:2026, dia:20, orcS:"", orcM:"", l:[]}
+  vale: {ciclo:"Julho/Agosto", mesIni:6, anoIni:2026, dia:20, orcS:"", orcM:"", l:[]}
 };
 
 var KEY = "financas-app-v2";
@@ -320,6 +347,9 @@ if(!D) D = JSON.parse(JSON.stringify(PADRAO));
 ["hist","aportes","entradas"].forEach(function(k){ if(!D[k]) D[k] = []; });
 if(!D.vale) D.vale = JSON.parse(JSON.stringify(PADRAO.vale));
 if(!D.vale.l) D.vale.l = [];
+if(!D.ap || typeof D.ap !== "object") D.ap = {sal:"",con:""};
+if(!Array.isArray(D.cx)) D.cx = JSON.parse(JSON.stringify(PADRAO.cx));
+if(typeof D.carteira !== "number") D.carteira = 0;
 var maxId = 0;
 D.cx.forEach(function(x,i){ if(!x.id) x.id = i+1; if(x.pz === undefined) x.pz = ""; if(x.id > maxId) maxId = x.id; });
 if(!D.cx.some(function(x){ return x.vale; })){
@@ -329,7 +359,9 @@ if(!D.cx.some(function(x){ return x.vale; })){
 
 var MES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 function brl(n){ return (n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function num(s){ if(s===0) return 0; if(!s) return 0; var v=String(s).replace(/\./g,"").replace(",","."); v=parseFloat(v.replace(/[^0-9.\-]/g,"")); return isNaN(v)?0:v; }
+function num(s){ if(s===0) return 0; if(!s) return 0; s=String(s).trim();
+  if(s.indexOf(",")>=0){ s=s.replace(/\./g,"").replace(",","."); }
+  var v=parseFloat(s.replace(/[^0-9.\-]/g,"")); return isNaN(v)?0:v; }
 var tS=null;
 function salvar(){
   try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){}
@@ -339,6 +371,14 @@ function salvar(){
 function caixinhaVale(){ return D.cx.filter(function(x){ return x.vale; })[0] || null; }
 function totalCx(){ var s=0; D.cx.forEach(function(x){ s+=x.v||0; }); return s; }
 function total(){ return (D.carteira||0) + totalCx(); }
+
+/* feedback moderno (toast + animação de item novo) */
+function toast(msg,tipo){ var t=document.getElementById("__toast");
+  if(!t){ t=document.createElement("div"); t.id="__toast"; document.body.appendChild(t); }
+  t.textContent=msg; t.className="show"+(tipo?(" "+tipo):"");
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.className=""; },2200); }
+function animarNovo(id,pos){ var c=document.getElementById(id); if(!c)return;
+  var el=(pos==="last")?c.lastElementChild:c.firstElementChild; if(el) el.classList.add("new"); }
 
 /* ================== NAV ================== */
 var TIT={1:"Patrimônio",2:"Aporte do mês",3:"Gastos do ciclo"};
@@ -402,14 +442,14 @@ function renderPatrimonio(){
     }
     h+='<div class="cx" style="border-left-color:'+x.c+'" data-cx="'+x.id+'">' +
          '<div class="lin"><span class="nm">'+x.n+(x.vale?' <span style="font-size:9px;color:#22C55E">· banca o vale</span>':'')+'</span>' +
-         '<input class="r" style="max-width:112px" data-v="'+x.id+'" value="'+brl(x.v)+'">' +
+         '<input class="r" inputmode="decimal" style="max-width:112px" data-v="'+x.id+'" value="'+brl(x.v)+'">' +
          '<button class="cog" data-cog="'+x.id+'">⚙</button></div>' + met +
          '<div class="ed'+(abertos[x.id]?" on":"")+'" data-ed="'+x.id+'">' +
            '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+x.n+'"></div>' +
            '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-c="'+x.id+'" value="'+x.c+'"></div></div>' +
            '<div class="gr">' +
-             '<div><label class="lb">% do aporte</label><input class="r" data-p="'+x.id+'" value="'+x.p+'"></div>' +
-             '<div><label class="lb">Meta R$</label><input class="r" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
+             '<div><label class="lb">% do aporte</label><input class="r" inputmode="decimal" data-p="'+x.id+'" value="'+x.p+'"></div>' +
+             '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
              '<div><label class="lb">Até (mês)</label><input type="month" data-pz="'+x.id+'" value="'+(x.pz||"")+'" style="color-scheme:dark"></div>' +
            '</div>' +
            '<div class="acoes"><button class="bt n" data-vale="'+x.id+'">'+(x.vale?"✓ banca o vale":"marcar: banca o vale")+'</button>' +
@@ -481,15 +521,24 @@ function ligarPatr(){
 document.getElementById("iCart").addEventListener("change",function(){ D.carteira=num(this.value); salvar(); renderTudo(); });
 
 document.getElementById("btNovaCx").addEventListener("click",function(){
-  var n=prompt("Nome da caixinha nova:"); if(!n) return;
-  maxId++;
-  D.cx.push({id:maxId, n:n.trim(), c:"#8a97a0", v:0, p:0, m:0, pz:""});
-  abertos[maxId]=true; salvar(); renderTudo();
+  var existente=document.getElementById("novaCxInp"); if(existente){ existente.focus(); return; }
+  var lista=document.getElementById("listaCx");
+  var wrap=document.createElement("div"); wrap.className="cx new"; wrap.style.borderLeftColor="#00F0FF";
+  wrap.innerHTML='<div class="lin"><input id="novaCxInp" placeholder="Nome da nova caixinha — Enter para criar" style="flex:1" maxlength="30"></div>';
+  lista.insertBefore(wrap, lista.firstChild);
+  var inp=document.getElementById("novaCxInp"); inp.focus();
+  var feito=false;
+  function criar(){ if(feito) return; var n=inp.value.trim(); if(!n){ wrap.remove(); return; }
+    feito=true; maxId++;
+    D.cx.push({id:maxId, n:n, c:"#8a97a0", v:0, p:0, m:0, pz:""});
+    abertos[maxId]=true; salvar(); renderTudo(); animarNovo("listaCx","last"); toast("Caixinha criada.","ok"); }
+  inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); criar(); } else if(e.key==="Escape"){ feito=true; wrap.remove(); } });
+  inp.addEventListener("blur",function(){ setTimeout(criar,120); });
 });
 
 document.getElementById("eAdd").addEventListener("click",function(){
   var v=num(document.getElementById("eVal").value);
-  if(!v){ alert("Informe o valor."); return; }
+  if(!v){ toast("Informe o valor.","err"); document.getElementById("eVal").focus(); return; }
   var dest=document.getElementById("eDest").value;
   var d=document.getElementById("eDesc").value.trim()||"Entrada";
   var destN="Carteira de investimentos";
@@ -497,7 +546,7 @@ document.getElementById("eAdd").addEventListener("click",function(){
   var h=new Date();
   D.entradas.push({d:d, v:v, dest:dest, destN:destN, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
   document.getElementById("eDesc").value=""; document.getElementById("eVal").value="";
-  salvar(); renderTudo();
+  salvar(); renderTudo(); animarNovo("listaEntradas","first"); toast("Entrada registrada.","ok");
 });
 
 document.getElementById("btSnap").addEventListener("click",function(){
@@ -507,7 +556,7 @@ document.getElementById("btSnap").addEventListener("click",function(){
     D.hist.pop();
   } else if(!confirm('Guardar o patrimônio de hoje como "'+nome+'"?')) return;
   D.hist.push({mes:nome, total:total(), carteira:D.carteira, cx:D.cx.map(function(x){ return {n:x.n,v:x.v}; })});
-  salvar(); renderTudo();
+  salvar(); renderTudo(); animarNovo("listaHist","first"); toast("Mês guardado no histórico.","ok");
 });
 
 /* ================== 2. APORTE ================== */
@@ -562,14 +611,14 @@ function renderAporte(){
 
 document.getElementById("btAplicar").addEventListener("click",function(){
   var vb=verba();
-  if(!vb){ alert("Informe salário e contas primeiro."); return; }
+  if(!vb){ toast("Informe salário e contas primeiro.","err"); document.getElementById("aSal").focus(); return; }
   var h=new Date(), mes=MES[h.getMonth()]+" "+h.getFullYear();
   if(!confirm("Somar R$ "+brl(vb)+" nas caixinhas conforme os percentuais?\n\nIsso altera os saldos da tela Patrimônio.")) return;
   var det=[], tot=0;
   D.cx.forEach(function(x){ if(x.p){ var q=vb*x.p/100; x.v+=q; tot+=q; det.push({id:x.id,n:x.n,v:q}); } });
   D.aportes.push({mes:mes, v:tot, det:det, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
-  salvar(); renderTudo();
-  alert("Aporte de R$ "+brl(tot)+" aplicado.");
+  salvar(); renderTudo(); animarNovo("listaAportes","first");
+  toast("Aporte de R$ "+brl(tot)+" aplicado.","ok");
 });
 
 /* ================== 3. GASTOS ================== */
@@ -646,13 +695,13 @@ function renderGastos(){
 document.getElementById("gAdd").addEventListener("click",function(){
   var iso=document.getElementById("gDt").value||hojeISO();
   var v=num(document.getElementById("gVal").value);
-  if(!v){ alert("Informe o valor."); return; }
+  if(!v){ toast("Informe o valor.","err"); document.getElementById("gVal").focus(); return; }
   var loc=document.getElementById("gLoc").value.trim();
   var cat=document.getElementById("gCat").value, p=iso.split("-");
   D.vale.l.push({d:loc||(cat==="S"?"Saída":"Mercado"), v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso});
   var cv=caixinhaVale(); if(cv) cv.v-=v;
   document.getElementById("gLoc").value=""; document.getElementById("gVal").value="";
-  salvar(); renderTudo();
+  salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok");
 });
 
 document.getElementById("gNovoCiclo").addEventListener("click",function(){
@@ -682,19 +731,26 @@ document.getElementById("fileImp").addEventListener("change",function(){
       if(!confirm("Substituir todos os dados atuais pelo backup?")) return;
       D=o; ["hist","aportes","entradas"].forEach(function(k){ if(!D[k]) D[k]=[]; });
       if(!D.vale) D.vale=JSON.parse(JSON.stringify(PADRAO.vale)); if(!D.vale.l) D.vale.l=[];
+      if(!D.ap || typeof D.ap!=="object") D.ap={sal:"",con:""};
+      if(!Array.isArray(D.cx)) D.cx=JSON.parse(JSON.stringify(PADRAO.cx));
+      if(typeof D.carteira!=="number") D.carteira=0;
       D.cx.forEach(function(x,i){ if(!x.id) x.id=i+1; if(x.id>maxId) maxId=x.id; });
       salvar();
       document.getElementById("aSal").value=D.ap.sal||"";
       document.getElementById("aCon").value=D.ap.con||"";
       document.getElementById("gOrcS").value=D.vale.orcS||"";
       document.getElementById("gOrcM").value=D.vale.orcM||"";
-      renderTudo(); alert("Backup importado.");
-    }catch(e){ alert("Arquivo inválido."); }
+      renderTudo(); toast("Backup importado.","ok");
+    }catch(e){ toast("Arquivo inválido.","err"); }
   };
   fr.readAsText(f); this.value="";
 });
 
 /* ================== INIT ================== */
+/* Enter confirma valores nos campos numéricos (dispara o change via blur) */
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter" && e.target && e.target.classList && e.target.classList.contains("r")) e.target.blur();
+});
 function renderTudo(){ renderPatrimonio(); renderAporte(); renderGastos(); }
 renderTudo();
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
@@ -716,7 +772,8 @@ if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
 #__welcome .__wbtn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:__wSheen 1.1s ease .62s}
 #__welcome.__leaving .__wcard{animation:__wOut .2s ease forwards}
 #__welcome.__leaving .__wbg{animation:__wFadeOut .2s ease forwards}
-@keyframes __wFade{to{opacity:1}}@keyframes __wFadeOut{to{opacity:0}}
+@keyframes __wFade{to{opacity:1}}
+@keyframes __wFadeOut{to{opacity:0}}
 @keyframes __wIn{to{transform:translateY(0) scale(1);opacity:1}}
 @keyframes __wOut{to{transform:translateY(12px) scale(.96);opacity:0}}
 @keyframes __wPop{0%{transform:scale(0)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
