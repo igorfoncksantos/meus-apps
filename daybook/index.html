@@ -67,7 +67,12 @@
   .badd{margin-top:auto;font-size:10.5px;color:var(--soft);cursor:pointer;opacity:0;padding:2px 0}
   .bcell:hover .badd{opacity:1}
   @media (hover:none){ .badd{opacity:.5} }
-  .binp{width:100%;margin-top:auto;border:1px solid var(--accent);border-radius:5px;background:#fff;font-family:inherit;font-size:11px;padding:3px 5px;outline:none}
+  .binp{width:100%;margin-top:auto;border:1.4px solid var(--soft);border-radius:9px;background:#fff;font-family:inherit;font-size:11px;
+    padding:5px 7px;outline:none;color:var(--ink);caret-color:var(--accent);box-shadow:0 2px 7px rgba(80,60,30,.09);
+    transition:border-color .16s,box-shadow .16s;animation:binpIn .24s cubic-bezier(.2,.9,.3,1)}
+  .binp::placeholder{color:var(--soft)}
+  .binp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,102,86,.17)}
+  @keyframes binpIn{from{opacity:0;transform:translateY(5px) scale(.95)}to{opacity:1;transform:none}}
   /* ===== ZOOM DO DIA (salta do calendário) ===== */
   .dzoom-ov{position:fixed;inset:0;z-index:140;display:flex;align-items:center;justify-content:center;padding:20px;
     background:rgba(46,38,26,.34);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
@@ -89,7 +94,10 @@
   .dz-x{color:var(--soft);font-size:21px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0}
   .dz-x:active{color:#b0503a}
   .dz-add{margin-top:12px}
-  .dz-inp{width:100%;border:1px solid var(--accent);border-radius:11px;background:#fff;font-family:inherit;font-size:15px;padding:11px 12px;outline:none;color:var(--ink)}
+  .dz-inp{width:100%;border:1.4px solid var(--soft);border-radius:12px;background:#fff;font-family:inherit;font-size:15px;padding:12px 13px;outline:none;color:var(--ink);
+    caret-color:var(--accent);box-shadow:0 2px 8px rgba(80,60,30,.07);transition:border-color .16s,box-shadow .16s}
+  .dz-inp::placeholder{color:var(--soft)}
+  .dz-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,102,86,.16)}
   .dz-foot{display:flex;gap:10px;margin-top:16px}
   .dz-foot button{flex:1;border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
   .dz-open{background:var(--today);color:#F6EFE4}
@@ -137,16 +145,22 @@
   .task .del:hover{opacity:1;color:#c06a52}
   @media (hover:none){ .task .del{opacity:.8} }
 
-  .addrow{display:flex;align-items:center;gap:12px;padding:8px 2px}
-  .addrow .p{flex-shrink:0;width:20px;height:20px;border-radius:50%;border:1.4px dashed var(--soft);
-             display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;color:var(--soft);cursor:pointer}
-  .addrow input{flex:1;border:none;background:transparent;font-family:inherit;font-size:15px;color:var(--ink);outline:none;padding:2px 0}
+  .addrow{display:flex;align-items:center;gap:11px;padding:10px 13px;border:1.4px solid var(--line);border-radius:13px;
+          background:var(--surface);transition:border-color .16s,box-shadow .16s,background .16s}
+  .addrow:focus-within{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(110,102,86,.14)}
+  .addrow .p{flex-shrink:0;width:22px;height:22px;border-radius:50%;border:1.4px dashed var(--soft);
+             display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;color:var(--soft);cursor:pointer;
+             transition:background .16s,border-color .16s,color .16s,transform .12s}
+  .addrow:focus-within .p{background:var(--accent);border-style:solid;border-color:var(--accent);color:#F6EFE4}
+  .addrow .p:active{transform:scale(.88)}
+  .addrow input{flex:1;border:none;background:transparent;font-family:inherit;font-size:15px;color:var(--ink);outline:none;padding:2px 0;caret-color:var(--accent)}
   .addrow input::placeholder{color:var(--soft)}
 
   .note{margin:8px 0 2px;font-size:13px;color:var(--muted);outline:none;border-left:2px solid var(--line);
-        padding:3px 0 3px 11px;min-height:20px;font-style:italic;font-family:'Montserrat',sans-serif;line-height:1.5}
+        padding:6px 8px 6px 12px;min-height:20px;font-style:italic;font-family:'Montserrat',sans-serif;line-height:1.5;
+        border-radius:0 9px 9px 0;transition:border-left-color .16s,background .16s,box-shadow .16s}
   .note:empty::before{content:"anotações do dia…";color:var(--soft)}
-  .note:focus{border-left-color:var(--accent);color:var(--ink)}
+  .note:focus{border-left-color:var(--accent);color:var(--ink);background:#fff;box-shadow:0 2px 10px rgba(80,60,30,.07)}
 
   .vazio{text-align:center;color:var(--soft);font-size:13.5px;padding:22px 10px;line-height:1.6;font-style:italic;font-family:'Montserrat',sans-serif}
 
