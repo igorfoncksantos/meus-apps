@@ -192,7 +192,7 @@
     </div>
   </div>
 
-  <h2>Caixinhas <span class="add" id="btNovoNicho">+ nicho</span></h2>
+  <h2>Caixinhas <span class="add" id="btNovoNicho">+ dono</span></h2>
   <div id="listaCx"></div>
 
   <h2>Entrada avulsa</h2>
@@ -325,7 +325,7 @@ var PADRAO = {
   hist: [], aportes: [], entradas: [],
   ap: {sal:"", con:""},
   owners: [], ownerColors: {}, collapsed: {},
-  vale: {ciclo:"Este mÃªs", mesIni:0, anoIni:2026, dia:20, orcS:"", orcM:"", l:[]}
+  vale: {ciclo:"Ciclo atual", mesIni:0, anoIni:2026, dia:20, orcS:"", orcM:"", l:[]}
 };
 
 var KEY = "financas-app-v2";
@@ -335,6 +335,7 @@ if(!D) D = JSON.parse(JSON.stringify(PADRAO));
 ["hist","aportes","entradas"].forEach(function(k){ if(!D[k]) D[k] = []; });
 if(!D.vale) D.vale = JSON.parse(JSON.stringify(PADRAO.vale));
 if(!D.vale.l) D.vale.l = [];
+if(D.vale && typeof D.vale.ciclo === "string" && /Ã/.test(D.vale.ciclo)) D.vale.ciclo = "Ciclo atual";
 if(!D.ap || typeof D.ap !== "object") D.ap = {sal:"",con:""};
 if(!Array.isArray(D.cx)) D.cx = JSON.parse(JSON.stringify(PADRAO.cx));
 if(typeof D.carteira !== "number") D.carteira = 0;
@@ -450,7 +451,7 @@ function renderPatrimonio(){
              '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
              '<div><label class="lb">Até (mês)</label><input type="month" data-pz="'+x.id+'" value="'+(x.pz||"")+'" style="color-scheme:dark"></div>' +
            '</div>' +
-           '<div class="gr"><div style="flex:1"><label class="lb">Nicho (de quem é)</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
+           '<div class="gr"><div style="flex:1"><label class="lb">Dono da caixinha</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
            '<div class="acoes"><button class="bt n" data-vale="'+x.id+'">'+(x.vale?"✓ banca o vale":"marcar: banca o vale")+'</button>' +
            '<button class="bt d" data-del="'+x.id+'">Apagar caixinha</button></div>' +
          '</div></div>';
@@ -468,7 +469,7 @@ function renderPatrimonio(){
     h+='<div class="persum">'+chips+'</div>';
   }
   if(!owners.length){
-    h+='<div class="vazio">Crie um nicho (ex.: Minhas, da Miri) e adicione as caixinhas de cada um.</div>';
+    h+='<div class="vazio" style="padding:20px 4px"><div style="margin-bottom:13px;text-transform:none">Comece adicionando um <b style="color:var(--accent)">dono</b> (ex.: Minhas, da Miri) e as caixinhas de cada um.</div><button class="bt p" id="btDonoVazio" style="width:auto">+ Adicionar dono</button></div>';
   } else {
     owners.forEach(function(ow,gi){
       var oc=D.ownerColors[ow]||"#2FD9C9";
@@ -483,7 +484,7 @@ function renderPatrimonio(){
            '<button class="gcog" data-gedit="'+gi+'">⚙</button></div>' +
          '<div class="gbody">' +
            '<div class="ged" data-ged="'+gi+'" style="display:none">' +
-             '<div class="gr"><div style="flex:2"><label class="lb">Nome do nicho</label><input data-gname="'+gi+'" value="'+attr(ow)+'"></div>' +
+             '<div class="gr"><div style="flex:2"><label class="lb">Nome do dono</label><input data-gname="'+gi+'" value="'+attr(ow)+'"></div>' +
              '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-gcolor="'+gi+'" value="'+oc+'"></div></div>' +
              '<div class="acoes"><button class="bt d" data-gdel="'+gi+'">Apagar nicho</button></div></div>';
       itens.forEach(function(x){ h+=cardCx(x); });
@@ -590,6 +591,7 @@ function ligarPatr(){
       maxId++; D.cx.push({id:maxId,n:n,c:"#8a97a0",v:0,p:0,m:0,pz:"",own:ow}); salvar(); renderTudo(); animarNovo("listaCx","first"); toast("Caixinha criada.","ok"); }
     inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); criar(); } else if(e.key==="Escape"){ feito=true; wrap.remove(); } });
     inp.addEventListener("blur",function(){ setTimeout(criar,120); }); }); });
+  var bv=document.getElementById("btDonoVazio"); if(bv) bv.addEventListener("click",function(){ document.getElementById("btNovoNicho").click(); });
 }
 
 document.getElementById("iCart").addEventListener("change",function(){ D.carteira=num(this.value); salvar(); renderTudo(); });
@@ -599,14 +601,14 @@ document.getElementById("btNovoNicho").addEventListener("click",function(){
   var lista=document.getElementById("listaCx");
   var wrap=document.createElement("div"); wrap.className="grp";
   wrap.innerHTML='<div class="ghead" style="border-left:3px solid #2FD9C9"><span class="gdot" style="background:#2FD9C9"></span>' +
-    '<input id="novoNichoInp" placeholder="Nome do nicho (ex.: da Miri) — Enter" maxlength="24" ' +
+    '<input id="novoNichoInp" placeholder="Nome do dono (ex.: da Miri) — Enter" maxlength="24" ' +
     'style="flex:1;background:transparent;border:none;color:var(--txt2);font-size:14px;font-weight:800;outline:none;padding:0"></div>';
   lista.insertBefore(wrap, lista.firstChild);
   var inp=document.getElementById("novoNichoInp"); inp.focus();
   var feito=false, OWPAL=["#2FD9C9","#A78BFA","#22C55E","#FBBF24","#f0883e","#38bdf8","#e878a8"];
   function criar(){ if(feito) return; var n=inp.value.trim(); if(!n){ wrap.remove(); return; }
     feito=true; if(D.owners.indexOf(n)<0){ D.owners.push(n); if(!D.ownerColors[n]) D.ownerColors[n]=OWPAL[(D.owners.length-1)%OWPAL.length]; }
-    salvar(); renderTudo(); toast("Nicho criado.","ok"); }
+    salvar(); renderTudo(); toast("Dono criado.","ok"); }
   inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); criar(); } else if(e.key==="Escape"){ feito=true; wrap.remove(); } });
   inp.addEventListener("blur",function(){ setTimeout(criar,120); });
 });
