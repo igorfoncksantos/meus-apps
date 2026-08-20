@@ -184,8 +184,10 @@
   .item.prio{ border-color:var(--amber)!important; background:#17140d; box-shadow:inset 0 0 0 1px rgba(240,180,94,.26); }
   .item.canc{ background:#140d0e; }
   .item.canc .t{ color:#8a7f7f; text-decoration:none; }
-  .item.sched{ opacity:.7; }
-  .item.sched .t{ color:#a9a0c8; }
+  .item.sched{ position:relative; }
+  .item.sched::after{ content:""; position:absolute; inset:0; background:var(--catcolor,#7a8288); opacity:.4;
+                      border-radius:9px; pointer-events:none; }
+  .item.sched .box, .item.sched .tag{ position:relative; z-index:2; }  /* cadeado e etiqueta ficam acima da pelicula */
   .item.adiado{ opacity:.74; background:#0e1216; }
   .box{ flex-shrink:0; width:23px; height:23px; border-radius:6px; border:2.5px solid #3a3f45; margin-top:1px;
         cursor:pointer; position:relative; transition:transform .12s; }
@@ -596,7 +598,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v9 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v10 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -605,7 +607,7 @@ function itemEl(t,c){
   let cls='item'; if(t.status==='done')cls+=' done'; if(t.status==='canc')cls+=' canc';
   if(t.status==='sched')cls+=' sched'; if(t.status==='adiado')cls+=' adiado';
   if(t.prio==='max')cls+=' priomax'; if(t.prio==='star')cls+=' prio';
-  el.className=cls; el.style.borderLeftColor=c.color;
+  el.className=cls; el.style.borderLeftColor=c.color; el.style.setProperty('--catcolor', c.color);
 
   let chips='';
   if(t.prio==='max') chips+=` <span class="pchip">★★ Prioridade máxima</span>`;
