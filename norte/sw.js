@@ -1,5 +1,6 @@
-const CACHE = 'norte-v5';
-self.addEventListener('install', e => { self.skipWaiting(); });
+const CACHE = 'norte-v6';
+self.addEventListener('install', e => {});
+self.addEventListener('message', e => { if(e.data==='SKIP_WAITING'||(e.data&&e.data.type==='SKIP_WAITING')) self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil((async () => {
   const ks = await caches.keys();
   await Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)));

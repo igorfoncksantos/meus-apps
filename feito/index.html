@@ -183,7 +183,29 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Afazeres">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></head>
+  <script>
+  (function(){
+    if(!('serviceWorker' in navigator) || location.protocol==='file:') return;
+    var refreshing=false;
+    navigator.serviceWorker.addEventListener('controllerchange',function(){ if(refreshing)return; refreshing=true; location.reload(); });
+    function banner(reg){
+      if(document.getElementById('__updbar')) return;
+      var b=document.createElement('div'); b.id='__updbar';
+      b.style.cssText='position:fixed;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));transform:translate(-50%,14px);z-index:100000;display:flex;align-items:center;gap:11px;max-width:calc(100% - 24px);background:#12161b;color:#f0f2f4;border:1px solid rgba(255,255,255,.13);border-radius:16px;padding:10px 10px 10px 15px;box-shadow:0 16px 42px rgba(0,0,0,.55);font-family:system-ui,-apple-system,\'Segoe UI\',Arial,sans-serif;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .28s ease,transform .28s cubic-bezier(.34,1.4,.5,1)';
+      b.innerHTML='<span>✨ Nova versão disponível</span><button id="__updbtn" style="border:none;cursor:pointer;font:inherit;font-weight:800;color:#04120a;background:#2FD9C9;border-radius:11px;padding:9px 15px">Atualizar</button>';
+      document.body.appendChild(b);
+      requestAnimationFrame(function(){ b.style.opacity='1'; b.style.transform='translate(-50%,0)'; });
+      document.getElementById('__updbtn').onclick=function(){ this.textContent='Atualizando…'; this.disabled=true; if(reg.waiting){ reg.waiting.postMessage('SKIP_WAITING'); } else { location.reload(); } };
+    }
+    function watch(reg){
+      if(reg.waiting && navigator.serviceWorker.controller) banner(reg);
+      reg.addEventListener('updatefound',function(){ var nw=reg.installing; if(!nw) return;
+        nw.addEventListener('statechange',function(){ if(nw.state==='installed' && navigator.serviceWorker.controller) banner(reg); }); });
+      setInterval(function(){ reg.update().catch(function(){}); }, 60000);
+    }
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').then(watch).catch(function(){}); });
+  })();
+  </script></head>
 <body>
 <div id="flash"></div>
 

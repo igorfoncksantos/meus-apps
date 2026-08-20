@@ -1,5 +1,6 @@
-var C='meusapps-gastos-v3';
-self.addEventListener('install',function(e){ self.skipWaiting(); });
+var C='meusapps-gastos-v4';
+self.addEventListener('install',function(e){ });
+self.addEventListener('message',function(e){ if(e.data==='SKIP_WAITING'||(e.data&&e.data.type==='SKIP_WAITING')) self.skipWaiting(); });
 self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ if(k!==C) return caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
 self.addEventListener('fetch',function(e){
   if(e.request.method!=='GET') return;

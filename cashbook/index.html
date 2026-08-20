@@ -349,7 +349,29 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gastos">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script></head>
+  <script>
+  (function(){
+    if(!('serviceWorker' in navigator) || location.protocol==='file:') return;
+    var refreshing=false;
+    navigator.serviceWorker.addEventListener('controllerchange',function(){ if(refreshing)return; refreshing=true; location.reload(); });
+    function banner(reg){
+      if(document.getElementById('__updbar')) return;
+      var b=document.createElement('div'); b.id='__updbar';
+      b.style.cssText='position:fixed;left:50%;bottom:calc(94px + env(safe-area-inset-bottom));transform:translate(-50%,14px);z-index:100000;display:flex;align-items:center;gap:11px;max-width:calc(100% - 24px);background:#12161b;color:#f0f2f4;border:1px solid rgba(255,255,255,.13);border-radius:16px;padding:10px 10px 10px 15px;box-shadow:0 16px 42px rgba(0,0,0,.55);font-family:system-ui,-apple-system,\'Segoe UI\',Arial,sans-serif;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .28s ease,transform .28s cubic-bezier(.34,1.4,.5,1)';
+      b.innerHTML='<span>✨ Nova versão disponível</span><button id="__updbtn" style="border:none;cursor:pointer;font:inherit;font-weight:800;color:#04120a;background:#2FD9C9;border-radius:11px;padding:9px 15px">Atualizar</button>';
+      document.body.appendChild(b);
+      requestAnimationFrame(function(){ b.style.opacity='1'; b.style.transform='translate(-50%,0)'; });
+      document.getElementById('__updbtn').onclick=function(){ this.textContent='Atualizando…'; this.disabled=true; if(reg.waiting){ reg.waiting.postMessage('SKIP_WAITING'); } else { location.reload(); } };
+    }
+    function watch(reg){
+      if(reg.waiting && navigator.serviceWorker.controller) banner(reg);
+      reg.addEventListener('updatefound',function(){ var nw=reg.installing; if(!nw) return;
+        nw.addEventListener('statechange',function(){ if(nw.state==='installed' && navigator.serviceWorker.controller) banner(reg); }); });
+      setInterval(function(){ reg.update().catch(function(){}); }, 60000);
+    }
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').then(watch).catch(function(){}); });
+  })();
+  </script></head>
 <body>
 <div id="flash"></div>
 <div class="wrap">
@@ -707,7 +729,7 @@ var CICLOS = [
 
 /* ===== DADOS GRAVADOS NO PRÓPRIO ARQUIVO (todos os ciclos) =====
    Reescrito pelo botão "Salvar no arquivo". Não editar à mão. */
-var DADOS = {"active":"Agosto/Setembro","ciclos":{"Julho/Agosto":{"orcS":"504","orcM":"756","l":[{"d":"Pizzaria","v":71,"c":"S","dt":"18/07","iso":"2026-07-18"},{"d":"Café Santo Grão","v":109,"c":"S","dt":"18/07","iso":"2026-07-18"},{"d":"Condor","v":111,"c":"M","dt":"18/07","iso":"2026-07-18"},{"d":"Pastel da feira","v":74.5,"c":"S","dt":"19/07","iso":"2026-07-19"},{"d":"Caldo de Cana","v":17,"c":"S","dt":"19/07","iso":"2026-07-19"},{"d":"Atacadão","v":75.2,"c":"M","dt":"25/07","iso":"2026-07-25"},{"d":"Café Jardim Botânico","v":43,"c":"S","dt":"26/07","iso":"2026-07-26"},{"d":"Condor","v":233.23,"c":"M","dt":"07/08","iso":"2026-08-07"},{"d":"Percabonato","v":27.99,"c":"L","dt":"09/08","iso":"2026-08-09"},{"d":"Fone de ouvido","v":125.8,"c":"L","dt":"06/08","iso":"2026-08-06"}],"dia":28,"orcL":"1.400,00"},"Agosto/Setembro":{"orcS":"640,00","orcM":"960,00","l":[{"d":"Pizzaria","v":73,"c":"S","dt":"03/08","iso":"2026-08-03"},{"d":"Braseiro","v":181,"c":"S","dt":"04/08","iso":"2026-08-04"},{"d":"Padaria","v":21.46,"c":"S","dt":"06/08","iso":"2026-08-06"},{"d":"Shoppe (Fone)","v":125.8,"c":"L","dt":"06/08","iso":"2026-08-06"},{"d":"Condor","v":233.23,"c":"M","dt":"08/08","iso":"2026-08-08"},{"d":"Cinema","v":77.4,"c":"L","dt":"11/08","iso":"2026-08-11"},{"d":"CandleLight","v":116,"c":"L","dt":"10/08","iso":"2026-08-10"}],"dia":30,"orcL":"1.400,00"}}};
+var DADOS = {"active":"Ciclo atual","ciclos":{"Ciclo atual":{"orcS":"","orcM":"","l":[],"dia":30,"orcL":""}}};
 /* ===== FIM DOS DADOS ===== */
 /* ===== AFAZERES gravados no arquivo (reescrito por "Salvar no arquivo") ===== */
 var AFZ_SEED = [];
@@ -715,11 +737,7 @@ var AFZ_SEED = [];
 
 /* ===== CATEGORIAS (globais, compartilhadas entre os meses) =====
    Reescrito pelo botão "Salvar no arquivo". */
-var CATEGORIAS = [
-  {id:"S", nome:"Saídas / Lanches", emoji:"🍔", cor:"#f0883e"},
-  {id:"M", nome:"Mercado", emoji:"🛒", cor:"#3ddb84"},
-  {id:"L", nome:"Gastos Livres", emoji:"💸", cor:"#a78bfa"}
-];
+var CATEGORIAS = [];
 /* ===== FIM CATEGORIAS ===== */
 var CATS;
 try { var _rc = localStorage.getItem("gastos-cats"); CATS = _rc ? JSON.parse(_rc) : JSON.parse(JSON.stringify(CATEGORIAS)); }
