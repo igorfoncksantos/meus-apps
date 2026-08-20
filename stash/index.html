@@ -21,10 +21,21 @@
 
   header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:13px;border-bottom:3px solid var(--accent)}
   header .tt{font-size:19px;font-weight:800;color:#fff;letter-spacing:.3px}
-  header .sv{margin-left:auto;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+  header .sv{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;
              color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.4);
              padding:4px 10px;border-radius:20px;opacity:0;transition:opacity .3s}
   header .sv.on{opacity:1}
+  header .eye{margin-left:auto;width:38px;height:38px;flex-shrink:0;background:transparent;border:1px solid var(--line);
+             color:var(--mut);border-radius:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+             position:relative;transition:color .15s,border-color .15s,background .15s}
+  header .eye:hover{color:var(--accent);border-color:var(--accent)}
+  header .eye:active{transform:scale(.92)}
+  header .eye.on{color:var(--accent);border-color:var(--accent);background:rgba(47,217,201,.09)}
+  header .eye.on::after{content:"";position:absolute;left:6px;right:6px;top:50%;height:2.4px;background:currentColor;
+             transform:translateY(-50%) rotate(-45deg);border-radius:2px;box-shadow:0 -2px 0 var(--panel)}
+  /* modo privado: oculta os valores de entrada "crus" (os demais viram ••• pelo brl) */
+  body.priv #aSal, body.priv #aCon, body.priv [data-orc], body.priv [data-m], body.priv #gVal{ filter:blur(7px); }
+  body.priv input.r, body.priv #iCart{ pointer-events:none; }
 
   .tela{display:none}.tela.on{display:block}
   h2{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--mut);margin:24px 0 11px;
@@ -215,6 +226,9 @@
 
 <header>
   <div class="tt" id="tituloTela">Patrimônio</div>
+  <button id="eyeBtn" class="eye" title="Ocultar / mostrar valores" aria-label="Ocultar valores">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
   <div class="sv" id="salvo">salvo</div>
 </header>
 
@@ -400,7 +414,10 @@ var OWPAL = ["#2FD9C9","#A78BFA","#22C55E","#FBBF24","#f0883e","#38bdf8","#e878a
 D.owners.forEach(function(o,i){ if(!D.ownerColors[o]) D.ownerColors[o] = OWPAL[i % OWPAL.length]; });
 
 var MES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-function brl(n){ return (n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+var PRIV = false;
+function brl(n){ if(PRIV) return "•••"; return (n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function applyPriv(){ document.body.classList.toggle("priv",PRIV); var b=document.getElementById("eyeBtn"); if(b){ b.classList.toggle("on",PRIV); b.title=PRIV?"Mostrar valores":"Ocultar valores"; } }
+function togglePriv(){ PRIV=!PRIV; try{ localStorage.setItem("stash-priv",PRIV?"1":"0"); }catch(e){} applyPriv(); renderTudo(); }
 function num(s){ if(s===0) return 0; if(!s) return 0; s=String(s).trim();
   if(s.indexOf(",")>=0){ s=s.replace(/\./g,"").replace(",","."); }
   var v=parseFloat(s.replace(/[^0-9.\-]/g,"")); return isNaN(v)?0:v; }
@@ -1004,6 +1021,9 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Enter" && e.target && e.target.classList && e.target.classList.contains("r")) e.target.blur();
 });
 function renderTudo(){ renderPatrimonio(); renderAporte(); renderGastos(); }
+try{ PRIV = localStorage.getItem("stash-priv")==="1"; }catch(e){}
+applyPriv();
+document.getElementById("eyeBtn").addEventListener("click", togglePriv);
 renderTudo();
 (function(){
   if(!('serviceWorker' in navigator) || location.protocol.indexOf("http")!==0) return;

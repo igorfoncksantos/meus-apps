@@ -882,7 +882,7 @@ function saveObs(){ const el=document.getElementById('obsInput'); const v=el?el.
 function delObs(i){ day().obs.splice(i,1); render(); }
 
 /* ---- navegação de dias + novo dia ---- */
-function nav(n){ const iso=shiftISO(cur,n); if(!DB.days[iso]){ if(!confirm('Não existe '+fmtBR(iso)+'. Criar dia (puxando pendentes)?'))return; DB.days[iso]=buildNewDay(iso); } cur=iso; render(); }
+function nav(n){ const iso=shiftISO(cur,n); if(!DB.days[iso]){ DB.days[iso]=buildNewDay(iso); } cur=iso; render(); }
 let calMonth;
 function openCalendar(e){ if(e)e.stopPropagation(); const p=document.getElementById('calPop');
   if(!p.classList.contains('hidden')){ p.classList.add('hidden'); return; }
@@ -911,7 +911,7 @@ function dayCell(dt,y,m,t,other){
 }
 function pickCal(iso){ closeCal(); jumpTo(iso); }
 function jumpTo(iso){ if(!iso)return;
-  if(!DB.days[iso]){ if(!confirm(fmtBR(iso)+' ainda não existe. Criar (puxando pendentes)?')){ return; } DB.days[iso]=buildNewDay(iso); }
+  if(!DB.days[iso]){ DB.days[iso]=buildNewDay(iso); }
   cur=iso; render(); }
 function goToday(){ const iso=todayISO(); if(!DB.days[iso])DB.days[iso]=buildNewDay(iso); cur=iso; render(); }
 function newDay(){ closeMenu(); const iso=todayISO()>cur?todayISO():shiftISO(cur,1);
