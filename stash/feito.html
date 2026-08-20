@@ -292,6 +292,9 @@
   #kbd .k.back{ background:#161b20; color:#f0a3ac; }
   #kbd .k.shift.on{ background:#0f2f34; color:#8ee9df; }
   #kbd .k.shift.lock{ background:#12363b; color:#bff3ec; }
+  /* teclado so-numeros (discador) */
+  #kbd.num .row{ max-width:360px; margin-left:auto; margin-right:auto; gap:9px; margin-bottom:9px; }
+  #kbd.num .k{ height:56px; font-size:23px; font-weight:700; }
 </style>
   <meta name="theme-color" content="#000000"></head>
 <body>
@@ -939,9 +942,11 @@
 /* ===== TECLADO PROPRIO DO APP (so no campo principal) ===== */
 (function(){
   var campo=document.getElementById('campo'); if(!campo) return;
+  var campoQt=document.getElementById('campoQt');
   var form=document.getElementById('form');
+  var target=campo;
   var TOUCH = (window.matchMedia && matchMedia('(pointer:coarse)').matches);
-  if(TOUCH){ campo.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
+  if(TOUCH){ campo.setAttribute('inputmode','none'); if(campoQt) campoQt.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
   campo.setAttribute('autocapitalize','off'); campo.setAttribute('autocorrect','off'); campo.setAttribute('spellcheck','false');
 
   var kbd=document.createElement('div'); kbd.id='kbd'; document.body.appendChild(kbd);
@@ -957,6 +962,7 @@
            ['<','>','^','°','€','R$','.',',','ç','º'],
            ['sym','ª','½','…','_','!','?','¿','back']];
   var BOT=['layer','comma','space','dot','enter','hide'];
+  var NUMPAD=[['1','2','3'],['4','5','6'],['7','8','9'],['comma','0','back']];
   function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function keyHTML(k){
@@ -974,27 +980,35 @@
     return '<div class="'+cls+'" data-k="'+esc2(k)+'"'+(ins!==null?' data-ins="'+esc2(ins)+'"':'')+'>'+esc2(txt)+'</div>';
   }
   function render(){
-    var rows = layer==='abc'?ABC:(layer==='num'?NUM:SYM);
-    var h='<div class="acc">'+ACC.map(function(a){return '<b data-ins="'+a+'">'+a+'</b>';}).join('')+'</div>';
-    rows.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
-    h+='<div class="row">'+BOT.map(keyHTML).join('')+'</div>';
+    var h='';
+    if(target===campoQt){   // teclado SO com numeros (estilo discador)
+      kbd.classList.add('num');
+      NUMPAD.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
+      h+='<div class="row">'+['enter','hide'].map(keyHTML).join('')+'</div>';
+    } else {
+      kbd.classList.remove('num');
+      var rows = layer==='abc'?ABC:(layer==='num'?NUM:SYM);
+      h='<div class="acc">'+ACC.map(function(a){return '<b data-ins="'+a+'">'+a+'</b>';}).join('')+'</div>';
+      rows.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
+      h+='<div class="row">'+BOT.map(keyHTML).join('')+'</div>';
+    }
     kbd.innerHTML=h;
   }
-  function fire(){ campo.dispatchEvent(new Event('input',{bubbles:true})); }
+  function fire(){ target.dispatchEvent(new Event('input',{bubbles:true})); }
   function ins(ch){
-    var s=campo.selectionStart, e=campo.selectionEnd, v=campo.value;
+    var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ s=e=v.length; }
-    campo.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{campo.setSelectionRange(p,p);}catch(x){}
+    target.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{target.setSelectionRange(p,p);}catch(x){}
     fire(); if(caps===1){ caps=0; render(); }
   }
   function back(){
-    var s=campo.selectionStart, e=campo.selectionEnd, v=campo.value;
-    if(s==null){ campo.value=v.slice(0,-1); }
-    else if(s!==e){ campo.value=v.slice(0,s)+v.slice(e); try{campo.setSelectionRange(s,s);}catch(x){} }
-    else if(s>0){ campo.value=v.slice(0,s-1)+v.slice(s); try{campo.setSelectionRange(s-1,s-1);}catch(x){} }
+    var s=target.selectionStart, e=target.selectionEnd, v=target.value;
+    if(s==null){ target.value=v.slice(0,-1); }
+    else if(s!==e){ target.value=v.slice(0,s)+v.slice(e); try{target.setSelectionRange(s,s);}catch(x){} }
+    else if(s>0){ target.value=v.slice(0,s-1)+v.slice(s); try{target.setSelectionRange(s-1,s-1);}catch(x){} }
     fire();
   }
-  function autocaps(){ caps = campo.value.length ? 0 : 1; }
+  function autocaps(){ caps = target.value.length ? 0 : 1; }
 
   kbd.addEventListener('pointerdown', function(e){
     var t=e.target.closest('[data-k],[data-ins]'); if(!t) return;
@@ -1007,16 +1021,18 @@
     if(k==='layer'){ layer=(layer==='abc'?'num':'abc'); render(); return; }
     if(k==='sym'){ layer=(layer==='sym'?'num':'sym'); render(); return; }
     if(k==='enter'){ if(form&&form.requestSubmit){ form.requestSubmit(); } else if(form){ form.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); } setTimeout(function(){ autocaps(); render(); },0); return; }
-    if(k==='hide'){ hide(); try{campo.blur();}catch(x){} return; }
+    if(k==='hide'){ hide(); try{target.blur();}catch(x){} return; }
   });
 
-  function show(){ if(!TOUCH) return; if(!kbd.classList.contains('on')){ autocaps(); render(); kbd.classList.add('on'); document.body.classList.add('kbdopen'); } }
+  function show(){ if(!TOUCH) return; autocaps(); render(); kbd.classList.add('on'); document.body.classList.add('kbdopen'); }
   function hide(){ kbd.classList.remove('on'); document.body.classList.remove('kbdopen'); }
-  campo.addEventListener('focus', show);
-  campo.addEventListener('click', show);
+  function focusCampo(){ target=campo; show(); }
+  function focusQt(){ target=campoQt; show(); }
+  campo.addEventListener('focus', focusCampo); campo.addEventListener('click', focusCampo);
+  if(campoQt){ campoQt.addEventListener('focus', focusQt); campoQt.addEventListener('click', focusQt); }
   document.addEventListener('pointerdown', function(e){
     if(!kbd.classList.contains('on')) return;
-    if(kbd.contains(e.target) || e.target===campo) return;
+    if(kbd.contains(e.target) || e.target===campo || e.target===campoQt) return;
     hide();
   }, true);
 })();
