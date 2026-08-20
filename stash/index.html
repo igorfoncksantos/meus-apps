@@ -66,20 +66,34 @@
   .persum .pchip i{font-style:normal;font-weight:800;text-transform:uppercase;letter-spacing:.4px;font-size:9.5px;margin-right:6px;color:var(--mut)}
   .persum .pchip.tot{border-color:var(--accent);color:#fff}
   .persum .pchip.tot i{color:var(--accent)}
-  .grp{margin-bottom:11px}
-  .ghead{display:flex;align-items:center;gap:9px;padding:11px 13px;background:var(--panel);border:1px solid var(--line);
-    border-radius:11px;cursor:pointer;user-select:none}
-  .ghead .chev{color:var(--mut);font-size:11px;transition:transform .2s;flex-shrink:0;width:11px}
+  .sharedcx{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:12px}
+  .sharedcx .schd{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin-bottom:9px}
+  .sharedcx .scrow{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)}
+  .sharedcx .scrow:first-of-type{border-top:none;padding-top:2px}
+  .sharedcx .scn{font-size:13.5px;font-weight:800;color:#fff;flex:1;min-width:78px}
+  .sharedcx .scd{font-size:10.5px;font-weight:700;color:var(--txt2);font-variant-numeric:tabular-nums}
+  .sharedcx .scd i{font-style:normal;font-weight:800}
+  .sharedcx .scv{font-size:13.5px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .grp{margin-bottom:15px}
+  .ghead{display:flex;align-items:center;gap:12px;padding:15px 15px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+    border-radius:16px;cursor:pointer;user-select:none;box-shadow:0 5px 16px rgba(0,0,0,.2);transition:transform .1s,border-color .15s}
+  .ghead:active{transform:scale(.994)}
+  .ghead .chev{color:var(--mut);font-size:13px;transition:transform .2s;flex-shrink:0;width:13px}
   .grp.col .ghead .chev{transform:rotate(-90deg)}
-  .ghead .gdot{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
-  .ghead .gnm{font-size:14px;font-weight:800;color:var(--txt2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .ghead .gsub{font-size:11.5px;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
-  .ghead .gcog{border:none;background:transparent;color:var(--mut);font-size:15px;cursor:pointer;padding:0 4px}
-  .ghead .gcog:hover{color:var(--accent)}
-  .gbody{margin-top:8px}
+  .ghead .gdot{width:15px;height:15px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 0 0 3px rgba(255,255,255,.04)}
+  .ghead .gnm{font-size:16.5px;font-weight:800;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ghead .gsub{font-size:11.5px;font-weight:800;color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;
+    background:var(--panel2);border:1px solid var(--line);padding:5px 10px;border-radius:20px}
+  .ghead .gcog{border:1px solid var(--line);background:var(--panel2);color:var(--mut);font-size:15px;cursor:pointer;
+    width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+  .ghead .gcog:hover{color:var(--accent);border-color:var(--accent)}
+  .gbody{margin-top:10px}
   .grp.col .gbody{display:none}
-  .ged{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:8px}
-  .gadd{display:inline-block;font-size:12px;font-weight:800;color:var(--accent);cursor:pointer;padding:6px 2px 2px}
+  .ged{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 13px;margin-bottom:9px}
+  .gadd{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--accent);cursor:pointer;
+    padding:10px 15px;margin-top:5px;border:1px dashed rgba(47,217,201,.42);border-radius:12px;background:rgba(47,217,201,.05)}
+  .gadd:hover{background:rgba(47,217,201,.11)}
   .tr{height:8px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:8px;border-radius:20px}
   .fl{height:100%;border-radius:20px}
   .ed{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
@@ -93,6 +107,10 @@
   input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,217,201,.16)}
   input::placeholder{color:var(--mut2)}
   input[type=color]{padding:3px;height:40px;cursor:pointer}
+  .swz{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}
+  .swz b{width:26px;height:26px;border-radius:8px;cursor:pointer;border:2px solid transparent;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);transition:transform .12s}
+  .swz b:hover{transform:scale(1.14)} .swz b:active{transform:scale(.9)}
   input.r{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
   label.lb{display:block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin-bottom:5px}
   .campos{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
@@ -122,6 +140,12 @@
   .box .kv.d{color:var(--amber)}
   .box.est{border-color:rgba(248,113,113,.5)}
   .box.est .bv,.box.est .kv.r{color:var(--red)}
+  .box .bxhd{display:flex;align-items:center;gap:8px}
+  .box .cog{border:none;background:transparent;color:var(--mut);font-size:16px;cursor:pointer;padding:0 2px;margin-left:auto}
+  .box .cog:hover{color:var(--accent)}
+  .box .caed{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .box .caed .gr{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+  .box .caed .gr>div{flex:1;min-width:88px}
 
   .lc{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
       border-left:3px solid var(--accent);padding:10px 12px;margin-bottom:7px;border-radius:10px}
@@ -140,15 +164,22 @@
           padding:12px 14px;font-size:11.5px;color:#f0b5b5;line-height:1.65;margin-top:10px;border-radius:10px}
   .alerta b{color:var(--red)}
 
-  nav{position:fixed;left:0;right:0;bottom:0;background:rgba(11,13,16,.96);backdrop-filter:blur(10px);
-      border-top:1px solid var(--line);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:20}
-  nav button{flex:1;background:transparent;border:none;color:var(--mut2);font-family:inherit;font-size:10px;font-weight:800;
-             text-transform:uppercase;letter-spacing:.6px;cursor:pointer;padding:6px 2px;display:flex;flex-direction:column;
-             align-items:center;gap:5px;position:relative;transition:color .2s}
-  nav button .ic{font-size:18px;line-height:1;filter:grayscale(1) opacity(.6);transition:filter .2s}
-  nav button.on{color:var(--accent)}
-  nav button.on .ic{filter:none}
-  nav button.on::before{content:"";position:absolute;top:-8px;left:26%;right:26%;height:3px;border-radius:3px;background:var(--accent)}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;pointer-events:none;
+      padding:0 12px calc(11px + env(safe-area-inset-bottom))}
+  nav .navbar{pointer-events:auto;display:flex;gap:4px;width:100%;max-width:560px;
+      background:rgba(18,22,27,.85);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+      border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:7px;
+      box-shadow:0 14px 36px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.06)}
+  nav button{flex:1;background:transparent;border:none;color:var(--mut2);font-family:inherit;font-size:9.5px;font-weight:800;
+             text-transform:uppercase;letter-spacing:.3px;cursor:pointer;padding:9px 2px;display:flex;flex-direction:column;
+             align-items:center;gap:4px;position:relative;border-radius:15px;transition:color .2s,background .25s,transform .12s}
+  nav button .ic{font-size:19px;line-height:1;filter:grayscale(1) opacity(.55);transition:filter .2s,transform .25s}
+  nav button.on{color:var(--accent);background:linear-gradient(180deg,rgba(47,217,201,.17),rgba(47,217,201,.05))}
+  nav button.on .ic{filter:none;transform:translateY(-1px) scale(1.07)}
+  nav button:active{transform:scale(.93)}
+  /* aba Feito (app integrado) */
+  #t4{margin:0 -14px}
+  #feitoFrame{width:100%;height:calc(100vh - 150px);border:0;border-radius:16px;background:var(--panel);display:block}
 
   /* entrada de itens novos */
   @keyframes rowIn{from{opacity:0;transform:translateY(-9px) scale(.985)}to{opacity:1;transform:none}}
@@ -252,33 +283,8 @@
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
 
-  <div class="box o" id="boxS">
-    <div class="b2" style="color:#f0883e">🍔 Saídas / Lanches</div>
-    <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
-      <label class="lb" style="margin:0">Orçamento</label>
-      <input class="r" style="max-width:110px;margin-left:auto" inputmode="decimal" id="gOrcS" placeholder="0,00">
-    </div>
-    <div class="bv"><span id="gGS">R$ 0,00</span> <small id="gDeS">de R$ 0,00</small></div>
-    <div class="tr"><div class="fl" id="gFS" style="width:0%;background:#f0883e"></div></div>
-    <div class="kk">
-      <div><div class="kl">Restam</div><div class="kv r" id="gRS">R$ 0,00</div></div>
-      <div><div class="kl">Por dia</div><div class="kv d" id="gDS">R$ 0,00</div></div>
-    </div>
-  </div>
-
-  <div class="box v" id="boxM">
-    <div class="b2" style="color:#3ddb84">🛒 Mercado</div>
-    <div style="display:flex;align-items:center;gap:9px;margin-top:8px">
-      <label class="lb" style="margin:0">Orçamento</label>
-      <input class="r" style="max-width:110px;margin-left:auto" inputmode="decimal" id="gOrcM" placeholder="0,00">
-    </div>
-    <div class="bv"><span id="gGM">R$ 0,00</span> <small id="gDeM">de R$ 0,00</small></div>
-    <div class="tr"><div class="fl" id="gFM" style="width:0%;background:#3ddb84"></div></div>
-    <div class="kk">
-      <div><div class="kl">Restam</div><div class="kv r" id="gRM">R$ 0,00</div></div>
-      <div><div class="kl">Por dia</div><div class="kv d" id="gDM">R$ 0,00</div></div>
-    </div>
-  </div>
+  <div id="gBoxes"></div>
+  <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
 
   <h2>Lançar gasto</h2>
   <div class="campos">
@@ -286,8 +292,7 @@
     <div style="min-width:140px"><label class="lb">Local</label><input id="gLoc" placeholder="Onde gastou"></div>
   </div>
   <div class="campos">
-    <div><label class="lb">Categoria</label>
-      <select id="gCat"><option value="S">🍔 Saídas / Lanches</option><option value="M">🛒 Mercado</option></select></div>
+    <div><label class="lb">Categoria</label><select id="gCat"></select></div>
     <div style="max-width:130px"><label class="lb">Valor</label><input class="r" inputmode="decimal" id="gVal" placeholder="0,00"></div>
   </div>
   <button class="bt p w" id="gAdd">Lançar gasto</button>
@@ -311,10 +316,17 @@
   </div>
 </section>
 
+<section class="tela" id="t4">
+  <iframe id="feitoFrame" title="Feito" loading="lazy"></iframe>
+</section>
+
 <nav>
-  <button class="on" data-t="1"><span class="ic">📊</span>Patrimônio</button>
-  <button data-t="2"><span class="ic">💸</span>Aporte</button>
-  <button data-t="3"><span class="ic">🧾</span>Gastos</button>
+  <div class="navbar">
+    <button class="on" data-t="1"><span class="ic">📊</span>Patrimônio</button>
+    <button data-t="2"><span class="ic">💸</span>Aporte</button>
+    <button data-t="3"><span class="ic">🧾</span>Cashbook</button>
+    <button data-t="4"><span class="ic">✅</span>Feito</button>
+  </div>
 </nav>
 
 <script>
@@ -335,6 +347,22 @@ if(!D) D = JSON.parse(JSON.stringify(PADRAO));
 ["hist","aportes","entradas"].forEach(function(k){ if(!D[k]) D[k] = []; });
 if(!D.vale) D.vale = JSON.parse(JSON.stringify(PADRAO.vale));
 if(!D.vale.l) D.vale.l = [];
+if(!Array.isArray(D.vale.cats)) D.vale.cats = [
+  {id:"S",nome:"Saídas / Lanches",emoji:"🍔",cor:"#f0883e",orc:D.vale.orcS||""},
+  {id:"M",nome:"Mercado",emoji:"🛒",cor:"#3ddb84",orc:D.vale.orcM||""}
+];
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+/* paleta de cores (swatches) — reusada em caixinhas, nichos e categorias */
+var PALETA=["#2FD9C9","#22C55E","#3ddb84","#6ea8f0","#38bdf8","#818cf8","#A78BFA","#c084fc",
+            "#e878a8","#f472b6","#f87171","#fb7185","#f0883e","#f7931a","#FBBF24","#fcd34d",
+            "#a3e635","#2dd4bf","#94a3b8","#e6eaee"];
+function swHTML(sel){ return '<div class="swz" data-for="'+sel+'">'+PALETA.map(function(c){
+  return '<b data-c="'+c+'" style="background:'+c+'" title="'+c+'"></b>'; }).join("")+'</div>'; }
+document.addEventListener("click",function(e){
+  var b=e.target&&e.target.closest?e.target.closest(".swz b"):null; if(!b) return;
+  var wrap=b.parentNode, sel=wrap.getAttribute("data-for"); var inp=sel&&document.querySelector(sel); if(!inp) return;
+  inp.value=b.getAttribute("data-c"); inp.dispatchEvent(new Event("change",{bubbles:true}));
+});
 if(D.vale && typeof D.vale.ciclo === "string" && /Ã/.test(D.vale.ciclo)) D.vale.ciclo = "Ciclo atual";
 if(!D.ap || typeof D.ap !== "object") D.ap = {sal:"",con:""};
 if(!Array.isArray(D.cx)) D.cx = JSON.parse(JSON.stringify(PADRAO.cx));
@@ -378,7 +406,7 @@ function animarNovo(id,pos){ var c=document.getElementById(id); if(!c)return;
   var el=(pos==="last")?c.lastElementChild:c.firstElementChild; if(el) el.classList.add("new"); }
 
 /* ================== NAV ================== */
-var TIT={1:"Patrimônio",2:"Aporte do mês",3:"Gastos do ciclo"};
+var TIT={1:"Patrimônio",2:"Aporte do mês",3:"Cashbook",4:"Feito"};
 Array.prototype.forEach.call(document.querySelectorAll("nav button"),function(b){
   b.addEventListener("click",function(){
     var t=this.getAttribute("data-t");
@@ -387,6 +415,7 @@ Array.prototype.forEach.call(document.querySelectorAll("nav button"),function(b)
     Array.prototype.forEach.call(document.querySelectorAll(".tela"),function(s){s.className="tela";});
     document.getElementById("t"+t).className="tela on";
     document.getElementById("tituloTela").textContent=TIT[t];
+    if(t==="4"){ var fr=document.getElementById("feitoFrame"); if(!fr.getAttribute("src")) fr.setAttribute("src","feito.html"); }
     window.scrollTo(0,0);
   });
 });
@@ -446,6 +475,7 @@ function renderPatrimonio(){
          '<div class="ed'+(abertos[x.id]?" on":"")+'" data-ed="'+x.id+'">' +
            '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+attr(x.n)+'"></div>' +
            '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-c="'+x.id+'" value="'+x.c+'"></div></div>' +
+           swHTML("[data-c='"+x.id+"']") +
            '<div class="gr">' +
              '<div><label class="lb">% do aporte</label><input class="r" inputmode="decimal" data-p="'+x.id+'" value="'+x.p+'"></div>' +
              '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
@@ -467,6 +497,21 @@ function renderPatrimonio(){
       chips+='<span class="pchip" style="border-color:'+(D.ownerColors[ow]||"#2FD9C9")+'55"><i style="color:'+(D.ownerColors[ow]||"#2FD9C9")+'">'+ow+'</i> R$ '+brl(s)+'</span>'; });
     chips+='<span class="pchip tot"><i>Juntos</i> R$ '+brl(tc)+'</span>';
     h+='<div class="persum">'+chips+'</div>';
+    // caixinhas de MESMO NOME em 2+ donos → total combinado
+    var byN={};
+    D.cx.forEach(function(x){ var k=(x.n||"").trim().toLowerCase(); if(!k) return;
+      if(!byN[k]) byN[k]={n:x.n,tot:0,par:[]};
+      byN[k].tot+=x.v||0; byN[k].par.push({o:x.own,v:x.v||0}); });
+    var comp=[]; for(var kk in byN){ if(byN[kk].par.length>=2) comp.push(byN[kk]); }
+    if(comp.length){
+      var sc='<div class="sharedcx"><div class="schd">Mesma caixinha · juntando os donos</div>';
+      comp.forEach(function(o){
+        var det=o.par.map(function(p){ return '<i style="color:'+(D.ownerColors[p.o]||"#2FD9C9")+'">'+esc(p.o)+'</i> R$ '+brl(p.v); }).join(' + ');
+        sc+='<div class="scrow"><span class="scn">'+esc(o.n)+'</span><span class="scd">'+det+'</span><span class="scv">R$ '+brl(o.tot)+'</span></div>';
+      });
+      sc+='</div>';
+      h+=sc;
+    }
   }
   if(!owners.length){
     h+='<div class="vazio" style="padding:20px 4px"><div style="margin-bottom:13px;text-transform:none">Comece adicionando um <b style="color:var(--accent)">dono</b> (ex.: Minhas, da Miri) e as caixinhas de cada um.</div><button class="bt p" id="btDonoVazio" style="width:auto">+ Adicionar dono</button></div>';
@@ -486,6 +531,7 @@ function renderPatrimonio(){
            '<div class="ged" data-ged="'+gi+'" style="display:none">' +
              '<div class="gr"><div style="flex:2"><label class="lb">Nome do dono</label><input data-gname="'+gi+'" value="'+attr(ow)+'"></div>' +
              '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-gcolor="'+gi+'" value="'+oc+'"></div></div>' +
+             swHTML("[data-gcolor='"+gi+"']") +
              '<div class="acoes"><button class="bt d" data-gdel="'+gi+'">Apagar nicho</button></div></div>';
       itens.forEach(function(x){ h+=cardCx(x); });
       h+= '<span class="gadd" data-gadd="'+gi+'">+ caixinha</span>' +
@@ -713,12 +759,35 @@ function diasRest(){
 }
 function hojeISO(){ var h=new Date(); return h.getFullYear()+"-"+("0"+(h.getMonth()+1)).slice(-2)+"-"+("0"+h.getDate()).slice(-2); }
 document.getElementById("gDt").value=hojeISO();
-document.getElementById("gOrcS").value=D.vale.orcS||"";
-document.getElementById("gOrcM").value=D.vale.orcM||"";
-["gOrcS","gOrcM"].forEach(function(id){
-  document.getElementById(id).addEventListener("input",function(){
-    D.vale[id==="gOrcS"?"orcS":"orcM"]=this.value; salvar(); renderGastos(); });
-});
+function acharCat(id){ return D.vale.cats.filter(function(c){ return c.id==id; })[0]; }
+function resetNovaCat(){
+  var w=document.getElementById("gNewCatWrap");
+  w.innerHTML='<button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button>';
+  document.getElementById("gNovaCat").addEventListener("click",mostrarNovaCat);
+}
+function mostrarNovaCat(){
+  document.getElementById("gNewCatWrap").innerHTML=
+    '<div class="box" style="border-left:3px solid var(--accent)">' +
+      '<div class="caed" style="margin:0;padding:0;border:none">' +
+        '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input id="ncNome" placeholder="Ex.: Transporte" maxlength="24"></div>' +
+        '<div style="max-width:64px"><label class="lb">Ícone</label><input id="ncEmoji" value="🏷️" maxlength="2"></div>' +
+        '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" id="ncCor" value="#A78BFA"></div></div>' +
+        swHTML("#ncCor") +
+        '<div class="acoes"><button class="bt p" id="ncOk" style="width:auto">Adicionar</button>' +
+        '<button class="bt n" id="ncCancel" style="width:auto">Cancelar</button></div>' +
+      '</div></div>';
+  document.getElementById("ncCancel").addEventListener("click",resetNovaCat);
+  document.getElementById("ncNome").focus();
+  document.getElementById("ncOk").addEventListener("click",function(){
+    var nm=document.getElementById("ncNome").value.trim();
+    if(!nm){ toast("Dê um nome à categoria.","err"); document.getElementById("ncNome").focus(); return; }
+    D.vale.cats.push({id:"c"+Date.now().toString(36),nome:nm,
+      emoji:(document.getElementById("ncEmoji").value.trim()||"🏷️"),
+      cor:document.getElementById("ncCor").value, orc:""});
+    salvar(); resetNovaCat(); renderGastos(); toast("Categoria criada.","ok");
+  });
+}
+resetNovaCat();
 
 function renderGastos(){
   var c=cicloInfo();
@@ -735,38 +804,73 @@ function renderGastos(){
     document.getElementById("gSaldoMsg").textContent="nenhuma caixinha marcada como fonte do vale (⚙ na tela Patrimônio)";
   }
 
-  var gS=0,gM=0;
-  D.vale.l.forEach(function(x){ if(x.c==="S") gS+=x.v; else gM+=x.v; });
-  var oS=num(D.vale.orcS), oM=num(D.vale.orcM), d=diasRest();
-  function bl(cod,orc,gas){
-    var rest=orc-gas, pc=orc>0?Math.min(100,gas/orc*100):0;
-    document.getElementById("gG"+cod).textContent="R$ "+brl(gas);
-    document.getElementById("gDe"+cod).textContent="de R$ "+brl(orc);
-    document.getElementById("gF"+cod).style.width=pc+"%";
-    document.getElementById("gR"+cod).textContent="R$ "+brl(rest);
-    document.getElementById("gD"+cod).textContent="R$ "+brl(rest>0?rest/d:0);
-    document.getElementById("box"+cod).className="box "+(cod==="S"?"o":"v")+((orc>0&&rest<0)?" est":"");
-  }
-  bl("S",oS,gS); bl("M",oM,gM);
+  var d=diasRest();
+  // gasto por categoria
+  var gasto={}; D.vale.cats.forEach(function(k){ gasto[k.id]=0; });
+  D.vale.l.forEach(function(x){ if(gasto[x.c]==null) gasto[x.c]=0; gasto[x.c]+=x.v; });
 
+  var bh="";
+  D.vale.cats.forEach(function(k){
+    var orc=num(k.orc), gas=gasto[k.id]||0, rest=orc-gas, pc=orc>0?Math.min(100,gas/orc*100):0, est=(orc>0&&rest<0);
+    bh+='<div class="box'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
+        '<div class="bxhd"><div class="b2" style="color:'+k.cor+'">'+k.emoji+' '+esc(k.nome)+'</div>' +
+        '<button class="cog" data-catcog="'+k.id+'">⚙</button></div>' +
+        '<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
+          '<label class="lb" style="margin:0">Orçamento</label>' +
+          '<input class="r" style="max-width:110px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="0,00"></div>' +
+        '<div class="bv">R$ '+brl(gas)+' <small>de R$ '+brl(orc)+'</small></div>' +
+        '<div class="tr"><div class="fl" style="width:'+pc+'%;background:'+k.cor+'"></div></div>' +
+        '<div class="kk"><div><div class="kl">Restam</div><div class="kv r">R$ '+brl(rest)+'</div></div>' +
+        '<div><div class="kl">Por dia</div><div class="kv d">R$ '+brl(rest>0?rest/d:0)+'</div></div></div>' +
+        '<div class="caed" data-caed="'+k.id+'" style="display:none">' +
+          '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-catn="'+k.id+'" value="'+esc(k.nome)+'" maxlength="24"></div>' +
+          '<div style="max-width:64px"><label class="lb">Ícone</label><input data-cate="'+k.id+'" value="'+esc(k.emoji)+'" maxlength="2"></div>' +
+          '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-catc="'+k.id+'" value="'+k.cor+'"></div></div>' +
+          swHTML("[data-catc='"+k.id+"']") +
+          '<div class="acoes"><button class="bt d" data-catdel="'+k.id+'">Apagar categoria</button></div></div>' +
+        '</div>';
+  });
+  document.getElementById("gBoxes").innerHTML=bh;
+
+  // popular o select de categoria (preservando a seleção)
+  var sc=document.getElementById("gCat"), sv=sc.value;
+  var so=""; D.vale.cats.forEach(function(k){ so+='<option value="'+k.id+'">'+k.emoji+' '+esc(k.nome)+'</option>'; });
+  sc.innerHTML=so; if(sv&&acharCat(sv)) sc.value=sv;
+
+  // lançamentos
   var h=D.vale.l.length?"":'<div class="vazio">Nenhum gasto lançado neste ciclo.</div>';
   var ord=D.vale.l.map(function(x,i){ return {x:x,i:i}; }).sort(function(a,b){
     var ka=a.x.iso||"",kb=b.x.iso||"";
     if(ka===kb) return b.i-a.i; return ka<kb?1:-1; });
   ord.forEach(function(o){
-    var x=o.x, cor=x.c==="S"?"#f0883e":"#3ddb84";
-    h+='<div class="lc" style="border-left-color:'+cor+'"><span class="ld">'+x.dt+'</span>' +
-       '<span class="lo">'+x.d+'<small>'+(x.c==="S"?"🍔 Saídas / Lanches":"🛒 Mercado")+'</small></span>' +
+    var x=o.x, k=acharCat(x.c)||{cor:"#5c6469",emoji:"",nome:"—"};
+    h+='<div class="lc" style="border-left-color:'+k.cor+'"><span class="ld">'+x.dt+'</span>' +
+       '<span class="lo">'+esc(x.d)+'<small>'+k.emoji+' '+esc(k.nome)+'</small></span>' +
        '<span class="lv">R$ '+brl(x.v)+'</span><button class="lx" data-g="'+o.i+'">×</button></div>';
   });
   document.getElementById("listaGastos").innerHTML=h;
-  Array.prototype.forEach.call(document.querySelectorAll("[data-g]"),function(b){
-    b.addEventListener("click",function(){
-      var i=+this.getAttribute("data-g"), g=D.vale.l[i];
-      var cv=caixinhaVale();
-      if(cv) cv.v+=g.v;
-      D.vale.l.splice(i,1); salvar(); renderTudo(); });
-  });
+
+  var q=function(s){ return document.querySelectorAll(s); };
+  Array.prototype.forEach.call(q("[data-g]"),function(b){ b.addEventListener("click",function(){
+    var i=+this.getAttribute("data-g"), g=D.vale.l[i]; var cv=caixinhaVale(); if(cv) cv.v+=g.v;
+    D.vale.l.splice(i,1); salvar(); renderTudo(); }); });
+  Array.prototype.forEach.call(q("[data-orc]"),function(i){ i.addEventListener("change",function(){
+    var k=acharCat(this.getAttribute("data-orc")); if(k){ k.orc=this.value; salvar(); renderGastos(); } }); });
+  Array.prototype.forEach.call(q("[data-catcog]"),function(b){ b.addEventListener("click",function(){
+    var el=document.querySelector('[data-caed="'+this.getAttribute("data-catcog")+'"]');
+    el.style.display=(el.style.display==="none"?"block":"none"); }); });
+  Array.prototype.forEach.call(q("[data-catn]"),function(i){ i.addEventListener("change",function(){
+    var k=acharCat(this.getAttribute("data-catn")); if(k){ k.nome=this.value.trim()||"Categoria"; salvar(); renderGastos(); } }); });
+  Array.prototype.forEach.call(q("[data-cate]"),function(i){ i.addEventListener("change",function(){
+    var k=acharCat(this.getAttribute("data-cate")); if(k){ k.emoji=this.value.trim()||"🏷️"; salvar(); renderGastos(); } }); });
+  Array.prototype.forEach.call(q("[data-catc]"),function(i){ i.addEventListener("change",function(){
+    var k=acharCat(this.getAttribute("data-catc")); if(k){ k.cor=this.value; salvar(); renderGastos(); } }); });
+  Array.prototype.forEach.call(q("[data-catdel]"),function(b){ b.addEventListener("click",function(){
+    var id=this.getAttribute("data-catdel"), k=acharCat(id);
+    if(D.vale.cats.length<=1){ toast("Deixe pelo menos uma categoria.","err"); return; }
+    var usados=D.vale.l.filter(function(x){ return x.c==id; }).length;
+    if(!confirm('Apagar a categoria "'+(k?k.nome:"")+'"?'+(usados?'\n\n'+usados+' lançamento(s) dela ficam sem categoria (mas seguem no ciclo).':''))) return;
+    D.vale.cats=D.vale.cats.filter(function(c){ return c.id!=id; }); salvar(); renderGastos(); }); });
 }
 
 document.getElementById("gAdd").addEventListener("click",function(){
@@ -774,8 +878,8 @@ document.getElementById("gAdd").addEventListener("click",function(){
   var v=num(document.getElementById("gVal").value);
   if(!v){ toast("Informe o valor.","err"); document.getElementById("gVal").focus(); return; }
   var loc=document.getElementById("gLoc").value.trim();
-  var cat=document.getElementById("gCat").value, p=iso.split("-");
-  D.vale.l.push({d:loc||(cat==="S"?"Saída":"Mercado"), v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso});
+  var cat=document.getElementById("gCat").value, p=iso.split("-"), kc=acharCat(cat);
+  D.vale.l.push({d:loc||(kc?kc.nome:"Gasto"), v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso});
   var cv=caixinhaVale(); if(cv) cv.v-=v;
   document.getElementById("gLoc").value=""; document.getElementById("gVal").value="";
   salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok");
@@ -808,15 +912,19 @@ document.getElementById("fileImp").addEventListener("change",function(){
       if(!confirm("Substituir todos os dados atuais pelo backup?")) return;
       D=o; ["hist","aportes","entradas"].forEach(function(k){ if(!D[k]) D[k]=[]; });
       if(!D.vale) D.vale=JSON.parse(JSON.stringify(PADRAO.vale)); if(!D.vale.l) D.vale.l=[];
+      if(!Array.isArray(D.vale.cats)) D.vale.cats=[
+        {id:"S",nome:"Saídas / Lanches",emoji:"🍔",cor:"#f0883e",orc:D.vale.orcS||""},
+        {id:"M",nome:"Mercado",emoji:"🛒",cor:"#3ddb84",orc:D.vale.orcM||""}];
       if(!D.ap || typeof D.ap!=="object") D.ap={sal:"",con:""};
       if(!Array.isArray(D.cx)) D.cx=JSON.parse(JSON.stringify(PADRAO.cx));
       if(typeof D.carteira!=="number") D.carteira=0;
-      D.cx.forEach(function(x,i){ if(!x.id) x.id=i+1; if(x.id>maxId) maxId=x.id; });
+      if(!Array.isArray(D.owners)) D.owners=[];
+      if(!D.ownerColors||typeof D.ownerColors!=="object") D.ownerColors={};
+      if(!D.collapsed||typeof D.collapsed!=="object") D.collapsed={};
+      D.cx.forEach(function(x,i){ if(!x.id) x.id=i+1; if(!x.own) x.own="Minhas"; if(x.id>maxId) maxId=x.id; });
       salvar();
       document.getElementById("aSal").value=D.ap.sal||"";
       document.getElementById("aCon").value=D.ap.con||"";
-      document.getElementById("gOrcS").value=D.vale.orcS||"";
-      document.getElementById("gOrcM").value=D.vale.orcM||"";
       renderTudo(); toast("Backup importado.","ok");
     }catch(e){ toast("Arquivo inválido.","err"); }
   };

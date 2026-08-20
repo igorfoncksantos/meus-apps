@@ -447,8 +447,11 @@ function load(){
   if(!DB.cats) DB.cats = [];
   if(!DB.recurring) DB.recurring = [];
   CATS = DB.cats;
-  cur = DB.days[todayISO()] ? todayISO() : Object.keys(DB.days).sort().pop();
-  if(!cur){ cur=todayISO(); DB.days[cur]=emptyDay(); }
+  // SEMPRE abre no dia de hoje. Se hoje ainda não existe, cria puxando os
+  // pendentes do dia anterior (carry-over automático ao abrir, em qualquer aparelho).
+  const t = todayISO();
+  if(!DB.days[t]){ DB.days[t] = Object.keys(DB.days).length ? buildNewDay(t) : emptyDay(); save(); }
+  cur = t;
 }
 function wipeAll(){ closeMenu();
   if(!confirm('Tem certeza? Isso apaga TODOS os dias e categorias deste app. Não dá pra desfazer.'))return;

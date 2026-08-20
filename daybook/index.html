@@ -219,6 +219,24 @@
     .narrow{padding:16px 13px 22px;border-radius:14px}
     .monthnav .m{font-size:19px;min-width:120px}
   }
+  /* ===== CELULAR DEITADO (paisagem) — cabe na altura curta ===== */
+  @media (orientation:landscape) and (max-height:600px){
+    body{padding:10px 22px calc(70px + env(safe-area-inset-bottom))}
+    .top{margin-bottom:8px}
+    .brand{font-size:23px}
+    .tabs{margin-bottom:10px}
+    .tabs .tb{padding:8px 6px}
+    .monthnav{margin-bottom:8px}
+    .monthnav .m{font-size:18px}
+    .monthnav .nav{width:32px;height:32px}
+    .board{max-width:100%;gap:12px}
+    .bcell{min-height:56px}
+    .bh{padding:6px 2px}
+    .narrow{max-width:640px}
+    .actions{padding:7px 22px calc(7px + env(safe-area-inset-bottom))}
+    .actions button{padding:9px 6px}
+    #__welcome .__wcard{transform:scale(.8);transform-origin:center}
+  }
 </style>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#9A9585">
