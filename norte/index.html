@@ -615,7 +615,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v12 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v13 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -665,10 +665,12 @@ function itemEl(t,c){
     inner+=`<div class="subadd" onclick="addSub('${t.id}')">+ subtarefa</div>`;
   }
 
-  const tag = {pend:'Pendente',done:'Feito',canc:'Cancelado',sched:(t.sched?('Agendada · '+t.sched):'Agendada'),adiado:'Adiado'}[t.status];
+  let tag, tagCls;
+  if(isBlocked(t) && t.status!=='sched'){ tag='Agendada'; tagCls='sched'; }   // bloqueada (recorrência) aparece como agendada
+  else { tag = {pend:'Pendente',done:'Feito',canc:'Cancelado',sched:(t.sched?('Agendada · '+t.sched):'Agendada'),adiado:'Adiado'}[t.status]; tagCls=t.status; }
   const boxClick = isBlocked(t) ? `openActions('${t.id}')` : `toggleDone('${t.id}')`;
   el.innerHTML=`<div class="box" onclick="${boxClick}"></div><div class="txt">${inner}</div>
-     <span class="tag ${t.status}" onclick="openActions('${t.id}')">${tag}</span>`;
+     <span class="tag ${tagCls}" onclick="openActions('${t.id}')">${tag}</span>`;
   return el;
 }
 function tbar(d,tot){ const pc=tot?Math.round(d/tot*100):0; return `<div class="tbar"><div class="ttrack"><div class="tfill" style="width:${pc}%"></div></div><span class="tcount">${d}/${tot} · ${pc}%</span></div>`; }
