@@ -266,6 +266,32 @@
            transition:transform .1s, border-color .14s, color .14s, background .14s; }
   .sug .s:hover{ border-color:#2FD9C9; color:#bff3ec; background:rgba(47,217,201,.06); }
   .sug .s:active{ transform:scale(.94); }
+
+  /* ===== TECLADO PROPRIO DO APP (2026-08-20) ===== */
+  body.kbdopen{ padding-bottom:calc(310px + env(safe-area-inset-bottom)) !important; }
+  #kbd{ position:fixed; left:0; right:0; bottom:0; z-index:300; display:none;
+        background:linear-gradient(180deg,#0e1216,#070a0c); border-top:1px solid #20262b;
+        padding:8px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);
+        -webkit-user-select:none; user-select:none; touch-action:manipulation; }
+  #kbd.on{ display:block; animation:kbdup .2s cubic-bezier(.25,.9,.3,1); }
+  @keyframes kbdup{ from{ transform:translateY(102%); } to{ transform:translateY(0); } }
+  #kbd .acc{ display:flex; gap:6px; overflow-x:auto; padding:0 2px 8px; scrollbar-width:none; }
+  #kbd .acc::-webkit-scrollbar{ display:none; }
+  #kbd .acc b{ flex:0 0 auto; min-width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+        background:#151a1f; border:1px solid #262d34; border-radius:9px; color:#cfe9e5; font-size:17px; font-weight:600; cursor:pointer; }
+  #kbd .acc b:active{ background:#0f2f34; }
+  #kbd .row{ display:flex; gap:5px; margin-bottom:6px; }
+  #kbd .row:last-child{ margin-bottom:0; }
+  #kbd .k{ flex:1 1 0; min-width:0; height:46px; display:flex; align-items:center; justify-content:center;
+        background:#20262c; border-radius:9px; color:#eef2f4; font-size:18px; font-weight:600; cursor:pointer;
+        box-shadow:0 2px 0 rgba(0,0,0,.45); transition:transform .05s ease, background .1s ease; }
+  #kbd .k:active{ transform:translateY(2px); background:#2a323a; box-shadow:0 0 0 rgba(0,0,0,.4); }
+  #kbd .k.wide{ flex:3 1 0; font-size:13px; font-weight:700; letter-spacing:.4px; color:#9fb0b8; text-transform:uppercase; }
+  #kbd .k.fn{ background:#161b20; color:#9fb0b8; font-size:14px; font-weight:700; }
+  #kbd .k.act{ background:linear-gradient(135deg,#2FD9C9,#1aa89b); color:#04181c; box-shadow:0 4px 12px rgba(47,217,201,.35); }
+  #kbd .k.back{ background:#161b20; color:#f0a3ac; }
+  #kbd .k.shift.on{ background:#0f2f34; color:#8ee9df; }
+  #kbd .k.shift.lock{ background:#12363b; color:#bff3ec; }
 </style>
   <meta name="theme-color" content="#000000"></head>
 <body>
@@ -909,5 +935,91 @@
   </div>
 </div>
 <script>(function(){try{var K="welcome-afazeres";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
+<script>
+/* ===== TECLADO PROPRIO DO APP (so no campo principal) ===== */
+(function(){
+  var campo=document.getElementById('campo'); if(!campo) return;
+  var form=document.getElementById('form');
+  var TOUCH = (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  if(TOUCH){ campo.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
+  campo.setAttribute('autocapitalize','off'); campo.setAttribute('autocorrect','off'); campo.setAttribute('spellcheck','false');
+
+  var kbd=document.createElement('div'); kbd.id='kbd'; document.body.appendChild(kbd);
+  var caps=1, layer='abc';   // caps: 0 off, 1 uma letra, 2 trava
+  var ACC=['á','à','â','ã','é','ê','í','ó','ô','õ','ú','ç'];
+  var ABC=[['q','w','e','r','t','y','u','i','o','p'],
+           ['a','s','d','f','g','h','j','k','l'],
+           ['shift','z','x','c','v','b','n','m','back']];
+  var NUM=[['1','2','3','4','5','6','7','8','9','0'],
+           ['@','#','$','%','&','-','_','/','(',')'],
+           ['sym','*','"','’',':',';','!','?','back']];
+  var SYM=[['~','`','|','=','+','{','}','[',']','\\'],
+           ['<','>','^','°','€','R$','.',',','ç','º'],
+           ['sym','ª','½','…','_','!','?','¿','back']];
+  var BOT=['layer','comma','space','dot','enter','hide'];
+  function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function keyHTML(k){
+    var cls='k', txt, ins=null;
+    if(k==='shift'){ cls+=' fn shift'+(caps?(caps===2?' on lock':' on'):''); txt='⇧'; }
+    else if(k==='back'){ cls+=' back'; txt='⌫'; }
+    else if(k==='layer'){ cls+=' fn'; txt=(layer==='abc'?'123':'ABC'); }
+    else if(k==='sym'){ cls+=' fn'; txt=(layer==='sym'?'123':'#+='); }
+    else if(k==='enter'){ cls+=' act'; txt='⏎'; }
+    else if(k==='hide'){ cls+=' fn'; txt='⌄'; }
+    else if(k==='space'){ cls+=' wide'; txt='espaço'; ins=' '; }
+    else if(k==='comma'){ txt=','; ins=','; }
+    else if(k==='dot'){ txt='.'; ins='.'; }
+    else { txt=(caps && /^[a-zà-ÿ]$/i.test(k)) ? k.toUpperCase() : k; ins=txt; }
+    return '<div class="'+cls+'" data-k="'+esc2(k)+'"'+(ins!==null?' data-ins="'+esc2(ins)+'"':'')+'>'+esc2(txt)+'</div>';
+  }
+  function render(){
+    var rows = layer==='abc'?ABC:(layer==='num'?NUM:SYM);
+    var h='<div class="acc">'+ACC.map(function(a){return '<b data-ins="'+a+'">'+a+'</b>';}).join('')+'</div>';
+    rows.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
+    h+='<div class="row">'+BOT.map(keyHTML).join('')+'</div>';
+    kbd.innerHTML=h;
+  }
+  function fire(){ campo.dispatchEvent(new Event('input',{bubbles:true})); }
+  function ins(ch){
+    var s=campo.selectionStart, e=campo.selectionEnd, v=campo.value;
+    if(s==null){ s=e=v.length; }
+    campo.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{campo.setSelectionRange(p,p);}catch(x){}
+    fire(); if(caps===1){ caps=0; render(); }
+  }
+  function back(){
+    var s=campo.selectionStart, e=campo.selectionEnd, v=campo.value;
+    if(s==null){ campo.value=v.slice(0,-1); }
+    else if(s!==e){ campo.value=v.slice(0,s)+v.slice(e); try{campo.setSelectionRange(s,s);}catch(x){} }
+    else if(s>0){ campo.value=v.slice(0,s-1)+v.slice(s); try{campo.setSelectionRange(s-1,s-1);}catch(x){} }
+    fire();
+  }
+  function autocaps(){ caps = campo.value.length ? 0 : 1; }
+
+  kbd.addEventListener('pointerdown', function(e){
+    var t=e.target.closest('[data-k],[data-ins]'); if(!t) return;
+    e.preventDefault(); // NAO rouba o foco do campo (mantem o cursor)
+    var k=t.getAttribute('data-k'), di=t.getAttribute('data-ins');
+    var special=(k==='shift'||k==='back'||k==='layer'||k==='sym'||k==='enter'||k==='hide');
+    if(di!==null && !special){ ins(di); return; }
+    if(k==='shift'){ caps = caps===0?1:(caps===1?2:0); render(); return; }
+    if(k==='back'){ back(); return; }
+    if(k==='layer'){ layer=(layer==='abc'?'num':'abc'); render(); return; }
+    if(k==='sym'){ layer=(layer==='sym'?'num':'sym'); render(); return; }
+    if(k==='enter'){ if(form&&form.requestSubmit){ form.requestSubmit(); } else if(form){ form.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); } setTimeout(function(){ autocaps(); render(); },0); return; }
+    if(k==='hide'){ hide(); try{campo.blur();}catch(x){} return; }
+  });
+
+  function show(){ if(!TOUCH) return; if(!kbd.classList.contains('on')){ autocaps(); render(); kbd.classList.add('on'); document.body.classList.add('kbdopen'); } }
+  function hide(){ kbd.classList.remove('on'); document.body.classList.remove('kbdopen'); }
+  campo.addEventListener('focus', show);
+  campo.addEventListener('click', show);
+  document.addEventListener('pointerdown', function(e){
+    if(!kbd.classList.contains('on')) return;
+    if(kbd.contains(e.target) || e.target===campo) return;
+    hide();
+  }, true);
+})();
+</script>
 </body>
 </html>
