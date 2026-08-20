@@ -185,9 +185,9 @@
   .item.canc{ background:#140d0e; }
   .item.canc .t{ color:#8a7f7f; text-decoration:none; }
   .item.sched{ position:relative; }
-  .item.sched::after{ content:""; position:absolute; inset:0; background:var(--catcolor,#7a8288); opacity:.4;
+  .item.sched::after{ content:""; position:absolute; inset:0; background:var(--catcolor,#7a8288); opacity:.2;
                       border-radius:9px; pointer-events:none; }
-  .item.sched .box, .item.sched .tag{ position:relative; z-index:2; }  /* cadeado e etiqueta ficam acima da pelicula */
+  .item.sched .box, .item.sched .tag{ position:relative; z-index:2; }  /* etiqueta acima da pelicula */
   .item.adiado{ opacity:.74; background:#0e1216; }
   .box{ flex-shrink:0; width:23px; height:23px; border-radius:6px; border:2.5px solid #3a3f45; margin-top:1px;
         cursor:pointer; position:relative; transition:transform .12s; }
@@ -196,7 +196,6 @@
   .item.done .box::after{ content:"✓"; color:#05130b; font-size:15px; font-weight:800; position:absolute; top:-2px; left:4px; }
   .item.canc .box{ border-style:dashed; border-color:#5c2a2f; }
   .item.sched .box{ border-style:dashed; border-color:#5a4fa0; }
-  .item.sched .box::after{ content:"🔒"; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:11px; line-height:1; opacity:.8; }
   .schedtoday{ color:#b9a9f5!important; }
   .item.adiado .box{ border-style:dashed; border-color:#3a5570; }
   .txt{ flex:1; min-width:0; }
@@ -598,7 +597,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v10 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v11 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -647,7 +646,7 @@ function itemEl(t,c){
     inner+=`<div class="subadd" onclick="addSub('${t.id}')">+ subtarefa</div>`;
   }
 
-  const tag = {pend:'Pendente',done:'Feito',canc:'Cancelado',sched:(t.sched?('🔒 Agendada · '+t.sched):'Agendada'),adiado:'Adiado'}[t.status];
+  const tag = {pend:'Pendente',done:'Feito',canc:'Cancelado',sched:(t.sched?('Agendada · '+t.sched):'Agendada'),adiado:'Adiado'}[t.status];
   const boxClick = t.status==='sched' ? `openActions('${t.id}')` : `toggleDone('${t.id}')`;
   el.innerHTML=`<div class="box" onclick="${boxClick}"></div><div class="txt">${inner}</div>
      <span class="tag ${t.status}" onclick="openActions('${t.id}')">${tag}</span>`;
