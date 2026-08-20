@@ -66,14 +66,30 @@
   .persum .pchip i{font-style:normal;font-weight:800;text-transform:uppercase;letter-spacing:.4px;font-size:9.5px;margin-right:6px;color:var(--mut)}
   .persum .pchip.tot{border-color:var(--accent);color:#fff}
   .persum .pchip.tot i{color:var(--accent)}
-  .sharedcx{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:12px}
-  .sharedcx .schd{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin-bottom:9px}
-  .sharedcx .scrow{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)}
-  .sharedcx .scrow:first-of-type{border-top:none;padding-top:2px}
-  .sharedcx .scn{font-size:13.5px;font-weight:800;color:#fff;flex:1;min-width:78px}
-  .sharedcx .scd{font-size:10.5px;font-weight:700;color:var(--txt2);font-variant-numeric:tabular-nums}
-  .sharedcx .scd i{font-style:normal;font-weight:800}
-  .sharedcx .scv{font-size:13.5px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+  /* Agregados */
+  .aggsec{margin-bottom:14px}
+  .aggh{display:flex;align-items:center;margin:2px 2px 9px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut)}
+  .aggh .aggadd{margin-left:auto;color:var(--accent);cursor:pointer;font-size:11.5px;background:rgba(47,217,201,.08);border:1px solid rgba(47,217,201,.35);border-radius:20px;padding:5px 12px;text-transform:none;letter-spacing:0}
+  .aggh .aggadd:hover{background:rgba(47,217,201,.15)}
+  .aggempty{font-size:12px;color:var(--mut2);line-height:1.6;background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:14px}
+  .aggempty b{color:var(--accent)}
+  .aggcard{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin-bottom:9px;box-shadow:0 5px 16px rgba(0,0,0,.18)}
+  .aggtop{display:flex;align-items:center;gap:10px}
+  .aggnm{font-size:15.5px;font-weight:800;color:#fff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .aggtot{font-size:16px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .aggcard .aggcog{margin-left:0}
+  .aggchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .achip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--txt2);background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:5px 10px;font-variant-numeric:tabular-nums}
+  .achip i{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .achip small{color:var(--mut);font-weight:700}
+  .aggempty2{font-size:11.5px;color:var(--mut2);margin-top:8px;font-style:italic}
+  .agged{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .aggown{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--mut);margin:11px 0 6px}
+  .aggpick{display:flex;flex-wrap:wrap;gap:7px}
+  .apk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--txt2);background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:8px 11px;cursor:pointer;transition:border-color .14s,background .14s,color .14s}
+  .apk.on{border-color:var(--accent);background:rgba(47,217,201,.1);color:#fff}
+  .apk input{display:none}
+  .apk .apkdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3)}
   .grp{margin-bottom:15px}
   .ghead{display:flex;align-items:center;gap:12px;padding:15px 15px;
     background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
@@ -375,6 +391,7 @@ if(!D.cx.some(function(x){ return x.vale; })){
 }
 /* nichos (de quem sao as caixinhas) */
 if(!Array.isArray(D.owners)) D.owners = [];
+if(!Array.isArray(D.agg)) D.agg = [];
 if(!D.collapsed || typeof D.collapsed !== "object") D.collapsed = {};
 D.cx.forEach(function(x){ if(!x.own) x.own = "Minhas"; });
 D.cx.forEach(function(x){ if(D.owners.indexOf(x.own) < 0) D.owners.push(x.own); });
@@ -497,22 +514,8 @@ function renderPatrimonio(){
       chips+='<span class="pchip" style="border-color:'+(D.ownerColors[ow]||"#2FD9C9")+'55"><i style="color:'+(D.ownerColors[ow]||"#2FD9C9")+'">'+ow+'</i> R$ '+brl(s)+'</span>'; });
     chips+='<span class="pchip tot"><i>Juntos</i> R$ '+brl(tc)+'</span>';
     h+='<div class="persum">'+chips+'</div>';
-    // caixinhas de MESMO NOME em 2+ donos → total combinado
-    var byN={};
-    D.cx.forEach(function(x){ var k=(x.n||"").trim().toLowerCase(); if(!k) return;
-      if(!byN[k]) byN[k]={n:x.n,tot:0,par:[]};
-      byN[k].tot+=x.v||0; byN[k].par.push({o:x.own,v:x.v||0}); });
-    var comp=[]; for(var kk in byN){ if(byN[kk].par.length>=2) comp.push(byN[kk]); }
-    if(comp.length){
-      var sc='<div class="sharedcx"><div class="schd">Mesma caixinha · juntando os donos</div>';
-      comp.forEach(function(o){
-        var det=o.par.map(function(p){ return '<i style="color:'+(D.ownerColors[p.o]||"#2FD9C9")+'">'+esc(p.o)+'</i> R$ '+brl(p.v); }).join(' + ');
-        sc+='<div class="scrow"><span class="scn">'+esc(o.n)+'</span><span class="scd">'+det+'</span><span class="scv">R$ '+brl(o.tot)+'</span></div>';
-      });
-      sc+='</div>';
-      h+=sc;
-    }
   }
+  h+=renderAgg();
   if(!owners.length){
     h+='<div class="vazio" style="padding:20px 4px"><div style="margin-bottom:13px;text-transform:none">Comece adicionando um <b style="color:var(--accent)">dono</b> (ex.: Minhas, da Miri) e as caixinhas de cada um.</div><button class="bt p" id="btDonoVazio" style="width:auto">+ Adicionar dono</button></div>';
   } else {
@@ -563,10 +566,73 @@ function renderPatrimonio(){
         (d===null?"—":((d>=0?"+":"−")+"R$ "+brl(Math.abs(d))))+'</span></div>';
   });
   document.getElementById("listaHist").innerHTML=lh;
-  ligarPatr();
+  ligarPatr(); ligarAgg();
 }
 
 function acharCx(id){ return D.cx.filter(function(x){ return x.id == id; })[0]; }
+
+/* ===== Agregados (somas escolhidas a mao) ===== */
+function aggHas(a,id){ return (a.cx||[]).some(function(x){ return x==id; }); }
+function aggTotal(a){ var t=0; (a.cx||[]).forEach(function(id){ var c=acharCx(id); if(c) t+=c.v||0; }); return t; }
+function aggEditor(a,ai){
+  var body='<div class="gr"><div style="flex:1"><label class="lb">Nome do agregado</label>' +
+    '<input data-aggn="'+ai+'" value="'+esc(a.nome||"")+'" placeholder="Ex.: Reserva do casal"></div></div>' +
+    '<label class="lb" style="margin-top:4px">Caixinhas incluídas</label>';
+  var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
+  owners.forEach(function(ow){
+    var its=D.cx.filter(function(x){ return x.own===ow; }); if(!its.length) return;
+    body+='<div class="aggown">'+esc(ow)+'</div><div class="aggpick">';
+    its.forEach(function(c){ var on=aggHas(a,c.id);
+      body+='<label class="apk'+(on?" on":"")+'"><input type="checkbox" data-aggcx="'+ai+'" value="'+c.id+'"'+(on?" checked":"")+'>' +
+        '<span class="apkdot" style="background:'+c.c+'"></span>'+esc(c.n)+'</label>'; });
+    body+='</div>';
+  });
+  body+='<div class="acoes"><button class="bt d" data-aggdel="'+ai+'">Apagar agregado</button></div>';
+  return body;
+}
+function renderAgg(){
+  if(!D.cx.length) return "";
+  var h='<div class="aggsec"><div class="aggh"><span>Agregados</span><span class="aggadd" id="aggNovo">+ novo</span></div>';
+  if(!D.agg.length){
+    h+='<div class="aggempty">Some caixinhas de donos diferentes num total só (ex.: a <b>Reserva</b> sua + a da Miri). Toque em <b>+ novo</b> e escolha as caixinhas.</div>';
+  }
+  D.agg.forEach(function(a,ai){
+    var tot=aggTotal(a);
+    var itens=(a.cx||[]).map(function(id){ return acharCx(id); }).filter(Boolean);
+    var chips=itens.map(function(c){ return '<span class="achip"><i style="background:'+c.c+'"></i>'+esc(c.n)+' <small>'+esc(c.own)+'</small> R$ '+brl(c.v)+'</span>'; }).join("");
+    h+='<div class="aggcard">' +
+       '<div class="aggtop"><span class="aggnm">'+esc(a.nome||"Agregado")+'</span>' +
+       '<span class="aggtot">R$ '+brl(tot)+'</span>' +
+       '<button class="cog aggcog" data-aggcog="'+ai+'">⚙</button></div>' +
+       (chips?('<div class="aggchips">'+chips+'</div>'):'<div class="aggempty2">Nenhuma caixinha selecionada — toque na engrenagem.</div>') +
+       '<div class="agged" data-agged="'+ai+'" style="display:none">'+aggEditor(a,ai)+'</div>' +
+       '</div>';
+  });
+  h+='</div>';
+  return h;
+}
+function ligarAgg(){
+  var q=function(s){ return document.querySelectorAll(s); };
+  var nv=document.getElementById("aggNovo");
+  if(nv) nv.addEventListener("click",function(){
+    D.agg.push({id:"a"+Date.now().toString(36),nome:"",cx:[]}); salvar(); renderPatrimonio();
+    var idx=D.agg.length-1; setTimeout(function(){ var ed=document.querySelector('[data-agged="'+idx+'"]'); if(ed) ed.style.display="block"; var nm=document.querySelector('[data-aggn="'+idx+'"]'); if(nm) nm.focus(); },0);
+  });
+  Array.prototype.forEach.call(q("[data-aggcog]"),function(b){ b.addEventListener("click",function(){
+    var ed=document.querySelector('[data-agged="'+this.getAttribute("data-aggcog")+'"]'); if(ed) ed.style.display=ed.style.display==="none"?"block":"none"; }); });
+  Array.prototype.forEach.call(q("[data-aggn]"),function(i){ i.addEventListener("change",function(){
+    var a=D.agg[+this.getAttribute("data-aggn")]; if(a){ a.nome=this.value.trim(); salvar(); renderPatrimonio(); } }); });
+  Array.prototype.forEach.call(q("[data-aggcx]"),function(c){ c.addEventListener("change",function(){
+    var ai=+this.getAttribute("data-aggcx"), id=this.value, a=D.agg[ai]; if(!a) return; if(!a.cx) a.cx=[];
+    if(this.checked){ if(!aggHas(a,id)) a.cx.push(id); } else { a.cx=a.cx.filter(function(x){ return x!=id; }); }
+    salvar(); renderPatrimonio();
+    setTimeout(function(){ var ed=document.querySelector('[data-agged="'+ai+'"]'); if(ed) ed.style.display="block"; },0);
+  }); });
+  Array.prototype.forEach.call(q("[data-aggdel]"),function(b){ b.addEventListener("click",function(){
+    var ai=+this.getAttribute("data-aggdel"), a=D.agg[ai];
+    if(!confirm('Apagar o agregado "'+((a&&a.nome)||"sem nome")+'"?')) return;
+    D.agg.splice(ai,1); salvar(); renderPatrimonio(); }); });
+}
 
 function ligarPatr(){
   var q=function(s){ return document.querySelectorAll(s); };
@@ -919,6 +985,7 @@ document.getElementById("fileImp").addEventListener("change",function(){
       if(!Array.isArray(D.cx)) D.cx=JSON.parse(JSON.stringify(PADRAO.cx));
       if(typeof D.carteira!=="number") D.carteira=0;
       if(!Array.isArray(D.owners)) D.owners=[];
+      if(!Array.isArray(D.agg)) D.agg=[];
       if(!D.ownerColors||typeof D.ownerColors!=="object") D.ownerColors={};
       if(!D.collapsed||typeof D.collapsed!=="object") D.collapsed={};
       D.cx.forEach(function(x,i){ if(!x.id) x.id=i+1; if(!x.own) x.own="Minhas"; if(x.id>maxId) maxId=x.id; });

@@ -175,6 +175,63 @@
           background:linear-gradient(180deg, rgba(47,217,201,.55) 0%, rgba(34,197,94,.3) 36%, rgba(34,197,94,0) 72%); }
   #flash.go{ animation:flashsweep .85s cubic-bezier(.22,.61,.36,1); }
   @keyframes flashsweep{ 0%{opacity:0;transform:translateY(-14%)} 18%{opacity:1} 100%{opacity:0;transform:translateY(0)} }
+
+  /* ===== VISUAL MODERNO v2 (2026-08-20) ===== */
+  body{ background:radial-gradient(1200px 520px at 50% -10%, #0b1e20 0%, #000 60%); }
+  header .k{ font-size:22px; letter-spacing:5px; filter:drop-shadow(0 2px 14px rgba(47,217,201,.25)); }
+  header .s{ color:#7c858b; }
+
+  /* chips de lista/categoria: pilula moderna */
+  .chip{ border-radius:14px; padding:9px 14px; background:#0f1216; border-color:#242a30;
+         transition:transform .12s cubic-bezier(.34,1.5,.6,1), border-color .15s, background .15s, color .15s; }
+  .chip:active{ transform:scale(.94); }
+  .chip.on{ background:linear-gradient(180deg,#12262a,#0e1a1d); border-color:#2FD9C9; color:#bff3ec; box-shadow:0 4px 16px rgba(47,217,201,.14); }
+  #listas .chip.on{ background:linear-gradient(180deg,#0f2f34,#0b2126); }
+  .chip.novo{ background:rgba(47,217,201,.06); }
+
+  /* barra de adicionar: moderna, elevada, com anel de foco */
+  .add .linha{ gap:9px; background:#0f1216; border:1px solid #242a30; border-radius:16px; padding:6px;
+               box-shadow:0 6px 20px rgba(0,0,0,.35); transition:border-color .15s, box-shadow .15s; }
+  .add .linha:focus-within{ border-color:#2FD9C9; box-shadow:0 0 0 3px rgba(47,217,201,.16),0 10px 26px rgba(0,0,0,.45); }
+  .add input{ background:transparent; border:none; border-radius:12px; padding:13px 14px; }
+  .add input:focus{ box-shadow:none; border-color:transparent; }
+  .add button{ width:52px; border-radius:13px; background:linear-gradient(135deg,#2FD9C9,#1fb3a6);
+               box-shadow:0 8px 18px rgba(47,217,201,.4); transition:transform .12s, box-shadow .12s; }
+  .add button:active{ transform:scale(.9); }
+  .add .mic{ background:#12161b; border:1px solid #244a50; border-radius:13px; box-shadow:none; }
+  .add .mic.rec{ background:#2b1214; }
+
+  /* itens: mais arredondados e macios */
+  li{ border-radius:16px; background:#0f1216; border-color:#20262b; padding:14px 12px 14px 10px;
+      box-shadow:0 3px 12px rgba(0,0,0,.28); }
+  li.done{ background:linear-gradient(160deg,#0d1f15,#0a120d); border-color:#1c4429; }
+  .box{ border-radius:8px; }
+  .txt{ font-weight:600; }
+
+  /* cabecalho de grupo mais elegante */
+  .gh .gn{ font-size:12.5px; letter-spacing:1px; }
+  .gh .gb{ width:6px; height:19px; box-shadow:0 0 10px currentColor; }
+
+  /* tags e botao x arredondados */
+  .tag{ border-radius:9px; padding:4px 9px; }
+  .x{ border-radius:9px; }
+
+  /* barra de acoes inferior: pilula flutuante (como o Stash) */
+  .acoes{ left:12px; right:12px; margin:0 auto; max-width:560px; bottom:calc(11px + env(safe-area-inset-bottom));
+          background:rgba(17,21,26,.86); -webkit-backdrop-filter:blur(18px) saturate(1.4); backdrop-filter:blur(18px) saturate(1.4);
+          border:1px solid rgba(255,255,255,.09); border-top:1px solid rgba(255,255,255,.09); border-radius:20px; padding:8px;
+          box-shadow:0 16px 40px rgba(0,0,0,.55); }
+  .acoes button{ border-radius:13px; padding:12px 6px; background:#191e23; border:1px solid rgba(255,255,255,.06);
+                 transition:transform .1s, background .15s; }
+  .acoes button:active{ transform:scale(.94); background:#20262c; }
+  .acoes .mais{ background:rgba(47,217,201,.1); border-color:#244a50; }
+
+  /* menu modal: mais moderno */
+  .menu{ background:rgba(0,0,0,.72); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+  .menu .cx{ border-radius:20px; border-color:#242a30; box-shadow:0 30px 80px rgba(0,0,0,.6); }
+  .menu .bt{ border-radius:12px; }
+  .catrow{ border-radius:13px; }
+  .paleta{ border-radius:13px; }
 </style>
   <meta name="theme-color" content="#000000"></head>
 <body>
