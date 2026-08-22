@@ -13,6 +13,7 @@
 <link rel="manifest" href="manifest.json?v=3">
 <link rel="icon" href="favicon-v2.png">
 <link rel="apple-touch-icon" href="apple-touch-icon-v2.png">
+<script src="supabase.js"></script>
 <style>
   :root{
     --bg:#000; --panel:#121417; --panel2:#0e1013; --line:#262a2e; --line2:#23272b;
@@ -360,7 +361,29 @@
   .wc-card .wcbtn{ background:#2FD9C9; color:#04191a; border:none; border-radius:12px; padding:13px 30px; font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 6px 20px rgba(47,217,201,.32); }
   .wc-card .wcbtn:active{ transform:scale(.95); }
 
-  @media print{ .toolbar,.fab,.cadd,.gbtn,.menu,.calpop,#flash,#__welcome{ display:none!important; } body{ padding:15mm 14mm; } }
+  /* ===== conta / login / sincronização ===== */
+  .authov{ position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:22px;
+           background:rgba(0,0,0,.74); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+  .authov.hidden{ display:none !important; }
+  .auth-card{ width:100%; max-width:380px; background:linear-gradient(160deg,#12161a,#0a0d10); border:1px solid #23282e;
+              border-radius:22px; padding:26px 22px 22px; box-shadow:0 24px 70px rgba(0,0,0,.6);
+              animation:wcpop .42s cubic-bezier(.2,.9,.3,1); max-height:92vh; overflow:auto; }
+  .auth-ic{ font-size:42px; text-align:center; margin-bottom:6px; }
+  .auth-card h2{ color:#fff; font-size:21px; text-align:center; margin-bottom:9px; }
+  .auth-card p{ color:#9aa2a8; font-size:13.5px; line-height:1.55; text-align:center; margin-bottom:16px; }
+  .auth-card p.auth-note{ font-size:11.5px; color:#6f7a80; margin-top:-9px; }
+  .auth-card .field label{ color:#8a97a0; }
+  .auth-card .field input{ background:#0b0e11; }
+  .auth-err{ display:none; color:#f87171; font-size:12.5px; text-align:center; margin:2px 0 12px; font-weight:600; }
+  .auth-btns{ display:flex; flex-direction:column; gap:10px; margin:4px 0 2px; }
+  .auth-btns button{ padding:14px; border-radius:12px; border:none; font-size:14.5px; font-weight:700; cursor:pointer; }
+  .auth-link{ display:block; width:100%; background:none; border:none; color:#8a97a0; font-size:12.5px; margin-top:11px; cursor:pointer; text-decoration:underline; }
+  [data-theme="light"] .auth-card,[data-theme="miri"] .auth-card{ background:var(--panel); border-color:var(--line); }
+  [data-theme="light"] .auth-card h2,[data-theme="miri"] .auth-card h2{ color:var(--txt2); }
+  [data-theme="light"] .auth-card p,[data-theme="miri"] .auth-card p{ color:var(--mut); }
+  [data-theme="light"] .auth-card .field input,[data-theme="miri"] .auth-card .field input{ background:#f5f6f8; }
+
+  @media print{ .toolbar,.fab,.cadd,.gbtn,.menu,.calpop,#flash,#__welcome,#authOv{ display:none!important; } body{ padding:15mm 14mm; } }
 </style>
 </head>
 <body>
@@ -376,6 +399,8 @@
   </div>
 </div>
 
+<div id="authOv" class="authov hidden"></div>
+
 <div class="toolbar">
   <button class="navbtn" onclick="nav(-1)">‹</button>
   <div class="datepill" id="datepill"><span id="datepilltxt">—</span></div>
@@ -390,6 +415,7 @@
       <button onclick="newDay()">🌅 Novo dia (puxa pendentes)</button>
       <button onclick="openCats()">🏷️ Categorias</button>
       <button onclick="shareDay()">👥 Compartilhar o dia</button>
+      <button onclick="openSecurity()">🔒 Segurança do app</button>
       <button onclick="exportPDF()">🖨️ Exportar / imprimir</button>
       <button onclick="backup()">💾 Backup (.json)</button>
       <button onclick="document.getElementById('restoreFile').click()">📥 Restaurar backup</button>
@@ -508,7 +534,8 @@ function removeCat(id){
   const i=CATS.findIndex(c=>c.id===id); if(i>=0)CATS.splice(i,1); save(); return true;
 }
 
-function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
+function saveLocal(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
+function save(){ saveLocal(); schedulePush(); }
 function day(){ return DB.days[cur]; }
 /* tarefa agendada "ativa" (vira pendente) no dia programado — aí conta no % e dá pra concluir */
 function activateSchedTasks(tasks, iso){
@@ -1109,8 +1136,164 @@ function openThemePicker(){ const cur=document.documentElement.getAttribute('dat
 /* boas-vindas */
 function wcClose(){ document.getElementById('__welcome').classList.add('hidden'); localStorage.setItem('welcome-norte','1'); }
 
+/* ================= CONTA + SINCRONIZAÇÃO (Supabase) ================= */
+const SUPA_URL='https://ldvbnknynxnlbgmgrkjf.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdmJua255bnhubGJnbWdya2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczODI2MTcsImV4cCI6MjEwMjk1ODYxN30.pxZ9BiP0bKpaN7t0L1bDpENQH5C25fjOHtuYlq-p6j0';
+const APP_ID='norte';
+let sb=null, session=null, _pushT=null, _myStamp=null, _rtChan=null, _pending=null;
+function sbReady(){ return !!(sb && session); }
+async function initSupa(){ try{ if(window.supabase && SUPA_URL.indexOf('http')===0){
+    sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+    const g=await sb.auth.getSession(); session=(g&&g.data&&g.data.session)||null; } }catch(e){ sb=null; } }
+async function sha(s){ try{ const b=new TextEncoder().encode(s); const h=await crypto.subtle.digest('SHA-256',b);
+    return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return 'x'+s.length; } }
+
+/* ----- motor de sincronização ----- */
+function schedulePush(){ if(!sbReady())return; clearTimeout(_pushT); _pushT=setTimeout(pushRemote,700); }
+async function pushRemote(){ if(!sbReady())return;
+  const stamp=new Date().toISOString(); _myStamp=stamp;
+  try{ const r=await sb.from('app_state').upsert({user_id:session.user.id,app:APP_ID,data:DB,updated_at:stamp});
+    if(!r.error) localStorage.setItem('norte-syncedAt',stamp); }catch(e){} }
+function hasLocalData(){ return (DB&&DB.days&&Object.values(DB.days).some(d=>d.tasks&&d.tasks.length)) || (DB&&DB.cats&&DB.cats.length); }
+function normalizeDB(){ if(!DB||!DB.days)DB={days:{}}; if(!DB.cats)DB.cats=[]; if(!DB.recurring)DB.recurring=[]; CATS=DB.cats;
+  const t=todayISO(); if(!DB.days[t]) DB.days[t]=Object.keys(DB.days).length?buildNewDay(t):emptyDay(); cur=t; }
+function mergeDB(a,b){ const out={days:{},cats:[],recurring:(a.recurring&&a.recurring.length?a.recurring:(b.recurring||[]))};
+  const cm={}; [].concat(a.cats||[],b.cats||[]).forEach(c=>{ if(!cm[c.id])cm[c.id]=c; }); out.cats=Object.values(cm);
+  const ds=new Set([].concat(Object.keys(a.days||{}),Object.keys(b.days||{})));
+  ds.forEach(d=>{ const da=(a.days&&a.days[d])||{tasks:[],obs:[]}, db=(b.days&&b.days[d])||{tasks:[],obs:[]};
+    const tm={}; [].concat(da.tasks||[],db.tasks||[]).forEach(t=>{ if(!tm[t.id])tm[t.id]=t; });
+    out.days[d]={tasks:Object.values(tm), obs:Array.from(new Set([].concat(da.obs||[],db.obs||[])))}; });
+  return out; }
+async function pullRemote(){ if(!sbReady())return;
+  try{ const {data,error}=await sb.from('app_state').select('data,updated_at').eq('user_id',session.user.id).eq('app',APP_ID).maybeSingle();
+    if(error)return;
+    const firstLink=!localStorage.getItem('norte-syncedAt');
+    if(data&&data.data){
+      if(firstLink&&hasLocalData()){ DB=mergeDB(DB,data.data); normalizeDB(); saveLocal(); render(); await pushRemote(); toast('✓ dados unidos e sincronizados'); }
+      else if((data.updated_at||'')>(localStorage.getItem('norte-syncedAt')||'')){ DB=data.data; normalizeDB(); saveLocal(); localStorage.setItem('norte-syncedAt',data.updated_at); render(); }
+      else { await pushRemote(); }
+    } else { await pushRemote(); }
+  }catch(e){} }
+function subscribeRT(){ if(!sbReady())return; if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
+  try{ _rtChan=sb.channel('as-'+session.user.id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'app_state',filter:'user_id=eq.'+session.user.id},p=>{
+      const row=p.new; if(!row||row.app!==APP_ID)return; if(row.updated_at===_myStamp)return;
+      try{ DB=row.data; normalizeDB(); saveLocal(); localStorage.setItem('norte-syncedAt',row.updated_at); render(); toast('✓ sincronizado'); }catch(e){}
+    }).subscribe(); }catch(e){} }
+
+/* ----- infra das telas ----- */
+function val(id){ const e=document.getElementById(id); return e?e.value.trim():''; }
+function authErr(m){ const e=document.getElementById('authErr'); if(e){ e.textContent=m; e.style.display='block'; } }
+function authScreen(inner,opts){ const ov=document.getElementById('authOv'); ov.innerHTML='<div class="auth-card">'+inner+'</div>';
+  ov.classList.remove('hidden'); ov.classList.toggle('lock',!!(opts&&opts.lock)); }
+function closeAuth(){ document.getElementById('authOv').classList.add('hidden'); }
+function toast(msg){ let t=document.getElementById('__toast'); if(!t){ t=document.createElement('div'); t.id='__toast';
+    t.style.cssText='position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100001;background:#12161b;color:#eafcf6;border:1px solid #1f5c4d;border-radius:12px;padding:9px 15px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;box-shadow:0 10px 30px rgba(0,0,0,.5)';
+    document.body.appendChild(t); } t.textContent=msg; t.style.opacity='1'; clearTimeout(t._h); t._h=setTimeout(function(){t.style.opacity='0';},2400); }
+
+/* ----- telas de conta ----- */
+function showUpgrade(){ authScreen('<div class="auth-ic">🔒</div><h2>Proteja e sincronize</h2>'+
+  '<p>Crie uma conta pra proteger o Norte com senha e ver as mesmas tarefas no computador e no celular — mudou num, muda no outro.</p>'+
+  '<div class="auth-btns"><button class="btn-primary" onclick="showSignup()">Sim, criar conta</button>'+
+  '<button class="btn-ghost" onclick="showLogin()">Já tenho conta</button></div>'+
+  '<button class="auth-link" onclick="dismissUpgrade()">Agora não</button>'); }
+function dismissUpgrade(){ localStorage.setItem('norte-nag','1'); closeAuth(); }
+function showSignup(){ closeMenu(); authScreen('<div class="auth-ic">🔒</div><h2>Criar sua conta</h2>'+
+  '<div class="field"><label>E-mail (será seu login)</label><input id="suEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></div>'+
+  '<div class="field"><label>Senha</label><input id="suPw" type="password" placeholder="mín. 6 caracteres"></div>'+
+  '<div class="field"><label>Confirmar senha</label><input id="suPw2" type="password" placeholder="repita a senha"></div>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Cancelar</button><button class="btn-primary" onclick="signupNext()">Continuar</button></div>'); }
+function signupNext(){ const e=val('suEmail'),p=val('suPw'),p2=val('suPw2');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
+  if(p.length<6){ authErr('A senha precisa de ao menos 6 caracteres.'); return; }
+  if(p!==p2){ authErr('As senhas não conferem.'); return; }
+  _pending={email:e,pw:p}; showReminder(); }
+function showReminder(){ authScreen('<div class="auth-ic">📝</div><h2>Anote sua senha!</h2>'+
+  '<p>Guarde sua senha num lugar seguro — você vai precisar dela pra entrar em outro aparelho.</p>'+
+  '<p class="auth-note">Dá pra recuperar por e-mail se esquecer, mas anotar é mais rápido.</p>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-ghost" onclick="showSignup()">Voltar</button><button class="btn-primary" id="suGo" onclick="signupGo()">Criar conta e entrar</button></div>'); }
+async function signupGo(){ const b=document.getElementById('suGo'); if(b){ b.textContent='Criando…'; b.disabled=true; }
+  await doSignup(_pending.email,_pending.pw); if(b){ b.disabled=false; b.textContent='Criar conta e entrar'; } }
+async function doSignup(email,pw){ if(!sb){ authErr('Sem conexão. Tente de novo com internet.'); return; }
+  try{ let r=await sb.auth.signUp({email:email,password:pw});
+    if(r.error){ if(/registered|exists/i.test(r.error.message)){ r=await sb.auth.signInWithPassword({email:email,password:pw});
+        if(r.error){ authErr('Esse e-mail já tem conta e a senha não confere. Use "Já tenho conta".'); return; } }
+      else { authErr(r.error.message); return; } }
+    session=(r.data&&r.data.session)||null;
+    if(!session){ const s=await sb.auth.signInWithPassword({email:email,password:pw}); session=(s.data&&s.data.session)||null; }
+    if(!session){ authErr('Conta criada — confirme o e-mail e entre.'); return; }
+    localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
+    closeAuth(); subscribeRT(); await pullRemote(); toast('Conta criada ✓');
+  }catch(e){ authErr('Erro: '+(e.message||e)); } }
+function showLogin(){ closeMenu(); authScreen('<div class="auth-ic">🔓</div><h2>Entrar na sua conta</h2>'+
+  '<div class="field"><label>E-mail</label><input id="lgEmail" type="email" inputmode="email" value="'+(localStorage.getItem('norte-login')||'')+'"></div>'+
+  '<div class="field"><label>Senha</label><input id="lgPw" type="password"></div>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Cancelar</button><button class="btn-primary" onclick="loginGo()">Entrar</button></div>'+
+  '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>'); }
+async function loginGo(){ await doLogin(val('lgEmail'),val('lgPw')); }
+async function doLogin(email,pw){ if(!sb){ authErr('Sem conexão.'); return; }
+  try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
+    if(r.error){ authErr('E-mail ou senha incorretos.'); return; }
+    session=r.data.session; localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
+    closeAuth(); subscribeRT(); await pullRemote(); toast('Entrou ✓');
+  }catch(e){ authErr('Erro: '+(e.message||e)); } }
+function showLock(){ authScreen('<div class="auth-ic">🔒</div><h2>Norte</h2><p>Digite sua senha pra entrar.</p>'+
+  '<div class="field"><label>E-mail</label><input id="lkEmail" type="email" value="'+(localStorage.getItem('norte-login')||'')+'" readonly></div>'+
+  '<div class="field"><label>Senha</label><input id="lkPw" type="password"></div>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-primary" style="flex:1" onclick="unlockGo()">Entrar</button></div>'+
+  '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>'+
+  '<button class="auth-link" onclick="removeAccountLocal()">Tirar senha deste aparelho</button>',{lock:true}); }
+async function unlockGo(){ const pw=val('lkPw'), email=localStorage.getItem('norte-login');
+  if(!pw){ authErr('Digite a senha.'); return; }
+  if(sb){ try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
+      if(!r.error){ session=r.data.session; localStorage.setItem('norte-pwhash',await sha(pw)); closeAuth(); subscribeRT(); pullRemote(); return; }
+      if(/invalid|credential/i.test(r.error.message)){ if(await sha(pw)===localStorage.getItem('norte-pwhash')){ closeAuth(); return; } authErr('Senha incorreta.'); return; }
+    }catch(e){} }
+  if(await sha(pw)===localStorage.getItem('norte-pwhash')){ closeAuth(); toast('Modo offline'); }
+  else authErr('Senha incorreta.'); }
+async function forgotPw(){ const email=localStorage.getItem('norte-login')||val('lgEmail')||prompt('Seu e-mail da conta:');
+  if(!email)return; if(!sb){ alert('Precisa de internet pra recuperar.'); return; }
+  try{ await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});
+    alert('Enviei um link de recuperação pro seu e-mail. Abra o link NESTE aparelho pra definir uma nova senha.'); }catch(e){ alert('Erro ao enviar: '+(e.message||e)); } }
+function showRecovery(){ authScreen('<div class="auth-ic">🔑</div><h2>Nova senha</h2><p>Defina uma nova senha pra sua conta.</p>'+
+  '<div class="field"><label>Nova senha</label><input id="rcPw" type="password" placeholder="mín. 6"></div>'+
+  '<div class="field"><label>Confirmar</label><input id="rcPw2" type="password"></div>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-primary" onclick="recoveryGo()">Salvar</button></div>'); }
+async function recoveryGo(){ const a=val('rcPw'),b=val('rcPw2'); if(a.length<6){ authErr('Mínimo 6 caracteres.'); return; } if(a!==b){ authErr('Não confere.'); return; }
+  try{ const r=await sb.auth.updateUser({password:a}); if(r.error){ authErr(r.error.message); return; }
+    const u=await sb.auth.getUser(); const email=u&&u.data&&u.data.user&&u.data.user.email;
+    if(email)localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(a));
+    const g=await sb.auth.getSession(); session=g.data.session; history.replaceState(null,'',location.pathname);
+    closeAuth(); subscribeRT(); pullRemote(); toast('Senha redefinida ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
+function openSecurity(){ closeMenu();
+  if(!localStorage.getItem('norte-login')){ showSignup(); return; }
+  authScreen('<div class="auth-ic">🔒</div><h2>Segurança do app</h2>'+
+    '<p>Sua conta: <b style="color:var(--txt2)">'+escapeHtml(localStorage.getItem('norte-login'))+'</b></p>'+
+    '<div class="act-list"><button onclick="showChangePw()"><span class="ic">🔑</span>Trocar senha</button>'+
+    '<button onclick="removeAccountLocal()"><span class="ic">🚫</span>Tirar senha (voltar ao modo local)</button></div>'+
+    '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Fechar</button></div>'); }
+function showChangePw(){ authScreen('<div class="auth-ic">🔑</div><h2>Trocar senha</h2>'+
+  '<div class="field"><label>Nova senha</label><input id="cpPw" type="password" placeholder="mín. 6"></div>'+
+  '<div class="field"><label>Confirmar</label><input id="cpPw2" type="password"></div>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-ghost" onclick="openSecurity()">Voltar</button><button class="btn-primary" onclick="changePwGo()">Salvar</button></div>'); }
+async function changePwGo(){ const a=val('cpPw'),b=val('cpPw2'); if(a.length<6){ authErr('Mínimo 6 caracteres.'); return; } if(a!==b){ authErr('Não confere.'); return; }
+  if(!sbReady()){ authErr('Precisa estar online e logado.'); return; }
+  try{ const r=await sb.auth.updateUser({password:a}); if(r.error){ authErr(r.error.message); return; }
+    localStorage.setItem('norte-pwhash',await sha(a)); closeAuth(); toast('Senha trocada ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
+async function removeAccountLocal(){ if(!confirm('Tirar a senha? O Norte volta ao modo local neste aparelho (sem senha e sem sincronizar). Seus dados continuam salvos aqui.'))return;
+  try{ if(sb) await sb.auth.signOut(); }catch(e){}
+  if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan=null; }
+  session=null; localStorage.removeItem('norte-login'); localStorage.removeItem('norte-pwhash'); localStorage.removeItem('norte-syncedAt'); localStorage.setItem('norte-nag','1');
+  closeAuth(); toast('Modo local ✓'); }
+
 /* boot */
-function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark'); load();
+async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark'); load();
   const h=location.hash;
   if(h.indexOf('#s=')===0){ try{ const p=dec(h.slice(3));
       if(p.edit) openSharedEditable(p); else showShared(p);
@@ -1118,7 +1301,13 @@ function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark'); load(
     }catch(e){ /* link inválido → segue app normal */ }
   }
   render();
-  if(!localStorage.getItem('welcome-norte')){ document.getElementById('__welcome').classList.remove('hidden'); }
+  await initSupa();
+  const recovering = h.indexOf('type=recovery')>=0;
+  if(sb) sb.auth.onAuthStateChange(function(ev,ses){ if(ev==='PASSWORD_RECOVERY'){ session=ses; showRecovery(); } });
+  if(recovering) return;
+  if(localStorage.getItem('norte-login')){ showLock(); if(session){ subscribeRT(); pullRemote(); } }
+  else if(!localStorage.getItem('welcome-norte')){ document.getElementById('__welcome').classList.remove('hidden'); }
+  else if(!localStorage.getItem('norte-nag')){ setTimeout(showUpgrade,500); }
 }
 boot();
 (function(){
