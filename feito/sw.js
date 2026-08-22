@@ -10,3 +10,4 @@ self.addEventListener('fetch',function(e){
   );
 });
 /* sync-multiplataforma 2026-08-22 */
+/* sync keys fix 2026-08-22b */

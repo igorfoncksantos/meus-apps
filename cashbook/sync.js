@@ -17,10 +17,10 @@
   /* ---------- blob no localStorage ---------- */
   var _set=localStorage.setItem.bind(localStorage);
   function skip(k){ return !k || k.indexOf('sb-')===0 || k.indexOf('welcome')===0 || k===LK.login || k===LK.pin || k===LK.synced || k===LK.nag; }
-  function inScope(k){ return KEYS==='*' ? !skip(k) : (KEYS.indexOf(k)>=0); }
+  function inScope(k){ if(!k||skip(k))return false; if(KEYS==='*')return true; for(var i=0;i<KEYS.length;i++){ var p=KEYS[i]; if(p.charAt(p.length-1)==='*'){ if(k.indexOf(p.slice(0,-1))===0)return true; } else if(k===p)return true; } return false; }
   localStorage.setItem=function(k,v){ _set(k,v); if(!_applying && inScope(k)) schedulePush(); };
-  function getBlob(){ var o={}; if(KEYS==='*'){ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(!skip(k))o[k]=localStorage.getItem(k); } } else { KEYS.forEach(function(k){ var v=localStorage.getItem(k); if(v!=null)o[k]=v; }); } return o; }
-  function setBlob(o){ _applying=true; try{ for(var k in o){ if(o.hasOwnProperty(k) && !skip(k)) _set(k,o[k]); } }catch(e){} _applying=false; }
+  function getBlob(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(inScope(k))o[k]=localStorage.getItem(k); } return o; }
+  function setBlob(o){ _applying=true; try{ for(var k in o){ if(o.hasOwnProperty(k) && inScope(k)) _set(k,o[k]); } }catch(e){} _applying=false; }
   function hasLocal(){ return Object.keys(getBlob()).length>0; }
   function reload(){ location.reload(); }
 
