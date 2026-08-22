@@ -729,7 +729,7 @@ var CICLOS = [
 
 /* ===== DADOS GRAVADOS NO PRÓPRIO ARQUIVO (todos os ciclos) =====
    Reescrito pelo botão "Salvar no arquivo". Não editar à mão. */
-var DADOS = {"active":"Ciclo atual","ciclos":{"Ciclo atual":{"orcS":"","orcM":"","l":[],"dia":30,"orcL":""}}};
+var DADOS = {"active":"Agosto/Setembro","ciclos":{"Julho/Agosto":{"orcS":"504","orcM":"756","l":[{"d":"Pizzaria","v":71,"c":"S","dt":"18/07","iso":"2026-07-18"},{"d":"Café Santo Grão","v":109,"c":"S","dt":"18/07","iso":"2026-07-18"},{"d":"Condor","v":111,"c":"M","dt":"18/07","iso":"2026-07-18"},{"d":"Pastel da feira","v":74.5,"c":"S","dt":"19/07","iso":"2026-07-19"},{"d":"Caldo de Cana","v":17,"c":"S","dt":"19/07","iso":"2026-07-19"},{"d":"Atacadão","v":75.2,"c":"M","dt":"25/07","iso":"2026-07-25"},{"d":"Café Jardim Botânico","v":43,"c":"S","dt":"26/07","iso":"2026-07-26"},{"d":"Condor","v":233.23,"c":"M","dt":"07/08","iso":"2026-08-07"},{"d":"Percabonato","v":27.99,"c":"L","dt":"09/08","iso":"2026-08-09"},{"d":"Fone de ouvido","v":125.8,"c":"L","dt":"06/08","iso":"2026-08-06"}],"dia":28,"orcL":"1.400,00"},"Agosto/Setembro":{"orcS":"640,00","orcM":"960,00","l":[{"d":"Pizzaria","v":73,"c":"S","dt":"03/08","iso":"2026-08-03"},{"d":"Braseiro","v":181,"c":"S","dt":"04/08","iso":"2026-08-04"},{"d":"Padaria","v":21.46,"c":"S","dt":"06/08","iso":"2026-08-06"},{"d":"Shoppe (Fone)","v":125.8,"c":"L","dt":"06/08","iso":"2026-08-06"},{"d":"Condor","v":233.23,"c":"M","dt":"08/08","iso":"2026-08-08"},{"d":"Cinema","v":77.4,"c":"L","dt":"11/08","iso":"2026-08-11"},{"d":"CandleLight","v":116,"c":"L","dt":"10/08","iso":"2026-08-10"}],"dia":30,"orcL":"1.400,00"}}};
 /* ===== FIM DOS DADOS ===== */
 /* ===== AFAZERES gravados no arquivo (reescrito por "Salvar no arquivo") ===== */
 var AFZ_SEED = [];
@@ -737,7 +737,11 @@ var AFZ_SEED = [];
 
 /* ===== CATEGORIAS (globais, compartilhadas entre os meses) =====
    Reescrito pelo botão "Salvar no arquivo". */
-var CATEGORIAS = [];
+var CATEGORIAS = [
+  {id:"S", nome:"Saídas / Lanches", emoji:"🍔", cor:"#f0883e"},
+  {id:"M", nome:"Mercado", emoji:"🛒", cor:"#3ddb84"},
+  {id:"L", nome:"Gastos Livres", emoji:"💸", cor:"#a78bfa"}
+];
 /* ===== FIM CATEGORIAS ===== */
 var CATS;
 try { var _rc = localStorage.getItem("gastos-cats"); CATS = _rc ? JSON.parse(_rc) : JSON.parse(JSON.stringify(CATEGORIAS)); }
@@ -1963,5 +1967,8 @@ document.getElementById("cmApagar").addEventListener("click", function(){
   </div>
 </div>
 <script>(function(){try{var K="welcome-gastos";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
+<script>window.__SYNC_CFG={app:'cashbook',keys:'*',accent:'#3ddb84',name:'Cashbook'};</script>
+<script src="supabase.js"></script>
+<script src="sync.js"></script>
 </body>
 </html>

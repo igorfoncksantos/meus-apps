@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -362,12 +362,25 @@
 <script>
 /* ================== DADOS ================== */
 var PADRAO = {
-  carteira: 0,
-  cx: [],
+  carteira: 5119.96,
+  cx: [
+    {id:1,  n:"Reserva de emergência", c:"#6ea8f0", v:3136.59, p:15, m:10000,  pz:""},
+    {id:2,  n:"Casa",                  c:"#f97316", v:453.92,  p:13, m:10000,  pz:""},
+    {id:3,  n:"Moto / Carro",          c:"#94a3b8", v:291.96,  p:12, m:5000,   pz:""},
+    {id:4,  n:"Viagem",                c:"#fcd34d", v:133.36,  p:12, m:2000,   pz:""},
+    {id:5,  n:"Casamento",             c:"#e878a8", v:1464.80, p:10, m:30000,  pz:""},
+    {id:6,  n:"Igor do futuro",        c:"#2FD9C9", v:1073.11, p:10, m:100000, pz:""},
+    {id:7,  n:"Igor do presente",      c:"#38bdf8", v:401.37,  p:10, m:800,    pz:""},
+    {id:8,  n:"Mês",                   c:"#FBBF24", v:825.47,  p:5,  m:1500,   pz:""},
+    {id:9,  n:"Saúde",                 c:"#f87171", v:61.66,   p:5,  m:5000,   pz:""},
+    {id:10, n:"Educação",              c:"#c084fc", v:473.65,  p:5,  m:5000,   pz:""},
+    {id:11, n:"Bitcoin",               c:"#f7931a", v:191.06,  p:3,  m:0,      pz:""},
+    {id:12, n:"Vale",                  c:"#22C55E", v:1013.19, p:0,  m:0,      pz:"", vale:true}
+  ],
   hist: [], aportes: [], entradas: [],
   ap: {sal:"", con:""},
-  owners: [], ownerColors: {}, collapsed: {},
-  vale: {ciclo:"Ciclo atual", mesIni:0, anoIni:2026, dia:20, orcS:"", orcM:"", l:[]}
+  owners: [], ownerColors: {}, collapsed: {}, agg: [],
+  vale: {ciclo:"Julho/Agosto", mesIni:6, anoIni:2026, dia:20, orcS:"", orcM:"", l:[]}
 };
 
 var KEY = "financas-app-v2";
@@ -1083,5 +1096,8 @@ renderTudo();
   </div>
 </div>
 <script>(function(){try{var K="welcome-financas";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
+<script>window.__SYNC_CFG={app:'stash',keys:'*',accent:'#2FD9C9',name:'Stash'};</script>
+<script src="supabase.js"></script>
+<script src="sync.js"></script>
 </body>
 </html>

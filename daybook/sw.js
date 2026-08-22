@@ -9,3 +9,4 @@ self.addEventListener('fetch',function(e){
     .catch(function(){ return caches.match(e.request).then(function(r){ return r || caches.match('./index.html'); }); })
   );
 });
+/* sync-multiplataforma 2026-08-22 */
