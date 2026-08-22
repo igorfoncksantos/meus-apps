@@ -453,6 +453,19 @@
   .auth-or{ display:flex; align-items:center; gap:10px; color:var(--mut); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:13px 0; }
   .auth-or::before,.auth-or::after{ content:''; flex:1; height:1px; background:#2a2f35; }
   [data-theme="light"] .auth-or::before,[data-theme="light"] .auth-or::after,[data-theme="miri"] .auth-or::before,[data-theme="miri"] .auth-or::after{ background:var(--line); }
+  /* teclado do PIN */
+  .pdots{ display:flex; gap:16px; justify-content:center; margin:8px 0 12px; }
+  .pdot{ width:15px; height:15px; border-radius:50%; border:2px solid #3a3f45; transition:.15s; }
+  .pdot.on{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 10px rgba(47,217,201,.5); }
+  .pdots.shake{ animation:pinshake .4s; }
+  @keyframes pinshake{ 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+  .pkeypad{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:4px 0 2px; }
+  .pkey{ height:56px; border-radius:16px; border:1px solid var(--line); background:var(--panel); color:var(--txt2);
+         font-size:24px; font-weight:600; cursor:pointer; transition:transform .1s, background .15s; font-family:inherit; }
+  .pkey:active{ transform:scale(.93); background:rgba(47,217,201,.14); }
+  .pkey.empty{ background:none; border:none; cursor:default; }
+  .pkey.pkb{ font-size:21px; color:var(--mut); }
+  [data-theme="light"] .pkey,[data-theme="miri"] .pkey{ background:#f5f6f8; }
   .auth-card .field input{ border-radius:13px; padding:14px 14px; transition:border-color .18s ease, box-shadow .18s ease; }
   .auth-card .field input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(47,217,201,.16); }
   .auth-card .act-list button{ border-radius:14px; padding:15px 15px; font-weight:700; transition:transform .13s ease, background .18s ease; }
@@ -497,6 +510,7 @@
       <button onclick="openCats()"><span class="mi">🏷️</span>Categorias</button>
       <button onclick="shareDay()"><span class="mi">👥</span>Compartilhar o dia</button>
       <button onclick="openSecurity()"><span class="mi">🔄</span>Sincronização</button>
+      <button onclick="openPinMenu()"><span class="mi">🔒</span>Bloqueio por PIN</button>
       <button onclick="exportPDF()"><span class="mi">🖨️</span>Exportar / imprimir</button>
       <button onclick="backup()"><span class="mi">💾</span>Backup <em>.json</em></button>
       <button onclick="document.getElementById('restoreFile').click()"><span class="mi">📥</span>Restaurar backup</button>
@@ -1408,6 +1422,43 @@ async function disconnectAccount(){ if(!await uiConfirm('Você vai parar de sinc
   if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan=null; }
   session=null; localStorage.removeItem('norte-syncedAt'); localStorage.setItem('norte-nag','1');
   closeAuth(); toast('Desconectado — modo local'); }
+
+/* ===== PIN OPCIONAL (trava local, 4 dígitos, só números) ===== */
+let _pin='', _pinMode='', _pinTmp='';
+function pinTitles(m){ return ({
+  unlock:['Digite seu PIN',''], set1:['Criar PIN','Escolha um PIN de 4 dígitos'], set2:['Confirmar PIN','Repita o PIN'],
+  chgcur:['PIN atual','Digite seu PIN atual'], chgnew:['Novo PIN','Escolha o novo PIN'], chgconf:['Confirmar','Repita o novo PIN'],
+  offcur:['Desativar PIN','Digite seu PIN pra desativar'] })[m] || ['PIN','']; }
+function pinDotsHtml(){ let s=''; for(let i=0;i<4;i++) s+='<span class="pdot'+(i<_pin.length?' on':'')+'"></span>'; return s; }
+function pinKeypadHtml(){ let k=''; ['1','2','3','4','5','6','7','8','9','x','0','back'].forEach(function(d){
+    if(d==='x') k+='<span class="pkey empty"></span>';
+    else if(d==='back') k+='<button class="pkey pkb" onclick="pinBack()">⌫</button>';
+    else k+='<button class="pkey" onclick="pinTap(\''+d+'\')">'+d+'</button>'; }); return k; }
+function showPin(m){ _pinMode=m; _pin=''; const t=pinTitles(m);
+  authScreen('<div class="auth-ic">🔒</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+
+    '<div class="pdots" id="pdots">'+pinDotsHtml()+'</div>'+
+    '<div class="auth-err" id="authErr" style="min-height:15px"></div>'+
+    '<div class="pkeypad">'+pinKeypadHtml()+'</div>'+
+    (m==='unlock'?'':'<button class="auth-link" onclick="closeAuth()">Cancelar</button>'), {lock:m==='unlock'}); }
+function pinRefresh(){ const el=document.getElementById('pdots'); if(el)el.innerHTML=pinDotsHtml(); }
+function pinBack(){ _pin=_pin.slice(0,-1); pinRefresh(); }
+function pinTap(d){ if(_pin.length>=4)return; _pin+=d; pinRefresh(); if(_pin.length===4) setTimeout(pinDone,130); }
+function pinErr(m){ _pin=''; pinRefresh(); authErr(m); const c=document.querySelector('.pdots'); if(c){ c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); } }
+async function pinDone(){ const code=_pin; const h=await sha(code);
+  if(_pinMode==='unlock'){ if(h===localStorage.getItem('norte-pin')){ markSession(); closeAuth(); } else pinErr('PIN incorreto'); }
+  else if(_pinMode==='set1'){ _pinTmp=code; showPin('set2'); }
+  else if(_pinMode==='set2'){ if(code===_pinTmp){ localStorage.setItem('norte-pin',h); markSession(); closeAuth(); toast('PIN ativado ✓'); } else { pinErr('Não conferiu'); setTimeout(function(){showPin('set1');},650); } }
+  else if(_pinMode==='chgcur'){ if(h===localStorage.getItem('norte-pin')) showPin('chgnew'); else pinErr('PIN incorreto'); }
+  else if(_pinMode==='chgnew'){ _pinTmp=code; showPin('chgconf'); }
+  else if(_pinMode==='chgconf'){ if(code===_pinTmp){ localStorage.setItem('norte-pin',h); closeAuth(); toast('PIN alterado ✓'); } else { pinErr('Não conferiu'); setTimeout(function(){showPin('chgnew');},650); } }
+  else if(_pinMode==='offcur'){ if(h===localStorage.getItem('norte-pin')){ localStorage.removeItem('norte-pin'); closeAuth(); toast('PIN desativado'); } else pinErr('PIN incorreto'); } }
+function openPinMenu(){ closeMenu();
+  if(!localStorage.getItem('norte-pin')){ showPin('set1'); return; }
+  authScreen('<div class="auth-ic">🔒</div><h2>Bloqueio por PIN</h2><p>O PIN está <b style="color:var(--green)">ativado</b> — pedido só ao abrir o app neste aparelho.</p>'+
+    '<div class="act-list"><button onclick="showPin(\'chgcur\')"><span class="ic">🔑</span>Trocar PIN</button>'+
+    '<button class="del" onclick="showPin(\'offcur\')"><span class="ic">🚫</span>Desativar PIN</button></div>'+
+    '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); }
+function maybeLockPin(){ if(localStorage.getItem('norte-pin') && !sessionStorage.getItem('norte-sess')) showPin('unlock'); }
 function showSignup(){ closeMenu(); authScreen('<div class="auth-ic">🔒</div><h2>Criar sua conta</h2>'+
   '<div class="field"><label>E-mail (será seu login)</label><input id="suEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></div>'+
   '<div class="field"><label>Senha</label><input id="suPw" type="password" placeholder="mín. 6 caracteres"></div>'+
@@ -1519,6 +1570,7 @@ async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark');
   if(session){ onSignedIn(); }                                   /* já logado (sessão salva ou link do e-mail) -> sincroniza direto, sem pedir nada */
   else if(!localStorage.getItem('welcome-norte')){ document.getElementById('__welcome').classList.remove('hidden'); }
   else if(!localStorage.getItem('norte-nag') && !sessionStorage.getItem('norte-upseen')){ sessionStorage.setItem('norte-upseen','1'); setTimeout(showUpgrade,500); }
+  maybeLockPin();
 }
 boot();
 (function(){
