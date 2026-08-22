@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GASTOS · Agosto/Setembro</title>
+<title>Cashbook</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html,body { background:#000; }
@@ -342,12 +342,12 @@
   .cmbtn.del { background:#2b1214; color:#f87171; border-color:#5c2a2f; }
   .cmbtn.del[disabled] { opacity:.35; cursor:not-allowed; }
 </style>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
   <meta name="theme-color" content="#3ddb84">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Gastos">
+  <meta name="apple-mobile-web-app-title" content="Cashbook">
   <link rel="apple-touch-icon" href="icon-192.png">
   <script>
   (function(){
@@ -377,15 +377,15 @@
 <div class="wrap">
 
   <div class="views">
-    <button class="vb on" data-v="gastos">💸 Gastos</button>
-    <button class="vb" data-v="afazeres">✅ Afazeres</button>
+    <button class="vb on" data-v="gastos">💸 Cashbook</button>
+    <button class="vb" data-v="afazeres">✅ Feito</button>
   </div>
 
   <div id="viewGastos">
 
   <header>
-    <div class="kicker">Gastos</div>
-    <div class="sub">Todos os meses num lugar &middot; três orçamentos separados &middot; saídas e lanches · mercado · gastos livres</div>
+    <div class="kicker">Cashbook</div>
+    <div class="sub">Todos os meses num lugar &middot; um or&ccedil;amento por categoria &middot; com o dia de virada do cart&atilde;o</div>
   </header>
 
   <div class="tabslab">Mês / ciclo — toque pra trocar</div>
@@ -429,8 +429,8 @@
     </div>
     <input class="desc" type="text" id="d" placeholder="Local — onde gastou…">
     <div class="selwrap">
-      <input type="hidden" id="c" value="S">
-      <button type="button" class="selbtn" id="catBtn"><span class="seldot" id="catDot"></span><span class="sellbl" id="catLbl">🍔 Saídas / Lanches</span><span class="selcar">▾</span></button>
+      <input type="hidden" id="c" value="">
+      <button type="button" class="selbtn" id="catBtn"><span class="seldot" id="catDot"></span><span class="sellbl" id="catLbl">Categoria</span><span class="selcar">▾</span></button>
       <div class="selpop" id="catPop"></div>
     </div>
     <input class="val" type="text" inputmode="decimal" id="v" placeholder="0,00">
@@ -651,7 +651,7 @@
     <div id="azbody">
       <div id="flash"></div>
       <header>
-        <div class="k">Afazeres</div>
+        <div class="k">Feito</div>
         <div class="s">quadrado marca feito &middot; texto edita &middot; barrinha colorida: arraste pra reordenar, toque pra trocar categoria</div>
       </header>
       <div class="chips" id="listas"></div>
@@ -717,19 +717,19 @@
    (localStorage "vale-<ciclo>"); "Salvar no arquivo" grava TODOS de uma vez.
    Pra somar um mês novo, é só adicionar aqui na lista. */
 var CICLOS = [
-  { nome:"Julho/Agosto",      mes:6,  ano:2026 },
-  { nome:"Agosto/Setembro",   mes:7,  ano:2026 },
-  { nome:"Setembro/Outubro",  mes:8,  ano:2026 },
-  { nome:"Outubro/Novembro",  mes:9,  ano:2026 },
-  { nome:"Novembro/Dezembro", mes:10, ano:2026 },
-  { nome:"Dezembro/Janeiro",  mes:11, ano:2026 },
-  { nome:"Janeiro/Fevereiro", mes:0,  ano:2027 },
-  { nome:"Fevereiro/Março",   mes:1,  ano:2027 }
+  { nome:"Julho",      mes:6,  ano:2026 },
+  { nome:"Agosto",   mes:7,  ano:2026 },
+  { nome:"Setembro",  mes:8,  ano:2026 },
+  { nome:"Outubro",  mes:9,  ano:2026 },
+  { nome:"Novembro", mes:10, ano:2026 },
+  { nome:"Dezembro",  mes:11, ano:2026 },
+  { nome:"Janeiro", mes:0,  ano:2027 },
+  { nome:"Fevereiro",   mes:1,  ano:2027 }
 ];
 
 /* ===== DADOS GRAVADOS NO PRÓPRIO ARQUIVO (todos os ciclos) =====
    Reescrito pelo botão "Salvar no arquivo". Não editar à mão. */
-var DADOS = {"active":"Agosto/Setembro","ciclos":{"Julho/Agosto":{"orcS":"504","orcM":"756","l":[{"d":"Pizzaria","v":71,"c":"S","dt":"18/07","iso":"2026-07-18"},{"d":"Café Santo Grão","v":109,"c":"S","dt":"18/07","iso":"2026-07-18"},{"d":"Condor","v":111,"c":"M","dt":"18/07","iso":"2026-07-18"},{"d":"Pastel da feira","v":74.5,"c":"S","dt":"19/07","iso":"2026-07-19"},{"d":"Caldo de Cana","v":17,"c":"S","dt":"19/07","iso":"2026-07-19"},{"d":"Atacadão","v":75.2,"c":"M","dt":"25/07","iso":"2026-07-25"},{"d":"Café Jardim Botânico","v":43,"c":"S","dt":"26/07","iso":"2026-07-26"},{"d":"Condor","v":233.23,"c":"M","dt":"07/08","iso":"2026-08-07"},{"d":"Percabonato","v":27.99,"c":"L","dt":"09/08","iso":"2026-08-09"},{"d":"Fone de ouvido","v":125.8,"c":"L","dt":"06/08","iso":"2026-08-06"}],"dia":28,"orcL":"1.400,00"},"Agosto/Setembro":{"orcS":"640,00","orcM":"960,00","l":[{"d":"Pizzaria","v":73,"c":"S","dt":"03/08","iso":"2026-08-03"},{"d":"Braseiro","v":181,"c":"S","dt":"04/08","iso":"2026-08-04"},{"d":"Padaria","v":21.46,"c":"S","dt":"06/08","iso":"2026-08-06"},{"d":"Shoppe (Fone)","v":125.8,"c":"L","dt":"06/08","iso":"2026-08-06"},{"d":"Condor","v":233.23,"c":"M","dt":"08/08","iso":"2026-08-08"},{"d":"Cinema","v":77.4,"c":"L","dt":"11/08","iso":"2026-08-11"},{"d":"CandleLight","v":116,"c":"L","dt":"10/08","iso":"2026-08-10"}],"dia":30,"orcL":"1.400,00"}}};
+var DADOS = {"active":"Agosto","ciclos":{}};
 /* ===== FIM DOS DADOS ===== */
 /* ===== AFAZERES gravados no arquivo (reescrito por "Salvar no arquivo") ===== */
 var AFZ_SEED = [];
@@ -737,11 +737,7 @@ var AFZ_SEED = [];
 
 /* ===== CATEGORIAS (globais, compartilhadas entre os meses) =====
    Reescrito pelo botão "Salvar no arquivo". */
-var CATEGORIAS = [
-  {id:"S", nome:"Saídas / Lanches", emoji:"🍔", cor:"#f0883e"},
-  {id:"M", nome:"Mercado", emoji:"🛒", cor:"#3ddb84"},
-  {id:"L", nome:"Gastos Livres", emoji:"💸", cor:"#a78bfa"}
-];
+var CATEGORIAS = [];
 /* ===== FIM CATEGORIAS ===== */
 var CATS;
 try { var _rc = localStorage.getItem("gastos-cats"); CATS = _rc ? JSON.parse(_rc) : JSON.parse(JSON.stringify(CATEGORIAS)); }
@@ -792,9 +788,9 @@ function carregaCiclo(nome){
 }
 
 var CICLO, MES_INI, ANO_INI, KEY, st, salvoNoArquivo;
-var activeNome = "Agosto/Setembro";
-try { activeNome = localStorage.getItem("gastos-active") || DADOS.active || "Agosto/Setembro"; } catch(e){}
-if(!CICLOS.some(function(c){ return c.nome === activeNome; })) activeNome = "Agosto/Setembro";
+var activeNome = "Agosto";
+try { activeNome = localStorage.getItem("gastos-active") || DADOS.active || "Agosto"; } catch(e){}
+if(!CICLOS.some(function(c){ return c.nome === activeNome; })) activeNome = "Agosto";
 
 function ativarCiclo(nome){
   var cyc = null;
@@ -1931,6 +1927,11 @@ document.getElementById("cmApagar").addEventListener("click", function(){
   })(docProxy);
 })();
 </script>
+<script>window.__SYNC_CFG={app:'cashbook',keys:['gastos-*','vale-*'],accent:'#3ddb84',name:'Cashbook'};</script>
+<script src="supabase.js"></script>
+<script src="sync.js"></script>
+<script src="icons.js"></script>
+<script src="keypad.js"></script>
 <style>
 #__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}
 #__welcome.__on{display:flex}
@@ -1946,8 +1947,7 @@ document.getElementById("cmApagar").addEventListener("click", function(){
 #__welcome .__wbtn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:__wSheen 1.1s ease .62s}
 #__welcome.__leaving .__wcard{animation:__wOut .2s ease forwards}
 #__welcome.__leaving .__wbg{animation:__wFadeOut .2s ease forwards}
-@keyframes __wFade{to{opacity:1}}
-@keyframes __wFadeOut{to{opacity:0}}
+@keyframes __wFade{to{opacity:1}}@keyframes __wFadeOut{to{opacity:0}}
 @keyframes __wIn{to{transform:translateY(0) scale(1);opacity:1}}
 @keyframes __wOut{to{transform:translateY(12px) scale(.96);opacity:0}}
 @keyframes __wPop{0%{transform:scale(0)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
@@ -1960,15 +1960,12 @@ document.getElementById("cmApagar").addEventListener("click", function(){
   <div class="__wcard" role="dialog">
     <div class="__wglow"></div>
     <div class="__wemoji">💸</div>
-    <div class="__wtt">Bem-vindo ao Gastos</div>
+    <div class="__wtt">Bem-vindo ao Cashbook</div>
     <div class="__wtx">Controle quanto você gasta em cada categoria, com o teto e o dia de virada do cartão de cada uma.</div>
     <div class="__wpr">🔒 Seus dados ficam só neste aparelho — ninguém mais vê.</div>
     <button class="__wbtn" id="__welcomeBtn">Começar &rarr;</button>
   </div>
 </div>
 <script>(function(){try{var K="welcome-gastos";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
-<script>window.__SYNC_CFG={app:'cashbook',keys:['gastos-*','vale-*'],accent:'#3ddb84',name:'Cashbook'};</script>
-<script src="supabase.js"></script>
-<script src="sync.js"></script>
 </body>
 </html>
