@@ -10,7 +10,7 @@
   var SUPA_URL='https://ldvbnknynxnlbgmgrkjf.supabase.co';
   var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdmJua255bnhubGJnbWdya2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczODI2MTcsImV4cCI6MjEwMjk1ODYxN30.pxZ9BiP0bKpaN7t0L1bDpENQH5C25fjOHtuYlq-p6j0';
   var LK={login:APP_ID+'-login',pin:APP_ID+'-pin',synced:APP_ID+'-syncedAt',nag:APP_ID+'-nag',sess:APP_ID+'-sess'};
-  var sb=null,session=null,_pushT=null,_rtChan=null,_applying=false,_synced=false,_myStamp=null,_lastBlob='';
+  var sb=null,session=null,_pushT=null,_rtChan=null,_applying=false,_synced=false,_myStamp=null,_lastBlob='',_initDone=false,_pending=null;
   var _pin='',_pinMode='',_pinTmp='';
   function ready(){ return !!(sb&&session); }
 
@@ -38,15 +38,21 @@
       if(d && d.data && Object.keys(d.data).length){
         if(firstLink && hasLocal()){
           var down=await uiConfirm('Este aparelho já tem dados, e sua conta na nuvem também. Qual você quer manter?',{title:'Dados nos dois lados',ok:'Baixar da nuvem',cancel:'Manter deste aparelho'});
-          if(down){ setBlob(d.data); _set(LK.synced,d.updated_at); reload(); } else { _set(LK.synced,''); await pushRemote(); toast('Enviado pra nuvem ✓'); }
+          if(down){ applyAdopt(d.data,d.updated_at,true); } else { _set(LK.synced,''); await pushRemote(); toast('Enviado pra nuvem ✓'); }
           return;
         }
         if((d.updated_at||'')>(localStorage.getItem(LK.synced)||'')){
           if(JSON.stringify(d.data)===JSON.stringify(getBlob())){ _set(LK.synced,d.updated_at); return; }
-          setBlob(d.data); _set(LK.synced,d.updated_at); reload();
+          applyAdopt(d.data,d.updated_at);
         }
       } else { await pushRemote(); }
     }catch(e){} }
+  function applyAdopt(data,stamp,force){ if(force || !_initDone){ setBlob(data); _set(LK.synced,stamp); reload(); }
+    else { _pending={data:data,stamp:stamp}; showUpdateBar(); } }
+  function showUpdateBar(){ if(document.getElementById('syncUpd'))return; var b=document.createElement('button'); b.id='syncUpd';
+    b.style.cssText='position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100002;background:'+ACCENT+';color:#04231f;border:none;border-radius:16px;padding:12px 18px;font-size:13.5px;font-weight:800;cursor:pointer;box-shadow:0 12px 34px rgba(0,0,0,.5);font-family:"Segoe UI",Arial,sans-serif';
+    b.textContent='Novos dados de outro aparelho — atualizar'; b.onclick=applyPending; document.body.appendChild(b); }
+  function applyPending(){ if(!_pending)return; setBlob(_pending.data); _set(LK.synced,_pending.stamp); reload(); }
   function subscribeRT(){ if(!ready())return; _lastBlob=JSON.stringify(getBlob()); if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
     try{ _rtChan=sb.channel('as-'+APP_ID+'-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'app_state',filter:'user_id=eq.'+session.user.id},function(){ pullRemote(); }).subscribe(); }catch(e){}
     if(!window.__syncPoll){ window.__syncPoll=setInterval(function(){ if(ready()&&document.visibilityState!=='hidden'){ pullRemote(); if(JSON.stringify(getBlob())!==_lastBlob) schedulePush(); } },15000); }
@@ -54,7 +60,7 @@
   }
   function markSess(){ try{ sessionStorage.setItem(LK.sess,'1'); }catch(e){} }
   function onSignedIn(){ if(_synced)return; _synced=true; try{ if(session&&session.user&&session.user.email)_set(LK.login,session.user.email); }catch(e){} localStorage.removeItem(LK.nag);
-    try{history.replaceState(null,'',location.pathname);}catch(e){} closeOv(); subscribeRT(); pullRemote(); toast('Conectado ✓'); updateBtn(); }
+    try{history.replaceState(null,'',location.pathname);}catch(e){} closeOv(); subscribeRT(); pullRemote(); toast('Conectado ✓'); updateBtn(); setTimeout(function(){ _initDone=true; },3000); }
 
   /* ---------- CSS + overlay ---------- */
   function injectCSS(){ if(document.getElementById('syncCss'))return; var st=document.createElement('style'); st.id='syncCss';
@@ -81,7 +87,8 @@
     document.head.appendChild(st);
   }
   function ov(){ var e=document.getElementById('syncOv'); if(!e){ e=document.createElement('div'); e.id='syncOv'; e.className='syncov hidden'; document.body.appendChild(e); } return e; }
-  function screen(html,lock){ var e=ov(); e.innerHTML='<div class="sync-card">'+html+'</div>'; e.classList.remove('hidden'); e.dataset.lock=lock?'1':''; }
+  function screen(html,lock){ var e=ov(); e.innerHTML='<div class="sync-card">'+html+'</div>'; e.classList.remove('hidden'); e.dataset.lock=lock?'1':'';
+    e.onclick=function(ev){ if(ev.target===e && !lock) closeOv(); }; }
   function closeOv(){ var e=document.getElementById('syncOv'); if(e)e.classList.add('hidden'); }
   function val(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
   function err(m){ var e=document.getElementById('syncErr'); if(e){ e.textContent=m; e.style.display='block'; } }

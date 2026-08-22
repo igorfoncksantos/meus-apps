@@ -287,9 +287,9 @@
 <div id="host"></div>
 
 <div class="actions">
-  <button id="salvar">💾 Salvar no arquivo</button>
-  <button id="exp">⬇ Backup</button>
-  <button id="imp">⬆ Restaurar</button>
+  <button id="salvar"><span data-ic="save"></span> Salvar no arquivo</button>
+  <button id="exp"><span data-ic="download"></span> Backup</button>
+  <button id="imp"><span data-ic="upload"></span> Restaurar</button>
   <input type="file" id="file" accept="application/json" hidden>
 </div>
 
@@ -676,7 +676,7 @@ var SEED = {"tasks":{},"notes":{}};
     document.body.appendChild(a); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); document.body.removeChild(a); },600);
     salvoNoArquivo=JSON.stringify(DB); marcarSujo();
-    var b=this; b.textContent="✓ Baixado — substitua o arquivo"; setTimeout(function(){ b.textContent="💾 Salvar no arquivo"; },3000);
+    var b=this; b.textContent="✓ Baixado — substitua o arquivo"; setTimeout(function(){ b.innerHTML='<span data-ic="save"></span> Salvar no arquivo'; if(window.paintIcons)window.paintIcons(b); },3000);
   });
   document.getElementById("exp").addEventListener("click",function(){
     var blob=new Blob([JSON.stringify(DB,null,2)],{type:"application/json"});
@@ -731,5 +731,6 @@ var SEED = {"tasks":{},"notes":{}};
 <script>window.__SYNC_CFG={app:'daybook',keys:['agenda-v1'],accent:'#c06a52',name:'Daybook'};</script>
 <script src="supabase.js"></script>
 <script src="sync.js"></script>
+<script src="icons.js"></script>
 </body>
 </html>
