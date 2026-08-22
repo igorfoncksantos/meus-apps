@@ -326,6 +326,8 @@
   .prog-seg button{ flex:1; padding:11px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--mut); font-size:13px; font-weight:700; cursor:pointer; transition:.15s; }
   .prog-seg button.on{ background:var(--accent); color:#04191a; border-color:var(--accent); }
   .prog-metric{ margin-bottom:9px; }
+  .prog-block+.prog-block{ margin-top:20px; padding-top:18px; border-top:1px solid var(--line); }
+  .pb-lbl{ font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--accent); margin-bottom:10px; }
   .prog-seg button:active{ transform:scale(.97); }
   .prog-kpis{ display:flex; gap:9px; margin-bottom:15px; }
   .pk{ flex:1; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 8px; text-align:center; }
@@ -1321,7 +1323,7 @@ function svgIc(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentC
 function paintIcons(){ document.querySelectorAll('[data-ic]').forEach(function(e){ e.innerHTML=svgIc(e.getAttribute('data-ic')); }); }
 
 /* ================= ABA PROGRESSO (gráfico de linha do %) ================= */
-let _view='dia', _progMode='dia', _progMetric='pct';
+let _view='dia', _progMode='dia', _progOn={pct:true,count:true};
 function switchView(v){ _view=v;
   const pv=document.getElementById('progView'), fab=document.querySelector('.fab');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-v')===v));
@@ -1329,9 +1331,9 @@ function switchView(v){ _view=v;
   else { pv.classList.add('hidden'); if(fab)fab.style.display=''; }
 }
 function setProgMode(m){ _progMode=m; renderProgress(); }
-function setProgMetric(m){ _progMetric=m; renderProgress(); }
+function toggleMetric(m){ _progOn[m]=!_progOn[m]; if(!_progOn.pct && !_progOn.count) _progOn[m]=true; renderProgress(); }
 function dayCount(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks)return null; const c=dd.tasks.filter(t=>t.status!=='canc').length; return c||null; }
-function dayVal(iso){ return _progMetric==='count'?dayCount(iso):dayPct(iso); }
+function dayValM(iso,metric){ return metric==='count'?dayCount(iso):dayPct(iso); }
 function dayFrac(t,iso){
   if(t.status==='canc'||t.status==='adiado'||t.status==='sched') return null;
   if(t.rec && !recFiresOn(t.rec,iso)) return null;
@@ -1345,12 +1347,12 @@ function dayPct(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null;
   return n? Math.round(sum/n*100) : null; }
 function mondayOf(iso){ const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d); const wd=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-wd); return dt; }
 function pad2(n){ return String(n).padStart(2,'0'); }
-function progPoints(mode){
-  const days=Object.keys(DB.days).filter(iso=>dayVal(iso)!==null).sort();
+function progPoints(mode,metric){
+  const days=Object.keys(DB.days).filter(iso=>dayValM(iso,metric)!==null).sort();
   if(!days.length) return [];
-  if(mode==='dia') return days.slice(-14).map(iso=>({label:iso.slice(8,10)+'/'+iso.slice(5,7), val:dayVal(iso)}));
+  if(mode==='dia') return days.slice(-14).map(iso=>({label:iso.slice(8,10)+'/'+iso.slice(5,7), val:dayValM(iso,metric)}));
   const groups={};
-  days.forEach(iso=>{ const p=dayVal(iso); let key,label;
+  days.forEach(iso=>{ const p=dayValM(iso,metric); let key,label;
     if(mode==='sem'){ const dt=mondayOf(iso); key=dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate()); label=pad2(dt.getDate())+'/'+pad2(dt.getMonth()+1); }
     else { key=iso.slice(0,7); label=MES[+iso.slice(5,7)-1].slice(0,3); }
     if(!groups[key])groups[key]={sum:0,n:0,label:label,key:key}; groups[key].sum+=p; groups[key].n++; });
@@ -1372,9 +1374,9 @@ function chartSVG(pts,maxY){ const W=340,H=196,padL=26,padR=12,padT=16,padB=24, 
     g+='<text x="'+px+'" y="'+(padT+ih+15)+'" fill="var(--mut)" font-size="8" text-anchor="middle">'+p.label+'</text>'; });
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FD9C9" stop-opacity="0.28"/><stop offset="1" stop-color="#2FD9C9" stop-opacity="0"/></linearGradient></defs>'+g+'</svg>';
 }
-function renderProgress(){
-  const pts=progPoints(_progMode); const vals=pts.map(p=>p.val);
-  const isPct=_progMetric==='pct';
+function metricBlock(metric,label){
+  const isPct=metric==='pct';
+  const pts=progPoints(_progMode,metric); const vals=pts.map(p=>p.val);
   const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
   const best=vals.length?Math.max.apply(null,vals):0;
   const sum=vals.reduce((a,b)=>a+b,0);
@@ -1382,20 +1384,21 @@ function renderProgress(){
   const unit=_progMode==='dia'?'dias':_progMode==='sem'?'semanas':'meses';
   const perUnit=_progMode==='dia'?'dia':_progMode==='sem'?'semana':'mês';
   const maxY=isPct?100:Math.max(4,Math.ceil(best));
-  const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
-  const chart = pts.length ? chartSVG(pts,maxY) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.<br>Conclua tarefas e volte aqui pra ver sua evolução.</div>';
+  const chart = pts.length ? chartSVG(pts,maxY) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.</div>';
   const kpis = isPct
     ? '<div class="pk"><div class="pkv">'+avg+'%</div><div class="pkl">média</div></div><div class="pk"><div class="pkv">'+best+'%</div><div class="pkl">melhor</div></div><div class="pk"><div class="pkv">'+full+'</div><div class="pkl">'+unit+' 100%</div></div>'
     : '<div class="pk"><div class="pkv">'+avg+'</div><div class="pkl">média/'+perUnit+'</div></div><div class="pk"><div class="pkv">'+best+'</div><div class="pkl">máximo</div></div><div class="pk"><div class="pkv">'+sum+'</div><div class="pkl">total</div></div>';
+  return '<div class="prog-block"><div class="pb-lbl">'+label+'</div><div class="prog-kpis">'+kpis+'</div><div class="prog-chart">'+chart+'</div></div>';
+}
+function renderProgress(){
+  const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
+  const metrics=[['pct','% do dia'],['count','Nº de tarefas']];
+  let blocks=''; metrics.forEach(function(mt){ if(_progOn[mt[0]]) blocks+=metricBlock(mt[0],mt[1]); });
   document.getElementById('progView').innerHTML =
     '<div class="prog-top"><h2><span class="prog-hic">'+svgIc('trending')+'</span>Progresso</h2></div>'+
-    '<div class="prog-seg prog-metric">'+
-      '<button class="'+(isPct?'on':'')+'" onclick="setProgMetric(\'pct\')">% do dia</button>'+
-      '<button class="'+(!isPct?'on':'')+'" onclick="setProgMetric(\'count\')">Nº de tarefas</button>'+
-    '</div>'+
+    '<div class="prog-seg prog-metric">'+metrics.map(mt=>'<button class="'+(_progOn[mt[0]]?'on':'')+'" onclick="toggleMetric(\''+mt[0]+'\')">'+mt[1]+'</button>').join('')+'</div>'+
     '<div class="prog-seg">'+modes.map(m=>'<button class="'+(_progMode===m[0]?'on':'')+'" onclick="setProgMode(\''+m[0]+'\')">'+m[1]+'</button>').join('')+'</div>'+
-    '<div class="prog-kpis">'+kpis+'</div>'+
-    '<div class="prog-chart">'+chart+'</div>';
+    blocks;
 }
 
 /* ================= CONTA + SINCRONIZAÇÃO (Supabase) ================= */
