@@ -503,6 +503,7 @@
   .menu .mdel .mi svg{ stroke:#ff6b7a; }
   .obs-ic{ display:inline-flex; align-items:center; margin-right:3px; }
   .obs-ic svg{ width:16px; height:16px; }
+  .cedit svg{ width:12px; height:12px; opacity:.55; vertical-align:-1px; }
   .auth-ic svg{ width:40px; height:40px; stroke:var(--accent); display:inline-block; }
   .auth-ic.danger svg{ stroke:#ff6b7a; }
   .act-list .ic svg{ width:20px; height:20px; vertical-align:middle; }
@@ -642,7 +643,7 @@ function openCats(){ closeMenu();
     <div class="field"><label>Cor</label><div class="swatches" id="ncSw">${swatchesHtml()}</div></div>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button><button class="btn-primary" onclick="addCat()">+ Adicionar</button></div>`);
 }
-const PALETTE = ['#22C55E','#22D3EE','#3B82F6','#A78BFA','#EC4899','#EF4444','#F97316','#F59E0B','#EAB308','#14B8A6','#9CA3AF','#FFFFFF','#000000'];
+const PALETTE = ['#3EE6A0','#25E0DA','#38A8FF','#7C8CFF','#C874FF','#FF6BC0','#FF5D73','#FF9142','#FFC24A','#FFE24A','#9BF24A','#B0B8C4','#FFFFFF','#000000'];
 function palette(){ const t=document.documentElement.getAttribute('data-theme')||'dark';
   return t==='dark' ? PALETTE.filter(c=>c!=='#000000') : PALETTE.filter(c=>c!=='#FFFFFF'); }
 let ncColorSel = PALETTE[0];
@@ -747,7 +748,7 @@ function render(){
   if(!CATS.length){ lg.classList.add('hidden'); }
   else{ lg.classList.remove('hidden'); lg.innerHTML =
     `<span class="ci ${_catFilter===null?'on':''}" onclick="setCatFilter(null)">Tudo</span>` +
-    CATS.map(c=>`<span class="ci ${_catFilter===c.id?'on':''}" onclick="setCatFilter('${c.id}')"><span class="cdot" style="background:${c.color}"></span>${escapeHtml(c.name)}</span>`).join('') +
+    CATS.map(c=>`<span class="ci ${_catFilter===c.id?'on':''}" onclick="setCatFilter('${c.id}')"><span class="cdot" style="background:${c.color};box-shadow:0 0 9px ${c.color}bb"></span>${escapeHtml(c.name)}</span>`).join('') +
     `<span class="ci add" onclick="openCats()">＋</span>`; }
 
   // título "Minhas categorias" (só quando há categorias)
@@ -759,8 +760,8 @@ function render(){
     const ts = day().tasks.filter(t=>t.cat===c.id).sort((a,b)=> sortKey(a)-sortKey(b));
     if(!ts.length) return;
     const div=document.createElement('div'); div.className='cat';
-    div.innerHTML=`<div class="chead"><span class="cbar" style="background:${c.color}"></span>
-      <span class="cname" style="color:${c.color};cursor:pointer" onclick="openCatActions('${c.id}')">${escapeHtml(c.name)} <span style="font-size:11px;opacity:.6">✎</span></span>
+    div.innerHTML=`<div class="chead"><span class="cbar" style="background:${c.color};box-shadow:0 0 8px ${c.color}99"></span>
+      <span class="cname" style="color:${c.color};cursor:pointer" onclick="openCatActions('${c.id}')">${escapeHtml(c.name)} <span class="cedit">${svgIc('pen')}</span></span>
       <button class="cadd" onclick="openAdd('${c.id}')">+ tarefa</button></div>`;
     ts.forEach(t=> div.appendChild(itemEl(t,c)));
     host.appendChild(div);
