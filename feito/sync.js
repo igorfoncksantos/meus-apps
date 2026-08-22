@@ -1,0 +1,157 @@
+/* ============================================================
+   Sincronização multiplataforma — módulo compartilhado (drop-in)
+   Requer: <script>window.__SYNC_CFG={app,keys,accent,name}</script>
+           <script src="supabase.js"></script>  ANTES deste arquivo.
+   Login SEM SENHA (link no e-mail / Google) + PIN opcional.
+   ============================================================ */
+(function(){
+  var CFG=window.__SYNC_CFG||{};
+  var APP_ID=CFG.app||'app', KEYS=CFG.keys||[], ACCENT=CFG.accent||'#2FD9C9', NAME=CFG.name||'App';
+  var SUPA_URL='https://ldvbnknynxnlbgmgrkjf.supabase.co';
+  var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdmJua255bnhubGJnbWdya2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczODI2MTcsImV4cCI6MjEwMjk1ODYxN30.pxZ9BiP0bKpaN7t0L1bDpENQH5C25fjOHtuYlq-p6j0';
+  var LK={login:APP_ID+'-login',pin:APP_ID+'-pin',synced:APP_ID+'-syncedAt',nag:APP_ID+'-nag',sess:APP_ID+'-sess'};
+  var sb=null,session=null,_pushT=null,_rtChan=null,_applying=false,_synced=false,_myStamp=null;
+  var _pin='',_pinMode='',_pinTmp='';
+  function ready(){ return !!(sb&&session); }
+
+  /* ---------- blob no localStorage ---------- */
+  var _set=localStorage.setItem.bind(localStorage);
+  localStorage.setItem=function(k,v){ _set(k,v); if(KEYS.indexOf(k)>=0 && !_applying) schedulePush(); };
+  function getBlob(){ var o={}; KEYS.forEach(function(k){ var v=localStorage.getItem(k); if(v!=null)o[k]=v; }); return o; }
+  function setBlob(o){ _applying=true; try{ KEYS.forEach(function(k){ if(o[k]!=null)_set(k,o[k]); }); }catch(e){} _applying=false; }
+  function hasLocal(){ return KEYS.some(function(k){ var v=localStorage.getItem(k); return v && v!=='null' && v!=='{}' && v!=='[]'; }); }
+  function reload(){ location.reload(); }
+
+  /* ---------- init ---------- */
+  function init(){ try{ if(window.supabase && SUPA_URL.indexOf('http')===0){ sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true}}); } }catch(e){ sb=null; } }
+  async function sha(s){ try{ var b=new TextEncoder().encode(s); var h=await crypto.subtle.digest('SHA-256',b); return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0');}).join(''); }catch(e){ return 'x'+s.length; } }
+
+  /* ---------- motor de sync ---------- */
+  function schedulePush(){ if(!ready())return; clearTimeout(_pushT); _pushT=setTimeout(pushRemote,700); }
+  async function pushRemote(){ if(!ready())return; var stamp=new Date().toISOString(); _myStamp=stamp;
+    try{ var r=await sb.from('app_state').upsert({user_id:session.user.id,app:APP_ID,data:getBlob(),updated_at:stamp}); if(!r.error)_set(LK.synced,stamp); }catch(e){} }
+  async function pullRemote(){ if(!ready())return;
+    try{ var q=await sb.from('app_state').select('data,updated_at').eq('user_id',session.user.id).eq('app',APP_ID).maybeSingle();
+      if(q.error)return; var d=q.data; var firstLink=!localStorage.getItem(LK.synced);
+      if(d && d.data && Object.keys(d.data).length){
+        if(firstLink && hasLocal()){
+          var down=await uiConfirm('Este aparelho já tem dados, e sua conta na nuvem também. Qual você quer manter?',{title:'Dados nos dois lados',ok:'Baixar da nuvem',cancel:'Manter deste aparelho'});
+          if(down){ setBlob(d.data); _set(LK.synced,d.updated_at); reload(); } else { _set(LK.synced,''); await pushRemote(); toast('Enviado pra nuvem ✓'); }
+          return;
+        }
+        if((d.updated_at||'')>(localStorage.getItem(LK.synced)||'')){
+          if(JSON.stringify(d.data)===JSON.stringify(getBlob())){ _set(LK.synced,d.updated_at); return; }
+          setBlob(d.data); _set(LK.synced,d.updated_at); reload();
+        }
+      } else { await pushRemote(); }
+    }catch(e){} }
+  function subscribeRT(){ if(!ready())return; if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
+    try{ _rtChan=sb.channel('as-'+APP_ID+'-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'app_state',filter:'user_id=eq.'+session.user.id},function(){ pullRemote(); }).subscribe(); }catch(e){}
+    if(!window.__syncPoll){ window.__syncPoll=setInterval(function(){ if(ready()&&document.visibilityState!=='hidden')pullRemote(); },15000); }
+    if(!window.__syncVis){ window.__syncVis=1; document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible'&&ready())pullRemote(); }); }
+  }
+  function markSess(){ try{ sessionStorage.setItem(LK.sess,'1'); }catch(e){} }
+  function onSignedIn(){ if(_synced)return; _synced=true; try{ if(session&&session.user&&session.user.email)_set(LK.login,session.user.email); }catch(e){} localStorage.removeItem(LK.nag);
+    try{history.replaceState(null,'',location.pathname);}catch(e){} closeOv(); subscribeRT(); pullRemote(); toast('Conectado ✓'); updateBtn(); }
+
+  /* ---------- CSS + overlay ---------- */
+  function injectCSS(){ if(document.getElementById('syncCss'))return; var st=document.createElement('style'); st.id='syncCss';
+    st.textContent=
+    '.syncov{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);--sacc:'+ACCENT+';font-family:"Segoe UI",Arial,sans-serif}'+
+    '.syncov.hidden{display:none!important}'+
+    '.sync-card{width:100%;max-width:380px;background:linear-gradient(160deg,#12161a,#0a0d10);border:1px solid #23282e;border-radius:22px;padding:26px 22px 22px;box-shadow:0 24px 70px rgba(0,0,0,.6);max-height:92vh;overflow:auto;animation:syncpop .42s cubic-bezier(.2,.9,.3,1)}'+
+    '@keyframes syncpop{from{opacity:0;transform:translateY(18px) scale(.95)}to{opacity:1;transform:none}}'+
+    '.sync-ic{font-size:42px;text-align:center;margin-bottom:6px;line-height:1}.sync-ic svg{width:40px;height:40px;stroke:var(--sacc);display:inline-block}.sync-ic.danger svg{stroke:#ff6b7a}'+
+    '.sync-card h2{color:#fff;font-size:21px;text-align:center;margin:0 0 9px}.sync-card p{color:#9aa2a8;font-size:13.5px;line-height:1.55;text-align:center;margin:0 0 16px}.sync-card p.note{font-size:11.5px;color:#6f7a80;margin-top:-9px}'+
+    '.sync-f{margin-bottom:13px}.sync-f label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#8a97a0;margin-bottom:6px}'+
+    '.sync-f input{width:100%;background:#0b0e11;border:1px solid #2a2f35;color:#e8ebed;border-radius:13px;padding:14px;font-size:14px;font-family:inherit;transition:border-color .18s,box-shadow .18s}.sync-f input:focus{outline:none;border-color:var(--sacc);box-shadow:0 0 0 3px rgba(47,217,201,.16)}'+
+    '.sync-err{display:none;color:#f87171;font-size:12.5px;text-align:center;margin:2px 0 12px;font-weight:600;min-height:15px}'+
+    '.sync-act{display:flex;gap:11px;margin-top:15px}.sync-act button{flex:1;padding:15px 16px;border-radius:14px;border:none;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .13s cubic-bezier(.34,1.4,.5,1),filter .2s}.sync-act button:active{transform:scale(.955)}'+
+    '.sbtn-p{background:var(--sacc);color:#04231f}.sbtn-p:active{filter:brightness(1.06)}.sbtn-g{background:transparent;color:#f0f2f4;border:1.5px solid #333b43!important}.sbtn-d{background:linear-gradient(135deg,#ef5064,#cc2f3d);color:#fff}'+
+    '.sync-list button{display:flex;width:100%;align-items:center;gap:12px;background:#0b0e11;border:1px solid #22272c;color:#e8ebed;font-size:14px;padding:14px;border-radius:13px;cursor:pointer;margin-bottom:8px;font-family:inherit;font-weight:600;text-align:left}.sync-list button:active{background:#181c21}.sync-list button.d{color:#ff8a8a;border-color:#5c2a2f;background:#1c1113}'+
+    '.sync-link{display:block;width:100%;background:none;border:none;color:#8a97a0;font-size:12.5px;margin-top:11px;cursor:pointer;text-decoration:underline;font-family:inherit}'+
+    '.gbtn-g{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;padding:14px;border-radius:14px;border:1.5px solid #d7dbe0;background:#fff;color:#1f2226;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:2px;box-shadow:0 3px 12px rgba(0,0,0,.18);font-family:inherit}.gbtn-g:active{transform:scale(.97)}.gbtn-g b{color:#4285F4;font-size:19px}'+
+    '.sync-or{display:flex;align-items:center;gap:10px;color:#98a1a8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:13px 0}.sync-or::before,.sync-or::after{content:"";flex:1;height:1px;background:#2a2f35}'+
+    '.pdots{display:flex;gap:16px;justify-content:center;margin:8px 0 12px}.pdot{width:15px;height:15px;border-radius:50%;border:2px solid #3a3f45;transition:.15s}.pdot.on{background:var(--sacc);border-color:var(--sacc);box-shadow:0 0 10px rgba(47,217,201,.5)}.pdots.shake{animation:pinsh .4s}@keyframes pinsh{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}'+
+    '.pkeypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 2px}.pkey{height:56px;border-radius:16px;border:1px solid #2a2f35;background:#121417;color:#f0f2f4;font-size:24px;font-weight:600;cursor:pointer;font-family:inherit}.pkey:active{transform:scale(.93);background:rgba(47,217,201,.14)}.pkey.empty{background:none;border:none}.pkey.pkb{font-size:21px;color:#98a1a8}'+
+    '#syncBtn{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:9998;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(20,23,27,.82);backdrop-filter:blur(8px);color:#cfd6db;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}#syncBtn.on{color:'+ACCENT+';border-color:rgba(47,217,201,.4)}#syncBtn svg{width:19px;height:19px}'+
+    '#syncToast{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100001;background:#12161b;color:#eafcf6;border:1px solid #1f5c4d;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:"Segoe UI",Arial,sans-serif}';
+    document.head.appendChild(st);
+  }
+  function ov(){ var e=document.getElementById('syncOv'); if(!e){ e=document.createElement('div'); e.id='syncOv'; e.className='syncov hidden'; document.body.appendChild(e); } return e; }
+  function screen(html,lock){ var e=ov(); e.innerHTML='<div class="sync-card">'+html+'</div>'; e.classList.remove('hidden'); e.dataset.lock=lock?'1':''; }
+  function closeOv(){ var e=document.getElementById('syncOv'); if(e)e.classList.add('hidden'); }
+  function val(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
+  function err(m){ var e=document.getElementById('syncErr'); if(e){ e.textContent=m; e.style.display='block'; } }
+  function toast(m){ var t=document.getElementById('syncToast'); if(!t){ t=document.createElement('div'); t.id='syncToast'; document.body.appendChild(t); } t.textContent=m; t.style.opacity='1'; clearTimeout(t._h); t._h=setTimeout(function(){t.style.opacity='0';},2400); }
+
+  var IC={sync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+    lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+    mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
+    info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'};
+
+  /* ---------- modais ---------- */
+  window.uiConfirm=function(msg,o){ o=o||{}; return new Promise(function(res){ window.__ur=function(v){ closeOv(); res(v); };
+    screen('<div class="sync-ic'+(o.danger?' danger':'')+'">'+(o.danger?IC.help:IC.help)+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p><div class="sync-act"><button class="sbtn-g" onclick="__ur(false)">'+(o.cancel||'Cancelar')+'</button><button class="'+(o.danger?'sbtn-d':'sbtn-p')+'" onclick="__ur(true)">'+(o.ok||'Confirmar')+'</button></div>'); }); };
+  window.uiAlert=function(msg,o){ o=o||{}; return new Promise(function(res){ window.__ur=function(){ closeOv(); res(); };
+    screen('<div class="sync-ic">'+IC.info+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p><div class="sync-act"><button class="sbtn-p" onclick="__ur()">'+(o.ok||'Ok')+'</button></div>'); }); };
+
+  /* ---------- login sem senha ---------- */
+  function showConnect(){ screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronizar aparelhos</h2><p>Entre pra ver os mesmos dados no computador e no celular. <b>Sem senha</b> — é só pra saber que é você.</p>'+
+    '<button class="gbtn-g" onclick="window.__sg()"><b>G</b>Entrar com Google</button><div class="sync-or"><span>ou</span></div>'+
+    '<div class="sync-f"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" placeholder="voce@email.com" value="'+(localStorage.getItem(LK.login)||'')+'"></div><div class="sync-err" id="syncErr"></div>'+
+    '<div class="sync-act"><button class="sbtn-g" onclick="window.__sc()">Fechar</button><button class="sbtn-p" onclick="window.__sm()">Enviar link</button></div>'); }
+  window.__sc=closeOv;
+  window.__sm=async function(){ var e=val('mlEmail'); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ err('Digite um e-mail válido.'); return; } if(!sb){ err('Sem conexão.'); return; }
+    try{ _set(LK.login,e); var r=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href.split('#')[0]}}); if(r.error){ err(r.error.message); return; }
+      screen('<div class="sync-ic">'+IC.mail+'</div><h2>Confira seu e-mail</h2><p>Enviei um link de acesso pra <b style="color:#f0f2f4">'+e+'</b>. Abra o e-mail <b>neste aparelho</b> e toque no link.</p><p class="note">Não chegou? Veja o spam, ou tente de novo em 1 min.</p><div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Ok</button></div>');
+    }catch(x){ err('Erro: '+(x.message||x)); } };
+  window.__sg=async function(){ if(!sb){ err('Sem conexão.'); return; } try{ var r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}}); if(r&&r.error)err('Login com Google ainda não ativado. Use o link no e-mail.'); }catch(x){ err('Login com Google ainda não ativado. Use o link no e-mail.'); } };
+
+  window.openSync=function(){
+    if(!ready()){ showConnect(); return; }
+    screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronização</h2><p>Conectado como <b style="color:#f0f2f4">'+(localStorage.getItem(LK.login)||(session.user&&session.user.email)||'')+'</b><br>Seus dados aparecem nos seus aparelhos.</p>'+
+      '<div class="sync-list"><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button><button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
+      '<div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); };
+  window.__dc=async function(){ if(!await uiConfirm('Você vai parar de sincronizar neste aparelho. Os dados continuam aqui, só não atualizam no outro. Pra voltar, é só entrar de novo.',{title:'Sair da conta?',ok:'Sair',danger:true}))return;
+    _synced=false; try{ if(sb)await sb.auth.signOut(); }catch(e){} if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
+    session=null; localStorage.removeItem(LK.synced); localStorage.setItem(LK.nag,'1'); closeOv(); updateBtn(); toast('Desconectado'); };
+
+  /* ---------- PIN ---------- */
+  function pinTitles(m){ return ({unlock:['Digite seu PIN',''],set1:['Criar PIN','Escolha um PIN de 4 dígitos'],set2:['Confirmar PIN','Repita o PIN'],chgcur:['PIN atual','Digite seu PIN atual'],chgnew:['Novo PIN','Escolha o novo PIN'],chgconf:['Confirmar','Repita o novo PIN'],offcur:['Desativar PIN','Digite seu PIN pra desativar']})[m]||['PIN','']; }
+  function pdots(){ var s=''; for(var i=0;i<4;i++)s+='<span class="pdot'+(i<_pin.length?' on':'')+'"></span>'; return s; }
+  function keypad(){ var k=''; ['1','2','3','4','5','6','7','8','9','x','0','back'].forEach(function(d){ if(d==='x')k+='<span class="pkey empty"></span>'; else if(d==='back')k+='<button class="pkey pkb" onclick="window.__pb()">⌫</button>'; else k+='<button class="pkey" onclick="window.__pt(\''+d+'\')">'+d+'</button>'; }); return k; }
+  function showPin(m){ _pinMode=m; _pin=''; var t=pinTitles(m); screen('<div class="sync-ic">'+IC.lock+'</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+'<div class="pdots" id="pdots">'+pdots()+'</div><div class="sync-err" id="syncErr" style="min-height:15px"></div><div class="pkeypad">'+keypad()+'</div>'+(m==='unlock'?'':'<button class="sync-link" onclick="window.__sc()">Cancelar</button>'), m==='unlock'); }
+  function pinRef(){ var e=document.getElementById('pdots'); if(e)e.innerHTML=pdots(); }
+  window.__pb=function(){ _pin=_pin.slice(0,-1); pinRef(); };
+  window.__pt=function(d){ if(_pin.length>=4)return; _pin+=d; pinRef(); if(_pin.length===4)setTimeout(pinDone,130); };
+  function pinErrShake(m){ _pin=''; pinRef(); err(m); var c=document.querySelector('.pdots'); if(c){ c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); } }
+  async function pinDone(){ var code=_pin,h=await sha(code);
+    if(_pinMode==='unlock'){ if(h===localStorage.getItem(LK.pin)){ markSess(); closeOv(); } else pinErrShake('PIN incorreto'); }
+    else if(_pinMode==='set1'){ _pinTmp=code; showPin('set2'); }
+    else if(_pinMode==='set2'){ if(code===_pinTmp){ _set(LK.pin,h); markSess(); closeOv(); toast('PIN ativado ✓'); } else { pinErrShake('Não conferiu'); setTimeout(function(){showPin('set1');},650); } }
+    else if(_pinMode==='chgcur'){ if(h===localStorage.getItem(LK.pin))showPin('chgnew'); else pinErrShake('PIN incorreto'); }
+    else if(_pinMode==='chgnew'){ _pinTmp=code; showPin('chgconf'); }
+    else if(_pinMode==='chgconf'){ if(code===_pinTmp){ _set(LK.pin,h); closeOv(); toast('PIN alterado ✓'); } else { pinErrShake('Não conferiu'); setTimeout(function(){showPin('chgnew');},650); } }
+    else if(_pinMode==='offcur'){ if(h===localStorage.getItem(LK.pin)){ localStorage.removeItem(LK.pin); closeOv(); toast('PIN desativado'); } else pinErrShake('PIN incorreto'); } }
+  window.__pin=function(){ if(!localStorage.getItem(LK.pin)){ showPin('set1'); return; }
+    screen('<div class="sync-ic">'+IC.lock+'</div><h2>Bloqueio por PIN</h2><p>O PIN está <b style="color:#5c9a6b">ativado</b> — pedido só ao abrir o app neste aparelho.</p><div class="sync-list"><button onclick="window.__pc()">'+IC.pen+' Trocar PIN</button><button class="d" onclick="window.__po()">Desativar PIN</button></div><div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); };
+  window.__pc=function(){ showPin('chgcur'); };
+  window.__po=function(){ showPin('offcur'); };
+  function maybeLock(){ if(localStorage.getItem(LK.pin) && !sessionStorage.getItem(LK.sess)) showPin('unlock'); }
+
+  /* ---------- botão de acesso ---------- */
+  function updateBtn(){ var b=document.getElementById('syncBtn'); if(!b)return; b.classList.toggle('on', ready()||!!localStorage.getItem(LK.login)); b.innerHTML=IC.sync; }
+  function injectBtn(){ if(document.getElementById('syncBtn'))return; var b=document.createElement('button'); b.id='syncBtn'; b.title='Sincronização'; b.onclick=window.openSync; b.innerHTML=IC.sync; document.body.appendChild(b); updateBtn(); }
+
+  /* ---------- boot ---------- */
+  async function boot(){ injectCSS(); init(); injectBtn();
+    if(sb){ try{ var g=await sb.auth.getSession(); session=(g&&g.data&&g.data.session)||null; }catch(e){}
+      sb.auth.onAuthStateChange(function(ev,ses){ if(ses){ session=ses; if(ev==='SIGNED_IN')onSignedIn(); } }); }
+    if(session){ onSignedIn(); }
+    maybeLock();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
