@@ -391,6 +391,8 @@
   .auth-card .btn-primary:active,.auth-btns .btn-primary:active{ filter:brightness(1.06); box-shadow:0 5px 14px rgba(47,217,201,.3); }
   .auth-card .btn-ghost,.auth-btns .btn-ghost{ background:transparent; color:var(--txt2); border:1.5px solid #333b43; box-shadow:none; }
   .auth-card .btn-ghost:active,.auth-btns .btn-ghost:active{ background:rgba(255,255,255,.04); }
+  .auth-card .btn-danger{ background:linear-gradient(135deg,#ef5064,#cc2f3d); color:#fff; box-shadow:0 9px 24px rgba(239,68,68,.3); }
+  .auth-card .btn-danger:active{ filter:brightness(1.06); }
   .auth-card .field input{ border-radius:13px; padding:14px 14px; transition:border-color .18s ease, box-shadow .18s ease; }
   .auth-card .field input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(47,217,201,.16); }
   .auth-card .act-list button{ border-radius:14px; padding:15px 15px; font-weight:700; transition:transform .13s ease, background .18s ease; }
@@ -502,8 +504,8 @@ function load(){
   if(!DB.days[t]){ DB.days[t] = Object.keys(DB.days).length ? buildNewDay(t) : emptyDay(); save(); }
   cur = t;
 }
-function wipeAll(){ closeMenu();
-  if(!confirm('Tem certeza? Isso apaga TODOS os dias e categorias deste app. Não dá pra desfazer.'))return;
+async function wipeAll(){ closeMenu();
+  if(!await uiConfirm('Isso apaga TODOS os dias e categorias deste app. Não dá pra desfazer.',{title:'Zerar tudo?',ok:'Apagar tudo',danger:true}))return;
   localStorage.removeItem(KEY); DB={days:{},cats:[]}; DB.days[todayISO()]=emptyDay(); CATS=DB.cats; cur=todayISO(); save(); render(); }
 
 /* ============= categorias (adicionar / apagar) ============= */
@@ -529,12 +531,12 @@ function palette(){ const t=document.documentElement.getAttribute('data-theme')|
 let ncColorSel = PALETTE[0];
 function swatchesHtml(){ const P=palette(); ncColorSel=P[0]; return P.map((c,i)=>`<div class="sw ${i===0?'sel':''}" style="background:${c}" onclick="pickSw(this,'${c}')"></div>`).join(''); }
 function pickSw(el,c){ ncColorSel=c; el.parentNode.querySelectorAll('.sw').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
-function addCat(){ const n=document.getElementById('ncName').value.trim(); if(!n){ alert('Dê um nome à categoria.'); return; }
+function addCat(){ const n=document.getElementById('ncName').value.trim(); if(!n){ uiAlert('Dê um nome à categoria.'); return; }
   let id=slug(n); while(CATS.some(c=>c.id===id)) id+='x';
   CATS.push({id,name:n,color:ncColorSel}); save(); closeSheet(); render();
 }
-function delCat(id){ if(removeCat(id)){ closeSheet(); openCats(); } }
-function delCatFromEdit(id){ if(removeCat(id)){ closeSheet(); render(); } }
+async function delCat(id){ if(await removeCat(id)){ closeSheet(); openCats(); } }
+async function delCatFromEdit(id){ if(await removeCat(id)){ closeSheet(); render(); } }
 let _editCatId=null;
 function openCatActions(id){ const c=CATS.find(x=>x.id===id); if(!c)return; _editCatId=id; ncColorSel=c.color;
   const sws=palette().map(col=>`<div class="sw ${col===c.color?'sel':''}" style="background:${col}" onclick="pickSw(this,'${col}')"></div>`).join('');
@@ -545,11 +547,11 @@ function openCatActions(id){ const c=CATS.find(x=>x.id===id); if(!c)return; _edi
 }
 function saveCatEdit(){ const c=CATS.find(x=>x.id===_editCatId); if(!c)return;
   const n=document.getElementById('ecName').value.trim(); if(n)c.name=n; c.color=ncColorSel; save(); closeSheet(); render(); }
-function removeCat(id){
+async function removeCat(id){
   const used = Object.values(DB.days).some(d=>d.tasks.some(t=>t.cat===id));
-  if(used){ if(!confirm('Essa categoria tem tarefas. Apagar a categoria E todas as tarefas dela (em todos os dias)?'))return false;
+  if(used){ if(!await uiConfirm('Essa categoria tem tarefas. Apagar a categoria E todas as tarefas dela (em todos os dias)?',{title:'Apagar categoria?',ok:'Apagar',danger:true}))return false;
     Object.values(DB.days).forEach(d=>{ d.tasks=d.tasks.filter(t=>t.cat!==id); }); }
-  else { if(!confirm('Apagar a categoria?'))return false; }
+  else { if(!await uiConfirm('Apagar a categoria?',{ok:'Apagar',danger:true}))return false; }
   const i=CATS.findIndex(c=>c.id===id); if(i>=0)CATS.splice(i,1); save(); return true;
 }
 
@@ -779,18 +781,18 @@ function schedTask(id){ _schedId=id; const t=findTask(id);
     <div class="field"><label>Escolha a data</label><input type="date" id="schedInput" value="${isoFromSched(t.sched)}" style="color-scheme:dark"></div>
     <div class="actions"><button class="btn-danger" onclick="clearSched()">Tirar</button><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" onclick="saveSched()">Agendar</button></div>`);
   setTimeout(()=>{ const el=document.getElementById('schedInput'); if(el&&el.showPicker){ try{el.showPicker();}catch(e){} } },120); }
-function saveSched(){ const el=document.getElementById('schedInput'); const v=el?el.value:''; if(!v){ alert('Escolha uma data.'); return; }
+function saveSched(){ const el=document.getElementById('schedInput'); const v=el?el.value:''; if(!v){ uiAlert('Escolha uma data.'); return; }
   const [y,m,d]=v.split('-'); const t=findTask(_schedId); t.status='sched'; t.sched=d+'/'+m; closeSheet(); render(); }
 function clearSched(){ const t=findTask(_schedId); if(t){ t.status='pend'; t.sched=null; } closeSheet(); render(); }
-function delTask(id){ const t=findTask(id); if(!t)return;
+async function delTask(id){ const t=findTask(id); if(!t)return;
   const rec = t.rid && (DB.recurring||[]).some(x=>x.rid===t.rid);
-  if(!confirm(rec?'Apagar esta tarefa e PARAR a recorrência dela?':'Apagar esta tarefa?'))return;
+  if(!await uiConfirm(rec?'Apagar esta tarefa e PARAR a recorrência dela?':'Apagar esta tarefa?',{title:'Apagar tarefa?',ok:'Apagar',danger:true}))return;
   if(t.rid)DB.recurring=(DB.recurring||[]).filter(x=>x.rid!==t.rid);
   day().tasks=day().tasks.filter(x=>x.id!==id); render(); }
 
 /* ---- add / edit ---- */
 let editing=null;
-function openAdd(catId){ if(!CATS.length){ alert('Crie uma categoria primeiro.'); openCats(); return; } editing=null; showForm({cat:catId||CATS[0].id}); }
+function openAdd(catId){ if(!CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; } editing=null; showForm({cat:catId||CATS[0].id}); }
 function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
   formCat=t.cat||(CATS[0]&&CATS[0].id)||null; formPrio=t.prio||null;
@@ -922,7 +924,7 @@ function addSubRow(){ const c=document.getElementById('subRows'); c.insertAdjace
   const inp=last.querySelector('.subin'); if(inp)inp.focus(); }
 function pickPrio(el){ formPrio=el.dataset.p||null; el.parentNode.querySelectorAll('.popt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
 function saveForm(){
-  const title=document.getElementById('fTitle').value.trim(); if(!title){ alert('Escreva o que fazer.'); return; }
+  const title=document.getElementById('fTitle').value.trim(); if(!title){ uiAlert('Escreva o que fazer.'); return; }
   const meta=document.getElementById('fMeta').value.trim();
   const fr=(formRecur&&formRecur.type&&formRecur.type!=='none')?JSON.parse(JSON.stringify(formRecur)):null;
   const recur=fr?recLabel(fr):null;
@@ -982,8 +984,8 @@ function jumpTo(iso){ if(!iso)return;
   if(!DB.days[iso]){ DB.days[iso]=buildNewDay(iso); }
   cur=iso; render(); }
 function goToday(){ const iso=todayISO(); if(!DB.days[iso])DB.days[iso]=buildNewDay(iso); cur=iso; render(); }
-function newDay(){ closeMenu(); const iso=todayISO()>cur?todayISO():shiftISO(cur,1);
-  if(DB.days[iso]&&!confirm(fmtBR(iso)+' já existe. Recriar do zero apaga o que tem lá. Continuar?'))return;
+async function newDay(){ closeMenu(); const iso=todayISO()>cur?todayISO():shiftISO(cur,1);
+  if(DB.days[iso]&&!await uiConfirm(fmtBR(iso)+' já existe. Recriar do zero apaga o que tem lá. Continuar?',{title:'Recriar o dia?',ok:'Recriar',danger:true}))return;
   DB.days[iso]=buildNewDay(iso); cur=iso; render(); }
 function buildNewDay(iso){
   // pega o dia anterior mais recente
@@ -1039,12 +1041,12 @@ function closeSheet(){ const o=document.getElementById('sheetOverlay'); if(o)o.r
 function backup(){ closeMenu(); const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='assistente-backup.json'; a.click(); }
 function restore(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader();
-  r.onload=()=>{ try{ DB=JSON.parse(r.result); cur=DB.days[todayISO()]?todayISO():Object.keys(DB.days).sort().pop(); save(); render(); alert('Backup restaurado.'); }catch(x){ alert('Arquivo inválido.'); } };
+  r.onload=()=>{ try{ DB=JSON.parse(r.result); cur=DB.days[todayISO()]?todayISO():Object.keys(DB.days).sort().pop(); save(); render(); uiAlert('Backup restaurado.'); }catch(x){ uiAlert('Arquivo inválido.'); } };
   r.readAsText(f); }
 function exportPDF(){ closeMenu(); window.print(); }
 function shareDay(){ closeMenu();
   const cats = CATS.filter(c=> day().tasks.some(t=>t.cat===c.id));
-  if(!cats.length){ alert('Nada pra compartilhar neste dia ainda.'); return; }
+  if(!cats.length){ uiAlert('Nada pra compartilhar neste dia ainda.'); return; }
   const rows = cats.map(c=>`<label class="chkrow"><input type="checkbox" class="shcat" value="${c.id}" checked onchange="shSync()"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</label>`).join('');
   sheet(`<h3>O que você quer compartilhar?</h3>
     <label class="chkrow" style="border-bottom:2px solid #2a2f35"><input type="checkbox" id="shAll" checked onchange="shToggleAll(this)"><b>Tudo</b></label>
@@ -1055,7 +1057,7 @@ function shToggleAll(el){ document.querySelectorAll('.shcat').forEach(x=>x.check
 function shSync(){ const all=[...document.querySelectorAll('.shcat')]; document.getElementById('shAll').checked = all.every(x=>x.checked); }
 let _shareIds=[];
 function doShare(){ const ids=[...document.querySelectorAll('.shcat:checked')].map(x=>x.value);
-  if(!ids.length){ alert('Selecione ao menos uma categoria.'); return; }
+  if(!ids.length){ uiAlert('Selecione ao menos uma categoria.'); return; }
   _shareIds=ids; closeSheet(); askSharePerm();
 }
 function askSharePerm(){ sheet(`<h3>Quem receber vai poder editar?</h3>
@@ -1070,7 +1072,7 @@ function finishShare(canEdit){ closeSheet();
   const payload=buildSharePayload(_shareIds); payload.edit=!!canEdit;
   const url = location.href.split('#')[0] + '#s=' + enc(payload);
   if(navigator.share){ navigator.share({title:'Meu dia — '+fmtBR(cur), url}).catch(()=>{}); return; }
-  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>alert((canEdit?'Link (editável)':'Link (só ver)')+' copiado! Envie pra quem quiser.'),()=>shareFallback(url)); return; }
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>uiAlert((canEdit?'Link (editável)':'Link (só ver)')+' copiado! Envie pra quem quiser.'),()=>shareFallback(url)); return; }
   shareFallback(url);
 }
 function buildSharePayload(ids){
@@ -1084,7 +1086,7 @@ function shareFallback(url){ sheet(`<h3>Link do dia</h3>
   <div class="field"><label>Copie e envie pra quem quiser abrir</label><textarea readonly onclick="this.select()" style="min-height:120px;font-size:12px;word-break:break-all">${escapeHtml(url)}</textarea></div>
   <div class="actions"><button class="btn-primary" onclick="copyShare(this)">Copiar link</button><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>`); }
 function copyShare(btn){ const ta=btn.closest('.sheet').querySelector('textarea'); ta.select();
-  try{ document.execCommand('copy'); btn.textContent='Copiado ✓'; }catch(e){ alert('Selecione o texto e copie.'); } }
+  try{ document.execCommand('copy'); btn.textContent='Copiado ✓'; }catch(e){ uiAlert('Selecione o texto e copie.'); } }
 
 /* ======= abrir um dia recebido por link ======= */
 function showShared(p){
@@ -1115,7 +1117,7 @@ function showShared(p){
   body+='</div>';
   document.body.innerHTML=body; window.__shared=p;
 }
-function importShared(){ const p=window.__shared; if(!p)return;
+async function importShared(){ const p=window.__shared; if(!p)return;
   const tasks=[];
   (p.cats||[]).forEach(c=>{ let cat=CATS.find(x=>x.name===c.name);
     if(!cat){ let id=slug(c.name); while(CATS.some(k=>k.id===id))id+='x'; cat={id,name:c.name,color:c.color}; CATS.push(cat); }
@@ -1124,7 +1126,7 @@ function importShared(){ const p=window.__shared; if(!p)return;
   if(!DB.days[p.date])DB.days[p.date]=emptyDay();
   DB.days[p.date].tasks.push(...tasks);
   if(p.obs&&p.obs.length)DB.days[p.date].obs=(DB.days[p.date].obs||[]).concat(p.obs);
-  save(); alert('Dia importado pro seu app ('+fmtBR(p.date)+').'); location.hash=''; location.reload();
+  save(); await uiAlert('Dia importado pro seu app ('+fmtBR(p.date)+').'); location.hash=''; location.reload();
 }
 function closeShared(){ location.hash=''; location.reload(); }
 function openSharedEditable(p){
@@ -1134,7 +1136,7 @@ function openSharedEditable(p){
     (c.tasks||[]).forEach(t=>{ const nt=JSON.parse(JSON.stringify(t)); nt.id=uid(); nt.cat=cat.id; DB.days[p.date].tasks.push(nt); }); });
   if(p.obs&&p.obs.length)DB.days[p.date].obs=(DB.days[p.date].obs||[]).concat(p.obs);
   cur=p.date; save(); history.replaceState(null,'',location.pathname);  // limpa o link p/ não reimportar
-  alert('Você recebeu um dia EDITÁVEL ('+fmtBR(p.date)+') — já está no seu app.');
+  uiAlert('Você recebeu um dia EDITÁVEL ('+fmtBR(p.date)+') — já está no seu app.');
   render();
 }
 
@@ -1159,7 +1161,7 @@ function wcClose(){ document.getElementById('__welcome').classList.add('hidden')
 const SUPA_URL='https://ldvbnknynxnlbgmgrkjf.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdmJua255bnhubGJnbWdya2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczODI2MTcsImV4cCI6MjEwMjk1ODYxN30.pxZ9BiP0bKpaN7t0L1bDpENQH5C25fjOHtuYlq-p6j0';
 const APP_ID='norte';
-let sb=null, session=null, _pushT=null, _myStamp=null, _rtChan=null, _pending=null;
+let sb=null, session=null, _pushT=null, _myStamp=null, _rtChan=null, _pending=null, _suppressPush=false;
 function sbReady(){ return !!(sb && session); }
 function markSession(){ try{ sessionStorage.setItem('norte-sess','1'); }catch(e){} }
 async function initSupa(){ try{ if(window.supabase && SUPA_URL.indexOf('http')===0){
@@ -1169,7 +1171,7 @@ async function sha(s){ try{ const b=new TextEncoder().encode(s); const h=await c
     return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join(''); }catch(e){ return 'x'+s.length; } }
 
 /* ----- motor de sincronização ----- */
-function schedulePush(){ if(!sbReady())return; clearTimeout(_pushT); _pushT=setTimeout(pushRemote,700); }
+function schedulePush(){ if(!sbReady()||_suppressPush)return; clearTimeout(_pushT); _pushT=setTimeout(pushRemote,700); }
 async function pushRemote(){ if(!sbReady())return;
   const stamp=new Date().toISOString(); _myStamp=stamp;
   try{ const r=await sb.from('app_state').upsert({user_id:session.user.id,app:APP_ID,data:DB,updated_at:stamp});
@@ -1189,17 +1191,17 @@ async function pullRemote(){ if(!sbReady())return;
     if(error)return;
     const firstLink=!localStorage.getItem('norte-syncedAt');
     if(data&&data.data){
-      if(firstLink&&hasLocalData()){ DB=mergeDB(DB,data.data); normalizeDB(); saveLocal(); render(); await pushRemote(); toast('✓ dados unidos e sincronizados'); }
-      else if((data.updated_at||'')>(localStorage.getItem('norte-syncedAt')||'')){ DB=data.data; normalizeDB(); saveLocal(); localStorage.setItem('norte-syncedAt',data.updated_at); render(); }
-      else { await pushRemote(); }
+      if(firstLink&&hasLocalData()){ DB=mergeDB(DB,data.data); normalizeDB(); saveLocal(); _suppressPush=true; render(); _suppressPush=false; await pushRemote(); toast('✓ dados unidos e sincronizados'); }
+      else if((data.updated_at||'')>(localStorage.getItem('norte-syncedAt')||'')){ DB=data.data; normalizeDB(); saveLocal(); localStorage.setItem('norte-syncedAt',data.updated_at); _suppressPush=true; render(); _suppressPush=false; }
+      /* senão: já está em sync -> não faz nada (evita loop de re-push) */
     } else { await pushRemote(); }
   }catch(e){} }
 function subscribeRT(){ if(!sbReady())return; if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
   try{ _rtChan=sb.channel('as-'+session.user.id)
-    .on('postgres_changes',{event:'*',schema:'public',table:'app_state',filter:'user_id=eq.'+session.user.id},p=>{
-      const row=p.new; if(!row||row.app!==APP_ID)return; if(row.updated_at===_myStamp)return;
-      try{ DB=row.data; normalizeDB(); saveLocal(); localStorage.setItem('norte-syncedAt',row.updated_at); render(); toast('✓ sincronizado'); }catch(e){}
-    }).subscribe(); }catch(e){} }
+    .on('postgres_changes',{event:'*',schema:'public',table:'app_state',filter:'user_id=eq.'+session.user.id},function(p){ pullRemote(); })
+    .subscribe(); }catch(e){}
+  if(!window.__nortePoll){ window.__nortePoll=setInterval(function(){ if(sbReady() && document.visibilityState!=='hidden') pullRemote(); },15000); }
+  if(!window.__norteVis){ window.__norteVis=true; document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && sbReady()) pullRemote(); }); } }
 
 /* ----- infra das telas ----- */
 function val(id){ const e=document.getElementById(id); return e?e.value.trim():''; }
@@ -1210,6 +1212,25 @@ function closeAuth(){ document.getElementById('authOv').classList.add('hidden');
 function toast(msg){ let t=document.getElementById('__toast'); if(!t){ t=document.createElement('div'); t.id='__toast';
     t.style.cssText='position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100001;background:#12161b;color:#eafcf6;border:1px solid #1f5c4d;border-radius:12px;padding:9px 15px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;box-shadow:0 10px 30px rgba(0,0,0,.5)';
     document.body.appendChild(t); } t.textContent=msg; t.style.opacity='1'; clearTimeout(t._h); t._h=setTimeout(function(){t.style.opacity='0';},2400); }
+
+/* ----- diálogos modernos (substituem confirm/alert/prompt nativos do navegador) ----- */
+function uiModal(html){ let ov=document.getElementById('uiOv'); if(!ov){ ov=document.createElement('div'); ov.id='uiOv'; ov.className='authov'; document.body.appendChild(ov); }
+  ov.innerHTML='<div class="auth-card">'+html+'</div>'; ov.classList.remove('hidden'); return ov; }
+function uiCloseM(){ const ov=document.getElementById('uiOv'); if(ov)ov.classList.add('hidden'); }
+function uiConfirm(msg,o){ o=o||{}; return new Promise(function(res){ window.__uiRes=function(v){ uiCloseM(); res(v); };
+  uiModal('<div class="auth-ic">'+(o.icon||(o.danger?'🗑️':'❓'))+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
+    '<div class="actions"><button class="btn-ghost" onclick="__uiRes(false)">'+(o.cancel||'Cancelar')+'</button>'+
+    '<button class="'+(o.danger?'btn-danger':'btn-primary')+'" onclick="__uiRes(true)">'+(o.ok||'Confirmar')+'</button></div>'); }); }
+function uiAlert(msg,o){ o=o||{}; return new Promise(function(res){ window.__uiRes=function(){ uiCloseM(); res(); };
+  uiModal('<div class="auth-ic">'+(o.icon||'ℹ️')+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
+    '<div class="actions"><button class="btn-primary" onclick="__uiRes()">'+(o.ok||'Ok')+'</button></div>'); }); }
+function uiPromptOk(){ var i=document.getElementById('uiPInp'); if(window.__uiRes)window.__uiRes(i?i.value.trim():null); }
+function uiPrompt(msg,o){ o=o||{}; return new Promise(function(res){ window.__uiRes=function(v){ uiCloseM(); res(v); };
+  uiModal('<div class="auth-ic">'+(o.icon||'✏️')+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
+    '<div class="field"><input id="uiPInp" type="'+(o.type||'text')+'" placeholder="'+(o.placeholder||'')+'" value="'+(o.value||'')+'"></div>'+
+    '<div class="actions"><button class="btn-ghost" onclick="__uiRes(null)">Cancelar</button>'+
+    '<button class="btn-primary" onclick="uiPromptOk()">'+(o.ok||'Ok')+'</button></div>');
+  setTimeout(function(){ var i=document.getElementById('uiPInp'); if(i)i.focus(); },60); }); }
 
 /* ----- telas de conta ----- */
 function showUpgrade(){ authScreen('<div class="auth-ic">🔒</div><h2>Proteja e sincronize</h2>'+
@@ -1265,8 +1286,7 @@ function showLock(){ authScreen('<div class="auth-ic">🔒</div><h2>Norte</h2><p
   '<div class="field"><label>Senha</label><input id="lkPw" type="password"></div>'+
   '<div class="auth-err" id="authErr"></div>'+
   '<div class="actions"><button class="btn-primary" style="flex:1" onclick="unlockGo()">Entrar</button></div>'+
-  '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>'+
-  '<button class="auth-link" onclick="removeAccountLocal()">Tirar senha deste aparelho</button>',{lock:true}); }
+  '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>',{lock:true}); }
 async function unlockGo(){ const pw=val('lkPw'), email=localStorage.getItem('norte-login');
   if(!pw){ authErr('Digite a senha.'); return; }
   if(sb){ try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
@@ -1275,10 +1295,10 @@ async function unlockGo(){ const pw=val('lkPw'), email=localStorage.getItem('nor
     }catch(e){} }
   if(await sha(pw)===localStorage.getItem('norte-pwhash')){ markSession(); closeAuth(); toast('Modo offline'); }
   else authErr('Senha incorreta.'); }
-async function forgotPw(){ const email=localStorage.getItem('norte-login')||val('lgEmail')||prompt('Seu e-mail da conta:');
-  if(!email)return; if(!sb){ alert('Precisa de internet pra recuperar.'); return; }
+async function forgotPw(){ const email=localStorage.getItem('norte-login')||val('lgEmail')||await uiPrompt('Qual o e-mail da sua conta?',{type:'email',placeholder:'voce@email.com'});
+  if(!email)return; if(!sb){ uiAlert('Precisa de internet pra recuperar.'); return; }
   try{ await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});
-    alert('Enviei um link de recuperação pro seu e-mail. Abra o link NESTE aparelho pra definir uma nova senha.'); }catch(e){ alert('Erro ao enviar: '+(e.message||e)); } }
+    uiAlert('Enviei um link de recuperação pro seu e-mail. Abra o link NESTE aparelho pra definir uma nova senha.'); }catch(e){ uiAlert('Erro ao enviar: '+(e.message||e)); } }
 function showRecovery(){ authScreen('<div class="auth-ic">🔑</div><h2>Nova senha</h2><p>Defina uma nova senha pra sua conta.</p>'+
   '<div class="field"><label>Nova senha</label><input id="rcPw" type="password" placeholder="mín. 6"></div>'+
   '<div class="field"><label>Confirmar</label><input id="rcPw2" type="password"></div>'+
@@ -1306,7 +1326,7 @@ async function changePwGo(){ const a=val('cpPw'),b=val('cpPw2'); if(a.length<6){
   if(!sbReady()){ authErr('Precisa estar online e logado.'); return; }
   try{ const r=await sb.auth.updateUser({password:a}); if(r.error){ authErr(r.error.message); return; }
     localStorage.setItem('norte-pwhash',await sha(a)); closeAuth(); toast('Senha trocada ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
-async function removeAccountLocal(){ if(!confirm('Tirar a senha? O Norte volta ao modo local neste aparelho (sem senha e sem sincronizar). Seus dados continuam salvos aqui.'))return;
+async function removeAccountLocal(){ if(!await uiConfirm('O Norte volta ao modo local neste aparelho (sem senha e sem sincronizar). Seus dados continuam salvos aqui.',{title:'Tirar a senha?',ok:'Tirar senha',danger:true}))return;
   try{ if(sb) await sb.auth.signOut(); }catch(e){}
   if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan=null; }
   session=null; localStorage.removeItem('norte-login'); localStorage.removeItem('norte-pwhash'); localStorage.removeItem('norte-syncedAt'); localStorage.setItem('norte-nag','1');
