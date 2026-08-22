@@ -348,7 +348,7 @@
   <div class="linha">
     <input id="campo" placeholder="O que precisa ser feito?" enterkeyhint="done">
     <input id="campoQt" class="qt" placeholder="qtd" inputmode="decimal">
-    <button type="button" class="mic" id="btVoz" title="Ditar">🎙</button>
+    <button type="button" class="mic" id="btVoz" title="Ditar"><span data-ic="mic"></span></button>
     <button type="submit" aria-label="Adicionar">+</button>
   </div>
   <div class="sel chips" id="seletor"></div>
@@ -377,20 +377,20 @@
 <div class="menu" id="menu">
   <div class="cx">
     <h3>Lista</h3>
-    <button class="bt" id="btRenomear">✎ Renomear lista</button>
-    <button class="bt" id="btDuplicar">⧉ Duplicar lista</button>
-    <button class="bt" id="btLimpaFeitas">✓ Limpar concluídas</button>
-    <button class="bt pg" id="btApagarLista">🗑 Apagar esta lista</button>
+    <button class="bt" id="btRenomear"><span data-ic="pen"></span> Renomear lista</button>
+    <button class="bt" id="btDuplicar"><span data-ic="dup"></span> Duplicar lista</button>
+    <button class="bt" id="btLimpaFeitas"><span data-ic="check"></span> Limpar concluídas</button>
+    <button class="bt pg" id="btApagarLista"><span data-ic="trash"></span> Apagar esta lista</button>
 
     <h3 class="sep">Modelos</h3>
-    <button class="bt ac" id="btSalvarModelo">★ Salvar esta lista como modelo</button>
+    <button class="bt ac" id="btSalvarModelo"><span data-ic="star"></span> Salvar esta lista como modelo</button>
     <div id="listaModelos"></div>
     <div class="obs" id="semModelos">Nenhum modelo salvo.</div>
 
     <h3 class="sep">Backup</h3>
-    <button class="bt" id="btCompartilhar">↗ Compartilhar como texto</button>
-    <button class="bt" id="btExportar">⬇ Baixar backup (.json)</button>
-    <button class="bt" id="btImportar">⬆ Restaurar backup</button>
+    <button class="bt" id="btCompartilhar"><span data-ic="share"></span> Compartilhar como texto</button>
+    <button class="bt" id="btExportar"><span data-ic="download"></span> Baixar backup (.json)</button>
+    <button class="bt" id="btImportar"><span data-ic="upload"></span> Restaurar backup</button>
     <input type="file" id="arquivo" accept="application/json" style="display:none">
     <button class="bt fechar" id="btFechar">Fechar</button>
   </div>
@@ -1069,5 +1069,6 @@
 <script>window.__SYNC_CFG={app:'feito',keys:['afazeres-v3'],accent:'#2FD9C9',name:'Feito'};</script>
 <script src="supabase.js"></script>
 <script src="sync.js"></script>
+<script src="icons.js"></script>
 </body>
 </html>
