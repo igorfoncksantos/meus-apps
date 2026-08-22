@@ -148,14 +148,26 @@
   .navbtn.today{ color:var(--accent); border-color:#1e3a40; }
   .datepill{ flex:1; text-align:center; font-size:13px; font-weight:700; color:var(--mut2); }
   .menu-wrap{ position:relative; }
-  .menu{ position:absolute; right:0; top:46px; background:#14171b; border:1px solid var(--line);
-         border-radius:12px; padding:6px; min-width:200px; z-index:40; box-shadow:0 12px 40px rgba(0,0,0,.6); }
-  .menu button{ display:flex; width:100%; align-items:center; gap:10px; background:none; border:none; color:var(--txt);
-                font-size:13.5px; padding:11px 12px; border-radius:8px; cursor:pointer; text-align:left; }
-  .menu button:active{ background:#20242a; }
-  .menu .mdel{ color:#fff; background:linear-gradient(135deg,#ef5064,#cc2f3d); font-weight:700; margin-top:6px;
-               box-shadow:0 4px 12px rgba(239,68,68,.28); }
-  .menu .mdel:active{ background:linear-gradient(135deg,#e0455a,#bb2b39); }
+  .menu{ position:absolute; right:0; top:48px; z-index:40; min-width:240px; padding:7px;
+         background:rgba(18,21,25,.97); border:1px solid var(--line); border-radius:16px;
+         box-shadow:0 20px 54px rgba(0,0,0,.62); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+         animation:menuPop .18s cubic-bezier(.2,.95,.3,1); transform-origin:top right; }
+  @keyframes menuPop{ from{ opacity:0; transform:translateY(-8px) scale(.96); } to{ opacity:1; transform:none; } }
+  .menu button{ display:flex; width:100%; align-items:center; gap:12px; background:none; border:none; color:var(--txt);
+                font-size:14px; font-weight:600; padding:9px 10px; border-radius:12px; cursor:pointer; text-align:left;
+                transition:background .16s ease, transform .1s ease; }
+  .menu button:hover{ background:rgba(255,255,255,.055); }
+  .menu button:active{ background:rgba(255,255,255,.09); transform:scale(.98); }
+  .menu .mi{ width:32px; height:32px; flex-shrink:0; border-radius:10px; background:rgba(47,217,201,.13);
+             display:inline-flex; align-items:center; justify-content:center; font-size:15px; }
+  .menu button em{ font-style:normal; font-size:10.5px; font-weight:600; color:var(--mut); margin-left:auto; padding-left:8px; white-space:nowrap; }
+  .menu .mdiv{ height:1px; background:var(--line); margin:6px 8px 4px; }
+  .menu .mdel{ color:#ff6b7a; }
+  .menu .mdel .mi{ background:rgba(239,68,68,.16); }
+  .menu .mdel:hover{ background:rgba(239,68,68,.10); }
+  .menu .mdel:active{ background:rgba(239,68,68,.18); }
+  [data-theme="light"] .menu{ background:rgba(255,255,255,.98); }
+  [data-theme="miri"] .menu{ background:rgba(251,247,238,.98); }
   .hidden{ display:none !important; }
 
   header{ border-bottom:3px solid var(--accent); padding-bottom:14px; margin-bottom:16px; text-align:center; }
@@ -399,6 +411,14 @@
   .auth-card .btn-ghost:active,.auth-btns .btn-ghost:active{ background:rgba(255,255,255,.04); }
   .auth-card .btn-danger{ background:linear-gradient(135deg,#ef5064,#cc2f3d); color:#fff; box-shadow:0 9px 24px rgba(239,68,68,.3); }
   .auth-card .btn-danger:active{ filter:brightness(1.06); }
+  .gbtn-google{ width:100%; display:flex; align-items:center; justify-content:center; gap:11px; padding:14px; border-radius:14px;
+    border:1.5px solid #d7dbe0; background:#fff; color:#1f2226; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:2px;
+    transition:transform .13s cubic-bezier(.34,1.4,.5,1), box-shadow .2s ease; box-shadow:0 3px 12px rgba(0,0,0,.18); }
+  .gbtn-google:active{ transform:scale(.97); }
+  .gbtn-google .gg{ font-weight:800; color:#4285F4; font-family:Arial,sans-serif; font-size:19px; line-height:1; }
+  .auth-or{ display:flex; align-items:center; gap:10px; color:var(--mut); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:13px 0; }
+  .auth-or::before,.auth-or::after{ content:''; flex:1; height:1px; background:#2a2f35; }
+  [data-theme="light"] .auth-or::before,[data-theme="light"] .auth-or::after,[data-theme="miri"] .auth-or::before,[data-theme="miri"] .auth-or::after{ background:var(--line); }
   .auth-card .field input{ border-radius:13px; padding:14px 14px; transition:border-color .18s ease, box-shadow .18s ease; }
   .auth-card .field input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(47,217,201,.16); }
   .auth-card .act-list button{ border-radius:14px; padding:15px 15px; font-weight:700; transition:transform .13s ease, background .18s ease; }
@@ -439,15 +459,16 @@
   <div class="menu-wrap">
     <button class="navbtn" onclick="toggleMenu(event)">⋯</button>
     <div class="menu hidden" id="menu">
-      <button onclick="newDay()">🌅 Novo dia (puxa pendentes)</button>
-      <button onclick="openCats()">🏷️ Categorias</button>
-      <button onclick="shareDay()">👥 Compartilhar o dia</button>
-      <button onclick="openSecurity()">🔒 Segurança do app</button>
-      <button onclick="exportPDF()">🖨️ Exportar / imprimir</button>
-      <button onclick="backup()">💾 Backup (.json)</button>
-      <button onclick="document.getElementById('restoreFile').click()">📥 Restaurar backup</button>
+      <button onclick="newDay()"><span class="mi">🌅</span>Novo dia <em>puxa pendentes</em></button>
+      <button onclick="openCats()"><span class="mi">🏷️</span>Categorias</button>
+      <button onclick="shareDay()"><span class="mi">👥</span>Compartilhar o dia</button>
+      <button onclick="openSecurity()"><span class="mi">🔄</span>Sincronização</button>
+      <button onclick="exportPDF()"><span class="mi">🖨️</span>Exportar / imprimir</button>
+      <button onclick="backup()"><span class="mi">💾</span>Backup <em>.json</em></button>
+      <button onclick="document.getElementById('restoreFile').click()"><span class="mi">📥</span>Restaurar backup</button>
       <input type="file" id="restoreFile" accept="application/json" class="hidden" onchange="restore(event)">
-      <button class="mdel" onclick="wipeAll()">🧹 Zerar tudo</button>
+      <div class="mdiv"></div>
+      <button class="mdel" onclick="wipeAll()"><span class="mi">🧹</span>Zerar tudo</button>
     </div>
   </div>
 </div>
@@ -1239,12 +1260,46 @@ function uiPrompt(msg,o){ o=o||{}; return new Promise(function(res){ window.__ui
   setTimeout(function(){ var i=document.getElementById('uiPInp'); if(i)i.focus(); },60); }); }
 
 /* ----- telas de conta ----- */
-function showUpgrade(){ authScreen('<div class="auth-ic">🔒</div><h2>Proteja e sincronize</h2>'+
-  '<p>Crie uma conta pra proteger o Norte com senha e ver as mesmas tarefas no computador e no celular — mudou num, muda no outro.</p>'+
-  '<div class="auth-btns"><button class="btn-primary" onclick="showSignup()">Sim, criar conta</button>'+
-  '<button class="btn-ghost" onclick="showLogin()">Já tenho conta</button></div>'+
+function showUpgrade(){ authScreen('<div class="auth-ic">🔄</div><h2>Sincronize seus aparelhos</h2>'+
+  '<p>Entre pra ver as mesmas tarefas no computador e no celular — mudou num, muda no outro. <b>Sem senha.</b></p>'+
+  '<div class="auth-btns"><button class="btn-primary" onclick="showConnect()">Conectar</button></div>'+
   '<button class="auth-link" onclick="dismissUpgrade()">Agora não</button>'); }
 function dismissUpgrade(){ localStorage.setItem('norte-nag','1'); closeAuth(); }
+
+/* ===== LOGIN SEM SENHA (magic link / Google) ===== */
+let _synced=false;
+function onSignedIn(){ if(_synced)return; _synced=true;
+  try{ if(session&&session.user&&session.user.email) localStorage.setItem('norte-login',session.user.email); }catch(e){}
+  localStorage.removeItem('norte-nag');
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}
+  closeAuth(); subscribeRT(); pullRemote(); toast('Conectado ✓ sincronizando'); }
+function showConnect(){ closeMenu(); authScreen('<div class="auth-ic">🔄</div><h2>Sincronizar aparelhos</h2>'+
+  '<p>Entre pra ver as mesmas tarefas no computador e no celular. <b>Sem senha</b> — é só pra saber que é você.</p>'+
+  '<button class="gbtn-google" onclick="googleLogin()"><span class="gg">G</span>Entrar com Google</button>'+
+  '<div class="auth-or"><span>ou</span></div>'+
+  '<div class="field"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="'+(localStorage.getItem("norte-login")||"")+'"></div>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Fechar</button><button class="btn-primary" onclick="magicLink()">Enviar link</button></div>'); }
+async function magicLink(){ const e=val('mlEmail');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
+  if(!sb){ authErr('Sem conexão. Tente com internet.'); return; }
+  try{ localStorage.setItem('norte-login',e);
+    const r=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href.split('#')[0]}});
+    if(r.error){ authErr(r.error.message); return; }
+    authScreen('<div class="auth-ic">📧</div><h2>Confira seu e-mail</h2>'+
+      '<p>Enviei um link de acesso pra <b style="color:var(--txt2)">'+escapeHtml(e)+'</b>. Abra o e-mail <b>neste aparelho</b> e toque no link pra entrar.</p>'+
+      '<p class="auth-note">Não chegou? Veja o spam, ou tente de novo em 1 min.</p>'+
+      '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Ok</button></div>');
+  }catch(x){ authErr('Erro: '+(x.message||x)); } }
+async function googleLogin(){ if(!sb){ authErr('Sem conexão.'); return; }
+  try{ const r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
+    if(r&&r.error){ authErr('O login com Google ainda não foi ativado. Use o link no e-mail por enquanto.'); }
+  }catch(x){ authErr('O login com Google ainda não foi ativado. Use o link no e-mail por enquanto.'); } }
+async function disconnectAccount(){ if(!await uiConfirm('Você vai parar de sincronizar neste aparelho. Os dados continuam salvos aqui, só não atualizam mais no outro aparelho. Pra voltar, é só entrar de novo.',{title:'Sair da conta?',ok:'Sair',danger:true}))return;
+  _synced=false; try{ if(sb) await sb.auth.signOut(); }catch(e){}
+  if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan=null; }
+  session=null; localStorage.removeItem('norte-syncedAt'); localStorage.setItem('norte-nag','1');
+  closeAuth(); toast('Desconectado — modo local'); }
 function showSignup(){ closeMenu(); authScreen('<div class="auth-ic">🔒</div><h2>Criar sua conta</h2>'+
   '<div class="field"><label>E-mail (será seu login)</label><input id="suEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></div>'+
   '<div class="field"><label>Senha</label><input id="suPw" type="password" placeholder="mín. 6 caracteres"></div>'+
@@ -1317,12 +1372,11 @@ async function recoveryGo(){ const a=val('rcPw'),b=val('rcPw2'); if(a.length<6){
     const g=await sb.auth.getSession(); session=g.data.session; history.replaceState(null,'',location.pathname);
     markSession(); closeAuth(); subscribeRT(); pullRemote(); toast('Senha redefinida ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
 function openSecurity(){ closeMenu();
-  if(!localStorage.getItem('norte-login')){ showSignup(); return; }
-  authScreen('<div class="auth-ic">🔒</div><h2>Segurança do app</h2>'+
-    '<p>Sua conta: <b style="color:var(--txt2)">'+escapeHtml(localStorage.getItem('norte-login'))+'</b></p>'+
-    '<div class="act-list"><button onclick="showChangePw()"><span class="ic">🔑</span>Trocar senha</button>'+
-    '<button onclick="removeAccountLocal()"><span class="ic">🚫</span>Tirar senha (voltar ao modo local)</button></div>'+
-    '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Fechar</button></div>'); }
+  if(!sbReady()){ showConnect(); return; }
+  authScreen('<div class="auth-ic">🔄</div><h2>Sincronização</h2>'+
+    '<p>Conectado como <b style="color:var(--txt2)">'+escapeHtml(localStorage.getItem('norte-login')||(session&&session.user&&session.user.email)||'')+'</b><br>Suas tarefas aparecem nos seus aparelhos, ao vivo.</p>'+
+    '<div class="act-list"><button class="del" onclick="disconnectAccount()"><span class="ic">🚪</span>Sair da conta (parar de sincronizar)</button></div>'+
+    '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); }
 function showChangePw(){ authScreen('<div class="auth-ic">🔑</div><h2>Trocar senha</h2>'+
   '<div class="field"><label>Nova senha</label><input id="cpPw" type="password" placeholder="mín. 6"></div>'+
   '<div class="field"><label>Confirmar</label><input id="cpPw2" type="password"></div>'+
@@ -1353,15 +1407,8 @@ async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark');
   }
   render();
   await initSupa();
-  const recovering = h.indexOf('type=recovery')>=0;
-  if(sb) sb.auth.onAuthStateChange(function(ev,ses){ if(ev==='PASSWORD_RECOVERY'){ session=ses; showRecovery(); } });
-  if(recovering) return;
-  if(localStorage.getItem('norte-login')){
-    /* logado = sincroniza sempre. Só pede senha se o cadeado OPCIONAL estiver ligado e o app tiver sido fechado. */
-    const wantLock = localStorage.getItem('norte-lock')==='1' && !sessionStorage.getItem('norte-sess');
-    if(wantLock) showLock();
-    if(session){ subscribeRT(); pullRemote(); }
-  }
+  if(sb) sb.auth.onAuthStateChange(function(ev,ses){ if(ses){ session=ses; if(ev==='SIGNED_IN') onSignedIn(); } });
+  if(session){ onSignedIn(); }                                   /* já logado (sessão salva ou link do e-mail) -> sincroniza direto, sem pedir nada */
   else if(!localStorage.getItem('welcome-norte')){ document.getElementById('__welcome').classList.remove('hidden'); }
   else if(!localStorage.getItem('norte-nag') && !sessionStorage.getItem('norte-upseen')){ sessionStorage.setItem('norte-upseen','1'); setTimeout(showUpgrade,500); }
 }
