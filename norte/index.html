@@ -179,10 +179,15 @@
   .track{ flex:1; height:12px; background:#1c1f22; border-radius:20px; overflow:hidden; }
   .fill{ height:100%; background:var(--green); border-radius:20px; transition:width .4s cubic-bezier(.4,1.3,.5,1); }
 
-  .legend{ display:flex; flex-wrap:wrap; gap:12px; padding:10px 13px; background:var(--panel2);
-           border:1px solid var(--line2); border-radius:10px; margin-bottom:20px; }
-  .legend .lg{ display:flex; align-items:center; gap:6px; font-size:11px; color:#c7ced3; }
-  .legend .chip{ width:11px; height:11px; border-radius:3px; box-shadow:inset 0 0 0 1px rgba(128,128,128,.45); }
+  .legend{ display:flex; gap:18px; overflow-x:auto; padding:2px 2px 9px; margin-bottom:16px; -webkit-overflow-scrolling:touch; }
+  .legend::-webkit-scrollbar{ height:0; }
+  .legend .ci{ display:inline-flex; align-items:center; gap:8px; font-size:13.5px; font-weight:700; color:var(--mut2);
+               white-space:nowrap; flex-shrink:0; padding-bottom:7px; border-bottom:2.5px solid transparent; cursor:pointer;
+               transition:color .15s,border-color .15s; }
+  .legend .ci.on{ color:var(--txt2); border-bottom-color:var(--accent); }
+  .legend .ci .cdot{ width:10px; height:10px; border-radius:50%; box-shadow:inset 0 0 0 1px rgba(128,128,128,.4); }
+  .legend .ci.add{ color:var(--accent); font-weight:800; }
+  [data-theme="light"] .legend,[data-theme="miri"] .legend{ background:none!important; box-shadow:none!important; border:none; }
 
   .secttl{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#c7ced3; margin:2px 0 12px; }
   .cat{ margin-bottom:18px; }
@@ -220,6 +225,17 @@
   .pchip{ display:inline-block; font-size:9px; font-weight:800; letter-spacing:.6px; text-transform:uppercase;
           color:#fff; background:var(--orange); padding:3px 7px; border-radius:5px; margin-left:7px; vertical-align:2px; }
   .pchip.star{ background:var(--star); color:#1a1204; }
+  .pchip.urg{ background:#ef4444; color:#fff; }
+  .item.urgente{ border-color:#ef4444!important; background:#1c0f0f; box-shadow:inset 0 0 0 1px rgba(239,68,68,.32); }
+  [data-theme="light"] .item.urgente{ background:#fdecec; }
+  [data-theme="miri"] .item.urgente{ background:#f4e2e0; }
+  .popt.sel.urg{ border-color:#ef4444; background:#1c0f0f; color:#ff8a8a; }
+  .act-list button.prioA{ color:var(--star); border-color:#5a4620; background:#17140d; }
+  .act-list button.prioA .ic svg{ stroke:var(--star); }
+  .act-list button.prioB{ color:var(--orange); border-color:#5a3620; background:#1b1108; }
+  .act-list button.prioB .ic svg{ stroke:var(--orange); }
+  .act-list button.prioU{ color:#ff6b6b; border-color:#5c2a2f; background:#1c0f0f; font-weight:700; }
+  .act-list button.prioU .ic svg{ stroke:#ff5252; }
   .rchip{ display:inline-block; font-size:8.5px; font-weight:800; letter-spacing:.5px; text-transform:uppercase;
           color:#7ee2b8; background:#0f2b1a; border:1px solid #1f5c37; padding:3px 7px; border-radius:5px; margin-left:7px; vertical-align:2px; }
   .cflag{ display:inline-block; font-size:8.5px; font-weight:700; letter-spacing:.3px; text-transform:uppercase; color:var(--mut2); margin-left:7px; }
@@ -309,6 +325,7 @@
   .prog-seg{ display:flex; gap:8px; margin-bottom:15px; }
   .prog-seg button{ flex:1; padding:11px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--mut); font-size:13px; font-weight:700; cursor:pointer; transition:.15s; }
   .prog-seg button.on{ background:var(--accent); color:#04191a; border-color:var(--accent); }
+  .prog-metric{ margin-bottom:9px; }
   .prog-seg button:active{ transform:scale(.97); }
   .prog-kpis{ display:flex; gap:9px; margin-bottom:15px; }
   .pk{ flex:1; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 8px; text-align:center; }
@@ -703,6 +720,7 @@ function stats(){
 /* ============= ordenação dentro da categoria ============= */
 function sortKey(t){
   // prioridade manda mais que status
+  if(t.prio==='urgente') return -1;
   if(t.prio==='max') return 0;
   if(t.prio==='star') return 1;
   if(t.status==='sched') return 2;
@@ -713,6 +731,8 @@ function sortKey(t){
 }
 
 /* ============= render ============= */
+let _catFilter=null;
+function setCatFilter(id){ _catFilter=id; render(); }
 function render(){
   if(day()) activateSchedTasks(day().tasks, cur);   // ativa as agendadas cujo dia chegou
   document.getElementById('datepilltxt').textContent = fmtBR(cur) + (cur===todayISO()?' · hoje':'');
@@ -726,16 +746,16 @@ function render(){
   const lg=document.getElementById('legend');
   if(!CATS.length){ lg.classList.add('hidden'); }
   else{ lg.classList.remove('hidden'); lg.innerHTML =
-    CATS.map(c=>`<div class="lg" style="cursor:pointer" onclick="openCatActions('${c.id}')"><span class="chip" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('') +
-    `<div class="lg" style="cursor:pointer;color:var(--accent);font-weight:800" onclick="openCats()">＋ categoria</div>`+
-    `<div class="lg" style="margin-left:auto"><span class="chip" style="background:#FBBF24"></span>★ Prioridade</div>`+
-    `<div class="lg"><span class="chip" style="background:#F97316"></span>★★ Máxima</div>`; }
+    `<span class="ci ${_catFilter===null?'on':''}" onclick="setCatFilter(null)">Tudo</span>` +
+    CATS.map(c=>`<span class="ci ${_catFilter===c.id?'on':''}" onclick="setCatFilter('${c.id}')"><span class="cdot" style="background:${c.color}"></span>${escapeHtml(c.name)}</span>`).join('') +
+    `<span class="ci add" onclick="openCats()">＋</span>`; }
 
   // título "Minhas categorias" (só quando há categorias)
   document.getElementById('catsTitle').style.display = CATS.length ? 'flex' : 'none';
   // cats
   const host=document.getElementById('cats'); host.innerHTML='';
   CATS.forEach(c=>{
+    if(_catFilter && c.id!==_catFilter) return;
     const ts = day().tasks.filter(t=>t.cat===c.id).sort((a,b)=> sortKey(a)-sortKey(b));
     if(!ts.length) return;
     const div=document.createElement('div'); div.className='cat';
@@ -772,10 +792,11 @@ function itemEl(t,c){
   let cls='item'; if(t.status==='done')cls+=' done'; if(t.status==='canc')cls+=' canc';
   if(t.status==='sched')cls+=' sched'; if(t.status==='adiado')cls+=' adiado';
   if(isBlocked(t))cls+=' blocked';
-  if(t.prio==='max')cls+=' priomax'; if(t.prio==='star')cls+=' prio';
+  if(t.prio==='urgente')cls+=' urgente'; if(t.prio==='max')cls+=' priomax'; if(t.prio==='star')cls+=' prio';
   el.className=cls; el.style.borderLeftColor=c.color; el.style.setProperty('--catcolor', c.color);
 
   let chips='';
+  if(t.prio==='urgente') chips+=` <span class="pchip urg">★★★ Urgente</span>`;
   if(t.prio==='max') chips+=` <span class="pchip">★★ Prioridade máxima</span>`;
   if(t.prio==='star') chips+=` <span class="pchip star">★ Prioridade</span>`;
   if(t.recur) chips+=` <span class="rchip">↻ ${t.recur}</span>`;
@@ -860,8 +881,9 @@ function cota(id,d){ const t=findTask(id); t.cota[0]=Math.max(0,Math.min(t.cota[
 function openActions(id){ const t=findTask(id);
   const acts=[
     t.status==='done'?[svgIc('undo'),'Reabrir',`setStatus('${id}','pend')`]:[svgIc('check'),'Marcar feito',`setStatus('${id}','done')`],
-    t.prio==='star'?[svgIc('star'),'Tirar prioridade',`setPrio('${id}',null)`]:[svgIc('star'),'Prioridade',`setPrio('${id}','star')`],
-    t.prio==='max'?[svgIc('star'),'Tirar máxima',`setPrio('${id}',null)`]:[svgIc('star'),'Prioridade máxima',`setPrio('${id}','max')`],
+    t.prio==='star'?[svgIc('star'),'Tirar prioridade',`setPrio('${id}',null)`,'prioA']:[svgIc('star'),'Prioridade',`setPrio('${id}','star')`,'prioA'],
+    t.prio==='max'?[svgIc('star'),'Tirar máxima',`setPrio('${id}',null)`,'prioB']:[svgIc('star'),'Prioridade máxima',`setPrio('${id}','max')`,'prioB'],
+    t.prio==='urgente'?[svgIc('alert'),'Tirar urgente',`setPrio('${id}',null)`,'prioU']:[svgIc('alert'),'URGENTE',`setPrio('${id}','urgente')`,'prioU'],
     [svgIc('cal'),'Agendar (data)',`schedTask('${id}')`],
     t.status==='adiado'?[svgIc('play'),'Retomar',`setStatus('${id}','pend')`]:[svgIc('pause'),'Adiar',`setStatus('${id}','adiado')`],
     t.status==='canc'?[svgIc('rotate'),'Reativar',`setStatus('${id}','pend')`]:[svgIc('x'),'Cancelar',`setStatus('${id}','canc')`],
@@ -904,8 +926,9 @@ function showForm(t){
     <div class="field"><label>Detalhe (opcional)</label><input id="fMeta" value="${escapeAttr(t.meta||'')}" placeholder="ex.: deadline 20/08"></div>
     <div class="field"><label>Prioridade</label><div class="prow">
       <div class="popt ${!t.prio?'sel':''}" data-p="" onclick="pickPrio(this)">Normal</div>
-      <div class="popt ${t.prio==='star'?'sel':''}" data-p="star" onclick="pickPrio(this)">★ Prioridade</div>
-      <div class="popt max ${t.prio==='max'?'sel':''}" data-p="max" onclick="pickPrio(this)">★★ Máxima</div></div></div>
+      <div class="popt ${t.prio==='star'?'sel':''}" data-p="star" onclick="pickPrio(this)">★</div>
+      <div class="popt max ${t.prio==='max'?'sel':''}" data-p="max" onclick="pickPrio(this)">★★</div>
+      <div class="popt urg ${t.prio==='urgente'?'sel':''}" data-p="urgente" onclick="pickPrio(this)">★★★</div></div></div>
     <div class="field"><label>Subtarefas (opcional)</label>
       <div id="subRows">${subRows}</div>
       <button type="button" class="cadd" style="margin-top:2px" onclick="addSubRow()">+ subtarefa</button></div>
@@ -1290,13 +1313,14 @@ const ICONS={
   key:'<circle cx="7.5" cy="15.5" r="4.5"/><line x1="10.7" y1="12.3" x2="20" y2="3"/><line x1="17" y1="6" x2="20" y2="9"/><line x1="14" y1="9" x2="16.5" y2="11.5"/>',
   logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
   ban:'<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>',
-  compass:'<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" stroke="none"/>'
+  compass:'<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" stroke="none"/>',
+  alert:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
 };
 function svgIc(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||'')+'</svg>'; }
 function paintIcons(){ document.querySelectorAll('[data-ic]').forEach(function(e){ e.innerHTML=svgIc(e.getAttribute('data-ic')); }); }
 
 /* ================= ABA PROGRESSO (gráfico de linha do %) ================= */
-let _view='dia', _progMode='dia';
+let _view='dia', _progMode='dia', _progMetric='pct';
 function switchView(v){ _view=v;
   const pv=document.getElementById('progView'), fab=document.querySelector('.fab');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-v')===v));
@@ -1304,6 +1328,9 @@ function switchView(v){ _view=v;
   else { pv.classList.add('hidden'); if(fab)fab.style.display=''; }
 }
 function setProgMode(m){ _progMode=m; renderProgress(); }
+function setProgMetric(m){ _progMetric=m; renderProgress(); }
+function dayCount(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks)return null; const c=dd.tasks.filter(t=>t.status!=='canc').length; return c||null; }
+function dayVal(iso){ return _progMetric==='count'?dayCount(iso):dayPct(iso); }
 function dayFrac(t,iso){
   if(t.status==='canc'||t.status==='adiado'||t.status==='sched') return null;
   if(t.rec && !recFiresOn(t.rec,iso)) return null;
@@ -1318,21 +1345,21 @@ function dayPct(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null;
 function mondayOf(iso){ const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d); const wd=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-wd); return dt; }
 function pad2(n){ return String(n).padStart(2,'0'); }
 function progPoints(mode){
-  const days=Object.keys(DB.days).filter(iso=>dayPct(iso)!==null).sort();
+  const days=Object.keys(DB.days).filter(iso=>dayVal(iso)!==null).sort();
   if(!days.length) return [];
-  if(mode==='dia') return days.slice(-14).map(iso=>({label:iso.slice(8,10)+'/'+iso.slice(5,7), val:dayPct(iso)}));
+  if(mode==='dia') return days.slice(-14).map(iso=>({label:iso.slice(8,10)+'/'+iso.slice(5,7), val:dayVal(iso)}));
   const groups={};
-  days.forEach(iso=>{ const p=dayPct(iso); let key,label;
+  days.forEach(iso=>{ const p=dayVal(iso); let key,label;
     if(mode==='sem'){ const dt=mondayOf(iso); key=dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate()); label=pad2(dt.getDate())+'/'+pad2(dt.getMonth()+1); }
     else { key=iso.slice(0,7); label=MES[+iso.slice(5,7)-1].slice(0,3); }
     if(!groups[key])groups[key]={sum:0,n:0,label:label,key:key}; groups[key].sum+=p; groups[key].n++; });
   const arr=Object.keys(groups).sort().map(k=>groups[k]);
   return arr.slice(mode==='sem'?-10:-8).map(g=>({label:g.label, val:Math.round(g.sum/g.n)}));
 }
-function chartSVG(pts){ const W=340,H=196,padL=26,padR=12,padT=16,padB=24, iw=W-padL-padR, ih=H-padT-padB, n=pts.length;
-  const X=i=> n<=1? padL+iw/2 : padL+iw*i/(n-1); const Y=v=> padT+ih*(1-v/100);
+function chartSVG(pts,maxY){ const W=340,H=196,padL=26,padR=12,padT=16,padB=24, iw=W-padL-padR, ih=H-padT-padB, n=pts.length;
+  const X=i=> n<=1? padL+iw/2 : padL+iw*i/(n-1); const Y=v=> padT+ih*(1-v/maxY);
   let g='';
-  [0,25,50,75,100].forEach(gl=>{ const yy=Y(gl); g+='<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="var(--line)" stroke-width="1"/>'; g+='<text x="'+(padL-5)+'" y="'+(yy+3)+'" fill="var(--mut)" font-size="8.5" text-anchor="end">'+gl+'</text>'; });
+  [0,.25,.5,.75,1].forEach(function(f){ var gv=maxY*f, yy=Y(gv); g+='<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="var(--line)" stroke-width="1"/>'; g+='<text x="'+(padL-5)+'" y="'+(yy+3)+'" fill="var(--mut)" font-size="8.5" text-anchor="end">'+Math.round(gv)+'</text>'; });
   const poly=pts.map((p,i)=>X(i)+','+Y(p.val)).join(' ');
   let d='M '+X(0)+' '+Y(pts[0].val); for(let i=1;i<n;i++) d+=' L '+X(i)+' '+Y(pts[i].val);
   d+=' L '+X(n-1)+' '+(padT+ih)+' L '+X(0)+' '+(padT+ih)+' Z';
@@ -1346,18 +1373,27 @@ function chartSVG(pts){ const W=340,H=196,padL=26,padR=12,padT=16,padB=24, iw=W-
 }
 function renderProgress(){
   const pts=progPoints(_progMode); const vals=pts.map(p=>p.val);
+  const isPct=_progMetric==='pct';
   const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
   const best=vals.length?Math.max.apply(null,vals):0;
+  const sum=vals.reduce((a,b)=>a+b,0);
   const full=vals.filter(v=>v>=100).length;
   const unit=_progMode==='dia'?'dias':_progMode==='sem'?'semanas':'meses';
+  const perUnit=_progMode==='dia'?'dia':_progMode==='sem'?'semana':'mês';
+  const maxY=isPct?100:Math.max(4,Math.ceil(best));
   const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
-  const chart = pts.length ? chartSVG(pts) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.<br>Conclua tarefas e volte aqui pra ver sua evolução.</div>';
+  const chart = pts.length ? chartSVG(pts,maxY) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.<br>Conclua tarefas e volte aqui pra ver sua evolução.</div>';
+  const kpis = isPct
+    ? '<div class="pk"><div class="pkv">'+avg+'%</div><div class="pkl">média</div></div><div class="pk"><div class="pkv">'+best+'%</div><div class="pkl">melhor</div></div><div class="pk"><div class="pkv">'+full+'</div><div class="pkl">'+unit+' 100%</div></div>'
+    : '<div class="pk"><div class="pkv">'+avg+'</div><div class="pkl">média/'+perUnit+'</div></div><div class="pk"><div class="pkv">'+best+'</div><div class="pkl">máximo</div></div><div class="pk"><div class="pkv">'+sum+'</div><div class="pkl">total</div></div>';
   document.getElementById('progView').innerHTML =
     '<div class="prog-top"><h2><span class="prog-hic">'+svgIc('trending')+'</span>Progresso</h2></div>'+
+    '<div class="prog-seg prog-metric">'+
+      '<button class="'+(isPct?'on':'')+'" onclick="setProgMetric(\'pct\')">% do dia</button>'+
+      '<button class="'+(!isPct?'on':'')+'" onclick="setProgMetric(\'count\')">Nº de tarefas</button>'+
+    '</div>'+
     '<div class="prog-seg">'+modes.map(m=>'<button class="'+(_progMode===m[0]?'on':'')+'" onclick="setProgMode(\''+m[0]+'\')">'+m[1]+'</button>').join('')+'</div>'+
-    '<div class="prog-kpis"><div class="pk"><div class="pkv">'+avg+'%</div><div class="pkl">média</div></div>'+
-      '<div class="pk"><div class="pkv">'+best+'%</div><div class="pkl">melhor</div></div>'+
-      '<div class="pk"><div class="pkv">'+full+'</div><div class="pkl">'+unit+' 100%</div></div></div>'+
+    '<div class="prog-kpis">'+kpis+'</div>'+
     '<div class="prog-chart">'+chart+'</div>';
 }
 
