@@ -314,6 +314,9 @@
   .act-list button{ display:flex; width:100%; align-items:center; gap:12px; background:#0b0e11; border:1px solid #22272c;
         color:var(--txt); font-size:14px; padding:13px 14px; border-radius:11px; cursor:pointer; margin-bottom:8px; }
   .act-list button:active{ background:#181c21; }
+  .act-list button.del{ color:#ff9a9a; border-color:#5c2a2f; background:#1c1113; font-weight:700; }
+  .act-list button.del .ic{ color:#f87171; }
+  .act-list button.del:active{ background:#2b1214; }
   .act-list .ic{ width:22px; text-align:center; }
 
   /* flash */
@@ -769,10 +772,10 @@ function openActions(id){ const t=findTask(id);
     t.status==='adiado'?['▶','Retomar',`setStatus('${id}','pend')`]:['⏸','Adiar',`setStatus('${id}','adiado')`],
     t.status==='canc'?['↺','Reativar',`setStatus('${id}','pend')`]:['✕','Cancelar',`setStatus('${id}','canc')`],
     ['✎','Editar',`editTask('${id}')`],
-    ['🗑','Apagar',`delTask('${id}')`],
+    ['🗑','Apagar',`delTask('${id}')`,'del'],
   ];
   sheet(`<h3>${escapeHtml(t.title)}</h3><div class="act-list">`+
-    acts.map(a=>`<button onclick="${a[2]};closeSheet()"><span class="ic">${a[0]}</span>${a[1]}</button>`).join('')+
+    acts.map(a=>`<button class="${a[3]||''}" onclick="${a[2]};closeSheet()"><span class="ic">${a[0]}</span>${a[1]}</button>`).join('')+
     `</div><div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>`);
 }
 function setStatus(id,s){ const t=findTask(id); t.status=s; if(s==='done')flashFx(); render(); }
@@ -1354,8 +1357,10 @@ async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark');
   if(sb) sb.auth.onAuthStateChange(function(ev,ses){ if(ev==='PASSWORD_RECOVERY'){ session=ses; showRecovery(); } });
   if(recovering) return;
   if(localStorage.getItem('norte-login')){
-    if(sessionStorage.getItem('norte-sess')){ if(session){ subscribeRT(); pullRemote(); } }   /* refresh / pull-to-refresh na mesma sessão -> NÃO pede senha */
-    else { showLock(); if(session){ subscribeRT(); pullRemote(); } }                          /* app foi fechado e reaberto -> pede senha */
+    /* logado = sincroniza sempre. Só pede senha se o cadeado OPCIONAL estiver ligado e o app tiver sido fechado. */
+    const wantLock = localStorage.getItem('norte-lock')==='1' && !sessionStorage.getItem('norte-sess');
+    if(wantLock) showLock();
+    if(session){ subscribeRT(); pullRemote(); }
   }
   else if(!localStorage.getItem('welcome-norte')){ document.getElementById('__welcome').classList.remove('hidden'); }
   else if(!localStorage.getItem('norte-nag') && !sessionStorage.getItem('norte-upseen')){ sessionStorage.setItem('norte-upseen','1'); setTimeout(showUpgrade,500); }
