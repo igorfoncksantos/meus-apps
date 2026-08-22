@@ -222,6 +222,32 @@
   #__toast.err{background:var(--red);color:#2a0d0d}
   #__toast.ok{background:var(--green);color:#04140a}
   @media (prefers-reduced-motion:reduce){.lc.new,.cx.new{animation:none}}
+
+  /* ============ PAINEL DE ANÉIS (aba Cashbook) ============ */
+  #t3 .gpcyc{ text-align:center; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.7px; color:var(--mut2); margin:2px 0 10px; }
+  #t3 .gpcyc b{ color:var(--txt2); }
+  #t3 .gp-hero{ background:linear-gradient(160deg,#0c1712,#0a0d0f); border:1px solid #1f5c37; border-radius:16px; padding:16px 18px; text-align:center; margin-bottom:14px; }
+  #t3 .gp-hero .gp-hl{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#7a8288; }
+  #t3 .gp-hero .gp-hv{ font-size:31px; font-weight:800; color:#fff; letter-spacing:-.6px; margin-top:3px; font-variant-numeric:tabular-nums; }
+  #t3 .gp-hero.neg .gp-hv{ color:#f87171; }
+  #t3 .gp-hero .gp-hb{ height:8px; background:#12261b; border-radius:20px; overflow:hidden; margin-top:12px; }
+  #t3 .gp-hero .gp-hb i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,#1f5c37,#22C55E); border-radius:20px; transition:width .25s ease; }
+  #t3 .gp-hero.neg .gp-hb i{ background:linear-gradient(90deg,#7a2a2a,#f87171); }
+  #t3 .gp-hero .gp-hc{ font-size:10.5px; color:#7a8288; margin-top:9px; line-height:1.5; }
+  #t3 .gp-hero .gp-hc b{ color:#FBBF24; font-weight:800; } #t3 .gp-hero .gp-hc span{ color:#c7ced3; font-weight:700; }
+  #t3 .gp-rings{ display:flex; gap:7px; margin-bottom:14px; flex-wrap:wrap; }
+  #t3 .gp-ring{ flex:1; min-width:96px; text-align:center; background:#101317; border:1px solid #23282d; border-radius:14px; padding:12px 5px 13px; }
+  #t3 .gp-ring svg{ display:block; margin:0 auto; }
+  #t3 .gp-ring .rbg{ stroke:#141719; }
+  #t3 .gp-ring .pcT{ fill:#fff; font-size:18px; font-weight:800; }
+  #t3 .gp-ring.est .pcT{ fill:#f87171; }
+  #t3 .gp-ring .rname{ font-size:10px; font-weight:800; margin-top:8px; text-transform:uppercase; letter-spacing:.3px; }
+  #t3 .gp-ring .rg{ font-size:13px; font-weight:800; color:#fff; margin-top:6px; font-variant-numeric:tabular-nums; }
+  #t3 .gp-ring .rg small{ font-size:10.5px; color:#6b7378; font-weight:700; }
+  #t3 .gp-ring .rr{ font-size:10.5px; color:#8a97a0; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums; }
+  #t3 .gp-ring .rd{ font-size:10px; color:#FBBF24; font-weight:700; margin-top:2px; font-variant-numeric:tabular-nums; }
+  #t3 .gp-ring.est .rr{ color:#f87171; }
+  #t3 .orclab{ font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#4a5257; margin:2px 2px 8px; }
 </style>
 </head>
 <body>
@@ -303,11 +329,16 @@
 
 <!-- =============== 3. GASTOS =============== -->
 <section class="tela" id="t3">
-  <div class="hero" style="border-left-color:#f0883e;border-color:#2a2118;background:linear-gradient(160deg,rgba(240,136,62,.09),rgba(240,136,62,.02))">
-    <div class="hl">Ciclo</div>
-    <div class="hv" style="font-size:24px" id="gCiclo">—</div>
-    <div class="hm" id="gPeriodo">—</div>
+  <div class="gpcyc">Ciclo <b id="gCiclo">—</b> · <span id="gPeriodo">—</span></div>
+
+  <div class="gp-hero" id="gHero">
+    <div class="gp-hl">Resta no total</div>
+    <div class="gp-hv" id="gHeroRes">R$ 0,00</div>
+    <div class="gp-hb"><i id="gHeroFill"></i></div>
+    <div class="gp-hc"><span id="gHeroPct">0%</span> do ciclo gasto &middot; <b id="gHeroDia">R$ 0,00</b>/dia &middot; <span id="gHeroDias">—</span></div>
   </div>
+
+  <div class="gp-rings" id="gRings"></div>
 
   <div class="cd" style="border-left-color:#22C55E;margin-bottom:11px">
     <div class="cl">Saldo da caixinha que banca o vale</div>
@@ -315,6 +346,7 @@
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
 
+  <div class="orclab">Orçamento de cada categoria — toque no ⚙ pra editar</div>
   <div id="gBoxes"></div>
   <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
 
@@ -893,19 +925,43 @@ function renderGastos(){
   var gasto={}; D.vale.cats.forEach(function(k){ gasto[k.id]=0; });
   D.vale.l.forEach(function(x){ if(gasto[x.c]==null) gasto[x.c]=0; gasto[x.c]+=x.v; });
 
-  var bh="";
+  // --- painel de anéis + hero ---
+  var tO=0, tG=0, rh="";
   D.vale.cats.forEach(function(k){
     var orc=num(k.orc), gas=gasto[k.id]||0, rest=orc-gas, pc=orc>0?Math.min(100,gas/orc*100):0, est=(orc>0&&rest<0);
+    tO+=orc; tG+=gas;
+    var off=213.628*(1-pc/100);
+    rh+='<div class="gp-ring'+(est?' est':'')+'">' +
+        '<svg width="96" height="96" viewBox="0 0 96 96">' +
+          '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke-width="9"/>' +
+          '<circle cx="48" cy="48" r="34" fill="none" stroke="'+(est?"#f87171":k.cor)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="'+off+'" transform="rotate(-90 48 48)"/>' +
+          '<text class="pcT" x="48" y="54" text-anchor="middle">'+(orc>0?Math.round(pc)+"%":"—")+'</text>' +
+        '</svg>' +
+        '<div class="rname" style="color:'+k.cor+'">'+k.emoji+' '+esc(k.nome)+'</div>' +
+        '<div class="rg">R$ '+brl(gas)+' <small>/ '+brl(orc)+'</small></div>' +
+        '<div class="rr">resta R$ '+brl(rest)+'</div>' +
+        '<div class="rd">R$ '+brl(rest>0?rest/d:0)+'/dia</div>' +
+        '</div>';
+  });
+  document.getElementById("gRings").innerHTML=rh;
+  var tR=tO-tG, pcT=tO>0?Math.min(100,tG/tO*100):0;
+  var hero=document.getElementById("gHero"); if(hero) hero.className="gp-hero"+(tR<0?" neg":"");
+  document.getElementById("gHeroRes").textContent="R$ "+brl(tR);
+  document.getElementById("gHeroFill").style.width=pcT+"%";
+  document.getElementById("gHeroPct").textContent=(tO>0?Math.round(pcT):0)+"%";
+  document.getElementById("gHeroDia").textContent="R$ "+brl(tR>0?tR/d:0);
+  document.getElementById("gHeroDias").textContent=d+(d===1?" dia restante":" dias restantes");
+
+  // --- cards editores de orçamento (compactos; o visual vem dos anéis) ---
+  var bh="";
+  D.vale.cats.forEach(function(k){
+    var orc=num(k.orc), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
     bh+='<div class="box'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
         '<div class="bxhd"><div class="b2" style="color:'+k.cor+'">'+k.emoji+' '+esc(k.nome)+'</div>' +
         '<button class="cog" data-catcog="'+k.id+'">⚙</button></div>' +
         '<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
           '<label class="lb" style="margin:0">Orçamento</label>' +
-          '<input class="r" style="max-width:110px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="0,00"></div>' +
-        '<div class="bv">R$ '+brl(gas)+' <small>de R$ '+brl(orc)+'</small></div>' +
-        '<div class="tr"><div class="fl" style="width:'+pc+'%;background:'+k.cor+'"></div></div>' +
-        '<div class="kk"><div><div class="kl">Restam</div><div class="kv r">R$ '+brl(rest)+'</div></div>' +
-        '<div><div class="kl">Por dia</div><div class="kv d">R$ '+brl(rest>0?rest/d:0)+'</div></div></div>' +
+          '<input class="r" style="max-width:120px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="0,00"></div>' +
         '<div class="caed" data-caed="'+k.id+'" style="display:none">' +
           '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-catn="'+k.id+'" value="'+esc(k.nome)+'" maxlength="24"></div>' +
           '<div style="max-width:64px"><label class="lb">Ícone</label><input data-cate="'+k.id+'" value="'+esc(k.emoji)+'" maxlength="2"></div>' +

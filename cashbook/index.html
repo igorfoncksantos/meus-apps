@@ -325,8 +325,22 @@
   .cmtitle { font-size:17px; font-weight:800; color:#fff; margin-bottom:14px; }
   .cml { display:block; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.7px; color:#7a8288; margin:12px 2px 6px; }
   .cmrow { display:flex; gap:9px; }
-  .cmemoji { width:56px; text-align:center; font-size:22px; }
+  .cmemoji { width:56px; min-height:44px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:22px;
+             background:#0a0d0f; border:1px solid #2a2f33; border-radius:9px; color:#fff; cursor:default; }
+  .cmemoji svg { width:24px; height:24px; }
   .cmnome { flex:1; }
+  .cmicons { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; max-height:200px; overflow-y:auto; padding:2px; }
+  .cmicons button { display:flex; align-items:center; justify-content:center; height:42px; background:#0a0d0f; border:1px solid #23282d;
+             border-radius:9px; color:#aeb8c0; cursor:pointer; transition:transform .08s, border-color .12s, color .12s, background .12s; }
+  .cmicons button svg { width:21px; height:21px; }
+  .cmicons button:hover { color:#fff; border-color:#3a4147; }
+  .cmicons button:active { transform:scale(.9); }
+  .cmicons button.sel { border-color:currentColor; background:rgba(255,255,255,.05); box-shadow:0 0 0 1px currentColor inset; }
+  .csvg { display:inline-flex; align-items:center; vertical-align:-.18em; }
+  .csvg svg { width:1.1em; height:1.1em; }
+  .vb > [data-ic], .b > [data-ic], .cmbtn > [data-ic], .bt > [data-ic] { margin-right:6px; }
+  .vb > [data-ic] svg, .b > [data-ic] svg, .cmbtn > [data-ic] svg, .bt > [data-ic] svg { width:1.05em; height:1.05em; }
+  .datebtn .calico[data-ic] svg { width:15px; height:15px; }
   .cmrow input, .cmv { font-family:inherit; font-size:15px; font-weight:700; color:#fff; background:#0a0d0f; border:1px solid #2a2f33; border-radius:9px; padding:10px 11px; outline:none; }
   .cmrow input:focus, .cmv:focus { border-color:#3a4147; }
   .cmcores { display:flex; flex-wrap:wrap; gap:8px; }
@@ -377,8 +391,8 @@
 <div class="wrap">
 
   <div class="views">
-    <button class="vb on" data-v="gastos">💸 Cashbook</button>
-    <button class="vb" data-v="afazeres">✅ Feito</button>
+    <button class="vb on" data-v="gastos"><span class="tabic" data-ic="wallet"></span>Cashbook</button>
+    <button class="vb" data-v="afazeres"><span class="tabic" data-ic="check"></span>Feito</button>
   </div>
 
   <div id="viewGastos">
@@ -416,7 +430,7 @@
   <div class="add">
     <div class="calwrap">
       <input type="hidden" id="dt">
-      <button type="button" class="datebtn" id="dtBtn"><span class="calico">📅</span><span class="dlbl" id="dtLbl">Hoje</span></button>
+      <button type="button" class="datebtn" id="dtBtn"><span class="calico" data-ic="cal"></span><span class="dlbl" id="dtLbl">Hoje</span></button>
       <div class="calpop" id="calPop">
         <div class="calhead">
           <button type="button" class="cnav" id="calPrev">‹</button>
@@ -442,7 +456,7 @@
   <div id="lista"></div>
 
   <div class="acoes">
-    <button class="b" id="salvarArq" style="background:#22c55e;color:#05130b;border-color:#22c55e">💾 Salvar no arquivo</button>
+    <button class="b" id="salvarArq" style="background:#22c55e;color:#05130b;border-color:#22c55e"><span data-ic="save"></span> Salvar no arquivo</button>
     <button class="b" id="print">Salvar como PDF</button>
     <button class="b" id="copiar">Copiar resumo</button>
     <button class="b g" id="fechar">Limpar lançamentos</button>
@@ -480,9 +494,12 @@
       <div class="cmtitle" id="cmTitle">Nova categoria</div>
       <label class="cml">Ícone e nome</label>
       <div class="cmrow">
-        <input class="cmemoji" id="cmEmoji" type="text" maxlength="4" placeholder="🍔">
+        <button type="button" class="cmemoji" id="cmEmojiPrev" title="ícone escolhido"></button>
+        <input type="hidden" id="cmEmoji">
         <input class="cmnome" id="cmNome" type="text" placeholder="Nome da categoria">
       </div>
+      <label class="cml">Escolha um ícone</label>
+      <div class="cmicons" id="cmIcons"></div>
       <label class="cml">Cor</label>
       <div class="cmcores" id="cmCores"></div>
       <div class="cmrow2">
@@ -490,7 +507,7 @@
         <div class="cmf"><label class="cml">Vira todo dia</label><input class="cmv" id="cmDia" type="text" inputmode="numeric" placeholder="30"></div>
       </div>
       <div class="cmacoes">
-        <button class="cmbtn del" id="cmApagar">🗑 Apagar</button>
+        <button class="cmbtn del" id="cmApagar"><span data-ic="trash"></span> Apagar</button>
         <button class="cmbtn ghost" id="cmCancelar">Cancelar</button>
         <button class="cmbtn ok" id="cmSalvar">Salvar</button>
       </div>
@@ -693,7 +710,7 @@
           <button class="bt" id="btRenomear">✎ Renomear lista</button>
           <button class="bt" id="btDuplicar">⧉ Duplicar lista</button>
           <button class="bt" id="btLimpaFeitas">✓ Limpar concluídas</button>
-          <button class="bt pg" id="btApagarLista">🗑 Apagar esta lista</button>
+          <button class="bt pg" id="btApagarLista"><span data-ic="trash"></span> Apagar esta lista</button>
           <h3 class="sep">Modelos</h3>
           <button class="bt ac" id="btSalvarModelo">★ Salvar esta lista como modelo</button>
           <div id="listaModelos"></div>
@@ -832,7 +849,7 @@ function diasRestantesCiclo(){ return diasRestantesDia(parseInt(st.dia,10) || di
 function brl(n){ return n.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2}); }
 function num(s){ if(!s) return 0; var v=String(s).replace(/\./g,"").replace(",","."); v=parseFloat(v.replace(/[^0-9.\-]/g,"")); return isNaN(v)?0:v; }
 function catCor(id){ var c = catById(id); return c ? c.cor : "#6b7378"; }
-function catNome(id){ var c = catById(id); return c ? (c.emoji + " " + c.nome) : "—"; }
+function catNome(id){ var c = catById(id); return c ? ((catIcoTxt(c) ? catIcoTxt(c)+" " : "") + c.nome) : "—"; }
 function orcCat(id){ return num(st.orc && st.orc[id]); }
 function salvar(){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch(e){} if(typeof marcarSujo === "function") marcarSujo(); }
 function diasRestantes(){ return diasRestantesCiclo(); }
@@ -885,7 +902,7 @@ function render(){
     if(d < dias) dias = d;
     bloco(cat.id, orc, gasto, d);
     tO += orc; tG += gasto;
-    perParts.push(cat.emoji + " dia " + diaCat(cat.id));
+    perParts.push((catIcoTxt(cat) ? catIcoTxt(cat)+" " : "") + "dia " + diaCat(cat.id));
   });
   if(dias === Infinity) dias = 30;   // sem categorias
   document.getElementById("cicloNome").textContent = CICLO;
@@ -978,7 +995,7 @@ function resumoMeses(){
   var colW = 90;
   function cel(txt, cor, bold){ return '<span style="width:'+colW+'px;text-align:right;font-variant-numeric:tabular-nums;'+(cor?'color:'+cor+';':'')+(bold?'font-weight:800;':'font-weight:700;')+'">'+txt+'</span>'; }
   var h = '<div class="rl rcab" style="display:flex;align-items:center;gap:10px"><span style="flex:1;min-width:64px">Mês</span>';
-  CATS.forEach(function(c){ h += cel(c.emoji, "#4a5257", true); });
+  CATS.forEach(function(c){ h += cel(catIcoTxt(c)||c.nome.slice(0,3), "#4a5257", true); });
   h += cel("Total", "#4a5257", true) + '</div>';
   if(!linhas.length){
     h += '<div class="vazio">Nenhum gasto lançado ainda — os meses aparecem aqui conforme você usa.</div>';
@@ -1084,7 +1101,7 @@ document.getElementById("salvarArq").addEventListener("click", function(){
   salvoNoArquivo = estadoSig();
   marcarSujo();
   var b = this; b.textContent = "✓ Baixado — substitua o arquivo";
-  setTimeout(function(){ b.innerHTML = "💾 Salvar no arquivo"; }, 3200);
+  setTimeout(function(){ b.innerHTML = '<span data-ic="save"></span> Salvar no arquivo'; if(window.paintIcons) window.paintIcons(b); }, 3200);
 });
 
 function estadoSig(){ return JSON.stringify(st) + "|" + JSON.stringify(CATS); }
@@ -1116,7 +1133,7 @@ document.getElementById("copiar").addEventListener("click", function(){
     var orc = orcCat(cat.id), gasto = g[cat.id] || 0, dd = diasRestantesDia(diaCat(cat.id));
     if(dd < dmin) dmin = dd;
     tO += orc; tG += gasto;
-    linhas.push(cat.emoji + " " + cat.nome + ": R$ " + brl(gasto) + " de R$ " + brl(orc) + "   (restam R$ " + brl(orc-gasto) + ")");
+    linhas.push((catIcoTxt(cat) ? catIcoTxt(cat)+" " : "") + cat.nome + ": R$ " + brl(gasto) + " de R$ " + brl(orc) + "   (restam R$ " + brl(orc-gasto) + ")");
   });
   if(dmin === Infinity) dmin = 30;
   var t = "GASTOS — orçamento do mês\n\n" + linhas.join("\n") +
@@ -1249,7 +1266,7 @@ function montarRings(){
       +   '<circle id="arc_' + cat.id + '" cx="48" cy="48" r="34" fill="none" stroke="' + cat.cor + '" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="213.628" transform="rotate(-90 48 48)"/>'
       +   '<text class="pcT" id="pc_' + cat.id + '" x="48" y="54" text-anchor="middle">0%</text>'
       + '</svg>'
-      + '<div class="rname" style="color:' + cat.cor + '">' + cat.emoji + ' ' + cat.nome + '</div>'
+      + '<div class="rname" style="color:' + cat.cor + '">' + catIcoHTML(cat) + ' ' + cat.nome + '</div>'
       + '<div class="rg" id="g_' + cat.id + '">R$ 0,00 <small>/ 0,00</small></div>'
       + '<div class="rr" id="r_' + cat.id + '">resta R$ 0,00</div>'
       + '<div class="rd" id="d_' + cat.id + '">R$ 0,00/dia</div>'
@@ -1263,7 +1280,7 @@ function montarOrcrow(){
   var h = "";
   CATS.forEach(function(cat){
     h += '<div class="oc" data-id="' + cat.id + '">'
-      + '<label>' + cat.emoji + ' ' + cat.nome + ' <button type="button" class="ocedit" data-id="' + cat.id + '">✎ editar</button></label>'
+      + '<label>' + catIcoHTML(cat) + ' ' + cat.nome + ' <button type="button" class="ocedit" data-id="' + cat.id + '">✎ editar</button></label>'
       + '<span class="cif">R$</span><input class="orcv" type="text" inputmode="decimal" id="orc_' + cat.id + '" placeholder="0,00">'
       + '<div class="virad"><span>vira dia</span><input class="diad" type="text" inputmode="numeric" id="dia_' + cat.id + '"></div>'
       + '</div>';
@@ -1286,7 +1303,7 @@ function montarDropdown(){
   var pop = document.getElementById("catPop"); if(!pop) return;
   var h = "";
   CATS.forEach(function(cat){
-    h += '<div class="catopt" data-c="' + cat.id + '" style="--oc:' + cat.cor + '"><span class="od"></span>' + cat.emoji + ' ' + cat.nome + '</div>';
+    h += '<div class="catopt" data-c="' + cat.id + '" style="--oc:' + cat.cor + '"><span class="od"></span>' + catIcoHTML(cat) + ' ' + cat.nome + '</div>';
   });
   pop.innerHTML = h;
   Array.prototype.forEach.call(pop.querySelectorAll(".catopt"), function(o){
@@ -1300,7 +1317,7 @@ function setCatSel(id){
   var inp = document.getElementById("c"); if(inp) inp.value = id || "";
   var lbl = document.getElementById("catLbl"), dot = document.getElementById("catDot");
   var cat = catById(id);
-  if(lbl) lbl.textContent = cat ? (cat.emoji + " " + cat.nome) : "Categoria";
+  if(lbl) lbl.innerHTML = cat ? (catIcoHTML(cat) + " " + cat.nome) : "Categoria";
   if(dot) dot.style.background = cat ? cat.cor : "#6b7378";
   var pop = document.getElementById("catPop");
   if(pop) Array.prototype.forEach.call(pop.querySelectorAll(".catopt"), function(o){ o.className = "catopt" + (o.getAttribute("data-c") === id ? " sel" : ""); });
@@ -1318,11 +1335,27 @@ function montarCategorias(){ montarRings(); montarOrcrow(); montarDropdown(); }
 
 /* ---- editor de categoria (modal) ---- */
 var editId = null;
+/* ---- ícone da categoria: emoji OU token "#nome" (SVG) ---- */
+var PICK_ICONS = ["cart","cutlery","coffee","cup","pizza","bag","shirt","home","bed","tv","car","bus","plane","fuel","gift","heart","pill","dumbbell","baby","paw","book","graduation","gamepad","music","film","camera","phone","wifi","globe","ticket","scissors","wrench","bolt","droplet","leaf","coins","money","wallet","creditcard","bank","receipt","tag","star","clock","sun","folder","list","trending","barchart","gear"];
+function svgOr(n){ return (window.svgIc ? window.svgIc(n) : ""); }
+function catIcoHTML(cat){ var e = cat ? (cat.emoji||"") : ""; if(String(e).charAt(0)==="#") return '<span class="csvg" style="color:'+(cat.cor||"#fff")+'">'+svgOr(e.slice(1))+'</span>'; return e; }
+function catIcoTxt(cat){ var e = cat ? (cat.emoji||"") : ""; return String(e).charAt(0)==="#" ? "" : e; }
+function montarIconPicker(){
+  var box=document.getElementById("cmIcons"); if(!box) return;
+  box.innerHTML = PICK_ICONS.map(function(n){ return '<button type="button" data-ic-pick="'+n+'">'+svgOr(n)+'</button>'; }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll("[data-ic-pick]"), function(b){ b.addEventListener("click", function(){ setCmIcon("#"+this.getAttribute("data-ic-pick")); }); });
+}
+function setCmIcon(val){
+  var inp=document.getElementById("cmEmoji"); if(inp) inp.value=val;
+  var prev=document.getElementById("cmEmojiPrev");
+  if(prev){ if(String(val).charAt(0)==="#"){ prev.innerHTML=svgOr(String(val).slice(1)); prev.style.color=corEscolhida(); } else { prev.textContent=val; prev.style.color="#fff"; } }
+  var box=document.getElementById("cmIcons");
+  if(box) Array.prototype.forEach.call(box.querySelectorAll("[data-ic-pick]"), function(b){ b.className = ("#"+b.getAttribute("data-ic-pick")===val)?"sel":""; });
+}
 function abrirEditor(id){
   editId = id || null;
   var cat = id ? catById(id) : null;
   document.getElementById("cmTitle").textContent = cat ? "Editar categoria" : "Nova categoria";
-  document.getElementById("cmEmoji").value = cat ? cat.emoji : "🏷️";
   document.getElementById("cmNome").value  = cat ? cat.nome : "";
   document.getElementById("cmTeto").value  = cat ? ((st.orc && st.orc[id]) || "") : "";
   document.getElementById("cmDia").value   = cat ? diaCat(id) : 30;
@@ -1331,8 +1364,10 @@ function abrirEditor(id){
   PALCAT.forEach(function(cor){ ch += '<div class="sw' + (cor === corSel ? " sel" : "") + '" data-cor="' + cor + '" style="background:' + cor + ';color:' + cor + '"></div>'; });
   cores.innerHTML = ch;
   Array.prototype.forEach.call(cores.querySelectorAll(".sw"), function(s){
-    s.addEventListener("click", function(){ Array.prototype.forEach.call(cores.querySelectorAll(".sw"), function(x){ x.className = "sw"; }); this.className = "sw sel"; });
+    s.addEventListener("click", function(){ Array.prototype.forEach.call(cores.querySelectorAll(".sw"), function(x){ x.className = "sw"; }); this.className = "sw sel"; setCmIcon(document.getElementById("cmEmoji").value); });
   });
+  montarIconPicker();
+  setCmIcon(cat ? (cat.emoji || "#cart") : "#cart");
   var del = document.getElementById("cmApagar");
   del.style.display = cat ? "" : "none";
   del.disabled = (CATS.length <= 1);
