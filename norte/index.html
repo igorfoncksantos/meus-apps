@@ -153,6 +153,9 @@
   .menu button{ display:flex; width:100%; align-items:center; gap:10px; background:none; border:none; color:var(--txt);
                 font-size:13.5px; padding:11px 12px; border-radius:8px; cursor:pointer; text-align:left; }
   .menu button:active{ background:#20242a; }
+  .menu .mdel{ color:#fff; background:linear-gradient(135deg,#ef5064,#cc2f3d); font-weight:700; margin-top:6px;
+               box-shadow:0 4px 12px rgba(239,68,68,.28); }
+  .menu .mdel:active{ background:linear-gradient(135deg,#e0455a,#bb2b39); }
   .hidden{ display:none !important; }
 
   header{ border-bottom:3px solid var(--accent); padding-bottom:14px; margin-bottom:16px; text-align:center; }
@@ -441,7 +444,7 @@
       <button onclick="backup()">💾 Backup (.json)</button>
       <button onclick="document.getElementById('restoreFile').click()">📥 Restaurar backup</button>
       <input type="file" id="restoreFile" accept="application/json" class="hidden" onchange="restore(event)">
-      <button onclick="wipeAll()" style="color:#f87171">🧹 Zerar tudo</button>
+      <button class="mdel" onclick="wipeAll()">🧹 Zerar tudo</button>
     </div>
   </div>
 </div>
@@ -1326,7 +1329,12 @@ async function changePwGo(){ const a=val('cpPw'),b=val('cpPw2'); if(a.length<6){
   if(!sbReady()){ authErr('Precisa estar online e logado.'); return; }
   try{ const r=await sb.auth.updateUser({password:a}); if(r.error){ authErr(r.error.message); return; }
     localStorage.setItem('norte-pwhash',await sha(a)); closeAuth(); toast('Senha trocada ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
-async function removeAccountLocal(){ if(!await uiConfirm('O Norte volta ao modo local neste aparelho (sem senha e sem sincronizar). Seus dados continuam salvos aqui.',{title:'Tirar a senha?',ok:'Tirar senha',danger:true}))return;
+async function removeAccountLocal(){
+  const pw=await uiPrompt('Digite sua senha pra remover a proteção deste aparelho. O Norte volta ao modo local (sem sincronizar); seus dados continuam salvos aqui.',{type:'password',title:'Tirar a senha?',ok:'Tirar senha'});
+  if(pw===null||pw==='')return;
+  let ok=false; if(sb){ try{ const r=await sb.auth.signInWithPassword({email:localStorage.getItem('norte-login'),password:pw}); if(!r.error)ok=true; }catch(e){} }
+  if(!ok && await sha(pw)===localStorage.getItem('norte-pwhash'))ok=true;
+  if(!ok){ uiAlert('Senha incorreta.'); return; }
   try{ if(sb) await sb.auth.signOut(); }catch(e){}
   if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan=null; }
   session=null; localStorage.removeItem('norte-login'); localStorage.removeItem('norte-pwhash'); localStorage.removeItem('norte-syncedAt'); localStorage.setItem('norte-nag','1');
