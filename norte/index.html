@@ -382,6 +382,25 @@
   [data-theme="light"] .auth-card h2,[data-theme="miri"] .auth-card h2{ color:var(--txt2); }
   [data-theme="light"] .auth-card p,[data-theme="miri"] .auth-card p{ color:var(--mut); }
   [data-theme="light"] .auth-card .field input,[data-theme="miri"] .auth-card .field input{ background:#f5f6f8; }
+  /* botões modernos das telas de conta */
+  .auth-card .actions{ gap:11px; margin-top:15px; }
+  .auth-card .actions button,.auth-btns button{ padding:15px 16px; border-radius:14px; font-size:15px; font-weight:800; letter-spacing:.2px;
+    transition:transform .13s cubic-bezier(.34,1.4,.5,1), box-shadow .2s ease, filter .2s ease; }
+  .auth-card .actions button:active,.auth-btns button:active{ transform:scale(.955); }
+  .auth-card .btn-primary,.auth-btns .btn-primary{ background:linear-gradient(135deg,#33e0cf,#1fb4a6); color:#042a26; box-shadow:0 9px 24px rgba(47,217,201,.36); }
+  .auth-card .btn-primary:active,.auth-btns .btn-primary:active{ filter:brightness(1.06); box-shadow:0 5px 14px rgba(47,217,201,.3); }
+  .auth-card .btn-ghost,.auth-btns .btn-ghost{ background:transparent; color:var(--txt2); border:1.5px solid #333b43; box-shadow:none; }
+  .auth-card .btn-ghost:active,.auth-btns .btn-ghost:active{ background:rgba(255,255,255,.04); }
+  .auth-card .field input{ border-radius:13px; padding:14px 14px; transition:border-color .18s ease, box-shadow .18s ease; }
+  .auth-card .field input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(47,217,201,.16); }
+  .auth-card .act-list button{ border-radius:14px; padding:15px 15px; font-weight:700; transition:transform .13s ease, background .18s ease; }
+  .auth-card .act-list button:active{ transform:scale(.97); }
+  .auth-link{ transition:color .18s ease; }
+  .auth-link:active{ color:var(--accent); }
+  [data-theme="light"] .auth-card .btn-primary,[data-theme="miri"] .auth-card .btn-primary,
+  [data-theme="light"] .auth-btns .btn-primary,[data-theme="miri"] .auth-btns .btn-primary{ color:#042a26; }
+  [data-theme="light"] .auth-card .btn-ghost,[data-theme="miri"] .auth-card .btn-ghost,
+  [data-theme="light"] .auth-btns .btn-ghost,[data-theme="miri"] .auth-btns .btn-ghost{ border-color:var(--line); color:var(--txt2); }
 
   @media print{ .toolbar,.fab,.cadd,.gbtn,.menu,.calpop,#flash,#__welcome,#authOv{ display:none!important; } body{ padding:15mm 14mm; } }
 </style>
@@ -1142,6 +1161,7 @@ const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const APP_ID='norte';
 let sb=null, session=null, _pushT=null, _myStamp=null, _rtChan=null, _pending=null;
 function sbReady(){ return !!(sb && session); }
+function markSession(){ try{ sessionStorage.setItem('norte-sess','1'); }catch(e){} }
 async function initSupa(){ try{ if(window.supabase && SUPA_URL.indexOf('http')===0){
     sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
     const g=await sb.auth.getSession(); session=(g&&g.data&&g.data.session)||null; } }catch(e){ sb=null; } }
@@ -1225,7 +1245,7 @@ async function doSignup(email,pw){ if(!sb){ authErr('Sem conexão. Tente de novo
     if(!session){ const s=await sb.auth.signInWithPassword({email:email,password:pw}); session=(s.data&&s.data.session)||null; }
     if(!session){ authErr('Conta criada — confirme o e-mail e entre.'); return; }
     localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
-    closeAuth(); subscribeRT(); await pullRemote(); toast('Conta criada ✓');
+    markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Conta criada ✓');
   }catch(e){ authErr('Erro: '+(e.message||e)); } }
 function showLogin(){ closeMenu(); authScreen('<div class="auth-ic">🔓</div><h2>Entrar na sua conta</h2>'+
   '<div class="field"><label>E-mail</label><input id="lgEmail" type="email" inputmode="email" value="'+(localStorage.getItem('norte-login')||'')+'"></div>'+
@@ -1238,7 +1258,7 @@ async function doLogin(email,pw){ if(!sb){ authErr('Sem conexão.'); return; }
   try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
     if(r.error){ authErr('E-mail ou senha incorretos.'); return; }
     session=r.data.session; localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
-    closeAuth(); subscribeRT(); await pullRemote(); toast('Entrou ✓');
+    markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Entrou ✓');
   }catch(e){ authErr('Erro: '+(e.message||e)); } }
 function showLock(){ authScreen('<div class="auth-ic">🔒</div><h2>Norte</h2><p>Digite sua senha pra entrar.</p>'+
   '<div class="field"><label>E-mail</label><input id="lkEmail" type="email" value="'+(localStorage.getItem('norte-login')||'')+'" readonly></div>'+
@@ -1250,10 +1270,10 @@ function showLock(){ authScreen('<div class="auth-ic">🔒</div><h2>Norte</h2><p
 async function unlockGo(){ const pw=val('lkPw'), email=localStorage.getItem('norte-login');
   if(!pw){ authErr('Digite a senha.'); return; }
   if(sb){ try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
-      if(!r.error){ session=r.data.session; localStorage.setItem('norte-pwhash',await sha(pw)); closeAuth(); subscribeRT(); pullRemote(); return; }
-      if(/invalid|credential/i.test(r.error.message)){ if(await sha(pw)===localStorage.getItem('norte-pwhash')){ closeAuth(); return; } authErr('Senha incorreta.'); return; }
+      if(!r.error){ session=r.data.session; localStorage.setItem('norte-pwhash',await sha(pw)); markSession(); closeAuth(); subscribeRT(); pullRemote(); return; }
+      if(/invalid|credential/i.test(r.error.message)){ if(await sha(pw)===localStorage.getItem('norte-pwhash')){ markSession(); closeAuth(); return; } authErr('Senha incorreta.'); return; }
     }catch(e){} }
-  if(await sha(pw)===localStorage.getItem('norte-pwhash')){ closeAuth(); toast('Modo offline'); }
+  if(await sha(pw)===localStorage.getItem('norte-pwhash')){ markSession(); closeAuth(); toast('Modo offline'); }
   else authErr('Senha incorreta.'); }
 async function forgotPw(){ const email=localStorage.getItem('norte-login')||val('lgEmail')||prompt('Seu e-mail da conta:');
   if(!email)return; if(!sb){ alert('Precisa de internet pra recuperar.'); return; }
@@ -1269,7 +1289,7 @@ async function recoveryGo(){ const a=val('rcPw'),b=val('rcPw2'); if(a.length<6){
     const u=await sb.auth.getUser(); const email=u&&u.data&&u.data.user&&u.data.user.email;
     if(email)localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(a));
     const g=await sb.auth.getSession(); session=g.data.session; history.replaceState(null,'',location.pathname);
-    closeAuth(); subscribeRT(); pullRemote(); toast('Senha redefinida ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
+    markSession(); closeAuth(); subscribeRT(); pullRemote(); toast('Senha redefinida ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
 function openSecurity(){ closeMenu();
   if(!localStorage.getItem('norte-login')){ showSignup(); return; }
   authScreen('<div class="auth-ic">🔒</div><h2>Segurança do app</h2>'+
@@ -1305,9 +1325,12 @@ async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark');
   const recovering = h.indexOf('type=recovery')>=0;
   if(sb) sb.auth.onAuthStateChange(function(ev,ses){ if(ev==='PASSWORD_RECOVERY'){ session=ses; showRecovery(); } });
   if(recovering) return;
-  if(localStorage.getItem('norte-login')){ showLock(); if(session){ subscribeRT(); pullRemote(); } }
+  if(localStorage.getItem('norte-login')){
+    if(sessionStorage.getItem('norte-sess')){ if(session){ subscribeRT(); pullRemote(); } }   /* refresh / pull-to-refresh na mesma sessão -> NÃO pede senha */
+    else { showLock(); if(session){ subscribeRT(); pullRemote(); } }                          /* app foi fechado e reaberto -> pede senha */
+  }
   else if(!localStorage.getItem('welcome-norte')){ document.getElementById('__welcome').classList.remove('hidden'); }
-  else if(!localStorage.getItem('norte-nag')){ setTimeout(showUpgrade,500); }
+  else if(!localStorage.getItem('norte-nag') && !sessionStorage.getItem('norte-upseen')){ sessionStorage.setItem('norte-upseen','1'); setTimeout(showUpgrade,500); }
 }
 boot();
 (function(){
