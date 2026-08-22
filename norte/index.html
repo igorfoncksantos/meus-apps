@@ -486,6 +486,13 @@
   .menu .mdel .mi svg{ stroke:#ff6b7a; }
   .obs-ic{ display:inline-flex; align-items:center; margin-right:3px; }
   .obs-ic svg{ width:16px; height:16px; }
+  .auth-ic svg{ width:40px; height:40px; stroke:var(--accent); display:inline-block; }
+  .auth-ic.danger svg{ stroke:#ff6b7a; }
+  .act-list .ic svg{ width:20px; height:20px; vertical-align:middle; }
+  .wc-ico svg{ width:52px; height:52px; stroke:var(--accent); }
+  .prog-top h2 .prog-hic{ display:inline-flex; vertical-align:-4px; margin-right:7px; }
+  .prog-top h2 .prog-hic svg{ width:22px; height:22px; stroke:var(--accent); }
+  .prog-empty svg{ width:40px; height:40px; stroke:var(--mut); display:block; margin:0 auto 10px; }
 
   @media print{ .toolbar,.fab,.cadd,.gbtn,.menu,.calpop,#flash,#__welcome,#authOv,nav,.progview{ display:none!important; } body{ padding:15mm 14mm; } }
 </style>
@@ -496,7 +503,7 @@
 
 <div id="__welcome" class="hidden">
   <div class="wc-card">
-    <div class="wc-ico">🧭</div>
+    <div class="wc-ico" data-ic="compass"></div>
     <h2>Bem-vindo ao Norte</h2>
     <p>Seu norte do dia. Organize suas tarefas por categorias e prioridades, acompanhe seu progresso e compartilhe quando quiser.</p>
     <button class="wcbtn" onclick="wcClose()">Começar</button>
@@ -852,14 +859,14 @@ function cota(id,d){ const t=findTask(id); t.cota[0]=Math.max(0,Math.min(t.cota[
 /* ---- actions sheet ---- */
 function openActions(id){ const t=findTask(id);
   const acts=[
-    t.status==='done'?['↩','Reabrir',`setStatus('${id}','pend')`]:['✓','Marcar feito',`setStatus('${id}','done')`],
-    t.prio==='star'?['★','Tirar prioridade',`setPrio('${id}',null)`]:['★','Prioridade',`setPrio('${id}','star')`],
-    t.prio==='max'?['★★','Tirar máxima',`setPrio('${id}',null)`]:['★★','Prioridade máxima',`setPrio('${id}','max')`],
-    ['📅','Agendar (data)',`schedTask('${id}')`],
-    t.status==='adiado'?['▶','Retomar',`setStatus('${id}','pend')`]:['⏸','Adiar',`setStatus('${id}','adiado')`],
-    t.status==='canc'?['↺','Reativar',`setStatus('${id}','pend')`]:['✕','Cancelar',`setStatus('${id}','canc')`],
-    ['✎','Editar',`editTask('${id}')`],
-    ['🗑','Apagar',`delTask('${id}')`,'del'],
+    t.status==='done'?[svgIc('undo'),'Reabrir',`setStatus('${id}','pend')`]:[svgIc('check'),'Marcar feito',`setStatus('${id}','done')`],
+    t.prio==='star'?[svgIc('star'),'Tirar prioridade',`setPrio('${id}',null)`]:[svgIc('star'),'Prioridade',`setPrio('${id}','star')`],
+    t.prio==='max'?[svgIc('star'),'Tirar máxima',`setPrio('${id}',null)`]:[svgIc('star'),'Prioridade máxima',`setPrio('${id}','max')`],
+    [svgIc('cal'),'Agendar (data)',`schedTask('${id}')`],
+    t.status==='adiado'?[svgIc('play'),'Retomar',`setStatus('${id}','pend')`]:[svgIc('pause'),'Adiar',`setStatus('${id}','adiado')`],
+    t.status==='canc'?[svgIc('rotate'),'Reativar',`setStatus('${id}','pend')`]:[svgIc('x'),'Cancelar',`setStatus('${id}','canc')`],
+    [svgIc('pen'),'Editar',`editTask('${id}')`],
+    [svgIc('trash'),'Apagar',`delTask('${id}')`,'del'],
   ];
   sheet(`<h3>${escapeHtml(t.title)}</h3><div class="act-list">`+
     acts.map(a=>`<button class="${a[3]||''}" onclick="${a[2]};closeSheet()"><span class="ic">${a[0]}</span>${a[1]}</button>`).join('')+
@@ -1269,7 +1276,21 @@ const ICONS={
   day:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="8.5 15 11 17.5 15.5 13"/>',
   trending:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
   plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-  pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'
+  pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  pause:'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>',
+  play:'<polygon points="7 5 19 12 7 19 7 5" fill="currentColor" stroke="none"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  rotate:'<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/>',
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/>',
+  help:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  info:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+  key:'<circle cx="7.5" cy="15.5" r="4.5"/><line x1="10.7" y1="12.3" x2="20" y2="3"/><line x1="17" y1="6" x2="20" y2="9"/><line x1="14" y1="9" x2="16.5" y2="11.5"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  ban:'<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>',
+  compass:'<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" stroke="none"/>'
 };
 function svgIc(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[n]||'')+'</svg>'; }
 function paintIcons(){ document.querySelectorAll('[data-ic]').forEach(function(e){ e.innerHTML=svgIc(e.getAttribute('data-ic')); }); }
@@ -1330,9 +1351,9 @@ function renderProgress(){
   const full=vals.filter(v=>v>=100).length;
   const unit=_progMode==='dia'?'dias':_progMode==='sem'?'semanas':'meses';
   const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
-  const chart = pts.length ? chartSVG(pts) : '<div class="prog-empty">📈<br>Ainda não há dados.<br>Conclua tarefas e volte aqui pra ver sua evolução.</div>';
+  const chart = pts.length ? chartSVG(pts) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.<br>Conclua tarefas e volte aqui pra ver sua evolução.</div>';
   document.getElementById('progView').innerHTML =
-    '<div class="prog-top"><h2>📊 Progresso</h2></div>'+
+    '<div class="prog-top"><h2><span class="prog-hic">'+svgIc('trending')+'</span>Progresso</h2></div>'+
     '<div class="prog-seg">'+modes.map(m=>'<button class="'+(_progMode===m[0]?'on':'')+'" onclick="setProgMode(\''+m[0]+'\')">'+m[1]+'</button>').join('')+'</div>'+
     '<div class="prog-kpis"><div class="pk"><div class="pkv">'+avg+'%</div><div class="pkl">média</div></div>'+
       '<div class="pk"><div class="pkv">'+best+'%</div><div class="pkl">melhor</div></div>'+
@@ -1401,22 +1422,22 @@ function uiModal(html){ let ov=document.getElementById('uiOv'); if(!ov){ ov=docu
   ov.innerHTML='<div class="auth-card">'+html+'</div>'; ov.classList.remove('hidden'); return ov; }
 function uiCloseM(){ const ov=document.getElementById('uiOv'); if(ov)ov.classList.add('hidden'); }
 function uiConfirm(msg,o){ o=o||{}; return new Promise(function(res){ window.__uiRes=function(v){ uiCloseM(); res(v); };
-  uiModal('<div class="auth-ic">'+(o.icon||(o.danger?'🗑️':'❓'))+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
+  uiModal('<div class="auth-ic'+(o.danger?' danger':'')+'">'+(o.danger?svgIc('trash'):svgIc('help'))+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
     '<div class="actions"><button class="btn-ghost" onclick="__uiRes(false)">'+(o.cancel||'Cancelar')+'</button>'+
     '<button class="'+(o.danger?'btn-danger':'btn-primary')+'" onclick="__uiRes(true)">'+(o.ok||'Confirmar')+'</button></div>'); }); }
 function uiAlert(msg,o){ o=o||{}; return new Promise(function(res){ window.__uiRes=function(){ uiCloseM(); res(); };
-  uiModal('<div class="auth-ic">'+(o.icon||'ℹ️')+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
+  uiModal('<div class="auth-ic">'+svgIc('info')+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
     '<div class="actions"><button class="btn-primary" onclick="__uiRes()">'+(o.ok||'Ok')+'</button></div>'); }); }
 function uiPromptOk(){ var i=document.getElementById('uiPInp'); if(window.__uiRes)window.__uiRes(i?i.value.trim():null); }
 function uiPrompt(msg,o){ o=o||{}; return new Promise(function(res){ window.__uiRes=function(v){ uiCloseM(); res(v); };
-  uiModal('<div class="auth-ic">'+(o.icon||'✏️')+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
+  uiModal('<div class="auth-ic">'+svgIc('pen')+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
     '<div class="field"><input id="uiPInp" type="'+(o.type||'text')+'" placeholder="'+(o.placeholder||'')+'" value="'+(o.value||'')+'"></div>'+
     '<div class="actions"><button class="btn-ghost" onclick="__uiRes(null)">Cancelar</button>'+
     '<button class="btn-primary" onclick="uiPromptOk()">'+(o.ok||'Ok')+'</button></div>');
   setTimeout(function(){ var i=document.getElementById('uiPInp'); if(i)i.focus(); },60); }); }
 
 /* ----- telas de conta ----- */
-function showUpgrade(){ authScreen('<div class="auth-ic">🔄</div><h2>Sincronize seus aparelhos</h2>'+
+function showUpgrade(){ authScreen('<div class="auth-ic">'+svgIc('sync')+'</div><h2>Sincronize seus aparelhos</h2>'+
   '<p>Entre pra ver as mesmas tarefas no computador e no celular — mudou num, muda no outro. <b>Sem senha.</b></p>'+
   '<div class="auth-btns"><button class="btn-primary" onclick="showConnect()">Conectar</button></div>'+
   '<button class="auth-link" onclick="dismissUpgrade()">Agora não</button>'); }
@@ -1429,7 +1450,7 @@ function onSignedIn(){ if(_synced)return; _synced=true;
   localStorage.removeItem('norte-nag');
   try{ history.replaceState(null,'',location.pathname); }catch(e){}
   closeAuth(); subscribeRT(); pullRemote(); toast('Conectado ✓ sincronizando'); }
-function showConnect(){ closeMenu(); authScreen('<div class="auth-ic">🔄</div><h2>Sincronizar aparelhos</h2>'+
+function showConnect(){ closeMenu(); authScreen('<div class="auth-ic">'+svgIc('sync')+'</div><h2>Sincronizar aparelhos</h2>'+
   '<p>Entre pra ver as mesmas tarefas no computador e no celular. <b>Sem senha</b> — é só pra saber que é você.</p>'+
   '<button class="gbtn-google" onclick="googleLogin()"><span class="gg">G</span>Entrar com Google</button>'+
   '<div class="auth-or"><span>ou</span></div>'+
@@ -1442,7 +1463,7 @@ async function magicLink(){ const e=val('mlEmail');
   try{ localStorage.setItem('norte-login',e);
     const r=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href.split('#')[0]}});
     if(r.error){ authErr(r.error.message); return; }
-    authScreen('<div class="auth-ic">📧</div><h2>Confira seu e-mail</h2>'+
+    authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Confira seu e-mail</h2>'+
       '<p>Enviei um link de acesso pra <b style="color:var(--txt2)">'+escapeHtml(e)+'</b>. Abra o e-mail <b>neste aparelho</b> e toque no link pra entrar.</p>'+
       '<p class="auth-note">Não chegou? Veja o spam, ou tente de novo em 1 min.</p>'+
       '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Ok</button></div>');
@@ -1469,7 +1490,7 @@ function pinKeypadHtml(){ let k=''; ['1','2','3','4','5','6','7','8','9','x','0'
     else if(d==='back') k+='<button class="pkey pkb" onclick="pinBack()">⌫</button>';
     else k+='<button class="pkey" onclick="pinTap(\''+d+'\')">'+d+'</button>'; }); return k; }
 function showPin(m){ _pinMode=m; _pin=''; const t=pinTitles(m);
-  authScreen('<div class="auth-ic">🔒</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+
+  authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+
     '<div class="pdots" id="pdots">'+pinDotsHtml()+'</div>'+
     '<div class="auth-err" id="authErr" style="min-height:15px"></div>'+
     '<div class="pkeypad">'+pinKeypadHtml()+'</div>'+
@@ -1488,12 +1509,12 @@ async function pinDone(){ const code=_pin; const h=await sha(code);
   else if(_pinMode==='offcur'){ if(h===localStorage.getItem('norte-pin')){ localStorage.removeItem('norte-pin'); closeAuth(); toast('PIN desativado'); } else pinErr('PIN incorreto'); } }
 function openPinMenu(){ closeMenu();
   if(!localStorage.getItem('norte-pin')){ showPin('set1'); return; }
-  authScreen('<div class="auth-ic">🔒</div><h2>Bloqueio por PIN</h2><p>O PIN está <b style="color:var(--green)">ativado</b> — pedido só ao abrir o app neste aparelho.</p>'+
-    '<div class="act-list"><button onclick="showPin(\'chgcur\')"><span class="ic">🔑</span>Trocar PIN</button>'+
-    '<button class="del" onclick="showPin(\'offcur\')"><span class="ic">🚫</span>Desativar PIN</button></div>'+
+  authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>Bloqueio por PIN</h2><p>O PIN está <b style="color:var(--green)">ativado</b> — pedido só ao abrir o app neste aparelho.</p>'+
+    '<div class="act-list"><button onclick="showPin(\'chgcur\')"><span class="ic">'+svgIc('key')+'</span>Trocar PIN</button>'+
+    '<button class="del" onclick="showPin(\'offcur\')"><span class="ic">'+svgIc('ban')+'</span>Desativar PIN</button></div>'+
     '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); }
 function maybeLockPin(){ if(localStorage.getItem('norte-pin') && !sessionStorage.getItem('norte-sess')) showPin('unlock'); }
-function showSignup(){ closeMenu(); authScreen('<div class="auth-ic">🔒</div><h2>Criar sua conta</h2>'+
+function showSignup(){ closeMenu(); authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>Criar sua conta</h2>'+
   '<div class="field"><label>E-mail (será seu login)</label><input id="suEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></div>'+
   '<div class="field"><label>Senha</label><input id="suPw" type="password" placeholder="mín. 6 caracteres"></div>'+
   '<div class="field"><label>Confirmar senha</label><input id="suPw2" type="password" placeholder="repita a senha"></div>'+
@@ -1535,7 +1556,7 @@ async function doLogin(email,pw){ if(!sb){ authErr('Sem conexão.'); return; }
     session=r.data.session; localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
     markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Entrou ✓');
   }catch(e){ authErr('Erro: '+(e.message||e)); } }
-function showLock(){ authScreen('<div class="auth-ic">🔒</div><h2>Norte</h2><p>Digite sua senha pra entrar.</p>'+
+function showLock(){ authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>Norte</h2><p>Digite sua senha pra entrar.</p>'+
   '<div class="field"><label>E-mail</label><input id="lkEmail" type="email" value="'+(localStorage.getItem('norte-login')||'')+'" readonly></div>'+
   '<div class="field"><label>Senha</label><input id="lkPw" type="password"></div>'+
   '<div class="auth-err" id="authErr"></div>'+
@@ -1566,9 +1587,9 @@ async function recoveryGo(){ const a=val('rcPw'),b=val('rcPw2'); if(a.length<6){
     markSession(); closeAuth(); subscribeRT(); pullRemote(); toast('Senha redefinida ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
 function openSecurity(){ closeMenu();
   if(!sbReady()){ showConnect(); return; }
-  authScreen('<div class="auth-ic">🔄</div><h2>Sincronização</h2>'+
+  authScreen('<div class="auth-ic">'+svgIc('sync')+'</div><h2>Sincronização</h2>'+
     '<p>Conectado como <b style="color:var(--txt2)">'+escapeHtml(localStorage.getItem('norte-login')||(session&&session.user&&session.user.email)||'')+'</b><br>Suas tarefas aparecem nos seus aparelhos, ao vivo.</p>'+
-    '<div class="act-list"><button class="del" onclick="disconnectAccount()"><span class="ic">🚪</span>Sair da conta (parar de sincronizar)</button></div>'+
+    '<div class="act-list"><button class="del" onclick="disconnectAccount()"><span class="ic">'+svgIc('logout')+'</span>Sair da conta (parar de sincronizar)</button></div>'+
     '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); }
 function showChangePw(){ authScreen('<div class="auth-ic">🔑</div><h2>Trocar senha</h2>'+
   '<div class="field"><label>Nova senha</label><input id="cpPw" type="password" placeholder="mín. 6"></div>'+
