@@ -1,4 +1,4 @@
-const CACHE = 'norte-v11';
+const CACHE = 'norte-v12';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil((async () => {
   const ks = await caches.keys();
