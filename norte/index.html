@@ -347,6 +347,11 @@
   .pkl{ font-size:10px; color:var(--mut); text-transform:uppercase; letter-spacing:.4px; margin-top:3px; }
   .prog-chart{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px 8px 10px; }
   .prog-empty{ text-align:center; color:var(--mut); padding:46px 20px; font-size:14px; line-height:1.7; }
+  .prog-legend{ display:flex; flex-wrap:wrap; gap:9px 16px; margin:2px 2px 13px; }
+  .prog-legend .pl{ display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--mut2); font-weight:600; }
+  .prog-legend .pl i{ width:12px; height:12px; border-radius:4px; display:inline-block; box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 3px rgba(0,0,0,.4); }
+  .prog-legend .pl b{ color:var(--txt2); font-weight:800; }
+  .prog-metric button.count.on{ background:#F0B45E; border-color:#F0B45E; color:#1a1204; }
 
   /* modal / sheet */
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
@@ -798,7 +803,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v22 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v23 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1359,58 +1364,66 @@ function dayPct(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null;
   return n? Math.round(sum/n*100) : null; }
 function mondayOf(iso){ const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d); const wd=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-wd); return dt; }
 function pad2(n){ return String(n).padStart(2,'0'); }
-function progPoints(mode,metric){
-  const days=Object.keys(DB.days).filter(iso=>dayValM(iso,metric)!==null).sort();
+const PCOL={pct:'#2FD9C9', count:'#F0B45E'};
+function progUnified(mode){
+  const days=Object.keys(DB.days).filter(iso=>dayPct(iso)!==null||dayCount(iso)!==null).sort();
   if(!days.length) return [];
-  if(mode==='dia') return days.slice(-14).map(iso=>({label:iso.slice(8,10)+'/'+iso.slice(5,7), val:dayValM(iso,metric)}));
+  if(mode==='dia') return days.slice(-14).map(iso=>({label:iso.slice(8,10)+'/'+iso.slice(5,7), pct:dayPct(iso), count:dayCount(iso)}));
   const groups={};
-  days.forEach(iso=>{ const p=dayValM(iso,metric); let key,label;
+  days.forEach(iso=>{ let key,label;
     if(mode==='sem'){ const dt=mondayOf(iso); key=dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate()); label=pad2(dt.getDate())+'/'+pad2(dt.getMonth()+1); }
     else { key=iso.slice(0,7); label=MES[+iso.slice(5,7)-1].slice(0,3); }
-    if(!groups[key])groups[key]={sum:0,n:0,label:label,key:key}; groups[key].sum+=p; groups[key].n++; });
-  const arr=Object.keys(groups).sort().map(k=>groups[k]);
-  return arr.slice(mode==='sem'?-10:-8).map(g=>({label:g.label, val:Math.round(g.sum/g.n)}));
+    if(!groups[key])groups[key]={pS:0,pN:0,cS:0,cN:0,label:label,key:key};
+    const gp=groups[key], p=dayPct(iso), c=dayCount(iso);
+    if(p!==null){ gp.pS+=p; gp.pN++; } if(c!==null){ gp.cS+=c; gp.cN++; } });
+  return Object.keys(groups).sort().map(k=>groups[k]).slice(mode==='sem'?-10:-8)
+    .map(g=>({label:g.label, pct:g.pN?Math.round(g.pS/g.pN):null, count:g.cN?Math.round(g.cS/g.cN):null}));
 }
-function chartSVG(pts,maxY){ const W=340,H=196,padL=26,padR=12,padT=16,padB=24, iw=W-padL-padR, ih=H-padT-padB, n=pts.length;
-  const X=i=> n<=1? padL+iw/2 : padL+iw*i/(n-1); const Y=v=> padT+ih*(1-v/maxY);
+function chartSVG2(pts,showPct,showCount){
+  const dual=showPct&&showCount;
+  const W=340,H=205,padL=28,padR=dual?30:14,padT=18,padB=26, iw=W-padL-padR, ih=H-padT-padB, n=pts.length;
+  const X=i=> n<=1? padL+iw/2 : padL+iw*i/(n-1);
+  const maxC=Math.max.apply(null,[4].concat(pts.map(p=>p.count||0)));
+  const Yp=v=> padT+ih*(1-v/100), Yc=v=> padT+ih*(1-v/maxC);
   let g='';
-  [0,.25,.5,.75,1].forEach(function(f){ var gv=maxY*f, yy=Y(gv); g+='<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="var(--line)" stroke-width="1"/>'; g+='<text x="'+(padL-5)+'" y="'+(yy+3)+'" fill="var(--mut)" font-size="8.5" text-anchor="end">'+Math.round(gv)+'</text>'; });
-  const poly=pts.map((p,i)=>X(i)+','+Y(p.val)).join(' ');
-  let d='M '+X(0)+' '+Y(pts[0].val); for(let i=1;i<n;i++) d+=' L '+X(i)+' '+Y(pts[i].val);
-  d+=' L '+X(n-1)+' '+(padT+ih)+' L '+X(0)+' '+(padT+ih)+' Z';
-  g+='<path d="'+d+'" fill="url(#pgrad)"/>';
-  if(n>1) g+='<polyline points="'+poly+'" fill="none" stroke="#2FD9C9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-  pts.forEach((p,i)=>{ const px=X(i),py=Y(p.val);
-    g+='<circle cx="'+px+'" cy="'+py+'" r="3.4" fill="#2FD9C9" stroke="var(--panel)" stroke-width="1.5"/>';
-    if(n<=10) g+='<text x="'+px+'" y="'+(py-8)+'" fill="var(--txt2)" font-size="9" font-weight="700" text-anchor="middle">'+p.val+'</text>';
-    g+='<text x="'+px+'" y="'+(padT+ih+15)+'" fill="var(--mut)" font-size="8" text-anchor="middle">'+p.label+'</text>'; });
-  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FD9C9" stop-opacity="0.28"/><stop offset="1" stop-color="#2FD9C9" stop-opacity="0"/></linearGradient></defs>'+g+'</svg>';
+  [0,.25,.5,.75,1].forEach(function(f){ var yy=padT+ih*(1-f);
+    g+='<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="var(--line)" stroke-width="1"/>';
+    var lc = showPct?PCOL.pct:PCOL.count, lv = showPct?Math.round(100*f):Math.round(maxC*f);
+    g+='<text x="'+(padL-6)+'" y="'+(yy+3)+'" fill="'+lc+'" font-size="8.5" text-anchor="end">'+lv+'</text>';
+    if(dual) g+='<text x="'+(W-padR+6)+'" y="'+(yy+3)+'" fill="'+PCOL.count+'" font-size="8.5" text-anchor="start">'+Math.round(maxC*f)+'</text>'; });
+  pts.forEach((p,i)=>{ g+='<text x="'+X(i)+'" y="'+(padT+ih+15)+'" fill="var(--mut)" font-size="8" text-anchor="middle">'+p.label+'</text>'; });
+  function line(getV,Yf,color,area,labels){
+    const segs=[]; let seg=[];
+    pts.forEach((p,i)=>{ const v=getV(p); if(v===null||v===undefined){ if(seg.length){segs.push(seg);seg=[];} } else seg.push([X(i),Yf(v),v]); });
+    if(seg.length)segs.push(seg);
+    let s='';
+    if(area) segs.forEach(sg=>{ if(sg.length<2)return; let d='M '+sg[0][0]+' '+sg[0][1]; for(let k=1;k<sg.length;k++)d+=' L '+sg[k][0]+' '+sg[k][1]; d+=' L '+sg[sg.length-1][0]+' '+(padT+ih)+' L '+sg[0][0]+' '+(padT+ih)+' Z'; s+='<path d="'+d+'" fill="url(#pgrad)"/>'; });
+    segs.forEach(sg=>{ if(sg.length>1) s+='<polyline points="'+sg.map(q=>q[0]+','+q[1]).join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'; });
+    segs.forEach(sg=>sg.forEach(q=>{ s+='<circle cx="'+q[0]+'" cy="'+q[1]+'" r="3.2" fill="'+color+'" stroke="var(--panel)" stroke-width="1.5"/>'; if(labels && n<=10) s+='<text x="'+q[0]+'" y="'+(q[1]-8)+'" fill="var(--txt2)" font-size="9" font-weight="700" text-anchor="middle">'+q[2]+'</text>'; }));
+    return s;
+  }
+  if(showPct)   g+=line(p=>p.pct,   Yp, PCOL.pct,   !dual, !dual);
+  if(showCount) g+=line(p=>p.count, Yc, PCOL.count, false, !dual);
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FD9C9" stop-opacity="0.24"/><stop offset="1" stop-color="#2FD9C9" stop-opacity="0"/></linearGradient></defs>'+g+'</svg>';
 }
-function metricBlock(metric,label){
-  const isPct=metric==='pct';
-  const pts=progPoints(_progMode,metric); const vals=pts.map(p=>p.val);
-  const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
-  const best=vals.length?Math.max.apply(null,vals):0;
-  const sum=vals.reduce((a,b)=>a+b,0);
-  const full=vals.filter(v=>v>=100).length;
-  const unit=_progMode==='dia'?'dias':_progMode==='sem'?'semanas':'meses';
-  const perUnit=_progMode==='dia'?'dia':_progMode==='sem'?'semana':'mês';
-  const maxY=isPct?100:Math.max(4,Math.ceil(best));
-  const chart = pts.length ? chartSVG(pts,maxY) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.</div>';
-  const kpis = isPct
-    ? '<div class="pk"><div class="pkv">'+avg+'%</div><div class="pkl">média</div></div><div class="pk"><div class="pkv">'+best+'%</div><div class="pkl">melhor</div></div><div class="pk"><div class="pkv">'+full+'</div><div class="pkl">'+unit+' 100%</div></div>'
-    : '<div class="pk"><div class="pkv">'+avg+'</div><div class="pkl">média/'+perUnit+'</div></div><div class="pk"><div class="pkv">'+best+'</div><div class="pkl">máximo</div></div><div class="pk"><div class="pkv">'+sum+'</div><div class="pkl">total</div></div>';
-  return '<div class="prog-block"><div class="pb-lbl">'+label+'</div><div class="prog-kpis">'+kpis+'</div><div class="prog-chart">'+chart+'</div></div>';
-}
+function metricStats(key,pts){ const vals=pts.map(p=>p[key]).filter(v=>v!==null&&v!==undefined);
+  return { avg: vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0, best: vals.length?Math.max.apply(null,vals):0 }; }
 function renderProgress(){
   const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
   const metrics=[['pct','% do dia'],['count','Nº de tarefas']];
-  let blocks=''; metrics.forEach(function(mt){ if(_progOn[mt[0]]) blocks+=metricBlock(mt[0],mt[1]); });
+  const pts=progUnified(_progMode); const showPct=_progOn.pct, showCount=_progOn.count;
+  let legend='';
+  if(pts.length){
+    if(showPct){ const s=metricStats('pct',pts); legend+='<span class="pl"><i style="background:'+PCOL.pct+'"></i>% do dia <b>média '+s.avg+'%</b> · melhor '+s.best+'%</span>'; }
+    if(showCount){ const s=metricStats('count',pts); legend+='<span class="pl"><i style="background:'+PCOL.count+'"></i>Nº de tarefas <b>média '+s.avg+'</b> · máx '+s.best+'</span>'; }
+  }
+  const chart = pts.length ? chartSVG2(pts,showPct,showCount) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.</div>';
   document.getElementById('progView').innerHTML =
     '<div class="prog-top"><h2><span class="prog-hic">'+svgIc('trending')+'</span>Progresso</h2></div>'+
-    '<div class="prog-seg prog-metric">'+metrics.map(mt=>'<button class="'+(_progOn[mt[0]]?'on':'')+'" onclick="toggleMetric(\''+mt[0]+'\')">'+mt[1]+'</button>').join('')+'</div>'+
+    '<div class="prog-seg prog-metric">'+metrics.map(mt=>'<button class="'+(mt[0]==='count'?'count ':'')+(_progOn[mt[0]]?'on':'')+'" onclick="toggleMetric(\''+mt[0]+'\')">'+mt[1]+'</button>').join('')+'</div>'+
     '<div class="prog-seg">'+modes.map(m=>'<button class="'+(_progMode===m[0]?'on':'')+'" onclick="setProgMode(\''+m[0]+'\')">'+m[1]+'</button>').join('')+'</div>'+
-    blocks;
+    (legend?'<div class="prog-legend">'+legend+'</div>':'')+
+    '<div class="prog-chart">'+chart+'</div>';
 }
 
 /* ================= CONTA + SINCRONIZAÇÃO (Supabase) ================= */
