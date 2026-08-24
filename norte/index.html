@@ -346,7 +346,15 @@
   .prog-legend .pl{ display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--mut2); font-weight:600; }
   .prog-legend .pl i{ width:12px; height:12px; border-radius:4px; display:inline-block; box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 3px rgba(0,0,0,.4); }
   .prog-legend .pl b{ color:var(--txt2); font-weight:800; }
-  .prog-metric button.count.on{ background:#F0B45E; border-color:#F0B45E; color:#1a1204; }
+  .prog-metric button.count.on{ background:#22C55E; border-color:#22C55E; color:#04120a; }
+  .prog-sum{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:13px 15px; margin-top:13px;
+             font-size:13.5px; line-height:1.65; color:var(--mut2); }
+  .prog-sum .sh{ display:flex; align-items:center; gap:7px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--accent); margin-bottom:8px; }
+  .prog-sum .sh svg{ width:14px; height:14px; stroke:var(--accent); }
+  .prog-sum p{ margin:0; }
+  .prog-sum p+p{ margin-top:6px; }
+  .prog-sum b{ color:var(--txt2); font-weight:800; }
+  .prog-sum .up{ color:#5fd6a6; font-weight:800; } .prog-sum .down{ color:#ff9aa2; font-weight:800; } .prog-sum .flat{ color:var(--mut2); font-weight:800; }
 
   /* modal / sheet */
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
@@ -798,7 +806,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v24 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v25 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1359,7 +1367,7 @@ function dayPct(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null;
   return n? Math.round(sum/n*100) : null; }
 function mondayOf(iso){ const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d); const wd=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-wd); return dt; }
 function pad2(n){ return String(n).padStart(2,'0'); }
-const PCOL={pct:'#2FD9C9', count:'#F0B45E'};
+const PCOL={pct:'#2FD9C9', count:'#22C55E'};
 function progUnified(mode){
   const days=Object.keys(DB.days).filter(iso=>dayPct(iso)!==null||dayCount(iso)!==null).sort();
   if(!days.length) return [];
@@ -1403,6 +1411,27 @@ function chartSVG2(pts,showPct,showCount){
 }
 function metricStats(key,pts){ const vals=pts.map(p=>p[key]).filter(v=>v!==null&&v!==undefined);
   return { avg: vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0, best: vals.length?Math.max.apply(null,vals):0 }; }
+function progWords(mode){ return mode==='sem'?{u:'semana',us:'semanas',win:'nas últimas'}:mode==='mes'?{u:'mês',us:'meses',win:'nos últimos'}:{u:'dia',us:'dias',win:'nos últimos'}; }
+function progTrend(vals,thr){ const a=vals.filter(v=>v!==null&&v!==undefined); if(a.length<2)return null;
+  const h=Math.max(1,Math.floor(a.length/2)); const f=a.slice(0,h), s=a.slice(a.length-h);
+  const af=f.reduce((x,y)=>x+y,0)/f.length, as=s.reduce((x,y)=>x+y,0)/s.length; const d=as-af;
+  return d>thr?'up':(d<-thr?'down':'flat'); }
+function progSummary(pts,showPct,showCount,mode){
+  if(!pts.length) return '';
+  const W=progWords(mode); const n=pts.length; let ps=[];
+  const tw=(dir,up,down)=> dir==='up'?'<span class="up">'+up+'</span>':dir==='down'?'<span class="down">'+down+'</span>':'<span class="flat">estável</span>';
+  if(showPct){
+    const s=metricStats('pct',pts), vals=pts.map(p=>p.pct), t=progTrend(vals,3);
+    const last=vals.slice().reverse().find(v=>v!==null&&v!==undefined);
+    ps.push('<p>Conclusão média de <b>'+s.avg+'%</b> por '+W.u+' '+W.win+' '+n+' '+W.us+(t?' — desempenho '+tw(t,'em alta','em queda'):'')+'. Melhor: <b>'+s.best+'%</b>'+(last!=null?' · '+(mode==='dia'?'hoje':mode==='sem'?'atual':'atual')+' <b>'+last+'%</b>':'')+'.</p>');
+  }
+  if(showCount){
+    const s=metricStats('count',pts), vals=pts.map(p=>p.count), t=progTrend(vals,0.4);
+    const total=vals.filter(v=>v!==null&&v!==undefined).reduce((a,b)=>a+b,0);
+    ps.push('<p>Média de <b>'+s.avg+'</b> tarefas por dia'+(t?' — '+tw(t,'crescendo','caindo'):'')+'. Pico: <b>'+s.best+'</b>'+(mode==='dia'?' · total <b>'+total+'</b> '+W.win+' '+n+' '+W.us:'')+'.</p>');
+  }
+  return '<div class="prog-sum"><div class="sh">'+svgIc('trending')+'Resumo</div>'+ps.join('')+'</div>';
+}
 function renderProgress(){
   const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
   const metrics=[['pct','% do dia'],['count','Nº de tarefas']];
@@ -1418,7 +1447,8 @@ function renderProgress(){
     '<div class="prog-seg prog-metric">'+metrics.map(mt=>'<button class="'+(mt[0]==='count'?'count ':'')+(_progOn[mt[0]]?'on':'')+'" onclick="toggleMetric(\''+mt[0]+'\')">'+mt[1]+'</button>').join('')+'</div>'+
     '<div class="prog-seg">'+modes.map(m=>'<button class="'+(_progMode===m[0]?'on':'')+'" onclick="setProgMode(\''+m[0]+'\')">'+m[1]+'</button>').join('')+'</div>'+
     (legend?'<div class="prog-legend">'+legend+'</div>':'')+
-    '<div class="prog-chart">'+chart+'</div>';
+    '<div class="prog-chart">'+chart+'</div>'+
+    progSummary(pts,showPct,showCount,_progMode);
 }
 
 /* ================= CONTA + SINCRONIZAÇÃO (Supabase) ================= */
