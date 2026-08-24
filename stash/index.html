@@ -119,14 +119,14 @@
   .cx .met .pz{color:var(--amber)}
   .cx .met .atr{color:var(--red)}
 
-  /* nichos (grupos de caixinhas por dono) */
+  /* nichos (grupos de cofres por dono) */
   .persum{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
   .persum .pchip{font-size:11.5px;font-weight:700;color:var(--txt2);background:var(--panel);border:1px solid var(--line);
     border-radius:20px;padding:6px 12px;font-variant-numeric:tabular-nums}
   .persum .pchip i{font-style:normal;font-weight:800;text-transform:uppercase;letter-spacing:.4px;font-size:9.5px;margin-right:6px;color:var(--mut)}
   .persum .pchip.tot{border-color:var(--accent);color:#fff}
   .persum .pchip.tot i{color:var(--accent)}
-  /* sub-abas Caixinhas | Metas */
+  /* sub-abas Cofres | Metas */
   .subtabs{display:flex;align-items:center;gap:10px;margin:18px 0 12px}
   .segt{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
   .segt button{border:none;background:transparent;color:var(--mut);font-family:inherit;font-size:13px;font-weight:800;padding:7px 15px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
@@ -352,14 +352,14 @@
       <div class="cm" id="pCartPc">—</div>
     </div>
     <div class="cd" style="border-left-color:#22C55E">
-      <div class="cl">Caixinhas</div>
+      <div class="cl">Cofres</div>
       <div class="cv" id="pCx">R$ 0,00</div>
       <div class="cm" id="pCxPc">—</div>
     </div>
   </div>
 
   <div class="subtabs">
-    <div class="segt"><button id="segCx" class="on" onclick="setPatView('cx')">Caixinhas</button><button id="segMt" onclick="setPatView('metas')">Metas</button></div>
+    <div class="segt"><button id="segCx" class="on" onclick="setPatView('cx')">Cofres</button><button id="segMt" onclick="setPatView('metas')">Metas</button></div>
     <span class="add" id="btNovoNicho">+ dono</span>
   </div>
   <div id="listaCx"></div>
@@ -421,7 +421,7 @@
   <div class="gp-rings" id="gRings"></div>
 
   <div class="cd" style="border-left-color:#22C55E;margin-bottom:11px">
-    <div class="cl">Saldo da caixinha que banca o vale</div>
+    <div class="cl">Saldo do cofre que banca o vale</div>
     <div class="cv" id="gSaldoVale">—</div>
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
@@ -495,7 +495,7 @@ if(!Array.isArray(D.vale.cats)) D.vale.cats = [
   {id:"M",nome:"Mercado",emoji:"🛒",cor:"#3ddb84",orc:D.vale.orcM||""}
 ];
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-/* paleta de cores (swatches) — reusada em caixinhas, nichos e categorias */
+/* paleta de cores (swatches) — reusada em cofres, nichos e categorias */
 var PALETA=["#2FD9C9","#22C55E","#3ddb84","#6ea8f0","#38bdf8","#818cf8","#A78BFA","#c084fc",
             "#e878a8","#f472b6","#f87171","#fb7185","#f0883e","#f7931a","#FBBF24","#fcd34d",
             "#a3e635","#2dd4bf","#94a3b8","#e6eaee"];
@@ -516,7 +516,7 @@ if(!D.cx.some(function(x){ return x.vale; })){
   var vv = D.cx.filter(function(x){ return /vale/i.test(x.n); })[0];
   if(vv) vv.vale = true;
 }
-/* nichos (de quem sao as caixinhas) */
+/* nichos (de quem sao as cofres) */
 if(!Array.isArray(D.owners)) D.owners = [];
 if(!Array.isArray(D.agg)) D.agg = [];
 if(!D.collapsed || typeof D.collapsed !== "object") D.collapsed = {};
@@ -540,7 +540,7 @@ function salvar(){
   var s=document.getElementById("salvo"); s.className="sv on";
   clearTimeout(tS); tS=setTimeout(function(){ s.className="sv"; },1100);
 }
-function caixinhaVale(){ return D.cx.filter(function(x){ return x.vale; })[0] || null; }
+function cofreVale(){ return D.cx.filter(function(x){ return x.vale; })[0] || null; }
 function totalCx(){ var s=0; D.cx.forEach(function(x){ s+=x.v||0; }); return s; }
 function total(){ return (D.carteira||0) + totalCx(); }
 
@@ -588,7 +588,7 @@ function renderPatrimonio(){
   document.getElementById("iCart").value=brl(D.carteira);
   document.getElementById("pCx").textContent="R$ "+brl(tc);
   document.getElementById("pCartPc").textContent=tt?((D.carteira/tt*100).toFixed(1).replace(".",",")+"% do total"):"—";
-  document.getElementById("pCxPc").textContent=tt?((tc/tt*100).toFixed(1).replace(".",",")+"% · "+D.cx.length+" caixinhas"):"—";
+  document.getElementById("pCxPc").textContent=tt?((tc/tt*100).toFixed(1).replace(".",",")+"% · "+D.cx.length+" cofres"):"—";
 
   if(D.hist.length){
     var ant=D.hist[D.hist.length-1].total, d=tt-ant, pc=ant?(d/ant*100):0;
@@ -630,9 +630,9 @@ function renderPatrimonio(){
              '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
              '<div><label class="lb">Até (mês)</label><input type="month" data-pz="'+x.id+'" value="'+(x.pz||"")+'" style="color-scheme:dark"></div>' +
            '</div>' +
-           '<div class="gr"><div style="flex:1"><label class="lb">Dono da caixinha</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
+           '<div class="gr"><div style="flex:1"><label class="lb">Dono do cofre</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
            '<div class="acoes"><button class="bt n" data-vale="'+x.id+'">'+(x.vale?"✓ banca o vale":"marcar: banca o vale")+'</button>' +
-           '<button class="bt d" data-del="'+x.id+'">Apagar caixinha</button></div>' +
+           '<button class="bt d" data-del="'+x.id+'">Apagar cofre</button></div>' +
          '</div></div>';
   }
 
@@ -654,7 +654,7 @@ function renderPatrimonio(){
   if(patView==="metas"){
     var comMeta=D.cx.filter(function(x){return x.m>0;}).sort(function(a,b){return (b.v/(b.m||1))-(a.v/(a.m||1));});
     var semMeta=D.cx.filter(function(x){return !(x.m>0);});
-    if(!D.cx.length){ h+='<div class="vazio" style="padding:20px 4px">Nenhuma caixinha ainda. Crie uma no modo <b style="color:var(--accent)">Caixinhas</b>.</div>'; }
+    if(!D.cx.length){ h+='<div class="vazio" style="padding:20px 4px">Nenhum cofre ainda. Crie um no modo <b style="color:var(--accent)">Cofres</b>.</div>'; }
     comMeta.forEach(function(x){
       var pc=Math.min(100,x.v/x.m*100), falta=Math.max(0,x.m-x.v), CC=2*Math.PI*15.9, off=CC*(1-pc/100);
       h+='<div class="goal"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(128,128,128,.22)" stroke-width="5"/>' +
@@ -666,7 +666,7 @@ function renderPatrimonio(){
     if(semMeta.length){ h+='<div class="mtsem">Sem meta definida</div>';
       semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+x.n+(x.vale?" · vale":"")+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; }); }
   } else if(!owners.length){
-    h+='<div class="vazio" style="padding:20px 4px"><div style="margin-bottom:13px;text-transform:none">Comece adicionando um <b style="color:var(--accent)">dono</b> (ex.: Minhas, da Miri) e as caixinhas de cada um.</div><button class="bt p" id="btDonoVazio" style="width:auto">+ Adicionar dono</button></div>';
+    h+='<div class="vazio" style="padding:20px 4px"><div style="margin-bottom:13px;text-transform:none">Comece adicionando um <b style="color:var(--accent)">dono</b> (ex.: Minhas, da Miri) e os cofres de cada um.</div><button class="bt p" id="btDonoVazio" style="width:auto">+ Adicionar dono</button></div>';
   } else {
     var cand=D.cx.filter(function(x){ return x.m>0 && x.v<x.m; });
     var alvo=null, smsg="", vb=verba();
@@ -692,7 +692,7 @@ function renderPatrimonio(){
              swHTML("[data-gcolor='"+gi+"']") +
              '<div class="acoes"><button class="bt d" data-gdel="'+gi+'">Apagar nicho</button></div></div>';
       itens.forEach(function(x){ h+=cardCx(x); });
-      h+= '<span class="gadd" data-gadd="'+gi+'">+ caixinha</span>' +
+      h+= '<span class="gadd" data-gadd="'+gi+'">+ cofre</span>' +
          '</div></div>';
     });
   }
@@ -732,7 +732,7 @@ function aggTotal(a){ var t=0; (a.cx||[]).forEach(function(id){ var c=acharCx(id
 function aggEditor(a,ai){
   var body='<div class="gr"><div style="flex:1"><label class="lb">Nome do agregado</label>' +
     '<input data-aggn="'+ai+'" value="'+esc(a.nome||"")+'" placeholder="Ex.: Reserva do casal"></div></div>' +
-    '<label class="lb" style="margin-top:4px">Caixinhas incluídas</label>';
+    '<label class="lb" style="margin-top:4px">Cofres incluídos</label>';
   var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
   owners.forEach(function(ow){
     var its=D.cx.filter(function(x){ return x.own===ow; }); if(!its.length) return;
@@ -749,7 +749,7 @@ function renderAgg(){
   if(!D.cx.length) return "";
   var h='<div class="aggsec"><div class="aggh"><span>Agregados</span><span class="aggadd" id="aggNovo">+ novo</span></div>';
   if(!D.agg.length){
-    h+='<div class="aggempty">Some caixinhas de donos diferentes num total só (ex.: a <b>Reserva</b> sua + a da Miri). Toque em <b>+ novo</b> e escolha as caixinhas.</div>';
+    h+='<div class="aggempty">Some cofres de donos diferentes num total só (ex.: a <b>Reserva</b> sua + a da Miri). Toque em <b>+ novo</b> e escolha os cofres.</div>';
   }
   D.agg.forEach(function(a,ai){
     var tot=aggTotal(a);
@@ -759,7 +759,7 @@ function renderAgg(){
        '<div class="aggtop"><span class="aggnm">'+esc(a.nome||"Agregado")+'</span>' +
        '<span class="aggtot">R$ '+brl(tot)+'</span>' +
        '<button class="cog aggcog" data-aggcog="'+ai+'">⚙</button></div>' +
-       (chips?('<div class="aggchips">'+chips+'</div>'):'<div class="aggempty2">Nenhuma caixinha selecionada — toque na engrenagem.</div>') +
+       (chips?('<div class="aggchips">'+chips+'</div>'):'<div class="aggempty2">Nenhum cofre selecionado — toque na engrenagem.</div>') +
        '<div class="agged" data-agged="'+ai+'" style="display:none">'+aggEditor(a,ai)+'</div>' +
        '</div>';
   });
@@ -812,7 +812,7 @@ function ligarPatr(){
     salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-del]"),function(b){ b.addEventListener("click",function(){
     var c=acharCx(this.getAttribute("data-del"));
-    if(!confirm('Apagar a caixinha "'+c.n+'"?\n\nO saldo de R$ '+brl(c.v)+" some do patrimônio.")) return;
+    if(!confirm('Apagar o cofre "'+c.n+'"?\n\nO saldo de R$ '+brl(c.v)+" some do patrimônio.")) return;
     D.cx=D.cx.filter(function(x){ return x.id != c.id; }); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-de]"),function(b){ b.addEventListener("click",function(){
     var i=+this.getAttribute("data-de"), e=D.entradas[i];
@@ -840,7 +840,7 @@ function ligarPatr(){
     var ow=GOWN[+this.getAttribute("data-gcolor")]; D.ownerColors[ow]=this.value; salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-gdel]"),function(b){ b.addEventListener("click",function(){
     var ow=GOWN[+this.getAttribute("data-gdel")], itens=D.cx.filter(function(x){return x.own===ow;});
-    if(itens.length){ if(!confirm('Apagar o nicho "'+ow+'" e as '+itens.length+' caixinhas dele?\n\nOs saldos somem do patrimônio.')) return;
+    if(itens.length){ if(!confirm('Apagar o nicho "'+ow+'" e os '+itens.length+' cofres dele?\n\nOs saldos somem do patrimônio.')) return;
       D.cx=D.cx.filter(function(x){return x.own!==ow;}); }
     else { if(!confirm('Apagar o nicho "'+ow+'"?')) return; }
     var oi=D.owners.indexOf(ow); if(oi>=0) D.owners.splice(oi,1); delete D.ownerColors[ow]; delete D.collapsed[ow];
@@ -851,11 +851,11 @@ function ligarPatr(){
     var ow=GOWN[+this.getAttribute("data-gadd")], span=this;
     if(span.parentNode.querySelector(".novacxi")) { span.parentNode.querySelector(".novacxi").focus(); return; }
     var wrap=document.createElement("div"); wrap.className="cx new"; wrap.style.borderLeftColor="#2FD9C9";
-    wrap.innerHTML='<div class="lin"><input class="novacxi" placeholder="Nome da caixinha — Enter" style="flex:1" maxlength="30"></div>';
+    wrap.innerHTML='<div class="lin"><input class="novacxi" placeholder="Nome do cofre — Enter" style="flex:1" maxlength="30"></div>';
     span.parentNode.insertBefore(wrap, span);
     var inp=wrap.querySelector(".novacxi"); inp.focus(); var feito=false;
     function criar(){ if(feito)return; var n=inp.value.trim(); if(!n){ wrap.remove(); return; } feito=true;
-      maxId++; D.cx.push({id:maxId,n:n,c:"#8a97a0",v:0,p:0,m:0,pz:"",own:ow}); salvar(); renderTudo(); animarNovo("listaCx","first"); toast("Caixinha criada.","ok"); }
+      maxId++; D.cx.push({id:maxId,n:n,c:"#8a97a0",v:0,p:0,m:0,pz:"",own:ow}); salvar(); renderTudo(); animarNovo("listaCx","first"); toast("Cofre criado.","ok"); }
     inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); criar(); } else if(e.key==="Escape"){ feito=true; wrap.remove(); } });
     inp.addEventListener("blur",function(){ setTimeout(criar,120); }); }); });
   var bv=document.getElementById("btDonoVazio"); if(bv) bv.addEventListener("click",function(){ document.getElementById("btNovoNicho").click(); });
@@ -925,7 +925,7 @@ function renderAporte(){
        '<span class="lv" style="width:56px;color:#FBBF24">'+brl(x.p)+'%</span>' +
        '<span class="lv" style="width:108px;text-align:right;color:#22C55E">R$ '+brl(vb*x.p/100)+'</span></div>';
   });
-  if(!h) h='<div class="vazio">Nenhuma caixinha tem % definido. Ajuste no ⚙ da tela Patrimônio.</div>';
+  if(!h) h='<div class="vazio">Nenhum cofre tem % definido. Ajuste no ⚙ da tela Patrimônio.</div>';
   var cor=Math.abs(soma-100)<0.01?"#22C55E":"#f87171";
   h+='<div class="lc" style="border-left-color:'+cor+';background:#0d0f12"><span class="lo"><b>Total</b></span>' +
      '<span class="lv" style="width:56px;color:'+cor+'">'+brl(soma)+'%</span>' +
@@ -947,7 +947,7 @@ function renderAporte(){
   Array.prototype.forEach.call(document.querySelectorAll("[data-da]"),function(b){
     b.addEventListener("click",function(){
       var i=+this.getAttribute("data-da"), a=D.aportes[i];
-      if(!confirm("Desfazer o aporte de R$ "+brl(a.v)+"?\n\nOs valores voltam a ser descontados das caixinhas.")) return;
+      if(!confirm("Desfazer o aporte de R$ "+brl(a.v)+"?\n\nOs valores voltam a ser descontados dos cofres.")) return;
       a.det.forEach(function(p){ var c=acharCx(p.id); if(c) c.v-=p.v; });
       D.aportes.splice(i,1); salvar(); renderTudo(); });
   });
@@ -957,7 +957,7 @@ document.getElementById("btAplicar").addEventListener("click",function(){
   var vb=verba();
   if(!vb){ toast("Informe salário e contas primeiro.","err"); document.getElementById("aSal").focus(); return; }
   var h=new Date(), mes=MES[h.getMonth()]+" "+h.getFullYear();
-  if(!confirm("Somar R$ "+brl(vb)+" nas caixinhas conforme os percentuais?\n\nIsso altera os saldos da tela Patrimônio.")) return;
+  if(!confirm("Somar R$ "+brl(vb)+" nos cofres conforme os percentuais?\n\nIsso altera os saldos da tela Patrimônio.")) return;
   var det=[], tot=0;
   D.cx.forEach(function(x){ if(x.p){ var q=vb*x.p/100; x.v+=q; tot+=q; det.push({id:x.id,n:x.n,v:q}); } });
   D.aportes.push({mes:mes, v:tot, det:det, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
@@ -1015,14 +1015,14 @@ function renderGastos(){
   document.getElementById("gCiclo").textContent=c.nome;
   document.getElementById("gPeriodo").textContent=c.per+" · "+diasRest()+" dias restantes";
 
-  var cv=caixinhaVale();
+  var cv=cofreVale();
   if(cv){
     document.getElementById("gSaldoVale").textContent="R$ "+brl(cv.v);
     document.getElementById("gSaldoMsg").innerHTML=cv.n+" · <b style='color:"+(cv.v<0?"#f87171":"#22C55E")+"'>"+
       (cv.v<0?"saldo negativo":"cada gasto lançado desconta daqui")+"</b>";
   } else {
     document.getElementById("gSaldoVale").textContent="—";
-    document.getElementById("gSaldoMsg").textContent="nenhuma caixinha marcada como fonte do vale (⚙ na tela Patrimônio)";
+    document.getElementById("gSaldoMsg").textContent="nenhum cofre marcado como fonte do vale (⚙ na tela Patrimônio)";
   }
 
   var d=diasRest();
@@ -1097,7 +1097,7 @@ function renderGastos(){
 
   var q=function(s){ return document.querySelectorAll(s); };
   Array.prototype.forEach.call(q("[data-g]"),function(b){ b.addEventListener("click",function(){
-    var i=+this.getAttribute("data-g"), g=D.vale.l[i]; var cv=caixinhaVale(); if(cv) cv.v+=g.v;
+    var i=+this.getAttribute("data-g"), g=D.vale.l[i]; var cv=cofreVale(); if(cv) cv.v+=g.v;
     D.vale.l.splice(i,1); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-orc]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-orc")); if(k){ k.orc=this.value; salvar(); renderGastos(); } }); });
@@ -1125,7 +1125,7 @@ document.getElementById("gAdd").addEventListener("click",function(){
   var loc=document.getElementById("gLoc").value.trim();
   var cat=document.getElementById("gCat").value, p=iso.split("-"), kc=acharCat(cat);
   D.vale.l.push({d:loc||(kc?kc.nome:"Gasto"), v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso});
-  var cv=caixinhaVale(); if(cv) cv.v-=v;
+  var cv=cofreVale(); if(cv) cv.v-=v;
   document.getElementById("gLoc").value=""; document.getElementById("gVal").value="";
   salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok");
 });
@@ -1249,7 +1249,7 @@ renderTudo();
     <div class="__wglow"></div>
     <div class="__wemoji">💰</div>
     <div class="__wtt">Bem-vindo ao Stash</div>
-    <div class="__wtx">Organize seu patrimônio em caixinhas, planeje os aportes do mês e acompanhe suas metas.</div>
+    <div class="__wtx">Organize seu patrimônio em cofres, planeje os aportes do mês e acompanhe suas metas.</div>
     <div class="__wpr">🔒 Seus dados ficam só neste aparelho — ninguém mais vê.</div>
     <button class="__wbtn" id="__welcomeBtn">Começar &rarr;</button>
   </div>
