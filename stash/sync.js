@@ -108,11 +108,18 @@
     screen('<div class="sync-ic">'+IC.info+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p><div class="sync-act"><button class="sbtn-p" onclick="__ur()">'+(o.ok||'Ok')+'</button></div>'); }); };
 
   /* ---------- login sem senha ---------- */
-  function showConnect(){ screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronizar aparelhos</h2><p>Entre pra ver os mesmos dados no computador e no celular. <b>Sem senha</b> — enviamos um código de 6 dígitos pro seu e-mail.</p>'+
-    '<div class="sync-f"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" placeholder="voce@email.com" value="'+(localStorage.getItem(LK.login)||'')+'"></div><div class="sync-err" id="syncErr"></div>'+
-    '<div class="sync-act"><button class="sbtn-g" onclick="window.__sc()">Fechar</button><button class="sbtn-p" onclick="window.__sm()">Enviar código</button></div>'); }
+  function showConnect(){ screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronizar aparelhos</h2><p>Entre com <b>e-mail e senha</b> pra ver os mesmos dados no computador e no celular.</p>'+
+    '<div class="sync-f"><label>E-mail</label><input id="syEmail" type="email" inputmode="email" placeholder="voce@email.com" value="'+(localStorage.getItem(LK.login)||'')+'"></div>'+
+    '<div class="sync-f"><label>Senha</label><input id="syPw" type="password" placeholder="mín. 6 caracteres"></div>'+
+    '<div class="sync-err" id="syncErr"></div>'+
+    '<div class="sync-act"><button class="sbtn-g" onclick="window.__signup()">Criar conta</button><button class="sbtn-p" onclick="window.__login()">Entrar</button></div>'+
+    '<button class="sync-link" onclick="window.__forgot()">Esqueci a senha</button>'+
+    '<button class="sync-link" onclick="window.__codeLogin()">Entrar sem senha (código no e-mail)</button>'); }
   window.__scn=function(){ showConnect(); };
   window.__sc=closeOv;
+  window.__codeLogin=function(){ screen('<div class="sync-ic">'+IC.mail+'</div><h2>Entrar com código</h2><p>Enviamos um código de 6 dígitos pro seu e-mail (pode atrasar ou cair no spam). Se puder, prefira a senha.</p>'+
+    '<div class="sync-f"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" placeholder="voce@email.com" value="'+(localStorage.getItem(LK.login)||'')+'"></div><div class="sync-err" id="syncErr"></div>'+
+    '<div class="sync-act"><button class="sbtn-g" onclick="window.__scn()">Voltar</button><button class="sbtn-p" onclick="window.__sm()">Enviar código</button></div>'); };
   function showCode(e){ _pending=e; screen('<div class="sync-ic">'+IC.mail+'</div><h2>Digite o código</h2><p>Enviei um código de <b>6 dígitos</b> pra <b style="color:#f0f2f4">'+e+'</b>. Confira o e-mail (e o spam) e digite abaixo.</p>'+
       '<div class="sync-f"><input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" data-kb="off" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:24px;font-weight:800"></div><div class="sync-err" id="syncErr"></div>'+
       '<div class="sync-act"><button class="sbtn-g" onclick="window.__sm2()">Reenviar</button><button class="sbtn-p" onclick="window.__sv()">Entrar</button></div>'+
@@ -127,6 +134,32 @@
     if(c.length<6){ err('Digite os 6 dígitos.'); return; } if(!sb){ err('Sem conexão.'); return; }
     try{ var r=await sb.auth.verifyOtp({email:e,token:c,type:'email'}); if(r.error){ err('Código inválido ou expirado. Toque em Reenviar.'); return; }
       session=(r.data&&r.data.session)||session; onSignedIn();
+    }catch(x){ err('Erro: '+(x.message||x)); } };
+  window.__login=async function(){ var e=val('syEmail'), pw=(document.getElementById('syPw')||{}).value||'';
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ err('Digite um e-mail válido.'); return; }
+    if(!pw){ err('Digite a senha.'); return; } if(!sb){ err('Sem conexão.'); return; }
+    try{ var r=await sb.auth.signInWithPassword({email:e,password:pw}); if(r.error){ err('E-mail ou senha incorretos.'); return; }
+      _set(LK.login,e); session=r.data.session; onSignedIn();
+    }catch(x){ err('Erro: '+(x.message||x)); } };
+  window.__signup=async function(){ var e=val('syEmail'), pw=(document.getElementById('syPw')||{}).value||'';
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ err('Digite um e-mail válido.'); return; }
+    if(pw.length<6){ err('A senha precisa de ao menos 6 caracteres.'); return; } if(!sb){ err('Sem conexão.'); return; }
+    try{ var r=await sb.auth.signUp({email:e,password:pw});
+      if(r.error){ if(/registered|already/i.test(r.error.message)){ r=await sb.auth.signInWithPassword({email:e,password:pw}); if(r.error){ err('Esse e-mail já tem conta e a senha não confere. Use "Entrar" ou "Esqueci a senha".'); return; } } else { err(r.error.message); return; } }
+      var s=(r.data&&r.data.session)||null;
+      if(!s){ var g=await sb.auth.signInWithPassword({email:e,password:pw}); s=(g.data&&g.data.session)||null; }
+      if(!s){ err('Conta criada — agora toque em Entrar.'); return; }
+      _set(LK.login,e); session=s; toast('Conta criada ✓'); onSignedIn();
+    }catch(x){ err('Erro: '+(x.message||x)); } };
+  window.__forgot=async function(){ var e=val('syEmail')||localStorage.getItem(LK.login); if(!e){ err('Digite seu e-mail primeiro.'); return; } if(!sb){ err('Sem conexão.'); return; }
+    try{ await sb.auth.resetPasswordForEmail(e); screen('<div class="sync-ic">'+IC.mail+'</div><h2>Recuperar senha</h2><p>Enviei um link pra <b style="color:#f0f2f4">'+e+'</b>. Abra no mesmo aparelho pra definir uma nova senha (veja o spam).</p><div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Ok</button></div>'); }catch(x){ err('Erro: '+(x.message||x)); } };
+  function showRecovery(){ screen('<div class="sync-ic">'+IC.lock+'</div><h2>Nova senha</h2><p>Defina uma nova senha pra sua conta.</p>'+
+    '<div class="sync-f"><label>Nova senha</label><input id="rcPw" type="password" placeholder="mín. 6"></div>'+
+    '<div class="sync-err" id="syncErr"></div>'+
+    '<div class="sync-act"><button class="sbtn-p" onclick="window.__setpw()">Salvar</button></div>'); }
+  window.__setpw=async function(){ var p=(document.getElementById('rcPw')||{}).value||''; if(p.length<6){ err('Mínimo 6 caracteres.'); return; } if(!sb){ err('Sem conexão.'); return; }
+    try{ var r=await sb.auth.updateUser({password:p}); if(r.error){ err(r.error.message); return; }
+      var g=await sb.auth.getSession(); session=(g.data&&g.data.session)||session; toast('Senha redefinida ✓'); onSignedIn();
     }catch(x){ err('Erro: '+(x.message||x)); } };
 
   window.openSync=function(){
@@ -168,7 +201,7 @@
   /* ---------- boot ---------- */
   async function boot(){ injectCSS(); init(); injectBtn();
     if(sb){ try{ var g=await sb.auth.getSession(); session=(g&&g.data&&g.data.session)||null; }catch(e){}
-      sb.auth.onAuthStateChange(function(ev,ses){ if(ses){ session=ses; if(ev==='SIGNED_IN')onSignedIn(); } }); }
+      sb.auth.onAuthStateChange(function(ev,ses){ if(ev==='PASSWORD_RECOVERY'){ session=ses||session; showRecovery(); return; } if(ses){ session=ses; if(ev==='SIGNED_IN')onSignedIn(); } }); }
     if(session){ onSignedIn(); }
     maybeLock();
   }
