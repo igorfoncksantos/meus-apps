@@ -422,7 +422,7 @@
   nav button{ flex:1; background:transparent; border:none; color:var(--mut2); font-family:inherit; font-size:10px; font-weight:800;
        text-transform:uppercase; letter-spacing:.3px; cursor:pointer; padding:10px 2px; min-height:56px; display:flex; flex-direction:column;
        align-items:center; justify-content:center; gap:4px; border-radius:15px; transition:color .2s,background .25s,transform .12s;
-       touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+       touch-action:none; -webkit-tap-highlight-color:transparent; }
   nav button *{ pointer-events:none; }
   nav button .ic{ line-height:0; opacity:.5; transition:opacity .2s,transform .25s; display:flex; }
   nav button .ic svg{ width:23px; height:23px; }
@@ -915,7 +915,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v27 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v28 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
