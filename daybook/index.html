@@ -467,6 +467,8 @@ var SEED = {"tasks":{},"notes":{}};
 
   // ---------- helpers do board (Mês)
   function setTab(v){ view=v; Array.prototype.forEach.call(document.querySelectorAll(".tb"),function(x){ x.classList.toggle("on", x.getAttribute("data-v")===v); }); }
+  function goToDay(s,focusAdd){ sel=s; setTab("dia"); render();
+    if(focusAdd) setTimeout(function(){ var i=document.querySelector("#host .addrow input"); if(i){ i.focus(); i.scrollIntoView({block:"center"}); } },60); }
   function cycleCor(s,id){ var a=DB.tasks[s]||[]; for(var i=0;i<a.length;i++){ if(a[i].id===id){ a[i].cor=PAL[(PAL.indexOf(a[i].cor||"cinza")+1)%PAL.length]; break; } } salva(); render(); }
   function outCell(dnum){ var c=el("div","bcell out"); var n=el("div","bnum"); n.textContent=dnum; c.appendChild(n); return c; }
   function taskBar(s,t){
@@ -492,14 +494,14 @@ var SEED = {"tasks":{},"notes":{}};
   function bcellDia(s,dnum){
     var c=el("div","bcell"+(s===hojeISO()?" today":""));
     c.setAttribute("data-day",s);
-    var n=el("div","bnum"); n.textContent=dnum; n.title="ampliar o dia";
-    n.addEventListener("click",function(e){ e.stopPropagation(); openDayZoom(s); });
+    var n=el("div","bnum"); n.textContent=dnum; n.title="abrir o dia";
+    n.addEventListener("click",function(e){ e.stopPropagation(); goToDay(s); });
     c.appendChild(n);
     tarefas(s).forEach(function(t){ c.appendChild(taskBar(s,t)); });
     var add=el("div","badd"); add.textContent="+ tarefa";
-    add.addEventListener("click",function(e){ e.stopPropagation(); openDayZoom(s,true); });
+    add.addEventListener("click",function(e){ e.stopPropagation(); goToDay(s,true); });
     c.appendChild(add);
-    c.addEventListener("click",function(e){ if(e.target===c) openDayZoom(s); });
+    c.addEventListener("click",function(e){ if(e.target===c) goToDay(s); });
     return c;
   }
 
@@ -696,7 +698,6 @@ var SEED = {"tasks":{},"notes":{}};
 <script src="supabase.js"></script>
 <script src="sync.js"></script>
 <script src="icons.js"></script>
-<script src="keypad.js"></script>
 <style>
 #__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}
 #__welcome.__on{display:flex}
