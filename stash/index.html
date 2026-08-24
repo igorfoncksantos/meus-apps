@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#0b0d10">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icone-192.png"><link rel="apple-touch-icon" href="icone-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <title>Stash</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -14,6 +17,52 @@
     --txt:#e6eaee; --txt2:#f0f2f4; --mut:#98a1a8; --mut2:#828b92;
     --accent:#2FD9C9; --green:#22c55e; --amber:#FBBF24; --red:#f87171; --violet:#A78BFA;
   }
+
+  /* ===== TEMA EDITORIAL (Cofre) ===== */
+  :root[data-theme="editorial"]{
+    --bg:#F4F0E6; --panel:#FBF8F0; --panel2:#F1EADB; --line:#E3DBC9;
+    --txt:#2a2620; --txt2:#26332b; --mut:#8f8676; --mut2:#a89c85;
+    --accent:#3f6b57; --green:#3f6b57; --amber:#A9743C; --red:#b0503a; --violet:#7a6aa0;
+  }
+  [data-theme="editorial"] body{ color:#2a2620; }
+  [data-theme="editorial"] header .tt,
+  [data-theme="editorial"] .hero .hv,[data-theme="editorial"] .cd .cv,[data-theme="editorial"] .cx .vl,
+  [data-theme="editorial"] .box .bv,[data-theme="editorial"] .lc .lv,
+  [data-theme="editorial"] #t3 .gp-hero .gp-hv,[data-theme="editorial"] #t3 .gp-ring .rg{ color:#26332b; }
+  [data-theme="editorial"] header .tt,
+  [data-theme="editorial"] .hero .hv,[data-theme="editorial"] .cd .cv,
+  [data-theme="editorial"] .box .bv,[data-theme="editorial"] #t3 .gp-hero .gp-hv{ font-family:"Fraunces",Georgia,serif; font-weight:600; letter-spacing:-.3px; }
+  [data-theme="editorial"] .thm{ color:#8f8676; border-color:#E3DBC9; }
+  [data-theme="editorial"] nav .navbar{ background:rgba(251,248,240,.92); border-color:rgba(0,0,0,.07); }
+  [data-theme="editorial"] nav button.on{ color:#3f6b57; }
+  [data-theme="editorial"] .ghead .gnm{ color:#26332b; }
+
+  /* ===== TEMA COCKPIT DATA ===== */
+  :root[data-theme="cockpit"]{
+    --bg:#060f12; --panel:rgba(10,24,25,.8); --panel2:rgba(9,20,22,.72); --line:rgba(47,217,201,.22);
+    --txt:#cfeeeb; --txt2:#eafffb; --mut:#6fb7ae; --mut2:#8fcfc7;
+    --accent:#2FD9C9; --green:#22c55e; --amber:#FBBF24; --red:#f87171; --violet:#A78BFA;
+  }
+  [data-theme="cockpit"] body{
+    background:
+      linear-gradient(rgba(47,217,201,.05) 1px,transparent 1px) 0 0/22px 22px,
+      linear-gradient(90deg,rgba(47,217,201,.05) 1px,transparent 1px) 0 0/22px 22px,
+      radial-gradient(120% 80% at 50% 0%,#0c2024,#060f12 72%);
+    background-attachment:fixed;
+  }
+  [data-theme="cockpit"] header .tt{ font-family:"Chakra Petch",system-ui,sans-serif; letter-spacing:1px; text-shadow:0 0 14px rgba(47,217,201,.4); }
+  [data-theme="cockpit"] .hero .hv,[data-theme="cockpit"] .cd .cv,[data-theme="cockpit"] .cx .vl,
+  [data-theme="cockpit"] .box .bv,[data-theme="cockpit"] .lc .lv,
+  [data-theme="cockpit"] #t3 .gp-hero .gp-hv,[data-theme="cockpit"] #t3 .gp-ring .rg{ font-family:"Chakra Petch",system-ui,sans-serif; }
+  [data-theme="cockpit"] .cd,[data-theme="cockpit"] .box,[data-theme="cockpit"] .agg,[data-theme="cockpit"] .cx,
+  [data-theme="cockpit"] .ghead,[data-theme="cockpit"] #t3 .gp-ring{ border:1px solid rgba(47,217,201,.2); }
+  [data-theme="cockpit"] nav .navbar{ background:rgba(6,15,18,.75); border-color:rgba(47,217,201,.22); }
+
+  header .thm{ width:38px;height:38px;flex-shrink:0;background:transparent;border:1px solid var(--line);border-radius:11px;
+       color:var(--mut);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:8px;transition:color .15s,border-color .15s,transform .1s}
+  header .thm:hover{color:var(--accent);border-color:var(--accent)}
+  header .thm:active{transform:scale(.92)}
+
   html,body{background:var(--bg);overscroll-behavior:none}
   body{font-family:"Segoe UI",-apple-system,Arial,sans-serif;color:var(--txt);
        padding:16px 14px calc(96px + env(safe-area-inset-bottom));max-width:840px;margin:0 auto;
@@ -256,6 +305,9 @@
   <div class="tt" id="tituloTela">Patrimônio</div>
   <button id="eyeBtn" class="eye" title="Ocultar / mostrar valores" aria-label="Ocultar valores">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
+  <button class="thm" title="Trocar tema" aria-label="Trocar tema" onclick="cycleTheme()">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18 4.5 4.5 0 0 1 0-9 4.5 4.5 0 0 0 0-9z"/></svg>
   </button>
   <div class="sv" id="salvo">salvo</div>
 </header>
@@ -1081,6 +1133,12 @@ function renderTudo(){ renderPatrimonio(); renderAporte(); renderGastos(); }
 try{ PRIV = localStorage.getItem("stash-priv")==="1"; }catch(e){}
 applyPriv();
 document.getElementById("eyeBtn").addEventListener("click", togglePriv);
+function applyTheme(t){ if(t){ document.documentElement.setAttribute("data-theme",t); } else { document.documentElement.removeAttribute("data-theme"); }
+  try{ localStorage.setItem("stash-theme",t||""); }catch(e){}
+  var mc={"":"#0b0d10",editorial:"#F4F0E6",cockpit:"#060f12"}[t||""]; var m=document.querySelector('meta[name="theme-color"]'); if(m&&mc)m.setAttribute("content",mc); }
+var THEMES=["","editorial","cockpit"], THNAME={"":"Padrão",editorial:"Cofre Editorial",cockpit:"Cockpit Data"};
+function cycleTheme(){ var cur=localStorage.getItem("stash-theme")||""; var t=THEMES[(THEMES.indexOf(cur)+1)%THEMES.length]; applyTheme(t); try{ toast("Tema: "+THNAME[t],"ok"); }catch(e){} }
+applyTheme(localStorage.getItem("stash-theme")||"");
 renderTudo();
 (function(){
   if(!('serviceWorker' in navigator) || location.protocol.indexOf("http")!==0) return;
