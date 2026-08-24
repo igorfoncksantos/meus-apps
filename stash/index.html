@@ -309,9 +309,9 @@
   #t3 .gp-hero.neg .gp-hb i{ background:linear-gradient(90deg,#7a2a2a,#f87171); }
   #t3 .gp-hero .gp-hc{ font-size:10.5px; color:#7a8288; margin-top:9px; line-height:1.5; }
   #t3 .gp-hero .gp-hc b{ color:#FBBF24; font-weight:800; } #t3 .gp-hero .gp-hc span{ color:#c7ced3; font-weight:700; }
-  #t3 .gp-rings{ display:flex; gap:7px; margin-bottom:14px; flex-wrap:wrap; }
-  #t3 .gp-ring{ flex:1; min-width:96px; text-align:center; background:#101317; border:1px solid #23282d; border-radius:14px; padding:12px 5px 13px; }
-  #t3 .gp-ring svg{ display:block; margin:0 auto; }
+  #t3 .gp-rings{ display:grid; grid-template-columns:repeat(auto-fit,minmax(92px,1fr)); gap:7px; margin-bottom:14px; }
+  #t3 .gp-ring{ text-align:center; background:#101317; border:1px solid #23282d; border-radius:14px; padding:12px 5px 13px; min-width:0; }
+  #t3 .gp-ring svg{ display:block; margin:0 auto; width:66px; height:66px; }
   #t3 .gp-ring .rbg{ stroke:#141719; }
   #t3 .gp-ring .pcT{ fill:#fff; font-size:18px; font-weight:800; }
   #t3 .gp-ring.est .pcT{ fill:#f87171; }
@@ -322,6 +322,17 @@
   #t3 .gp-ring .rd{ font-size:10px; color:#FBBF24; font-weight:700; margin-top:2px; font-variant-numeric:tabular-nums; }
   #t3 .gp-ring.est .rr{ color:#f87171; }
   #t3 .orclab{ font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#4a5257; margin:2px 2px 8px; }
+  #t3 .gcfgtoggle{ display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; margin:2px 0 12px;
+    background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:12px 15px; color:var(--txt2);
+    font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer; }
+  #t3 .gcfgtoggle .gcfgchev{ color:var(--mut); transition:transform .2s,color .2s; font-size:11px; }
+  #t3 .gcfgtoggle.on .gcfgchev{ transform:rotate(180deg); color:var(--accent); }
+  .cbfab{ position:fixed; right:16px; bottom:calc(86px + env(safe-area-inset-bottom)); z-index:25;
+    display:flex; align-items:center; gap:8px; height:52px; padding:0 20px; border:none; border-radius:26px; cursor:pointer;
+    background:var(--accent); color:#04231f; font-family:inherit; font-size:15px; font-weight:800;
+    box-shadow:0 10px 26px rgba(47,217,201,.42); touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  .cbfab:active{ transform:scale(.94); }
+  .cbfab *{ pointer-events:none; }
 </style>
 </head>
 <body>
@@ -426,11 +437,14 @@
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
 
-  <div class="orclab">Orçamento de cada categoria — toque no ⚙ pra editar</div>
-  <div id="gBoxes"></div>
-  <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
+  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()"><span>⚙ Orçamentos e categorias</span><span class="gcfgchev">▾</span></button>
+  <div id="gCfg" style="display:none">
+    <div class="orclab">Orçamento de cada categoria — toque no ⚙ pra editar</div>
+    <div id="gBoxes"></div>
+    <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
+  </div>
 
-  <h2>Lançar gasto</h2>
+  <h2 id="gLancarH">Lançar gasto</h2>
   <div class="campos">
     <div style="min-width:126px"><label class="lb">Data</label><input type="date" id="gDt" style="color-scheme:dark"></div>
     <div style="min-width:140px"><label class="lb">Local</label><input id="gLoc" placeholder="Onde gastou"></div>
@@ -458,6 +472,7 @@
     Tudo salva sozinho neste aparelho. O <b>backup</b> gera um arquivo com todos os dados —
     guarde no HD de vez em quando e use <b>Importar</b> para levar tudo para outro aparelho.
   </div>
+  <button class="cbfab" id="cbFab" onclick="cbQuickAdd()">＋ lançar</button>
 </section>
 
 <section class="tela" id="t4">
@@ -541,6 +556,10 @@ function salvar(){
   clearTimeout(tS); tS=setTimeout(function(){ s.className="sv"; },1100);
 }
 function cofreVale(){ return D.cx.filter(function(x){ return x.vale; })[0] || null; }
+function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElementById("gCfgToggle"); if(!c)return;
+  var open=(c.style.display==="none"); c.style.display=open?"":"none"; if(b) b.className="gcfgtoggle"+(open?" on":""); }
+function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
+  var v=document.getElementById("gVal"); if(v) setTimeout(function(){ try{ v.focus(); }catch(e){} },280); }
 function totalCx(){ var s=0; D.cx.forEach(function(x){ s+=x.v||0; }); return s; }
 function total(){ return (D.carteira||0) + totalCx(); }
 
@@ -1048,7 +1067,9 @@ function renderGastos(){
         '<div class="rd">R$ '+brl(rest>0?rest/d:0)+'/dia</div>' +
         '</div>';
   });
-  document.getElementById("gRings").innerHTML=rh;
+  var gRings=document.getElementById("gRings");
+  gRings.style.gridTemplateColumns="repeat("+Math.min(Math.max(D.vale.cats.length,1),3)+",1fr)";
+  gRings.innerHTML=rh;
   var tR=tO-tG, pcT=tO>0?Math.min(100,tG/tO*100):0;
   var hero=document.getElementById("gHero"); if(hero) hero.className="gp-hero"+(tR<0?" neg":"");
   document.getElementById("gHeroRes").textContent="R$ "+brl(tR);
