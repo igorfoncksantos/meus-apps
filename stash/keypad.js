@@ -19,7 +19,7 @@
   /* ---- CSS ---- */
   var css = ''
     + 'body.kbdopen{ padding-bottom:calc(316px + env(safe-area-inset-bottom)) !important; }'
-    + '#kbd{ position:fixed; left:0; right:0; bottom:0; z-index:99990; display:none;'
+    + '#kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; display:none;'
     + '  background:linear-gradient(180deg,#0e1216,#070a0c); border-top:1px solid #20262b;'
     + '  padding:8px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);'
     + '  -webkit-user-select:none; user-select:none; touch-action:manipulation;'
@@ -37,6 +37,7 @@
     + '  background:#20262c; border-radius:9px; color:#eef2f4; font-size:18px; font-weight:600; cursor:pointer;'
     + '  box-shadow:0 2px 0 rgba(0,0,0,.45); transition:transform .05s ease, background .1s ease; }'
     + '#kbd .k *{ pointer-events:none; }'
+    + '#kbd .k, #kbd .acc b{ touch-action:none; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; }'
     + '#kbd .k:active{ transform:translateY(2px); background:#2a323a; box-shadow:0 0 0 rgba(0,0,0,.4); }'
     + '#kbd .k.wide{ flex:3 1 0; font-size:13px; font-weight:700; letter-spacing:.4px; color:#9fb0b8; text-transform:uppercase; }'
     + '#kbd .k.fn{ background:#161b20; color:#9fb0b8; font-size:14px; font-weight:700; }'
@@ -123,9 +124,9 @@
   }
   function autocaps(){ caps = (target&&target.value.length) ? 0 : 1; }
 
-  kbd.addEventListener('pointerdown', function(e){
-    var t=e.target.closest('[data-k],[data-ins]'); if(!t) return;
-    e.preventDefault();                       // não rouba o foco do campo
+  function onKey(e){
+    var t=e.target.closest && e.target.closest('[data-k],[data-ins]'); if(!t) return;
+    if(e.cancelable) e.preventDefault();      // não rouba o foco do campo, não vira scroll/zoom
     var k=t.getAttribute('data-k'), di=t.getAttribute('data-ins');
     var special=(k==='shift'||k==='back'||k==='layer'||k==='sym'||k==='enter'||k==='hide');
     if(di!==null && !special){ ins(di); return; }
@@ -139,7 +140,10 @@
       setTimeout(function(){ autocaps(); render(); },0); return;
     }
     if(k==='hide'){ hide(); try{target.blur();}catch(x){} return; }
-  });
+  }
+  var _ktouch=0;
+  kbd.addEventListener('touchstart', function(e){ _ktouch=Date.now(); onKey(e); }, {passive:false});
+  kbd.addEventListener('mousedown',  function(e){ if(Date.now()-_ktouch<700) return; onKey(e); });
 
   function show(){ mount(); autocaps(); render(); kbd.classList.add('on'); document.body.classList.add('kbdopen'); }
   function hide(){ kbd.classList.remove('on'); document.body.classList.remove('kbdopen'); }
