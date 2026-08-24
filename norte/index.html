@@ -1504,27 +1504,36 @@ function onSignedIn(){ if(_synced)return; _synced=true;
   try{ history.replaceState(null,'',location.pathname); }catch(e){}
   closeAuth(); subscribeRT(); pullRemote(); toast('Conectado ✓ sincronizando'); }
 function showConnect(){ closeMenu(); authScreen('<div class="auth-ic">'+svgIc('sync')+'</div><h2>Sincronizar aparelhos</h2>'+
-  '<p>Entre pra ver as mesmas tarefas no computador e no celular. <b>Sem senha</b> — é só pra saber que é você.</p>'+
-  '<button class="gbtn-google" onclick="googleLogin()"><span class="gg">G</span>Entrar com Google</button>'+
-  '<div class="auth-or"><span>ou</span></div>'+
+  '<p>Entre pra ver as mesmas tarefas no computador e no celular. <b>Sem senha</b> — enviamos um código de 6 dígitos pro seu e-mail.</p>'+
   '<div class="field"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="'+(localStorage.getItem("norte-login")||"")+'"></div>'+
   '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Fechar</button><button class="btn-primary" onclick="magicLink()">Enviar link</button></div>'); }
+  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Fechar</button><button class="btn-primary" onclick="magicLink()">Enviar código</button></div>'); }
+let _otpEmail='';
 async function magicLink(){ const e=val('mlEmail');
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
   if(!sb){ authErr('Sem conexão. Tente com internet.'); return; }
   try{ localStorage.setItem('norte-login',e);
-    const r=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href.split('#')[0]}});
+    const r=await sb.auth.signInWithOtp({email:e});
     if(r.error){ authErr(r.error.message); return; }
-    authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Confira seu e-mail</h2>'+
-      '<p>Enviei um link de acesso pra <b style="color:var(--txt2)">'+escapeHtml(e)+'</b>. Abra o e-mail <b>neste aparelho</b> e toque no link pra entrar.</p>'+
-      '<p class="auth-note">Não chegou? Veja o spam, ou tente de novo em 1 min.</p>'+
-      '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Ok</button></div>');
+    showCodeScreen(e);
   }catch(x){ authErr('Erro: '+(x.message||x)); } }
-async function googleLogin(){ if(!sb){ authErr('Sem conexão.'); return; }
-  try{ const r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});
-    if(r&&r.error){ authErr('O login com Google ainda não foi ativado. Use o link no e-mail por enquanto.'); }
-  }catch(x){ authErr('O login com Google ainda não foi ativado. Use o link no e-mail por enquanto.'); } }
+function showCodeScreen(e){ _otpEmail=e;
+  authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Digite o código</h2>'+
+    '<p>Enviei um código de <b>6 dígitos</b> pra <b style="color:var(--txt2)">'+escapeHtml(e)+'</b>. Confira o e-mail (e o spam) e digite abaixo.</p>'+
+    '<div class="field"><input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:24px;font-weight:800"></div>'+
+    '<div class="auth-err" id="authErr"></div>'+
+    '<div class="actions"><button class="btn-ghost" onclick="resendCode()">Reenviar</button><button class="btn-primary" onclick="verifyCode()">Entrar</button></div>'+
+    '<button class="auth-link" onclick="showConnect()">Trocar e-mail</button>');
+  setTimeout(function(){ const i=document.getElementById('otpCode'); if(i){ i.focus(); i.oninput=function(){ this.value=this.value.replace(/\D/g,'').slice(0,6); if(this.value.length===6)verifyCode(); }; } },120); }
+async function resendCode(){ const e=_otpEmail||localStorage.getItem('norte-login'); if(!e||!sb)return;
+  try{ await sb.auth.signInWithOtp({email:e}); toast('Código reenviado ✓'); }catch(x){} }
+async function verifyCode(){ const c=(val('otpCode')||'').replace(/\D/g,''); const e=_otpEmail||localStorage.getItem('norte-login');
+  if(c.length<6){ authErr('Digite os 6 dígitos.'); return; }
+  if(!sb){ authErr('Sem conexão.'); return; }
+  try{ const r=await sb.auth.verifyOtp({email:e,token:c,type:'email'});
+    if(r.error){ authErr('Código inválido ou expirado. Toque em Reenviar.'); return; }
+    session=(r.data&&r.data.session)||session; onSignedIn();
+  }catch(x){ authErr('Erro: '+(x.message||x)); } }
 async function disconnectAccount(){ if(!await uiConfirm('Você vai parar de sincronizar neste aparelho. Os dados continuam salvos aqui, só não atualizam mais no outro aparelho. Pra voltar, é só entrar de novo.',{title:'Sair da conta?',ok:'Sair',danger:true}))return;
   _synced=false; try{ if(sb) await sb.auth.signOut(); }catch(e){}
   if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan=null; }

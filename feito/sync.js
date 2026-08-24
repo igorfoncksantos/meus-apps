@@ -108,16 +108,26 @@
     screen('<div class="sync-ic">'+IC.info+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p><div class="sync-act"><button class="sbtn-p" onclick="__ur()">'+(o.ok||'Ok')+'</button></div>'); }); };
 
   /* ---------- login sem senha ---------- */
-  function showConnect(){ screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronizar aparelhos</h2><p>Entre pra ver os mesmos dados no computador e no celular. <b>Sem senha</b> — é só pra saber que é você.</p>'+
-    '<button class="gbtn-g" onclick="window.__sg()"><b>G</b>Entrar com Google</button><div class="sync-or"><span>ou</span></div>'+
+  function showConnect(){ screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronizar aparelhos</h2><p>Entre pra ver os mesmos dados no computador e no celular. <b>Sem senha</b> — enviamos um código de 6 dígitos pro seu e-mail.</p>'+
     '<div class="sync-f"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" placeholder="voce@email.com" value="'+(localStorage.getItem(LK.login)||'')+'"></div><div class="sync-err" id="syncErr"></div>'+
-    '<div class="sync-act"><button class="sbtn-g" onclick="window.__sc()">Fechar</button><button class="sbtn-p" onclick="window.__sm()">Enviar link</button></div>'); }
+    '<div class="sync-act"><button class="sbtn-g" onclick="window.__sc()">Fechar</button><button class="sbtn-p" onclick="window.__sm()">Enviar código</button></div>'); }
+  window.__scn=function(){ showConnect(); };
   window.__sc=closeOv;
+  function showCode(e){ _pending=e; screen('<div class="sync-ic">'+IC.mail+'</div><h2>Digite o código</h2><p>Enviei um código de <b>6 dígitos</b> pra <b style="color:#f0f2f4">'+e+'</b>. Confira o e-mail (e o spam) e digite abaixo.</p>'+
+      '<div class="sync-f"><input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" data-kb="off" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:24px;font-weight:800"></div><div class="sync-err" id="syncErr"></div>'+
+      '<div class="sync-act"><button class="sbtn-g" onclick="window.__sm2()">Reenviar</button><button class="sbtn-p" onclick="window.__sv()">Entrar</button></div>'+
+      '<button class="sync-link" onclick="window.__scn()">Trocar e-mail</button>');
+    setTimeout(function(){ var i=document.getElementById('otpCode'); if(i){ i.focus(); i.oninput=function(){ this.value=this.value.replace(/\D/g,'').slice(0,6); if(this.value.length===6)window.__sv(); }; } },120); }
   window.__sm=async function(){ var e=val('mlEmail'); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ err('Digite um e-mail válido.'); return; } if(!sb){ err('Sem conexão.'); return; }
-    try{ _set(LK.login,e); var r=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.href.split('#')[0]}}); if(r.error){ err(r.error.message); return; }
-      screen('<div class="sync-ic">'+IC.mail+'</div><h2>Confira seu e-mail</h2><p>Enviei um link de acesso pra <b style="color:#f0f2f4">'+e+'</b>. Abra o e-mail <b>neste aparelho</b> e toque no link.</p><p class="note">Não chegou? Veja o spam, ou tente de novo em 1 min.</p><div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Ok</button></div>');
+    try{ _set(LK.login,e); var r=await sb.auth.signInWithOtp({email:e}); if(r.error){ err(r.error.message); return; }
+      showCode(e);
     }catch(x){ err('Erro: '+(x.message||x)); } };
-  window.__sg=async function(){ if(!sb){ err('Sem conexão.'); return; } try{ var r=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}}); if(r&&r.error)err('Login com Google ainda não ativado. Use o link no e-mail.'); }catch(x){ err('Login com Google ainda não ativado. Use o link no e-mail.'); } };
+  window.__sm2=async function(){ var e=_pending||localStorage.getItem(LK.login); if(!e||!sb)return; try{ await sb.auth.signInWithOtp({email:e}); toast('Código reenviado ✓'); }catch(x){} };
+  window.__sv=async function(){ var c=(val('otpCode')||'').replace(/\D/g,''); var e=_pending||localStorage.getItem(LK.login);
+    if(c.length<6){ err('Digite os 6 dígitos.'); return; } if(!sb){ err('Sem conexão.'); return; }
+    try{ var r=await sb.auth.verifyOtp({email:e,token:c,type:'email'}); if(r.error){ err('Código inválido ou expirado. Toque em Reenviar.'); return; }
+      session=(r.data&&r.data.session)||session; onSignedIn();
+    }catch(x){ err('Erro: '+(x.message||x)); } };
 
   window.openSync=function(){
     if(!ready()){ showConnect(); return; }
