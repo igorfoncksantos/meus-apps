@@ -58,7 +58,7 @@
 
   ul{list-style:none}
   li{display:flex;align-items:flex-start;gap:10px;background:#121417;border:1px solid #262a2e;
-     border-left:4px solid #5b646a;border-radius:11px;padding:13px 11px 13px 9px;margin-bottom:9px}
+     border-left:4px solid #5b646a;border-radius:11px;padding:10px 11px 10px 9px;margin-bottom:7px}
   li.done{background:#0d1a13;border-color:#1f4a2f}
   .cor{flex-shrink:0;width:10px;align-self:stretch;border-radius:5px;cursor:grab;min-height:26px;touch-action:none}
   li.arrasta{opacity:.92;box-shadow:0 10px 26px rgba(0,0,0,.7);border-color:#2FD9C9;position:relative;z-index:5}
@@ -360,7 +360,6 @@
 
 <div class="acoes">
   <button id="btDesmarcar" class="rec2">Desmarcar tudo</button>
-  <button id="btLimpaTudo" class="perigo">Limpar tudo</button>
   <button id="btMais" class="mais">•••</button>
 </div>
 
@@ -380,6 +379,7 @@
     <button class="bt" id="btRenomear"><span data-ic="pen"></span> Renomear lista</button>
     <button class="bt" id="btDuplicar"><span data-ic="dup"></span> Duplicar lista</button>
     <button class="bt" id="btLimpaFeitas"><span data-ic="check"></span> Limpar concluídas</button>
+    <button class="bt pg" id="btLimpaTudo">Limpar tudo</button>
     <button class="bt pg" id="btApagarLista"><span data-ic="trash"></span> Apagar esta lista</button>
 
     <h3 class="sep">Modelos</h3>
@@ -821,7 +821,7 @@
     var l=L(), alvo=l.itens.filter(noFiltro);
     if(!alvo.length) return;
     if(confirm("Apagar "+alvo.length+" itens?")){
-      l.itens=l.itens.filter(function(o){ return !noFiltro(o); }); grava(); pinta();
+      l.itens=l.itens.filter(function(o){ return !noFiltro(o); }); grava(); pinta(); fecha();
     }
   });
 
