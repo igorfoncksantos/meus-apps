@@ -915,7 +915,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v30 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v31 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1824,9 +1824,11 @@ function openSecurity(){ closeMenu();
   if(!sbReady()){ showConnect(); return; }
   authScreen('<div class="auth-ic">'+svgIc('sync')+'</div><h2>Sincronização</h2>'+
     '<p>Conectado como <b style="color:var(--txt2)">'+escapeHtml(localStorage.getItem('norte-login')||(session&&session.user&&session.user.email)||'')+'</b><br>Suas tarefas aparecem nos seus aparelhos, ao vivo.</p>'+
-    '<div class="act-list"><button class="del" onclick="disconnectAccount()"><span class="ic">'+svgIc('logout')+'</span>Sair da conta (parar de sincronizar)</button></div>'+
+    '<div class="act-list"><button onclick="showChangePw()"><span class="ic">'+svgIc('key')+'</span>Senha da conta</button>'+
+    '<button class="del" onclick="disconnectAccount()"><span class="ic">'+svgIc('logout')+'</span>Sair da conta (parar de sincronizar)</button></div>'+
     '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); }
-function showChangePw(){ authScreen('<div class="auth-ic">🔑</div><h2>Trocar senha</h2>'+
+function showChangePw(){ authScreen('<div class="auth-ic">🔑</div><h2>Senha da conta</h2>'+
+  '<p>Defina uma senha pra entrar em qualquer aparelho novo <b>sem depender de e-mail</b>.</p>'+
   '<div class="field"><label>Nova senha</label><input id="cpPw" type="password" placeholder="mín. 6"></div>'+
   '<div class="field"><label>Confirmar</label><input id="cpPw2" type="password"></div>'+
   '<div class="auth-err" id="authErr"></div>'+

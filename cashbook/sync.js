@@ -162,10 +162,19 @@
       var g=await sb.auth.getSession(); session=(g.data&&g.data.session)||session; toast('Senha redefinida ✓'); onSignedIn();
     }catch(x){ err('Erro: '+(x.message||x)); } };
 
+  window.__mkpw=function(){ screen('<div class="sync-ic">'+IC.lock+'</div><h2>Senha da conta</h2><p>Defina uma senha pra entrar em qualquer aparelho novo <b>sem depender de e-mail</b>.</p>'+
+    '<div class="sync-f"><label>Nova senha</label><input id="npPw" type="password" placeholder="mín. 6 caracteres"></div>'+
+    '<div class="sync-err" id="syncErr"></div>'+
+    '<div class="sync-act"><button class="sbtn-g" onclick="window.openSync()">Voltar</button><button class="sbtn-p" onclick="window.__savepw()">Salvar</button></div>'); };
+  window.__savepw=async function(){ var p=(document.getElementById('npPw')||{}).value||''; if(p.length<6){ err('Mínimo 6 caracteres.'); return; } if(!sb){ err('Sem conexão.'); return; }
+    try{ var r=await sb.auth.updateUser({password:p}); if(r.error){ err(r.error.message); return; }
+      closeOv(); toast('Senha definida ✓');
+    }catch(x){ err('Erro: '+(x.message||x)); } };
+
   window.openSync=function(){
     if(!ready()){ showConnect(); return; }
     screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronização</h2><p>Conectado como <b style="color:#f0f2f4">'+(localStorage.getItem(LK.login)||(session.user&&session.user.email)||'')+'</b><br>Seus dados aparecem nos seus aparelhos.</p>'+
-      '<div class="sync-list"><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button><button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
+      '<div class="sync-list"><button onclick="window.__mkpw()">'+IC.pen+' Senha da conta</button><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button><button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
       '<div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); };
   window.__dc=async function(){ if(!await uiConfirm('Você vai parar de sincronizar neste aparelho. Os dados continuam aqui, só não atualizam no outro. Pra voltar, é só entrar de novo.',{title:'Sair da conta?',ok:'Sair',danger:true}))return;
     _synced=false; try{ if(sb)await sb.auth.signOut(); }catch(e){} if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
