@@ -449,9 +449,10 @@
       }));
     });
     el.appendChild(chip("+ Lista",null,false,function(){
-      var n=prompt("Nome da nova lista:"); if(n===null) return; n=n.trim(); if(!n) return;
-      var nl={id:uid(),nome:n,cats:[],itens:[]}; D.listas.push(nl); D.atual=nl.id;
-      filtro="tudo"; catNova=""; grava(); pinta();
+      fAsk("Nova lista","",function(n){ n=n.trim(); if(!n) return;
+        var nl={id:uid(),nome:n,cats:[],itens:[]}; D.listas.push(nl); D.atual=nl.id;
+        filtro="tudo"; catNova=""; grava(); pinta();
+      },"text","como quer chamar?");
     },"novo"));
   }
 
@@ -572,16 +573,15 @@
       s.addEventListener("click",onEdit); ex.appendChild(s); return s;
     }
     if(it.qtd) etiqueta("q",it.qtd+"×","quantidade",function(){
-      var v=prompt("Quantidade:",it.qtd); if(v===null) return; it.qtd=v.trim(); grava(); pinta();
+      fAsk("Quantidade",it.qtd,function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","vazio apaga");
     });
     if(it.preco) etiqueta("p","R$ "+(+it.preco).toFixed(2).replace(".",","),"preço",function(){
-      var v=prompt("Preço (só número):",it.preco); if(v===null) return;
-      it.preco=v.replace(",",".").trim(); grava(); pinta();
+      fAsk("Preço",it.preco,function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
     });
     if(it.carga) etiqueta("q",it.carga,"séries × reps × carga",function(){
-      var v=prompt("Séries × reps × carga:",it.carga); if(v===null) return;
-      if(v.trim()&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
-      it.carga=v.trim(); grava(); pinta();
+      fAsk("Séries × reps × carga",it.carga,function(v){
+        if(v.trim()&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
+        it.carga=v.trim(); grava(); pinta(); },"text","ex: 4×10 · 60kg");
     });
     if(it.hist && it.hist.length) etiqueta("","antes: "+it.hist[it.hist.length-1],"último registro",function(){
       alert("Histórico:\n• "+it.hist.slice().reverse().join("\n• "));
@@ -590,8 +590,7 @@
       var dd=Math.ceil((new Date(it.prazo+"T00:00:00")-new Date(new Date().toDateString()))/86400000);
       var rot=dd===0?"hoje":(dd===1?"amanhã":(dd<0?Math.abs(dd)+"d atrás":"em "+dd+"d"));
       var e=etiqueta("d "+(dd<=1?"perto":""),"⏱ "+rot,it.prazo,function(){
-        var v=prompt("Prazo (AAAA-MM-DD), vazio apaga:",it.prazo); if(v===null) return;
-        it.prazo=v.trim(); grava(); pinta();
+        fAsk("Prazo",it.prazo,function(v){ it.prazo=v.trim(); grava(); pinta(); },"date","vazio apaga");
       });
     }
     var mais=document.createElement("span"); mais.className="tag add"; mais.textContent="+";
@@ -653,19 +652,102 @@
   }
   function fmt(s){ var m=Math.floor(s/60), r=s%60; return m+":"+(r<10?"0":"")+r; }
 
+  // ---------- folha de opções (substitui os prompts numerados)
+  var fCssOk=false;
+  function fCss(){
+    if(fCssOk) return; fCssOk=true;
+    var s=document.createElement("style");
+    s.textContent=
+    ".fov{position:fixed;inset:0;z-index:900000;display:flex;align-items:flex-end;justify-content:center;"+
+      "background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:fFade .18s ease}"+
+    ".fov.out{animation:fFade .16s ease reverse forwards}"+
+    "@keyframes fFade{from{opacity:0}to{opacity:1}}"+
+    "@keyframes fUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}"+
+    ".fsheet{width:100%;max-width:440px;background:#15181b;border:1px solid #2a2f34;border-bottom:0;"+
+      "border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));"+
+      "box-shadow:0 -12px 40px rgba(0,0,0,.5);animation:fUp .22s cubic-bezier(.34,1.4,.64,1)}"+
+    "@media(min-width:560px){.fov{align-items:center}.fsheet{border-radius:18px;border-bottom:1px solid #2a2f34}}"+
+    ".fsh-t{font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#8a97a0;padding:2px 6px 12px}"+
+    ".fsh-l{display:flex;flex-direction:column;gap:4px}"+
+    ".fsh-i{display:flex;align-items:center;gap:12px;width:100%;background:transparent;border:0;cursor:pointer;"+
+      "padding:11px 8px;border-radius:12px;text-align:left;color:#f0f2f4;font:inherit;font-size:15px;transition:background .12s}"+
+    ".fsh-i:hover,.fsh-i:active{background:#1d2228}"+
+    ".fsh-ic{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:10px;"+
+      "background:rgba(47,217,201,.13);color:#2FD9C9;font-size:16px}"+
+    ".fsh-n{display:flex;flex-direction:column;line-height:1.25}"+
+    ".fsh-n em{font-style:normal;font-size:12px;color:#5b646a;margin-top:1px}"+
+    ".fsh-f{padding:2px 6px 4px}"+
+    ".fsh-f input{width:100%;box-sizing:border-box;background:#12161b;border:1px solid #2a2f34;border-radius:12px;"+
+      "padding:13px 14px;color:#f0f2f4;font:inherit;font-size:16px;outline:none}"+
+    ".fsh-f input:focus{border-color:#2FD9C9;box-shadow:0 0 0 3px rgba(47,217,201,.15)}"+
+    ".fsh-a{display:flex;gap:8px;padding:14px 6px 2px}"+
+    ".fsh-a button{flex:1;padding:12px;border-radius:12px;border:1px solid #2a2f34;cursor:pointer;font:inherit;font-weight:700;font-size:15px}"+
+    ".fsk-g{background:transparent;color:#c7ced3}"+
+    ".fsk-p{background:#2FD9C9;color:#08251f;border-color:#2FD9C9}";
+    document.head.appendChild(s);
+  }
+  function fClose(){
+    var o=document.getElementById("fSheetOv");
+    if(o){ o.classList.add("out"); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },170); }
+    document.removeEventListener("keydown",fEsc);
+  }
+  function fEsc(e){ if(e.key==="Escape") fClose(); }
+  function fOverlay(html){
+    fCss(); fClose();
+    var ov=document.createElement("div"); ov.id="fSheetOv"; ov.className="fov";
+    var sh=document.createElement("div"); sh.className="fsheet"; sh.innerHTML=html;
+    ov.appendChild(sh);
+    ov.addEventListener("click",function(e){ if(e.target===ov) fClose(); });
+    document.body.appendChild(ov);
+    document.addEventListener("keydown",fEsc);
+    if(window.paintIcons) try{ window.paintIcons(sh); }catch(e){}
+    return sh;
+  }
+  function fMenu(titulo,ops,cb){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div><div class="fsh-l"></div>');
+    var lista=sh.querySelector(".fsh-l");
+    ops.forEach(function(o){
+      var b=document.createElement("button"); b.type="button"; b.className="fsh-i";
+      b.innerHTML='<span class="fsh-ic"><span data-ic="'+o.ic+'"></span></span>'+
+                  '<span class="fsh-n">'+o.nome+(o.sub?'<em>'+o.sub+'</em>':'')+'</span>';
+      b.addEventListener("click",function(){ fClose(); setTimeout(function(){ cb(o.id); },40); });
+      lista.appendChild(b);
+    });
+    if(window.paintIcons) try{ window.paintIcons(lista); }catch(e){}
+  }
+  function fAsk(titulo,valor,cb,tipo,dica){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div>'+
+      '<div class="fsh-f"><input id="fskIn" type="'+(tipo||"text")+'" placeholder="'+(dica||"")+'"></div>'+
+      '<div class="fsh-a"><button type="button" class="fsk-g" id="fskC">Cancelar</button>'+
+      '<button type="button" class="fsk-p" id="fskO">Salvar</button></div>');
+    var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
+    function ok(){ var v=i.value; fClose(); setTimeout(function(){ cb(v); },40); }
+    sh.querySelector("#fskC").addEventListener("click",fClose);
+    sh.querySelector("#fskO").addEventListener("click",ok);
+    i.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); ok(); } });
+    setTimeout(function(){ try{ i.focus(); i.select(); }catch(e){} },80);
+  }
+
   function menuItem(it){
-    var op=prompt(
-      "1 = quantidade\n2 = preço\n3 = prazo (AAAA-MM-DD)\n4 = nota\n5 = subitem\n6 = séries × reps × carga\n7 = cronômetro de descanso\n\nDigite o número:");
-    if(op===null) return;
-    op=op.trim();
-    if(op==="1"){ var v=prompt("Quantidade:",it.qtd||""); if(v!==null) it.qtd=v.trim(); }
-    else if(op==="2"){ var v2=prompt("Preço (só número):",it.preco||""); if(v2!==null) it.preco=v2.replace(",",".").trim(); }
-    else if(op==="3"){ var v3=prompt("Prazo AAAA-MM-DD:",it.prazo||""); if(v3!==null) it.prazo=v3.trim(); }
-    else if(op==="4"){ if(it.nota===undefined||it.nota==="") it.nota="escreva aqui"; }
-    else if(op==="5"){ var v5=prompt("Subitem:"); if(v5!==null&&v5.trim()){ it.subs=it.subs||[]; it.subs.push({t:v5.trim(),ok:false}); } }
-    else if(op==="6"){ var v6=prompt("Ex: 4×10 · 60kg",it.carga||""); if(v6!==null){ if(it.carga&&v6.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); } it.carga=v6.trim(); } }
-    else if(op==="7"){ var v7=prompt("Descanso em segundos:",it.crono||"60"); if(v7!==null) it.crono=+v7||60; }
-    grava(); pinta();
+    fMenu("Adicionar ao item",[
+      {id:"1",ic:"tag",     nome:"Quantidade",  sub:"ex: 3"},
+      {id:"2",ic:"money",   nome:"Preço"},
+      {id:"3",ic:"cal",     nome:"Prazo"},
+      {id:"4",ic:"pen",     nome:"Nota"},
+      {id:"5",ic:"list",    nome:"Subitem"},
+      {id:"6",ic:"dumbbell",nome:"Séries × reps × carga", sub:"ex: 4×10 · 60kg"},
+      {id:"7",ic:"clock",   nome:"Cronômetro de descanso", sub:"em segundos"}
+    ],function(op){
+      if(op==="1") fAsk("Quantidade",it.qtd||"",function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","ex: 3");
+      else if(op==="2") fAsk("Preço",it.preco||"",function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
+      else if(op==="3") fAsk("Prazo",it.prazo||"",function(v){ it.prazo=v.trim(); grava(); pinta(); },"date");
+      else if(op==="4"){ if(it.nota===undefined||it.nota==="") it.nota="escreva aqui"; grava(); pinta(); }
+      else if(op==="5") fAsk("Novo subitem","",function(v){ if(v.trim()){ it.subs=it.subs||[]; it.subs.push({t:v.trim(),ok:false}); } grava(); pinta(); });
+      else if(op==="6") fAsk("Séries × reps × carga",it.carga||"",function(v){
+        if(it.carga&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
+        it.carga=v.trim(); grava(); pinta(); },"text","ex: 4×10 · 60kg");
+      else if(op==="7") fAsk("Descanso em segundos",it.crono||"60",function(v){ it.crono=+v||60; grava(); pinta(); },"number");
+    });
   }
 
   // ---------- arrastar
@@ -762,8 +844,10 @@
     });
   }
   document.getElementById("btNovaCat").addEventListener("click",function(){
-    var l=L(), n=prompt("Nome da categoria:"); if(n===null) return; n=n.trim(); if(!n) return;
-    l.cats.push({id:uid(),nome:n,cor:PALETA[l.cats.length%PALETA.length]}); grava(); pintaCats();
+    var l=L();
+    fAsk("Nova categoria","",function(n){ n=n.trim(); if(!n) return;
+      l.cats.push({id:uid(),nome:n,cor:PALETA[l.cats.length%PALETA.length]}); grava(); pintaCats();
+    },"text","ex: Mercado");
   });
 
   // ---------- adicionar
@@ -833,8 +917,10 @@
   menu.addEventListener("click",function(e){ if(e.target===menu) fecha(); });
 
   document.getElementById("btRenomear").addEventListener("click",function(){
-    var l=L(), n=prompt("Nome da lista:",l.nome); if(n===null) return; n=n.trim(); if(!n) return;
-    l.nome=n; grava(); pinta(); fecha();
+    var l=L();
+    fAsk("Renomear lista",l.nome,function(n){ n=n.trim(); if(!n) return;
+      l.nome=n; grava(); pinta(); fecha();
+    });
   });
   document.getElementById("btDuplicar").addEventListener("click",function(){
     var l=L(); var c=JSON.parse(JSON.stringify(l));
@@ -851,13 +937,15 @@
 
   // ---------- modelos
   document.getElementById("btSalvarModelo").addEventListener("click",function(){
-    var l=L(), n=prompt("Nome do modelo:",l.nome); if(n===null) return; n=n.trim(); if(!n) return;
-    var m={id:uid(),nome:n,cats:JSON.parse(JSON.stringify(l.cats)),
-           itens:l.itens.map(function(o){
-             return {texto:o.texto,cat:o.cat,qtd:o.qtd||"",preco:o.preco||"",carga:o.carga||"",
-                     crono:o.crono||0,nota:o.nota||"",subs:(o.subs||[]).map(function(s){return {t:s.t,ok:false}})};
-           })};
-    D.modelos.push(m); grava(); pintaModelos();
+    var l=L();
+    fAsk("Salvar como modelo",l.nome,function(n){ n=n.trim(); if(!n) return;
+      var m={id:uid(),nome:n,cats:JSON.parse(JSON.stringify(l.cats)),
+             itens:l.itens.map(function(o){
+               return {texto:o.texto,cat:o.cat,qtd:o.qtd||"",preco:o.preco||"",carga:o.carga||"",
+                       crono:o.crono||0,nota:o.nota||"",subs:(o.subs||[]).map(function(s){return {t:s.t,ok:false}})};
+             })};
+      D.modelos.push(m); grava(); pintaModelos();
+    },"text","nome do modelo");
   });
   function pintaModelos(){
     var box=document.getElementById("listaModelos"); box.innerHTML="";
