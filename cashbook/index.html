@@ -148,6 +148,11 @@
   .ring .rr { font-size:10.5px; color:#8a97a0; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums; }
   .ring .rd { font-size:10px; color:#FBBF24; font-weight:700; margin-top:2px; font-variant-numeric:tabular-nums; }
   .ring.est .rr { color:#f87171; }
+  .ring .gplanc { margin-top:9px; width:100%; background:#16303a; border:1px solid #295060; color:#7fe3d6; font-size:11px; font-weight:800; border-radius:9px; padding:6px 0; cursor:pointer; transition:transform .1s; }
+  .ring .gplanc:active { transform:scale(.95); }
+  .gpl-form { display:flex; gap:5px; margin-top:8px; }
+  .gpl-form .gpl-in { flex:1; min-width:0; background:#0b0e11; border:1px solid #295060; border-radius:8px; color:#fff; font-size:13px; font-weight:800; padding:7px 4px; text-align:center; outline:none; font-variant-numeric:tabular-nums; }
+  .gpl-form .gpl-ok { flex:none; background:#2FD9C9; color:#04222a; border:none; border-radius:8px; font-size:14px; font-weight:800; padding:0 11px; cursor:pointer; }
 
   .orclab { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#4a5257; margin:2px 2px 8px; }
   .orcrow { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
@@ -1270,9 +1275,30 @@ function montarRings(){
       + '<div class="rg" id="g_' + cat.id + '">R$ 0,00 <small>/ 0,00</small></div>'
       + '<div class="rr" id="r_' + cat.id + '">resta R$ 0,00</div>'
       + '<div class="rd" id="d_' + cat.id + '">R$ 0,00/dia</div>'
+      + '<button class="gplanc" data-planc="' + cat.id + '">+ lançar</button>'
+      + '<div class="gpl-form" data-plf="' + cat.id + '" style="display:none">'
+      +   '<input class="gpl-in" inputmode="decimal" data-pin="' + cat.id + '" placeholder="0,00">'
+      +   '<button class="gpl-ok" data-pok="' + cat.id + '">✓</button></div>'
       + '</div>';
   });
   box.innerHTML = h;
+  // lançar direto na categoria (por anel)
+  Array.prototype.forEach.call(box.querySelectorAll("[data-planc]"), function(b){ b.addEventListener("click", function(){
+    var f = box.querySelector('[data-plf="' + this.getAttribute("data-planc") + '"]');
+    if(f){ var open = (f.style.display === "none"); f.style.display = open ? "flex" : "none";
+      if(open){ var inp = f.querySelector(".gpl-in"); if(inp) inp.focus(); } }
+  }); });
+  function _lancarCat(id){
+    var inp = box.querySelector('.gpl-in[data-pin="' + id + '"]'); if(!inp) return;
+    var v = num(inp.value); if(!v) return;
+    var iso = hojeISO(), p = iso.split("-"), kc = catById(id);
+    st.l.push({ d:(kc ? kc.nome : "Gasto"), v:v, c:id, dt:p[2] + "/" + p[1], iso:iso });
+    inp.value = ""; var f = box.querySelector('[data-plf="' + id + '"]'); if(f) f.style.display = "none";
+    salvar(); render(); flashLancamento();
+  }
+  Array.prototype.forEach.call(box.querySelectorAll("[data-pok]"), function(b){ b.addEventListener("click", function(){ _lancarCat(this.getAttribute("data-pok")); }); });
+  Array.prototype.forEach.call(box.querySelectorAll(".gpl-in"), function(i){ i.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); _lancarCat(this.getAttribute("data-pin")); } }); });
 }
 
 function montarOrcrow(){
