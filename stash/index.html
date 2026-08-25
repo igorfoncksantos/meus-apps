@@ -321,6 +321,26 @@
   #t3 .gp-ring .rr{ font-size:10.5px; color:#8a97a0; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums; }
   #t3 .gp-ring .rd{ font-size:10px; color:#FBBF24; font-weight:700; margin-top:2px; font-variant-numeric:tabular-nums; }
   #t3 .gp-ring.est .rr{ color:#f87171; }
+  #t3 .gp-ring .gplanc{ margin-top:9px; width:100%; background:#16303a; border:1px solid #295060; color:#7fe3d6; font-size:11px; font-weight:800; border-radius:9px; padding:6px 0; cursor:pointer; transition:transform .1s; }
+  #t3 .gp-ring .gplanc:active{ transform:scale(.95); }
+  #t3 .gpl-form{ display:flex; gap:5px; margin-top:8px; }
+  #t3 .gpl-form .gpl-in{ flex:1; min-width:0; background:#0b0e11; border:1px solid #295060; border-radius:8px; color:#fff; font-size:13px; font-weight:800; padding:7px 4px; text-align:center; font-variant-numeric:tabular-nums; outline:none; }
+  #t3 .gpl-form .gpl-ok{ flex:none; background:#2FD9C9; color:#04222a; border:none; border-radius:8px; font-size:14px; font-weight:800; padding:0 11px; cursor:pointer; }
+  /* dropdown custom (cara do app) */
+  .cselwrap{ position:relative; }
+  .csel{ width:100%; display:flex; align-items:center; gap:9px; background:#12161a; border:1px solid #2a2f34; border-radius:11px; padding:11px 12px; color:var(--txt2); font:inherit; font-size:14px; font-weight:700; cursor:pointer; text-align:left; }
+  .csel:active{ transform:scale(.995); }
+  .csel .cseldot{ width:11px; height:11px; border-radius:50%; flex:none; box-shadow:0 0 0 3px rgba(255,255,255,.04); }
+  .csel .cselcar{ margin-left:auto; color:var(--mut2); font-size:11px; transition:transform .18s; }
+  .csel.open .cselcar{ transform:rotate(180deg); }
+  .cselpop{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60; background:#12161a; border:1px solid #2f353b; border-radius:12px; padding:6px; box-shadow:0 16px 38px rgba(0,0,0,.55); display:none; max-height:240px; overflow-y:auto; }
+  .cselpop.on{ display:block; animation:cselin .16s ease; }
+  @keyframes cselin{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
+  .cselopt{ display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:9px; font-size:13.5px; font-weight:700; color:var(--txt2); cursor:pointer; transition:background .12s,transform .12s; }
+  .cselopt:hover,.cselopt.sel{ background:rgba(47,217,201,.13); }
+  .cselopt:active{ transform:scale(.98); }
+  .cselopt .od{ width:11px; height:11px; border-radius:50%; flex:none; }
+  .cselopt.sel{ color:#fff; }
   #t3 .orclab{ font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#4a5257; margin:2px 2px 8px; }
   #t3 .gcfgtoggle{ display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; margin:2px 0 12px;
     background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:12px 15px; color:var(--txt2);
@@ -389,7 +409,12 @@
     <div style="max-width:130px"><label class="lb">Valor</label><input class="r" id="eVal" inputmode="decimal" placeholder="0,00"></div>
   </div>
   <div class="campos">
-    <div><label class="lb">Vai para</label><select id="eDest"></select></div>
+    <div><label class="lb">Vai para</label>
+      <div class="cselwrap">
+        <input type="hidden" id="eDest" value="cart">
+        <button type="button" class="csel" id="eDestBtn"><span class="cseldot" id="eDestDot" style="background:#5c6469"></span><span id="eDestLbl">Carteira de investimentos</span><span class="cselcar">▾</span></button>
+        <div class="cselpop" id="eDestPop"></div>
+      </div></div>
     <div style="max-width:130px;display:flex;align-items:flex-end"><button class="bt p w" id="eAdd">Registrar</button></div>
   </div>
   <div id="listaEntradas"></div>
@@ -725,10 +750,16 @@ function renderPatrimonio(){
   }
   document.getElementById("listaCx").innerHTML=h;
 
-  var sel=document.getElementById("eDest"), sv=sel.value;
-  var so='<option value="cart">Carteira de investimentos</option>';
-  D.cx.forEach(function(x){ so+='<option value="'+x.id+'">'+x.n+'</option>'; });
-  sel.innerHTML=so; if(sv) sel.value=sv;
+  var eD=document.getElementById("eDest"), sv=eD.value||"cart";
+  function _eopt(val,name,cor){ return '<div class="cselopt'+(val==sv?" sel":"")+'" data-eopt="'+val+'"><span class="od" style="background:'+cor+'"></span>'+esc(name)+'</div>'; }
+  var pop=document.getElementById("eDestPop");
+  var ph=_eopt("cart","Carteira de investimentos","#5c6469");
+  D.cx.forEach(function(x){ ph+=_eopt(x.id,x.n,x.c); });
+  pop.innerHTML=ph;
+  var selN="Carteira de investimentos", selC="#5c6469";
+  if(sv!=="cart"){ var scx=acharCx(sv); if(scx){ selN=scx.n; selC=scx.c; } else { eD.value="cart"; } }
+  document.getElementById("eDestLbl").textContent=selN;
+  document.getElementById("eDestDot").style.background=selC;
 
   var le=D.entradas.length?"":'<div class="vazio">Nenhuma entrada avulsa registrada.</div>';
   D.entradas.slice().reverse().forEach(function(e,i){
@@ -823,6 +854,8 @@ function ligarPatr(){
   Array.prototype.forEach.call(q("[data-cog]"),function(b){ b.addEventListener("click",function(){
     var id=this.getAttribute("data-cog"); abertos[id]=!abertos[id];
     document.querySelector('[data-ed="'+id+'"]').className="ed"+(abertos[id]?" on":""); }); });
+  Array.prototype.forEach.call(q("[data-v]"),function(i){ i.addEventListener("change",function(){
+    var c=acharCx(this.getAttribute("data-v")); if(c){ c.v=num(this.value); } salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-n]"),function(i){ i.addEventListener("change",function(){
     acharCx(this.getAttribute("data-n")).n=this.value.trim()||"Sem nome"; salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-c]"),function(i){ i.addEventListener("change",function(){
@@ -919,6 +952,20 @@ document.getElementById("eAdd").addEventListener("click",function(){
   document.getElementById("eDesc").value=""; document.getElementById("eVal").value="";
   salvar(); renderTudo(); animarNovo("listaEntradas","first"); toast("Entrada registrada.","ok");
 });
+
+/* dropdown custom "Vai para" (eDest) */
+(function(){
+  var btn=document.getElementById("eDestBtn"), pop=document.getElementById("eDestPop");
+  if(!btn||!pop) return;
+  btn.addEventListener("click",function(e){ e.stopPropagation(); var on=pop.classList.toggle("on"); btn.classList.toggle("open",on); });
+  pop.addEventListener("click",function(e){ e.stopPropagation(); var o=e.target.closest(".cselopt"); if(!o) return;
+    document.getElementById("eDest").value=o.getAttribute("data-eopt");
+    document.getElementById("eDestLbl").textContent=o.textContent.trim();
+    var od=o.querySelector(".od"); document.getElementById("eDestDot").style.background=od?od.style.background:"#5c6469";
+    Array.prototype.forEach.call(pop.querySelectorAll(".cselopt"),function(x){x.classList.remove("sel");}); o.classList.add("sel");
+    pop.classList.remove("on"); btn.classList.remove("open"); });
+  document.addEventListener("click",function(){ pop.classList.remove("on"); btn.classList.remove("open"); });
+})();
 
 document.getElementById("btSnap").addEventListener("click",function(){
   var h=new Date(), nome=MES[h.getMonth()]+" "+h.getFullYear();
@@ -1083,6 +1130,10 @@ function renderGastos(){
         '<div class="rg">R$ '+brl(gas)+' <small>/ '+brl(orc)+'</small></div>' +
         '<div class="rr">resta R$ '+brl(rest)+'</div>' +
         '<div class="rd">R$ '+brl(rest>0?rest/d:0)+'/dia</div>' +
+        '<button class="gplanc" data-planc="'+k.id+'">+ lançar</button>' +
+        '<div class="gpl-form" data-plf="'+k.id+'" style="display:none">' +
+          '<input class="gpl-in" inputmode="decimal" data-pin="'+k.id+'" placeholder="0,00">' +
+          '<button class="gpl-ok" data-pok="'+k.id+'">✓</button></div>' +
         '</div>';
   });
   var gRings=document.getElementById("gRings");
@@ -1155,6 +1206,21 @@ function renderGastos(){
     var usados=D.vale.l.filter(function(x){ return x.c==id; }).length;
     if(!confirm('Apagar a categoria "'+(k?k.nome:"")+'"?'+(usados?'\n\n'+usados+' lançamento(s) dela ficam sem categoria (mas seguem no ciclo).':''))) return;
     D.vale.cats=D.vale.cats.filter(function(c){ return c.id!=id; }); salvar(); renderGastos(); }); });
+  // lançar direto na categoria (por anel)
+  Array.prototype.forEach.call(q("[data-planc]"),function(b){ b.addEventListener("click",function(){
+    var f=document.querySelector('[data-plf="'+this.getAttribute("data-planc")+'"]');
+    if(f){ var open=(f.style.display==="none"); f.style.display=open?"flex":"none";
+      if(open){ var inp=f.querySelector(".gpl-in"); if(inp) inp.focus(); } } }); });
+  function _lancarCat(id){
+    var inp=document.querySelector('.gpl-in[data-pin="'+id+'"]'); if(!inp) return;
+    var v=num(inp.value); if(!v){ toast("Informe o valor.","err"); inp.focus(); return; }
+    var kc=acharCat(id), iso=hojeISO(), p=iso.split("-");
+    D.vale.l.push({d:(kc?kc.nome:"Gasto"), v:v, c:id, dt:p[2]+"/"+p[1], iso:iso});
+    var cv=cofreVale(); if(cv) cv.v-=v;
+    salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok"); }
+  Array.prototype.forEach.call(q("[data-pok]"),function(b){ b.addEventListener("click",function(){ _lancarCat(this.getAttribute("data-pok")); }); });
+  Array.prototype.forEach.call(q(".gpl-in"),function(i){ i.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){ e.preventDefault(); _lancarCat(this.getAttribute("data-pin")); } }); });
 }
 
 document.getElementById("gAdd").addEventListener("click",function(){
