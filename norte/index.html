@@ -915,7 +915,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v31 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v32 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1677,10 +1677,26 @@ function onSignedIn(){ if(_synced)return; _synced=true;
   try{ history.replaceState(null,'',location.pathname); }catch(e){}
   closeAuth(); subscribeRT(); pullRemote(); toast('Conectado ✓ sincronizando'); }
 function showConnect(){ closeMenu(); authScreen('<div class="auth-ic">'+svgIc('sync')+'</div><h2>Sincronizar aparelhos</h2>'+
-  '<p>Entre pra ver as mesmas tarefas no computador e no celular. <b>Sem senha</b> — enviamos um código de 6 dígitos pro seu e-mail.</p>'+
+  '<p>Entre com <b>e-mail e senha</b> pra ver as mesmas tarefas no computador e no celular.</p>'+
+  '<div class="field"><label>E-mail</label><input id="cnEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="'+(localStorage.getItem("norte-login")||"")+'"></div>'+
+  '<div class="field"><label>Senha</label><input id="cnPw" type="password" placeholder="mín. 6 caracteres"></div>'+
+  '<div class="auth-err" id="authErr"></div>'+
+  '<div class="actions"><button class="btn-ghost" onclick="connectSignup()">Criar conta</button><button class="btn-primary" onclick="connectLogin()">Entrar</button></div>'+
+  '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>'+
+  '<button class="auth-link" onclick="showCodeLogin()">Entrar sem senha (código no e-mail)</button>'); }
+async function connectLogin(){ const e=val('cnEmail'), pw=val('cnPw');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
+  if(!pw){ authErr('Digite a senha.'); return; }
+  await doLogin(e,pw); }
+async function connectSignup(){ const e=val('cnEmail'), pw=val('cnPw');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
+  if(pw.length<6){ authErr('A senha precisa de ao menos 6 caracteres.'); return; }
+  await doSignup(e,pw); }
+function showCodeLogin(){ authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Entrar com código</h2>'+
+  '<p>Enviamos um código de 6 dígitos pro seu e-mail (pode atrasar ou cair no spam). Se puder, prefira a senha.</p>'+
   '<div class="field"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="'+(localStorage.getItem("norte-login")||"")+'"></div>'+
   '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Fechar</button><button class="btn-primary" onclick="magicLink()">Enviar código</button></div>'); }
+  '<div class="actions"><button class="btn-ghost" onclick="showConnect()">Voltar</button><button class="btn-primary" onclick="magicLink()">Enviar código</button></div>'); }
 let _otpEmail='';
 async function magicLink(){ const e=val('mlEmail');
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
@@ -1770,7 +1786,7 @@ async function signupGo(){ const b=document.getElementById('suGo'); if(b){ b.tex
 async function doSignup(email,pw){ if(!sb){ authErr('Sem conexão. Tente de novo com internet.'); return; }
   try{ let r=await sb.auth.signUp({email:email,password:pw});
     if(r.error){ if(/registered|exists/i.test(r.error.message)){ r=await sb.auth.signInWithPassword({email:email,password:pw});
-        if(r.error){ authErr('Esse e-mail já tem conta e a senha não confere. Use "Já tenho conta".'); return; } }
+        if(r.error){ authErr('Esse e-mail já tem conta e a senha não confere. Use "Entrar" ou "Esqueci a senha".'); return; } }
       else { authErr(r.error.message); return; } }
     session=(r.data&&r.data.session)||null;
     if(!session){ const s=await sb.auth.signInWithPassword({email:email,password:pw}); session=(s.data&&s.data.session)||null; }
