@@ -915,7 +915,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v29 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v30 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1515,9 +1515,13 @@ function chartSVG2(pts,showPct,showCount){
     var bw = Math.max(3, Math.min(11, slot*0.30));
     var gap = Math.max(1.5, bw*0.30);
     var op = dual?0.5:0.85;
+    var loX=padL+1, hiX=W-padR-1;
     pts.forEach(function(p,i){ var cx=X(i), base=padT+ih;
       var d=p.done||0, u=p.und||0;
       var xd=cx-gap/2-bw, xu=cx+gap/2;
+      /* mantém o par dentro da área — não invade os eixos (primeira/última coluna) */
+      if(xd<loX){ var sh=loX-xd; xd+=sh; xu+=sh; }
+      if(xu+bw>hiX){ var sh2=(xu+bw)-hiX; xd-=sh2; xu-=sh2; }
       var hd=base-Yb(d), hu=base-Yb(u);
       g+='<rect x="'+xd+'" y="'+Yb(d)+'" width="'+bw+'" height="'+Math.max(0,hd)+'" rx="1.6" fill="'+BCOL.done+'" opacity="'+op+'"/>';
       g+='<rect x="'+xu+'" y="'+Yb(u)+'" width="'+bw+'" height="'+Math.max(0,hu)+'" rx="1.6" fill="'+BCOL.und+'" opacity="'+op+'"/>';
