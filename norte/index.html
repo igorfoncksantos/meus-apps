@@ -915,7 +915,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v28 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v29 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1479,32 +1479,54 @@ function dayPct(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null;
 function mondayOf(iso){ const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d); const wd=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-wd); return dt; }
 function pad2(n){ return String(n).padStart(2,'0'); }
 const PCOL={pct:'#2FD9C9', count:'#22C55E'};
+const BCOL={done:'#3DDB84', und:'#EF4444'};
+function dayDoneUndone(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null; let done=0,und=0;
+  dd.tasks.forEach(t=>{ const f=dayFrac(t,iso); if(f===null)return; if(f>=1) done++; else und++; });
+  return {done:done,und:und}; }
 function progUnified(mode){
   const days=Object.keys(DB.days).filter(iso=>dayPct(iso)!==null||dayCount(iso)!==null).sort();
   if(!days.length) return [];
-  if(mode==='dia') return days.slice(-14).map(iso=>({label:iso.slice(8,10)+'/'+iso.slice(5,7), pct:dayPct(iso), count:dayCount(iso)}));
+  if(mode==='dia') return days.slice(-14).map(iso=>{ const du=dayDoneUndone(iso)||{done:0,und:0}; return {label:iso.slice(8,10)+'/'+iso.slice(5,7), pct:dayPct(iso), count:dayCount(iso), done:du.done, und:du.und}; });
   const groups={};
   days.forEach(iso=>{ let key,label;
     if(mode==='sem'){ const dt=mondayOf(iso); key=dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate()); label=pad2(dt.getDate())+'/'+pad2(dt.getMonth()+1); }
     else { key=iso.slice(0,7); label=MES[+iso.slice(5,7)-1].slice(0,3); }
-    if(!groups[key])groups[key]={pS:0,pN:0,cS:0,cN:0,label:label,key:key};
-    const gp=groups[key], p=dayPct(iso), c=dayCount(iso);
-    if(p!==null){ gp.pS+=p; gp.pN++; } if(c!==null){ gp.cS+=c; gp.cN++; } });
+    if(!groups[key])groups[key]={pS:0,pN:0,cS:0,cN:0,dO:0,dU:0,label:label,key:key};
+    const gp=groups[key], p=dayPct(iso), c=dayCount(iso), du=dayDoneUndone(iso);
+    if(p!==null){ gp.pS+=p; gp.pN++; } if(c!==null){ gp.cS+=c; gp.cN++; } if(du){ gp.dO+=du.done; gp.dU+=du.und; } });
   return Object.keys(groups).sort().map(k=>groups[k]).slice(mode==='sem'?-10:-8)
-    .map(g=>({label:g.label, pct:g.pN?Math.round(g.pS/g.pN):null, count:g.cN?Math.round(g.cS/g.cN):null}));
+    .map(g=>({label:g.label, pct:g.pN?Math.round(g.pS/g.pN):null, count:g.cN?Math.round(g.cS/g.cN):null, done:g.dO, und:g.dU}));
 }
 function chartSVG2(pts,showPct,showCount){
   const dual=showPct&&showCount;
-  const W=340,H=205,padL=28,padR=dual?30:14,padT=18,padB=26, iw=W-padL-padR, ih=H-padT-padB, n=pts.length;
+  const W=340,H=205,padL=28,padR=dual?32:14,padT=18,padB=26, iw=W-padL-padR, ih=H-padT-padB, n=pts.length;
   const X=i=> n<=1? padL+iw/2 : padL+iw*i/(n-1);
-  const maxC=Math.max.apply(null,[4].concat(pts.map(p=>p.count||0)));
-  const Yp=v=> padT+ih*(1-v/100), Yc=v=> padT+ih*(1-v/maxC);
+  const barMax=Math.max.apply(null,[1].concat(pts.map(p=>Math.max(p.done||0,p.und||0))));
+  const Yp=v=> padT+ih*(1-v/100), Yb=v=> padT+ih*(1-v/barMax);
   let g='';
   [0,.25,.5,.75,1].forEach(function(f){ var yy=padT+ih*(1-f);
     g+='<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="var(--line)" stroke-width="1"/>';
-    var lc = showPct?PCOL.pct:PCOL.count, lv = showPct?Math.round(100*f):Math.round(maxC*f);
+    var lc = showPct?PCOL.pct:BCOL.done, lv = showPct?Math.round(100*f):Math.round(barMax*f);
     g+='<text x="'+(padL-6)+'" y="'+(yy+3)+'" fill="'+lc+'" font-size="8.5" text-anchor="end">'+lv+'</text>';
-    if(dual) g+='<text x="'+(W-padR+6)+'" y="'+(yy+3)+'" fill="'+PCOL.count+'" font-size="8.5" text-anchor="start">'+Math.round(maxC*f)+'</text>'; });
+    if(dual) g+='<text x="'+(W-padR+6)+'" y="'+(yy+3)+'" fill="'+BCOL.done+'" font-size="8.5" text-anchor="start">'+Math.round(barMax*f)+'</text>'; });
+  /* barras feitas / não feitas (= métrica "Nº de tarefas") */
+  if(showCount){
+    var slot = n>1? iw/(n-1) : iw;
+    var bw = Math.max(3, Math.min(11, slot*0.30));
+    var gap = Math.max(1.5, bw*0.30);
+    var op = dual?0.5:0.85;
+    pts.forEach(function(p,i){ var cx=X(i), base=padT+ih;
+      var d=p.done||0, u=p.und||0;
+      var xd=cx-gap/2-bw, xu=cx+gap/2;
+      var hd=base-Yb(d), hu=base-Yb(u);
+      g+='<rect x="'+xd+'" y="'+Yb(d)+'" width="'+bw+'" height="'+Math.max(0,hd)+'" rx="1.6" fill="'+BCOL.done+'" opacity="'+op+'"/>';
+      g+='<rect x="'+xu+'" y="'+Yb(u)+'" width="'+bw+'" height="'+Math.max(0,hu)+'" rx="1.6" fill="'+BCOL.und+'" opacity="'+op+'"/>';
+      if(n<=10){
+        if(d) g+='<text x="'+(xd+bw/2)+'" y="'+(Yb(d)-3)+'" fill="'+BCOL.done+'" font-size="8" font-weight="700" text-anchor="middle">'+d+'</text>';
+        if(u) g+='<text x="'+(xu+bw/2)+'" y="'+(Yb(u)-3)+'" fill="'+BCOL.und+'" font-size="8" font-weight="700" text-anchor="middle">'+u+'</text>';
+      }
+    });
+  }
   pts.forEach((p,i)=>{ g+='<text x="'+X(i)+'" y="'+(padT+ih+15)+'" fill="var(--mut)" font-size="8" text-anchor="middle">'+p.label+'</text>'; });
   function line(getV,Yf,color,area,labels){
     const segs=[]; let seg=[];
@@ -1516,8 +1538,7 @@ function chartSVG2(pts,showPct,showCount){
     segs.forEach(sg=>sg.forEach(q=>{ s+='<circle cx="'+q[0]+'" cy="'+q[1]+'" r="3.2" fill="'+color+'" stroke="var(--panel)" stroke-width="1.5"/>'; if(labels && n<=10) s+='<text x="'+q[0]+'" y="'+(q[1]-8)+'" fill="var(--txt2)" font-size="9" font-weight="700" text-anchor="middle">'+q[2]+'</text>'; }));
     return s;
   }
-  if(showPct)   g+=line(p=>p.pct,   Yp, PCOL.pct,   !dual, !dual);
-  if(showCount) g+=line(p=>p.count, Yc, PCOL.count, false, !dual);
+  if(showPct) g+=line(p=>p.pct, Yp, PCOL.pct, !showCount, !showCount);
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FD9C9" stop-opacity="0.24"/><stop offset="1" stop-color="#2FD9C9" stop-opacity="0"/></linearGradient></defs>'+g+'</svg>';
 }
 function metricStats(key,pts){ const vals=pts.map(p=>p[key]).filter(v=>v!==null&&v!==undefined);
@@ -1537,20 +1558,20 @@ function progSummary(pts,showPct,showCount,mode){
     ps.push('<p>Conclusão média de <b>'+s.avg+'%</b> por '+W.u+' '+W.win+' '+n+' '+W.us+(t?' — desempenho '+tw(t,'em alta','em queda'):'')+'. Melhor: <b>'+s.best+'%</b>'+(last!=null?' · '+(mode==='dia'?'hoje':mode==='sem'?'atual':'atual')+' <b>'+last+'%</b>':'')+'.</p>');
   }
   if(showCount){
-    const s=metricStats('count',pts), vals=pts.map(p=>p.count), t=progTrend(vals,0.4);
-    const total=vals.filter(v=>v!==null&&v!==undefined).reduce((a,b)=>a+b,0);
-    ps.push('<p>Média de <b>'+s.avg+'</b> tarefas por dia'+(t?' — '+tw(t,'crescendo','caindo'):'')+'. Pico: <b>'+s.best+'</b>'+(mode==='dia'?' · total <b>'+total+'</b> '+W.win+' '+n+' '+W.us:'')+'.</p>');
+    const td=pts.reduce((a,p)=>a+(p.done||0),0), tu=pts.reduce((a,p)=>a+(p.und||0),0), tot=td+tu;
+    const rate=tot?Math.round(td/tot*100):0, t=progTrend(pts.map(p=>p.done),0.4);
+    ps.push('<p><b>'+td+'</b> feitas e <b>'+tu+'</b> não feitas '+W.win+' '+n+' '+W.us+' — <b>'+rate+'%</b> de conclusão'+(t?', feitas '+tw(t,'em alta','em queda'):'')+'.</p>');
   }
   return '<div class="prog-sum"><div class="sh">'+svgIc('trending')+'Resumo</div>'+ps.join('')+'</div>';
 }
 function renderProgress(){
   const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
-  const metrics=[['pct','% do dia'],['count','Nº de tarefas']];
+  const metrics=[['pct','% do dia'],['count','Feitas / não feitas']];
   const pts=progUnified(_progMode); const showPct=_progOn.pct, showCount=_progOn.count;
   let legend='';
   if(pts.length){
     if(showPct){ const s=metricStats('pct',pts); legend+='<span class="pl"><i style="background:'+PCOL.pct+'"></i>% do dia <b>média '+s.avg+'%</b> · melhor '+s.best+'%</span>'; }
-    if(showCount){ const s=metricStats('count',pts); legend+='<span class="pl"><i style="background:'+PCOL.count+'"></i>Nº de tarefas <b>média '+s.avg+'</b> · máx '+s.best+'</span>'; }
+    if(showCount){ const td=pts.reduce((a,p)=>a+(p.done||0),0), tu=pts.reduce((a,p)=>a+(p.und||0),0); legend+='<span class="pl"><i style="background:'+BCOL.done+'"></i>Feitas <b>'+td+'</b> <i style="background:'+BCOL.und+';margin-left:8px"></i>Não feitas <b>'+tu+'</b></span>'; }
   }
   const chart = pts.length ? chartSVG2(pts,showPct,showCount) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.</div>';
   document.getElementById('progView').innerHTML =
