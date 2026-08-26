@@ -623,11 +623,20 @@
   <h2>Lançamentos</h2>
   <div id="listaGastos"></div>
 
-  <h2>Histórico e relatório</h2>
-  <div class="relchips" id="relChips"></div>
-  <div id="relResumo"></div>
-  <div id="relLista"></div>
-  <div class="acoes" style="margin-top:10px"><button class="bt" id="relPdf">Baixar relatório em PDF</button></div>
+  <div class="grp col" id="relGrp" style="margin-top:20px">
+    <div class="ghead" id="relHead" style="border-left:3px solid var(--accent)">
+      <span class="chev">&#9662;</span>
+      <span class="gdot" style="background:var(--accent)"></span>
+      <span class="gnm">Histórico e relatório</span>
+      <span class="gsub" id="relSub">&mdash;</span>
+    </div>
+    <div class="gbody">
+      <div class="relchips" id="relChips"></div>
+      <div id="relResumo"></div>
+      <div id="relLista"></div>
+      <div class="acoes" style="margin-top:10px"><button class="bt" id="relPdf">Baixar relatório em PDF</button></div>
+    </div>
+  </div>
 
   <div class="acoes">
     <button class="bt d" id="gNovoCiclo">Começar ciclo novo</button>
@@ -1241,6 +1250,10 @@ function relRender(){
     });
   }
   var d=relDados(_relSel);
+  var sub=document.getElementById("relSub");
+  if(sub) sub.textContent = cs[_relSel] ? cs[_relSel].nome : "—";
+  var hd=document.getElementById("relHead");
+  if(hd && !hd._lig){ hd._lig=1; hd.addEventListener("click",function(){ document.getElementById("relGrp").classList.toggle("col"); }); }
   var res=document.getElementById("relResumo"), lst=document.getElementById("relLista");
   var hh='<div class="relbox"><div class="reltot"><span class="rl">'+esc(d.c.per)+'</span><span class="rv">R$ '+brl(d.total)+'</span></div>';
   var algum=false;
@@ -1259,9 +1272,13 @@ function relRender(){
   var lh="";
   (d.c.l||[]).slice().reverse().forEach(function(x){
     var k=acharCat(x.c);
-    lh+='<div class="gitem"><span class="gdt">'+esc(x.dt)+'</span><div class="ginfo"><div class="gd">'+esc(x.d)+'</div><div class="gc" style="color:'+(k?k.cor:"#8a97a0")+'">'+esc(k?k.nome:"sem categoria")+'</div></div><span class="gv">R$ '+brl(x.v)+'</span></div>';
+    var cor = k ? k.cor : "#5c6469";
+    lh+='<div class="lc" style="border-left-color:'+cor+'"><span class="ld">'+esc(x.dt)+'</span>'
+        +'<span class="lo">'+esc(x.d)+'<small>'+(k?catIcoHTML(k):"")+' '+esc(k?k.nome:"sem categoria")+'</small></span>'
+        +'<span class="lv">R$ '+brl(x.v)+'</span></div>';
   });
   lst.innerHTML = lh || '<div class="relvazio">Sem lançamentos.</div>';
+  setTimeout(function(){ if(window.paintIcons) window.paintIcons(lst); },0);
 }
 function relPdf(){
   var d=relDados(_relSel);
