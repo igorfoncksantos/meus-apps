@@ -960,11 +960,11 @@ function renderPatrimonio(){
              swHTML("[data-gcolor='"+gi+"']") +
              '<div class="acoes"><button class="bt d" data-gdel="'+gi+'">Apagar nicho</button></div></div>';
       if(itens.length){
-        if(!_cxSel[ow] || !itens.filter(function(y){ return y.id===_cxSel[ow]; }).length) _cxSel[ow]=itens[0].id;
+        if(!_cxSel[ow] || !itens.filter(function(y){ return String(y.id)===String(_cxSel[ow]); }).length) _cxSel[ow]=String(itens[0].id);
         h+= '<div class="cxcar">';
-        itens.forEach(function(x){ h+=cardMini(x, x.id===_cxSel[ow]); });
+        itens.forEach(function(x){ h+=cardMini(x, String(x.id)===String(_cxSel[ow])); });
         h+= '<button class="cxadd" data-gadd="'+gi+'">+ cofre</button></div>';
-        var escolhido = itens.filter(function(y){ return y.id===_cxSel[ow]; })[0];
+        var escolhido = itens.filter(function(y){ return String(y.id)===String(_cxSel[ow]); })[0];
         h+= '<div class="cxdet">' + (escolhido ? cardCx(escolhido) : "") + '</div>';
       } else {
         h+= '<span class="gadd" data-gadd="'+gi+'">+ cofre</span>';
@@ -1106,7 +1106,7 @@ function ligarPatr(){
   Array.prototype.forEach.call(q("[data-cxsel]"),function(c){ c.addEventListener("click",function(e){
     if(e.target.closest("[data-gadd]")) return;
     var id=this.getAttribute("data-cxsel"), alvo=null;
-    D.cx.forEach(function(x){ if(x.id===id) alvo=x; });
+    D.cx.forEach(function(x){ if(String(x.id)===String(id)) alvo=x; });
     if(!alvo) return;
     _cxSel[alvo.own] = id;
     renderPatrimonio();
