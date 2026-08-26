@@ -1034,7 +1034,8 @@
     try{
       var r=el.getBoundingClientRect(); if(!r.width) return;
       var b=document.createElement("div"); b.className="kbdpv";
-      b.textContent=(el.textContent||"").trim().slice(0,7);
+      var oculto = target && (target.type==="password");
+      b.textContent = oculto ? "•" : (el.textContent||"").trim().slice(0,7);
       var la=el.offsetWidth||r.width, al=el.offsetHeight||r.height;
       var meio=r.left+r.width/2, folga=la*0.70+4;
       if(meio<folga) meio=folga; if(meio>window.innerWidth-folga) meio=window.innerWidth-folga;

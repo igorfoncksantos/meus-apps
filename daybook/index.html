@@ -264,6 +264,10 @@
       reg.addEventListener('updatefound',function(){ var nw=reg.installing; if(!nw) return;
         nw.addEventListener('statechange',function(){ if(nw.state==='installed' && navigator.serviceWorker.controller) banner(reg); }); });
       setInterval(function(){ reg.update().catch(function(){}); }, 60000);
+      function _confere(){ reg.update().catch(function(){}); }
+      document.addEventListener('visibilitychange',function(){ if(!document.hidden) _confere(); });
+      window.addEventListener('focus', _confere);
+      window.addEventListener('pageshow', _confere);
     }
     window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').then(watch).catch(function(){}); });
   })();

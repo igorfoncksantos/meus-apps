@@ -93,7 +93,7 @@
     '.gbtn-g{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;padding:14px;border-radius:14px;border:1.5px solid #d7dbe0;background:#fff;color:#1f2226;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:2px;box-shadow:0 3px 12px rgba(0,0,0,.18);font-family:inherit}.gbtn-g:active{transform:scale(.97)}.gbtn-g b{color:#4285F4;font-size:19px}'+
     '.sync-or{display:flex;align-items:center;gap:10px;color:#98a1a8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:13px 0}.sync-or::before,.sync-or::after{content:"";flex:1;height:1px;background:#2a2f35}'+
     '.pdots{display:flex;gap:16px;justify-content:center;margin:8px 0 12px}.pdot{width:15px;height:15px;border-radius:50%;border:2px solid #3a3f45;transition:.15s}.pdot.on{background:var(--sacc);border-color:var(--sacc);box-shadow:0 0 10px rgba(47,217,201,.5)}.pdots.shake{animation:pinsh .4s}@keyframes pinsh{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}'+
-    '.pkeypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 2px}.pkey{height:56px;border-radius:16px;border:1px solid #2a2f35;background:#121417;color:#f0f2f4;font-size:24px;font-weight:600;cursor:pointer;font-family:inherit}.pkey:active{transform:scale(.93);background:rgba(47,217,201,.14)}.pkey.empty{background:none;border:none}.pkey.pkb{font-size:21px;color:#98a1a8}'+
+    '.pkeypad{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:4px 0 2px}.pkey{height:66px;border-radius:18px;border:1px solid #2a2f35;background:#121417;color:#f0f2f4;font-size:27px;font-weight:600;cursor:pointer;font-family:inherit;position:relative}.pinpv{position:fixed;z-index:2000001;display:flex;align-items:center;justify-content:center;pointer-events:none;border-radius:18px;background:linear-gradient(180deg,#f4fbfa,#cbe6e2);color:#07171b;font-weight:800;box-shadow:0 10px 26px rgba(0,0,0,.55);font-family:inherit;animation:pinpv .26s cubic-bezier(.25,1.4,.45,1) forwards}@keyframes pinpv{0%{transform:translate(-50%,-50%) scale(.8);opacity:0}22%{transform:translate(-50%,-96%) scale(1.28);opacity:1}62%{transform:translate(-50%,-96%) scale(1.28);opacity:1}100%{transform:translate(-50%,-88%) scale(1.12);opacity:0}}.pkey:active{transform:scale(.93);background:rgba(47,217,201,.14)}.pkey.empty{background:none;border:none}.pkey.pkb{font-size:21px;color:#98a1a8}'+
     '#syncBtn{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:9998;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(20,23,27,.82);backdrop-filter:blur(8px);color:#cfd6db;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}#syncBtn.on{color:'+ACCENT+';border-color:rgba(47,217,201,.4)}#syncBtn svg{width:19px;height:19px}'+
     '#syncToast{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100001;background:#12161b;color:#eafcf6;border:1px solid #1f5c4d;border-radius:12px;padding:10px 16px;font-size:13px;font-weight:700;opacity:0;transition:opacity .3s;box-shadow:0 10px 30px rgba(0,0,0,.5);font-family:"Segoe UI",Arial,sans-serif}';
     document.head.appendChild(st);
@@ -229,6 +229,45 @@
   function pdots(){ var s=''; for(var i=0;i<4;i++)s+='<span class="pdot'+(i<_pin.length?' on':'')+'"></span>'; return s; }
   function keypad(){ var k=''; ['1','2','3','4','5','6','7','8','9','x','0','back'].forEach(function(d){ if(d==='x')k+='<span class="pkey empty"></span>'; else if(d==='back')k+='<button class="pkey pkb" onclick="window.__pb()">⌫</button>'; else k+='<button class="pkey" onclick="window.__pt(\''+d+'\')">'+d+'</button>'; }); return k; }
   function showPin(m){ _pinMode=m; _pin=''; var t=pinTitles(m); screen('<div class="sync-ic">'+IC.lock+'</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+'<div class="pdots" id="pdots">'+pdots()+'</div><div class="sync-err" id="syncErr" style="min-height:15px"></div><div class="pkeypad">'+keypad()+'</div>'+(m==='unlock'?'':'<button class="sync-link" onclick="window.__sc()">Cancelar</button>'), m==='unlock'); }
+
+  /* aviso de toque no teclado do PIN: bolha + vibracao, e segurar apaga.
+     A bolha mostra um PONTO, nunca o digito -- e um PIN; quem olha por cima
+     do ombro veria o numero. O que importa e saber ONDE se tocou. */
+  var _pinRep=null;
+  function _pinSolta(){ if(_pinRep){ clearTimeout(_pinRep); _pinRep=null; } }
+  function _pinBolha(el, txt){
+    try{ if(navigator.vibrate) navigator.vibrate(8); }catch(x){}
+    try{
+      var r=el.getBoundingClientRect(); if(!r.width) return;
+      var b=document.createElement('div'); b.className='pinpv'; b.textContent=txt;
+      var al=el.offsetHeight||r.height;
+      var la=Math.min(el.offsetWidth||r.width, al*1.15);
+      var meio=r.left+r.width/2, folga=la*0.66+4;
+      if(meio<folga) meio=folga;
+      if(meio>window.innerWidth-folga) meio=window.innerWidth-folga;
+      b.style.left=meio+'px'; b.style.top=(r.top+r.height/2)+'px';
+      b.style.width=la+'px'; b.style.height=al+'px';
+      b.style.fontSize=getComputedStyle(el).fontSize;
+      document.body.appendChild(b);
+      setTimeout(function(){ try{ b.parentNode.removeChild(b); }catch(y){} }, 300);
+    }catch(x){}
+  }
+  document.addEventListener('pointerdown', function(e){
+    var t=e.target && e.target.closest && e.target.closest('.pkey');
+    if(!t || t.classList.contains('empty')) return;
+    var apaga=t.classList.contains('pkb');
+    _pinBolha(t, apaga ? '⌫' : '•');
+    if(!apaga) return;
+    _pinSolta(); var n=0;
+    _pinRep=setTimeout(function passo(){
+      if(!_pin){ _pinSolta(); return; }
+      window.__pb(); n++;
+      _pinRep=setTimeout(passo, n<4?90:60);
+    }, 420);
+  });
+  ['pointerup','pointercancel','touchend','touchcancel','mouseup'].forEach(function(ev){
+    document.addEventListener(ev, _pinSolta);
+  });
   function pinRef(){ var e=document.getElementById('pdots'); if(e)e.innerHTML=pdots(); }
   window.__pb=function(){ _pin=_pin.slice(0,-1); pinRef(); };
   window.__pt=function(d){ if(_pin.length>=4)return; _pin+=d; pinRef(); if(_pin.length===4)setTimeout(pinDone,130); };

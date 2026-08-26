@@ -608,9 +608,16 @@
   .pdot.on{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 10px rgba(47,217,201,.5); }
   .pdots.shake{ animation:pinshake .4s; }
   @keyframes pinshake{ 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
-  .pkeypad{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:4px 0 2px; }
-  .pkey{ height:56px; border-radius:16px; border:1px solid var(--line); background:var(--panel); color:var(--txt2);
-         font-size:24px; font-weight:600; cursor:pointer; transition:transform .1s, background .15s; font-family:inherit; }
+  .pkeypad{ display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin:4px 0 2px; }
+  .pkey{ height:66px; border-radius:18px; border:1px solid var(--line); background:var(--panel); color:var(--txt2);
+         font-size:27px; font-weight:600; cursor:pointer; transition:transform .1s, background .15s; font-family:inherit; position:relative; }
+  .pinpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none;
+          border-radius:18px; background:linear-gradient(180deg,#f4fbfa,#cbe6e2); color:#07171b; font-weight:800;
+          box-shadow:0 10px 26px rgba(0,0,0,.55); font-family:inherit; animation:pinpv .26s cubic-bezier(.25,1.4,.45,1) forwards; }
+  @keyframes pinpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; }
+    22%{ transform:translate(-50%,-96%) scale(1.28); opacity:1; }
+    62%{ transform:translate(-50%,-96%) scale(1.28); opacity:1; }
+    100%{ transform:translate(-50%,-88%) scale(1.12); opacity:0; } }
   .pkey:active{ transform:scale(.93); background:rgba(47,217,201,.14); }
   .pkey.empty{ background:none; border:none; cursor:default; }
   .pkey.pkb{ font-size:21px; color:var(--mut); }
@@ -1770,6 +1777,43 @@ function showPin(m){ _pinMode=m; _pin=''; const t=pinTitles(m);
     '<div class="auth-err" id="authErr" style="min-height:15px"></div>'+
     '<div class="pkeypad">'+pinKeypadHtml()+'</div>'+
     (m==='unlock'?'':'<button class="auth-link" onclick="closeAuth()">Cancelar</button>'), {lock:m==='unlock'}); }
+/* aviso de toque no teclado do PIN: bolha + vibracao, e segurar apaga.
+   A bolha mostra um PONTO, nunca o digito -- e um PIN. */
+let _pinRep=null;
+function _pinSolta(){ if(_pinRep){ clearTimeout(_pinRep); _pinRep=null; } }
+function _pinBolha(el, txt){
+  try{ if(navigator.vibrate) navigator.vibrate(8); }catch(x){}
+  try{
+    const r=el.getBoundingClientRect(); if(!r.width) return;
+    const b=document.createElement('div'); b.className='pinpv'; b.textContent=txt;
+    const al=el.offsetHeight||r.height;
+    const la=Math.min(el.offsetWidth||r.width, al*1.15);
+    let meio=r.left+r.width/2; const folga=la*0.66+4;
+    if(meio<folga) meio=folga;
+    if(meio>window.innerWidth-folga) meio=window.innerWidth-folga;
+    b.style.left=meio+'px'; b.style.top=(r.top+r.height/2)+'px';
+    b.style.width=la+'px'; b.style.height=al+'px';
+    b.style.fontSize=getComputedStyle(el).fontSize;
+    document.body.appendChild(b);
+    setTimeout(function(){ try{ b.parentNode.removeChild(b); }catch(y){} }, 300);
+  }catch(x){}
+}
+document.addEventListener('pointerdown', function(e){
+  const t=e.target && e.target.closest && e.target.closest('.pkey');
+  if(!t || t.classList.contains('empty')) return;
+  const apaga=t.classList.contains('pkb');
+  _pinBolha(t, apaga ? '⌫' : '•');
+  if(!apaga) return;
+  _pinSolta(); let n=0;
+  _pinRep=setTimeout(function passo(){
+    if(!_pin){ _pinSolta(); return; }
+    pinBack(); n++;
+    _pinRep=setTimeout(passo, n<4?90:60);
+  }, 420);
+});
+['pointerup','pointercancel','touchend','touchcancel','mouseup'].forEach(function(ev){
+  document.addEventListener(ev, _pinSolta);
+});
 function pinRefresh(){ const el=document.getElementById('pdots'); if(el)el.innerHTML=pinDotsHtml(); }
 function pinBack(){ _pin=_pin.slice(0,-1); pinRefresh(); }
 function pinTap(d){ if(_pin.length>=4)return; _pin+=d; pinRefresh(); if(_pin.length===4) setTimeout(pinDone,130); }
@@ -1923,6 +1967,10 @@ boot();
     reg.addEventListener('updatefound',function(){ var nw=reg.installing; if(!nw) return;
       nw.addEventListener('statechange',function(){ if(nw.state==='installed' && navigator.serviceWorker.controller) banner(reg); }); });
     setInterval(function(){ reg.update().catch(function(){}); }, 60000);
+    function _confere(){ reg.update().catch(function(){}); }
+    document.addEventListener('visibilitychange',function(){ if(!document.hidden) _confere(); });
+    window.addEventListener('focus', _confere);
+    window.addEventListener('pageshow', _confere);
   }
   window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').then(watch).catch(function(){}); });
 })();
