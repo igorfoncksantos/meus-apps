@@ -373,6 +373,35 @@
 .cicrow>div{display:flex;flex-direction:column}
 .cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
 .cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
+.relchips{ display:flex; gap:7px; overflow-x:auto; padding:3px 1px 9px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.relchips::-webkit-scrollbar{ display:none; }
+.rchip{ flex:0 0 auto; background:#12161a; border:1px solid #2a2f34; color:#8a97a0; border-radius:999px; padding:8px 13px; font:inherit; font-size:12.5px; font-weight:800; cursor:pointer; white-space:nowrap; transition:background .14s,color .14s,border-color .14s,transform .1s; -webkit-tap-highlight-color:transparent; }
+.rchip:active{ transform:scale(.93); }
+.rchip.on{ background:var(--accent); border-color:var(--accent); color:#04231f; }
+.relbox{ background:#12161a; border:1px solid #23282e; border-radius:14px; padding:13px 14px; margin-bottom:12px; }
+.reltot{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:11px; }
+.reltot .rl{ font-size:11px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:#8a97a0; }
+.reltot .rv{ font-size:21px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; }
+.relcat{ display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid #1c2126; font-size:13px; }
+.relcat:last-child{ border-bottom:none; }
+.relcat .cdot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+.relcat .cn{ flex:1; min-width:0; color:#e8edf1; font-weight:700; overflow-wrap:anywhere; }
+.relcat .cv{ color:#fff; font-weight:800; font-variant-numeric:tabular-nums; }
+.relcat .cp{ color:#8a97a0; font-size:11.5px; font-weight:700; min-width:38px; text-align:right; }
+.relvazio{ color:#8a97a0; font-size:13px; text-align:center; padding:16px 0; }
+#relPrint{ display:none; }
+@media print{
+  body > *{ display:none !important; }
+  #relPrint{ display:block !important; padding:0; color:#000; background:#fff; font-family:Arial,sans-serif; }
+  #relPrint h1{ font-size:19px; margin:0 0 3px; }
+  #relPrint .sub{ font-size:12px; color:#555; margin-bottom:16px; }
+  #relPrint h2{ font-size:13px; margin:16px 0 7px; border-bottom:1px solid #ccc; padding-bottom:4px; }
+  #relPrint table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  #relPrint th{ text-align:left; color:#555; font-size:10px; text-transform:uppercase; letter-spacing:.5px; padding:5px 6px 5px 0; border-bottom:1px solid #ccc; }
+  #relPrint td{ padding:5px 6px 5px 0; border-bottom:1px solid #eee; }
+  #relPrint td.num, #relPrint th.num{ text-align:right; }
+  #relPrint .tot{ font-weight:800; font-size:14px; margin-top:10px; text-align:right; }
+}
 .calwrap{ position:relative; }
 .datebtn{ width:100%; font-family:inherit; font-size:14px; padding:11px 12px; border-radius:11px;
   border:1px solid #2a2f34; background:#12161a; color:var(--txt2); cursor:pointer;
@@ -593,6 +622,12 @@
 
   <h2>Lançamentos</h2>
   <div id="listaGastos"></div>
+
+  <h2>Histórico e relatório</h2>
+  <div class="relchips" id="relChips"></div>
+  <div id="relResumo"></div>
+  <div id="relLista"></div>
+  <div class="acoes" style="margin-top:10px"><button class="bt" id="relPdf">Baixar relatório em PDF</button></div>
 
   <div class="acoes">
     <button class="bt d" id="gNovoCiclo">Começar ciclo novo</button>
@@ -1179,6 +1214,76 @@ document.getElementById("btAplicar").addEventListener("click",function(){
   setVal(dtI.value);
   if(window.paintIcons) window.paintIcons(btn);
 })();
+var _relSel = 0;
+function relHist(){ if(!D.vale.hist) D.vale.hist=[]; return D.vale.hist; }
+function relCiclos(){
+  var c=cicloInfo();
+  var lista=[{ nome:(D.vale.ciclo||"Ciclo atual"), per:c.per, l:(D.vale.l||[]) }];
+  relHist().slice().reverse().forEach(function(h){ lista.push({ nome:h.ciclo, per:h.per, l:(h.l||[]) }); });
+  return lista;
+}
+function relDados(i){
+  var cs=relCiclos(), c=cs[i]||cs[0], porCat={}, total=0;
+  (c.l||[]).forEach(function(x){ if(porCat[x.c]==null) porCat[x.c]=0; porCat[x.c]+=x.v; total+=x.v; });
+  return { c:c, porCat:porCat, total:total };
+}
+function relRender(){
+  var chips=document.getElementById("relChips"); if(!chips) return;
+  var cs=relCiclos();
+  if(_relSel >= cs.length) _relSel=0;
+  var h="";
+  cs.forEach(function(c,i){ h+='<button type="button" class="rchip'+(i===_relSel?" on":"")+'" data-rel="'+i+'">'+esc(c.nome)+'</button>'; });
+  chips.innerHTML=h;
+  if(!chips._lig){ chips._lig=1;
+    chips.addEventListener("click",function(e){
+      var b=e.target.closest ? e.target.closest(".rchip") : null; if(!b) return;
+      _relSel = parseInt(b.getAttribute("data-rel"),10) || 0; relRender();
+    });
+  }
+  var d=relDados(_relSel);
+  var res=document.getElementById("relResumo"), lst=document.getElementById("relLista");
+  var hh='<div class="relbox"><div class="reltot"><span class="rl">'+esc(d.c.per)+'</span><span class="rv">R$ '+brl(d.total)+'</span></div>';
+  var algum=false;
+  D.vale.cats.forEach(function(k){
+    var v=d.porCat[k.id]||0; if(!v) return; algum=true;
+    var pc = d.total>0 ? Math.round(v/d.total*100) : 0;
+    hh+='<div class="relcat"><span class="cdot" style="background:'+k.cor+'"></span><span class="cn">'+esc(k.nome)+'</span><span class="cv">R$ '+brl(v)+'</span><span class="cp">'+pc+'%</span></div>';
+  });
+  for(var id in d.porCat){
+    if(acharCat(id)) continue;
+    var v2=d.porCat[id]; if(!v2) continue; algum=true;
+    hh+='<div class="relcat"><span class="cdot" style="background:#5c6469"></span><span class="cn">categoria removida</span><span class="cv">R$ '+brl(v2)+'</span><span class="cp"></span></div>';
+  }
+  if(!algum) hh+='<div class="relvazio">Nenhum gasto neste ciclo.</div>';
+  res.innerHTML = hh + '</div>';
+  var lh="";
+  (d.c.l||[]).slice().reverse().forEach(function(x){
+    var k=acharCat(x.c);
+    lh+='<div class="gitem"><span class="gdt">'+esc(x.dt)+'</span><div class="ginfo"><div class="gd">'+esc(x.d)+'</div><div class="gc" style="color:'+(k?k.cor:"#8a97a0")+'">'+esc(k?k.nome:"sem categoria")+'</div></div><span class="gv">R$ '+brl(x.v)+'</span></div>';
+  });
+  lst.innerHTML = lh || '<div class="relvazio">Sem lançamentos.</div>';
+}
+function relPdf(){
+  var d=relDados(_relSel);
+  var alvo=document.getElementById("relPrint");
+  if(!alvo){ alvo=document.createElement("div"); alvo.id="relPrint"; document.body.appendChild(alvo); }
+  var h='<h1>'+esc(d.c.nome)+'</h1><div class="sub">Período '+esc(d.c.per)+' &nbsp;&middot;&nbsp; gerado em '+(new Date()).toLocaleDateString("pt-BR")+'</div>';
+  h+='<h2>Por categoria</h2><table><tr><th>Categoria</th><th class="num">Valor</th><th class="num">%</th></tr>';
+  D.vale.cats.forEach(function(k){
+    var v=d.porCat[k.id]||0; if(!v) return;
+    var pc=d.total>0?Math.round(v/d.total*100):0;
+    h+='<tr><td>'+esc(k.nome)+'</td><td class="num">R$ '+brl(v)+'</td><td class="num">'+pc+'%</td></tr>';
+  });
+  h+='</table><div class="tot">Total: R$ '+brl(d.total)+'</div>';
+  h+='<h2>Lançamentos</h2><table><tr><th>Data</th><th>Local</th><th>Categoria</th><th class="num">Valor</th></tr>';
+  (d.c.l||[]).forEach(function(x){
+    var k=acharCat(x.c);
+    h+='<tr><td>'+esc(x.dt)+'</td><td>'+esc(x.d)+'</td><td>'+esc(k?k.nome:"sem categoria")+'</td><td class="num">R$ '+brl(x.v)+'</td></tr>';
+  });
+  h+='</table>';
+  alvo.innerHTML=h;
+  setTimeout(function(){ window.print(); },80);
+}
 function parcLista(){ if(!D.vale.parc) D.vale.parc=[]; return D.vale.parc; }
 function parcMoeda(n){ return "R$ " + brl(n); }
 function parcEncher(){
@@ -1392,7 +1497,8 @@ function renderGastos(){
   ligarFabLancar();
   var c=cicloInfo();
   document.getElementById("gCiclo").textContent=c.nome;
-  cicPreencher(); cicLigar(); cicMesLigar(); cicMesLabel(); parcEncher(); parcRenderAtivos();
+  cicPreencher(); cicLigar(); cicMesLigar(); cicMesLabel(); parcEncher(); parcRenderAtivos(); relRender();
+  var bp=document.getElementById("relPdf"); if(bp && !bp._lig){ bp._lig=1; bp.addEventListener("click", relPdf); }
   document.getElementById("gPeriodo").textContent=c.per+" · "+diasRest()+" dias restantes";
 
   var cv=cofreVale();
@@ -1546,6 +1652,8 @@ document.getElementById("gNovoCiclo").addEventListener("click",function(){
   var v=D.vale, m2=(v.mesIni+1)%12, a2=v.mesIni===11?v.anoIni+1:v.anoIni;
   var novo=MES[m2]+"/"+MES[(m2+1)%12];
   if(!confirm('Começar o ciclo "'+novo+'"?\n\nOs lançamentos atuais serão apagados (os saldos já descontados permanecem).')) return;
+  var c0=cicloInfo();
+  if((v.l||[]).length){ if(!v.hist) v.hist=[]; v.hist.push({ ciclo:v.ciclo, per:c0.per, l:v.l.slice() }); }
   v.mesIni=m2; v.anoIni=a2; v.ciclo=novo; v.l=[];
   parcVirarCiclo();
   salvar(); renderTudo();
@@ -1660,6 +1768,35 @@ renderTudo();
 .cicrow>div{display:flex;flex-direction:column}
 .cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
 .cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
+.relchips{ display:flex; gap:7px; overflow-x:auto; padding:3px 1px 9px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.relchips::-webkit-scrollbar{ display:none; }
+.rchip{ flex:0 0 auto; background:#12161a; border:1px solid #2a2f34; color:#8a97a0; border-radius:999px; padding:8px 13px; font:inherit; font-size:12.5px; font-weight:800; cursor:pointer; white-space:nowrap; transition:background .14s,color .14s,border-color .14s,transform .1s; -webkit-tap-highlight-color:transparent; }
+.rchip:active{ transform:scale(.93); }
+.rchip.on{ background:var(--accent); border-color:var(--accent); color:#04231f; }
+.relbox{ background:#12161a; border:1px solid #23282e; border-radius:14px; padding:13px 14px; margin-bottom:12px; }
+.reltot{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:11px; }
+.reltot .rl{ font-size:11px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:#8a97a0; }
+.reltot .rv{ font-size:21px; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; }
+.relcat{ display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid #1c2126; font-size:13px; }
+.relcat:last-child{ border-bottom:none; }
+.relcat .cdot{ width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+.relcat .cn{ flex:1; min-width:0; color:#e8edf1; font-weight:700; overflow-wrap:anywhere; }
+.relcat .cv{ color:#fff; font-weight:800; font-variant-numeric:tabular-nums; }
+.relcat .cp{ color:#8a97a0; font-size:11.5px; font-weight:700; min-width:38px; text-align:right; }
+.relvazio{ color:#8a97a0; font-size:13px; text-align:center; padding:16px 0; }
+#relPrint{ display:none; }
+@media print{
+  body > *{ display:none !important; }
+  #relPrint{ display:block !important; padding:0; color:#000; background:#fff; font-family:Arial,sans-serif; }
+  #relPrint h1{ font-size:19px; margin:0 0 3px; }
+  #relPrint .sub{ font-size:12px; color:#555; margin-bottom:16px; }
+  #relPrint h2{ font-size:13px; margin:16px 0 7px; border-bottom:1px solid #ccc; padding-bottom:4px; }
+  #relPrint table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  #relPrint th{ text-align:left; color:#555; font-size:10px; text-transform:uppercase; letter-spacing:.5px; padding:5px 6px 5px 0; border-bottom:1px solid #ccc; }
+  #relPrint td{ padding:5px 6px 5px 0; border-bottom:1px solid #eee; }
+  #relPrint td.num, #relPrint th.num{ text-align:right; }
+  #relPrint .tot{ font-weight:800; font-size:14px; margin-top:10px; text-align:right; }
+}
 .calwrap{ position:relative; }
 .datebtn{ width:100%; font-family:inherit; font-size:14px; padding:11px 12px; border-radius:11px;
   border:1px solid #2a2f34; background:#12161a; color:var(--txt2); cursor:pointer;
