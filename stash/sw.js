@@ -1,4 +1,4 @@
-var C='meusapps-financas-v32';
+var C='meusapps-financas-v33';
 self.addEventListener('install',function(e){ });
 self.addEventListener('message',function(e){ if(e.data==='SKIP_WAITING'||(e.data&&e.data.type==='SKIP_WAITING')) self.skipWaiting(); });
 self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ if(k!==C) return caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
