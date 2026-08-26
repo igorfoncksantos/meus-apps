@@ -9,7 +9,7 @@
   var APP_ID=CFG.app||'app', KEYS=CFG.keys||[], ACCENT=CFG.accent||'#2FD9C9', NAME=CFG.name||'App';
   var SUPA_URL='https://ldvbnknynxnlbgmgrkjf.supabase.co';
   var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdmJua255bnhubGJnbWdya2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczODI2MTcsImV4cCI6MjEwMjk1ODYxN30.pxZ9BiP0bKpaN7t0L1bDpENQH5C25fjOHtuYlq-p6j0';
-  var LK={login:APP_ID+'-login',pin:APP_ID+'-pin',synced:APP_ID+'-syncedAt',nag:APP_ID+'-nag',sess:APP_ID+'-sess'};
+  var LK={login:APP_ID+'-login',pin:APP_ID+'-pin',synced:APP_ID+'-syncedAt',nag:APP_ID+'-nag',sess:APP_ID+'-sess',diag:APP_ID+'-diag'};
   var sb=null,session=null,_pushT=null,_rtChan=null,_applying=false,_synced=false,_myStamp=null,_lastBlob='',_initDone=false,_pending=null;
   var _pin='',_pinMode='',_pinTmp='';
   function ready(){ return !!(sb&&session); }
@@ -30,11 +30,23 @@
 
   /* ---------- motor de sync ---------- */
   function schedulePush(){ if(!ready())return; clearTimeout(_pushT); _pushT=setTimeout(pushRemote,700); }
+  function _diag(oque, erro){
+    try{
+      var d=JSON.parse(localStorage.getItem(LK.diag)||'{}');
+      if(erro){ d[oque+'_erro']=erro; d[oque+'_quando']=new Date().toISOString(); if(window.toast) window.toast('Falha no '+oque+': '+erro); }
+      else { delete d[oque+'_erro']; d[oque+'_ok']=new Date().toISOString(); }
+      localStorage.setItem(LK.diag, JSON.stringify(d));
+    }catch(e){}
+  }
   async function pushRemote(){ if(!ready())return; var blob=getBlob(); var stamp=new Date().toISOString(); _myStamp=stamp;
-    try{ var r=await sb.from('app_state').upsert({user_id:session.user.id,app:APP_ID,data:blob,updated_at:stamp}); if(!r.error){ _set(LK.synced,stamp); _lastBlob=JSON.stringify(blob); } }catch(e){} }
+    try{ var r=await sb.from('app_state').upsert({user_id:session.user.id,app:APP_ID,data:blob,updated_at:stamp});
+      if(r.error){ _diag('envio', r.error.message||JSON.stringify(r.error)); return; }
+      _set(LK.synced,stamp); _lastBlob=JSON.stringify(blob); _diag('envio', null);
+    }catch(e){ _diag('envio', (e&&e.message)||String(e)); } }
   async function pullRemote(){ if(!ready())return;
     try{ var q=await sb.from('app_state').select('data,updated_at').eq('user_id',session.user.id).eq('app',APP_ID).maybeSingle();
-      if(q.error)return; var d=q.data; var firstLink=!localStorage.getItem(LK.synced);
+      if(q.error){ _diag('leitura', q.error.message||JSON.stringify(q.error)); return; }
+      _diag('leitura', null); var d=q.data; var firstLink=!localStorage.getItem(LK.synced);
       if(d && d.data && Object.keys(d.data).length){
         if(firstLink && hasLocal()){
           var down=await uiConfirm('Este aparelho já tem dados, e sua conta na nuvem também. Qual você quer manter?',{title:'Dados nos dois lados',ok:'Baixar da nuvem',cancel:'Manter deste aparelho'});
@@ -193,10 +205,20 @@
       closeOv(); toast('Senha definida ✓');
     }catch(x){ err('Erro: '+(x.message||x)); } };
 
+  function _diagHtml(){
+    var d={}; try{ d=JSON.parse(localStorage.getItem(LK.diag)||'{}'); }catch(e){}
+    function q(iso){ if(!iso) return 'nunca'; var t=new Date(iso), m=Math.round((Date.now()-t)/60000);
+      if(m<1) return 'agora'; if(m<60) return 'há '+m+' min'; return t.toLocaleString('pt-BR'); }
+    var err = d.envio_erro || d.leitura_erro;
+    var cor = err ? '#f87171' : '#22C55E';
+    var txt = err ? ('⚠ ' + (d.envio_erro?'envio':'leitura') + ': ' + err)
+                  : ('✓ enviado ' + q(d.envio_ok) + ' · lido ' + q(d.leitura_ok));
+    return '<div style="font-size:11.5px;line-height:1.5;color:'+cor+';background:#0e1216;border:1px solid #23282e;border-radius:10px;padding:9px 11px;margin:0 0 12px;word-break:break-word">'+txt+'</div>';
+  }
   window.openSync=function(){
     if(!ready()){ showConnect(); return; }
     screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronização</h2><p>Conectado como <b style="color:#f0f2f4">'+(localStorage.getItem(LK.login)||(session.user&&session.user.email)||'')+'</b><br>Seus dados aparecem nos seus aparelhos.</p>'+
-      '<div class="sync-list"><button onclick="window.__mkpw()">'+IC.pen+' Senha da conta</button><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button><button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
+      _diagHtml()+'<div class="sync-list"><button onclick="window.__mkpw()">'+IC.pen+' Senha da conta</button><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button><button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
       '<div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); };
   window.__dc=async function(){ if(!await uiConfirm('Você vai parar de sincronizar neste aparelho. Os dados continuam aqui, só não atualizam no outro. Pra voltar, é só entrar de novo.',{title:'Sair da conta?',ok:'Sair',danger:true}))return;
     _synced=false; try{ if(sb)await sb.auth.signOut(); }catch(e){} if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
