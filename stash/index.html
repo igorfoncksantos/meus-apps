@@ -1197,7 +1197,7 @@ function renderGastos(){
         '<svg width="96" height="96" viewBox="0 0 96 96">' +
           '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke-width="9"/>' +
           '<circle cx="48" cy="48" r="34" fill="none" stroke="'+(est?"#f87171":k.cor)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="'+off+'" transform="rotate(-90 48 48)"/>' +
-          '<text class="pcT" x="48" y="54" text-anchor="middle">'+(orc>0?Math.round(pc)+"%":"—")+'</text>' +
+          '<text class="pcT" x="48" y="54" text-anchor="middle">'+(orc>0?Math.round(pc)+"%":"")+'</text>' +
         '</svg>' +
         '<div class="rname" style="color:'+k.cor+'">'+catIcoHTML(k)+'<span class="rnm">'+esc(k.nome)+'</span></div>' +
         '<div class="rg">R$ '+brl(gas)+' <small>/ '+brl(orc)+'</small></div>' +
