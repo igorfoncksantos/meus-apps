@@ -361,6 +361,11 @@
   .cmicons button.ib.sel{ border-color:var(--accent); color:var(--accent); background:rgba(47,217,201,.08); box-shadow:0 0 0 1px var(--accent) inset; }
   .csvg{ display:inline-flex; align-items:center; vertical-align:-.16em; }
   .csvg svg{ width:1.05em; height:1.05em; }
+.cicbox{background:#12161a;border:1px solid #23282e;border-radius:14px;padding:12px 12px 10px;margin:0 0 14px}
+.cicrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.cicrow>div{display:flex;flex-direction:column}
+.cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
+.cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
 </style>
 </head>
 <body>
@@ -470,8 +475,23 @@
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
 
-  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()"><span>⚙ Orçamentos e categorias</span><span class="gcfgchev">▾</span></button>
+  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()"><span>⚙ Ciclo, orçamentos e categorias</span><span class="gcfgchev">▾</span></button>
   <div id="gCfg" style="display:none">
+    <div class="orclab">Período do ciclo</div>
+    <div class="cicbox">
+      <div class="cicrow">
+        <div style="flex:1;min-width:150px"><label class="lb">Nome do ciclo</label><input id="cicNome" placeholder="ex.: Agosto/Setembro"></div>
+        <div style="width:104px"><label class="lb">Vira no dia</label><input type="number" id="cicDia" min="1" max="31"></div>
+      </div>
+      <div class="cicrow">
+        <div style="flex:1;min-width:150px"><label class="lb">Começa em</label><input type="month" id="cicMes" style="color-scheme:dark"></div>
+        <div class="cicacts">
+          <button class="bt n" id="cicSalvar">Salvar</button>
+          <button class="bt" id="cicProx">Próximo ciclo →</button>
+        </div>
+      </div>
+      <div class="cichint" id="cicHint">—</div>
+    </div>
     <div class="orclab">Orçamento de cada categoria — toque no ⚙ pra editar</div>
     <div id="gBoxes"></div>
     <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
@@ -1038,9 +1058,47 @@ document.getElementById("btAplicar").addEventListener("click",function(){
 });
 
 /* ================== 3. GASTOS ================== */
+function cicPreencher(){
+  var v=D.vale;
+  var n=document.getElementById("cicNome"), d=document.getElementById("cicDia"),
+      m=document.getElementById("cicMes"), h=document.getElementById("cicHint");
+  if(!n) return;
+  n.value=v.ciclo||""; d.value=v.dia||20;
+  m.value=v.anoIni+"-"+("0"+(v.mesIni+1)).slice(-2);
+  var c=cicloInfo();
+  h.textContent="Período: "+c.per+" · "+diasRest()+" dias restantes";
+}
+function cicSalvar(){
+  var v=D.vale;
+  var nome=(document.getElementById("cicNome").value||"").trim();
+  var dia=parseInt(document.getElementById("cicDia").value,10);
+  var mes=document.getElementById("cicMes").value;
+  if(nome) v.ciclo=nome;
+  if(dia>=1&&dia<=31) v.dia=dia;
+  if(mes&&mes.indexOf("-")>0){ var p=mes.split("-"); v.anoIni=parseInt(p[0],10); v.mesIni=parseInt(p[1],10)-1; }
+  salvar(); renderTudo(); cicPreencher();
+  if(window.toast) window.toast("Ciclo atualizado ✓");
+}
+function cicProx(){
+  var v=D.vale;
+  v.mesIni++; if(v.mesIni>11){ v.mesIni=0; v.anoIni++; }
+  var MN=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  v.ciclo=MN[v.mesIni]+"/"+MN[(v.mesIni+1)%12];
+  salvar(); renderTudo(); cicPreencher();
+  if(window.toast) window.toast("Ciclo avançado ✓");
+}
+function cicLigar(){
+  var a=document.getElementById("cicSalvar"), b=document.getElementById("cicProx");
+  if(a&&!a._lig){ a._lig=1; a.addEventListener("click",cicSalvar); }
+  if(b&&!b._lig){ b._lig=1; b.addEventListener("click",cicProx); }
+}
 function cicloInfo(){
-  var v=D.vale, d=Math.min(28,Math.max(1,v.dia||20));
-  var ini=new Date(v.anoIni,v.mesIni,d), fim=new Date(v.anoIni,v.mesIni+1,d-1);
+  var v=D.vale, dq=Math.min(31,Math.max(1,v.dia||20));
+  function ultDia(a,m){ return new Date(a,m+1,0).getDate(); }
+  var di=Math.min(dq, ultDia(v.anoIni,v.mesIni));
+  var ini=new Date(v.anoIni,v.mesIni,di);
+  var mf=v.mesIni+1, af=v.anoIni; if(mf>11){ mf=0; af++; }
+  var fim=new Date(af,mf,Math.min(dq, ultDia(af,mf))); fim.setDate(fim.getDate()-1);
   return {ini:ini,fim:fim,nome:v.ciclo,
     per:("0"+ini.getDate()).slice(-2)+"/"+("0"+(ini.getMonth()+1)).slice(-2)+" a "+
         ("0"+fim.getDate()).slice(-2)+"/"+("0"+(fim.getMonth()+1)).slice(-2)};
@@ -1095,6 +1153,7 @@ resetNovaCat();
 function renderGastos(){
   var c=cicloInfo();
   document.getElementById("gCiclo").textContent=c.nome;
+  cicPreencher(); cicLigar();
   document.getElementById("gPeriodo").textContent=c.per+" · "+diasRest()+" dias restantes";
 
   var cv=cofreVale();
@@ -1345,6 +1404,11 @@ renderTudo();
 @keyframes __wUp{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
 @keyframes __wSheen{0%{left:-60%}100%{left:135%}}
 @media (prefers-reduced-motion:reduce){#__welcome *{animation-duration:.01s!important}}
+.cicbox{background:#12161a;border:1px solid #23282e;border-radius:14px;padding:12px 12px 10px;margin:0 0 14px}
+.cicrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.cicrow>div{display:flex;flex-direction:column}
+.cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
+.cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
 </style>
 <div id="__welcome" aria-hidden="true">
   <div class="__wbg"></div>
