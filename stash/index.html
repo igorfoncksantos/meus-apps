@@ -402,6 +402,38 @@
   #relPrint td.num, #relPrint th.num{ text-align:right; }
   #relPrint .tot{ font-weight:800; font-size:14px; margin-top:10px; text-align:right; }
 }
+.relhead{display:flex;align-items:center;gap:11px;padding:13px 15px;background:#0b0e11;
+  border:1px solid #23282e;border-radius:13px;cursor:pointer;user-select:none;transition:border-color .15s,transform .1s}
+.relhead:active{transform:scale(.995)}
+.relgrp.aberto .relhead{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:1px dashed #2a3138}
+.relhead .rchev{color:#5f6a72;font-size:12px;transition:transform .2s;flex-shrink:0;width:12px}
+.relgrp:not(.aberto) .relhead .rchev{transform:rotate(-90deg)}
+.relhead .rtit{flex:1;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a97a0;font-weight:800}
+.relhead .rcur{font-size:11.5px;font-weight:800;color:#2FD9C9;font-variant-numeric:tabular-nums;white-space:nowrap}
+.relgrp .relbody{display:none;border:1px solid #23282e;border-top:none;border-radius:0 0 13px 13px;padding:13px 15px 15px;background:#0b0e11}
+.relgrp.aberto .relbody{display:block}
+.exsel{display:flex;gap:7px;margin-bottom:13px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.exsel::-webkit-scrollbar{display:none}
+.exsel button{flex:0 0 auto;background:#12161a;border:1px solid #2a2f34;color:#8a97a0;border-radius:8px;
+  padding:7px 12px;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;
+  transition:background .13s,border-color .13s,color .13s,transform .1s;-webkit-tap-highlight-color:transparent}
+.exsel button:active{transform:scale(.94)}
+.exsel button.on{background:#12262b;border-color:#2FD9C9;color:#2FD9C9}
+.ex{background:#0e1216;border:1px solid #23282e;border-radius:12px;overflow:hidden;margin-bottom:13px}
+.exh{padding:13px 15px;border-bottom:1px dashed #2a3138;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.exh .t{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#5f6a72;font-weight:800}
+.exh .p{font-size:11.5px;color:#8a97a0;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.exb{padding:9px 15px}
+.exl{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:13px}
+.exl .cdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.exl .n{color:#e8edf1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+.exl .d{flex:1;border-bottom:1px dotted #2a3138;height:1px;min-width:12px}
+.exl .pc{color:#5f6a72;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+.exl .v{color:#fff;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.exf{padding:12px 15px;border-top:1px dashed #2a3138;display:flex;justify-content:space-between;align-items:baseline;background:#090c0f}
+.exf .t{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:#8a97a0;font-weight:800}
+.exf .v{font-size:19px;font-weight:800;color:#2FD9C9;font-variant-numeric:tabular-nums}
+.exvazio{color:#5f6a72;font-size:12.5px;text-align:center;padding:14px 0}
 .calwrap{ position:relative; }
 .datebtn{ width:100%; font-family:inherit; font-size:14px; padding:11px 12px; border-radius:11px;
   border:1px solid #2a2f34; background:#12161a; color:var(--txt2); cursor:pointer;
@@ -623,15 +655,14 @@
   <h2>Lançamentos</h2>
   <div id="listaGastos"></div>
 
-  <div class="grp col" id="relGrp" style="margin-top:20px">
-    <div class="ghead" id="relHead" style="border-left:3px solid var(--accent)">
-      <span class="chev">&#9662;</span>
-      <span class="gdot" style="background:var(--accent)"></span>
-      <span class="gnm">Histórico e relatório</span>
-      <span class="gsub" id="relSub">&mdash;</span>
+  <div class="relgrp" id="relGrp" style="margin-top:20px">
+    <div class="relhead" id="relHead">
+      <span class="rchev">&#9662;</span>
+      <span class="rtit">Histórico e relatório</span>
+      <span class="rcur" id="relSub">&mdash;</span>
     </div>
-    <div class="gbody">
-      <div class="relchips" id="relChips"></div>
+    <div class="relbody">
+      <div class="exsel" id="relChips"></div>
       <div id="relResumo"></div>
       <div id="relLista"></div>
       <div class="acoes" style="margin-top:10px"><button class="bt" id="relPdf">Baixar relatório em PDF</button></div>
@@ -1241,11 +1272,11 @@ function relRender(){
   var cs=relCiclos();
   if(_relSel >= cs.length) _relSel=0;
   var h="";
-  cs.forEach(function(c,i){ h+='<button type="button" class="rchip'+(i===_relSel?" on":"")+'" data-rel="'+i+'">'+esc(c.nome)+'</button>'; });
+  cs.forEach(function(c,i){ h+='<button type="button" class="'+(i===_relSel?"on":"")+'" data-rel="'+i+'">'+esc(c.nome)+'</button>'; });
   chips.innerHTML=h;
   if(!chips._lig){ chips._lig=1;
     chips.addEventListener("click",function(e){
-      var b=e.target.closest ? e.target.closest(".rchip") : null; if(!b) return;
+      var b=e.target.closest ? e.target.closest("button[data-rel]") : null; if(!b) return;
       _relSel = parseInt(b.getAttribute("data-rel"),10) || 0; relRender();
     });
   }
@@ -1253,22 +1284,23 @@ function relRender(){
   var sub=document.getElementById("relSub");
   if(sub) sub.textContent = cs[_relSel] ? cs[_relSel].nome : "—";
   var hd=document.getElementById("relHead");
-  if(hd && !hd._lig){ hd._lig=1; hd.addEventListener("click",function(){ document.getElementById("relGrp").classList.toggle("col"); }); }
+  if(hd && !hd._lig){ hd._lig=1; hd.addEventListener("click",function(){ document.getElementById("relGrp").classList.toggle("aberto"); }); }
   var res=document.getElementById("relResumo"), lst=document.getElementById("relLista");
-  var hh='<div class="relbox"><div class="reltot"><span class="rl">'+esc(d.c.per)+'</span><span class="rv">R$ '+brl(d.total)+'</span></div>';
+  var hh='<div class="ex"><div class="exh"><span class="t">Extrato do ciclo</span><span class="p">'+esc(d.c.per)+'</span></div><div class="exb">';
   var algum=false;
   D.vale.cats.forEach(function(k){
     var v=d.porCat[k.id]||0; if(!v) return; algum=true;
     var pc = d.total>0 ? Math.round(v/d.total*100) : 0;
-    hh+='<div class="relcat"><span class="cdot" style="background:'+k.cor+'"></span><span class="cn">'+esc(k.nome)+'</span><span class="cv">R$ '+brl(v)+'</span><span class="cp">'+pc+'%</span></div>';
+    hh+='<div class="exl"><span class="cdot" style="background:'+k.cor+'"></span><span class="n">'+esc(k.nome)+'</span><span class="d"></span><span class="pc">'+pc+'%</span><span class="v">R$ '+brl(v)+'</span></div>';
   });
   for(var id in d.porCat){
     if(acharCat(id)) continue;
     var v2=d.porCat[id]; if(!v2) continue; algum=true;
-    hh+='<div class="relcat"><span class="cdot" style="background:#5c6469"></span><span class="cn">categoria removida</span><span class="cv">R$ '+brl(v2)+'</span><span class="cp"></span></div>';
+    hh+='<div class="exl"><span class="cdot" style="background:#5c6469"></span><span class="n">categoria removida</span><span class="d"></span><span class="pc"></span><span class="v">R$ '+brl(v2)+'</span></div>';
   }
-  if(!algum) hh+='<div class="relvazio">Nenhum gasto neste ciclo.</div>';
-  res.innerHTML = hh + '</div>';
+  if(!algum) hh+='<div class="exvazio">Nenhum gasto neste ciclo.</div>';
+  hh+='</div><div class="exf"><span class="t">Total do ciclo</span><span class="v">R$ '+brl(d.total)+'</span></div></div>';
+  res.innerHTML = hh;
   var lh="";
   (d.c.l||[]).slice().reverse().forEach(function(x){
     var k=acharCat(x.c);
@@ -1277,7 +1309,7 @@ function relRender(){
         +'<span class="lo">'+esc(x.d)+'<small>'+(k?catIcoHTML(k):"")+' '+esc(k?k.nome:"sem categoria")+'</small></span>'
         +'<span class="lv">R$ '+brl(x.v)+'</span></div>';
   });
-  lst.innerHTML = lh || '<div class="relvazio">Sem lançamentos.</div>';
+  lst.innerHTML = lh || '<div class="exvazio">Sem lançamentos.</div>';
   setTimeout(function(){ if(window.paintIcons) window.paintIcons(lst); },0);
 }
 function relPdf(){
@@ -1814,6 +1846,38 @@ renderTudo();
   #relPrint td.num, #relPrint th.num{ text-align:right; }
   #relPrint .tot{ font-weight:800; font-size:14px; margin-top:10px; text-align:right; }
 }
+.relhead{display:flex;align-items:center;gap:11px;padding:13px 15px;background:#0b0e11;
+  border:1px solid #23282e;border-radius:13px;cursor:pointer;user-select:none;transition:border-color .15s,transform .1s}
+.relhead:active{transform:scale(.995)}
+.relgrp.aberto .relhead{border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:1px dashed #2a3138}
+.relhead .rchev{color:#5f6a72;font-size:12px;transition:transform .2s;flex-shrink:0;width:12px}
+.relgrp:not(.aberto) .relhead .rchev{transform:rotate(-90deg)}
+.relhead .rtit{flex:1;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8a97a0;font-weight:800}
+.relhead .rcur{font-size:11.5px;font-weight:800;color:#2FD9C9;font-variant-numeric:tabular-nums;white-space:nowrap}
+.relgrp .relbody{display:none;border:1px solid #23282e;border-top:none;border-radius:0 0 13px 13px;padding:13px 15px 15px;background:#0b0e11}
+.relgrp.aberto .relbody{display:block}
+.exsel{display:flex;gap:7px;margin-bottom:13px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.exsel::-webkit-scrollbar{display:none}
+.exsel button{flex:0 0 auto;background:#12161a;border:1px solid #2a2f34;color:#8a97a0;border-radius:8px;
+  padding:7px 12px;font:inherit;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;
+  transition:background .13s,border-color .13s,color .13s,transform .1s;-webkit-tap-highlight-color:transparent}
+.exsel button:active{transform:scale(.94)}
+.exsel button.on{background:#12262b;border-color:#2FD9C9;color:#2FD9C9}
+.ex{background:#0e1216;border:1px solid #23282e;border-radius:12px;overflow:hidden;margin-bottom:13px}
+.exh{padding:13px 15px;border-bottom:1px dashed #2a3138;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.exh .t{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:#5f6a72;font-weight:800}
+.exh .p{font-size:11.5px;color:#8a97a0;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.exb{padding:9px 15px}
+.exl{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:13px}
+.exl .cdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.exl .n{color:#e8edf1;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+.exl .d{flex:1;border-bottom:1px dotted #2a3138;height:1px;min-width:12px}
+.exl .pc{color:#5f6a72;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+.exl .v{color:#fff;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.exf{padding:12px 15px;border-top:1px dashed #2a3138;display:flex;justify-content:space-between;align-items:baseline;background:#090c0f}
+.exf .t{font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;color:#8a97a0;font-weight:800}
+.exf .v{font-size:19px;font-weight:800;color:#2FD9C9;font-variant-numeric:tabular-nums}
+.exvazio{color:#5f6a72;font-size:12.5px;text-align:center;padding:14px 0}
 .calwrap{ position:relative; }
 .datebtn{ width:100%; font-family:inherit; font-size:14px; padding:11px 12px; border-radius:11px;
   border:1px solid #2a2f34; background:#12161a; color:var(--txt2); cursor:pointer;
