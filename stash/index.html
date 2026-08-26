@@ -849,8 +849,6 @@ function ligarAgg(){
 
 function ligarPatr(){
   var q=function(s){ return document.querySelectorAll(s); };
-  Array.prototype.forEach.call(q("[data-v]"),function(i){ i.addEventListener("change",function(){
-    acharCx(this.getAttribute("data-v")).v=num(this.value); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-cog]"),function(b){ b.addEventListener("click",function(){
     var id=this.getAttribute("data-cog"); abertos[id]=!abertos[id];
     document.querySelector('[data-ed="'+id+'"]').className="ed"+(abertos[id]?" on":""); }); });

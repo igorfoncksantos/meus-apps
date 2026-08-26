@@ -53,7 +53,7 @@
   function mount(){ if(!kbd.parentNode) document.body.appendChild(kbd); }
   if(document.body) mount(); else document.addEventListener('DOMContentLoaded',mount);
 
-  var target=null, form=null, caps=1, layer='abc';
+  var target=null, form=null, caps=1, layer='abc', startVal=null;
   var ACC=['á','à','â','ã','é','ê','í','ó','ô','õ','ú','ç'];
   var ABC=[['q','w','e','r','t','y','u','i','o','p'],
            ['a','s','d','f','g','h','j','k','l','ç'],
@@ -106,6 +106,10 @@
     kbd.innerHTML=h;
   }
   function fire(){ if(target) target.dispatchEvent(new Event('input',{bubbles:true})); }
+  // o teclado escreve o valor por script, e mudanca por script NAO dispara 'change'.
+  // commit() reproduz a semantica nativa: 'change' so ao confirmar o campo.
+  function commit(){ var t=target, sv=startVal; startVal=null;
+    if(t && sv!==null && t.value!==sv){ try{ t.dispatchEvent(new Event('change',{bubbles:true})); }catch(x){} } }
   function ins(ch){
     if(!target) return;
     if(target.type==='number' && ch===',') ch='.';       // number não aceita vírgula
@@ -136,6 +140,7 @@
     if(k==='sym'){ layer=(layer==='sym'?'num':'sym'); render(); return; }
     if(k==='enter'){
       if(target && (target.tagName==='TEXTAREA')){ ins('\n'); return; }
+      commit();
       if(form&&form.requestSubmit){ form.requestSubmit(); } else if(form){ form.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); } else { try{target.blur();}catch(x){} hide(); return; }
       setTimeout(function(){ autocaps(); render(); },0); return;
     }
@@ -146,7 +151,7 @@
   kbd.addEventListener('mousedown',  function(e){ if(Date.now()-_ktouch<700) return; onKey(e); });
 
   function show(){ mount(); autocaps(); render(); kbd.classList.add('on'); document.body.classList.add('kbdopen'); }
-  function hide(){ kbd.classList.remove('on'); document.body.classList.remove('kbdopen'); }
+  function hide(){ commit(); kbd.classList.remove('on'); document.body.classList.remove('kbdopen'); }
 
   function handle(el){
     if(!el || !el.tagName) return false;
@@ -161,7 +166,10 @@
     return true;
   }
   function attach(el){
-    target=el; form=el.closest?el.closest('form'):null;
+    if(target && target!==el) commit();
+    // se o handler de 'change' re-renderizou a tela, o campo novo virou orfao
+    if(el.isConnected===false){ kbd.classList.remove('on'); document.body.classList.remove('kbdopen'); target=null; return; }
+    target=el; startVal=el.value; form=el.closest?el.closest('form'):null;
     layer='abc';
     el.setAttribute('inputmode','none');    // suprime o teclado nativo
     el.setAttribute('autocapitalize','off'); el.setAttribute('autocorrect','off'); el.setAttribute('spellcheck','false');
