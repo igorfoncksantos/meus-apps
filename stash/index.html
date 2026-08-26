@@ -373,6 +373,15 @@
 .cicrow>div{display:flex;flex-direction:column}
 .cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
 .cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
+.parchint{ font-size:12px; color:#8a97a0; margin:-2px 2px 10px; min-height:16px; }
+.parchint b{ color:#2FD9C9; }
+.parcbox{ background:#12161a; border:1px solid #23282e; border-radius:14px; padding:11px 12px; margin:0 0 14px; }
+.parcrow{ display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid #1c2126; font-size:12.5px; }
+.parcrow:last-child{ border-bottom:none; }
+.parcrow .pd{ flex:1; min-width:0; overflow-wrap:anywhere; color:#e8edf1; font-weight:700; }
+.parcrow .pv{ color:#fff; font-weight:800; font-variant-numeric:tabular-nums; }
+.parcrow .pn{ color:#8a97a0; font-size:11.5px; font-weight:700; }
+.parcrow .px{ background:none; border:none; color:#f87171; font-size:15px; cursor:pointer; padding:0 3px; }
 </style>
 </head>
 <body>
@@ -499,6 +508,7 @@
       </div>
       <div class="cichint" id="cicHint">—</div>
     </div>
+    <div id="gParcAtivos"></div>
     <div class="orclab">Orçamento de cada categoria — toque no ⚙ pra editar</div>
     <div id="gBoxes"></div>
     <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
@@ -511,8 +521,10 @@
   </div>
   <div class="campos">
     <div><label class="lb">Categoria</label><select id="gCat"></select></div>
-    <div style="max-width:130px"><label class="lb">Valor</label><input class="r" inputmode="decimal" id="gVal" placeholder="0,00"></div>
+    <div style="max-width:118px"><label class="lb">Valor</label><input class="r" inputmode="decimal" id="gVal" placeholder="0,00"></div>
+    <div style="max-width:104px"><label class="lb">Parcelas</label><select id="gParc"></select></div>
   </div>
+  <div class="parchint" id="gParcHint"></div>
   <button class="bt p w" id="gAdd">Lançar gasto</button>
 
   <h2>Lançamentos</h2>
@@ -1065,6 +1077,58 @@ document.getElementById("btAplicar").addEventListener("click",function(){
 });
 
 /* ================== 3. GASTOS ================== */
+function parcLista(){ if(!D.vale.parc) D.vale.parc=[]; return D.vale.parc; }
+function parcMoeda(n){ return "R$ " + brl(n); }
+function parcEncher(){
+  var sel=document.getElementById("gParc"); if(!sel || sel._ok) return; sel._ok=1;
+  var h='<option value="1">À vista</option>';
+  for(var i=2;i<=12;i++) h+='<option value="'+i+'">'+i+'x</option>';
+  sel.innerHTML=h;
+  sel.addEventListener("change", parcDica);
+  var val=document.getElementById("gVal"); if(val) val.addEventListener("input", parcDica);
+}
+function parcDica(){
+  var el=document.getElementById("gParcHint"); if(!el) return;
+  var sel=document.getElementById("gParc"), val=document.getElementById("gVal");
+  var n=sel?parseInt(sel.value,10):1, v=val?num(val.value):0;
+  if(!n || n<2 || !v){ el.innerHTML=""; return; }
+  el.innerHTML = n + "x de <b>" + parcMoeda(v/n) + "</b> por ciclo, lançada sozinha na virada. Não desconta do cofre.";
+}
+function parcRenderAtivos(){
+  var box=document.getElementById("gParcAtivos"); if(!box) return;
+  var ps=parcLista();
+  if(!ps.length){ box.innerHTML=""; return; }
+  var h='<div class="orclab">Parcelamentos em andamento</div><div class="parcbox">';
+  ps.forEach(function(p,i){
+    h+='<div class="parcrow"><span class="pd">'+esc(p.d)+'</span>'+
+       '<span class="pv">'+parcMoeda(p.vp)+'</span>'+
+       '<span class="pn">'+p.pg+'/'+p.n+'</span>'+
+       '<button class="px" data-parcdel="'+i+'" title="Cancelar">&times;</button></div>';
+  });
+  box.innerHTML = h + '</div>';
+  Array.prototype.forEach.call(box.querySelectorAll("[data-parcdel]"),function(b){
+    b.addEventListener("click",function(){
+      var i=+this.getAttribute("data-parcdel"), p=parcLista()[i];
+      if(!p) return;
+      if(!confirm("Cancelar o parcelamento de " + p.d + "? As parcelas que faltam deixam de ser lancadas; as ja lancadas ficam.")) return;
+      parcLista().splice(i,1); salvar(); renderTudo();
+    });
+  });
+}
+function parcVirarCiclo(){
+  var ps=parcLista(), h=new Date();
+  var dt=("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2);
+  var iso=h.getFullYear()+"-"+("0"+(h.getMonth()+1)).slice(-2)+"-"+("0"+h.getDate()).slice(-2);
+  var restantes=[];
+  ps.forEach(function(p){
+    if(p.pg >= p.n) return;
+    p.pg++;
+    D.vale.l.push({ d: p.d + " (" + p.pg + "/" + p.n + ")", v: p.vp, c: p.c, dt: dt, iso: iso, pid: p.id });
+
+    if(p.pg < p.n) restantes.push(p);
+  });
+  D.vale.parc = restantes;
+}
 function cicPreencher(){
   var v=D.vale;
   var n=document.getElementById("cicNome"), d=document.getElementById("cicDia"),
@@ -1169,14 +1233,14 @@ function renderGastos(){
   ligarFabLancar();
   var c=cicloInfo();
   document.getElementById("gCiclo").textContent=c.nome;
-  cicPreencher(); cicLigar();
+  cicPreencher(); cicLigar(); parcEncher(); parcRenderAtivos();
   document.getElementById("gPeriodo").textContent=c.per+" · "+diasRest()+" dias restantes";
 
   var cv=cofreVale();
   if(cv){
     document.getElementById("gSaldoVale").textContent="R$ "+brl(cv.v);
     document.getElementById("gSaldoMsg").innerHTML=cv.n+" · <b style='color:"+(cv.v<0?"#f87171":"#22C55E")+"'>"+
-      (cv.v<0?"saldo negativo":"cada gasto lançado desconta daqui")+"</b>";
+      (cv.v<0?"saldo negativo":"você atualiza esse saldo na aba Patrimônio")+"</b>";
   } else {
     document.getElementById("gSaldoVale").textContent="—";
     document.getElementById("gSaldoMsg").textContent="nenhum cofre marcado como fonte do vale (⚙ na tela Patrimônio)";
@@ -1261,7 +1325,7 @@ function renderGastos(){
 
   var q=function(s){ return document.querySelectorAll(s); };
   Array.prototype.forEach.call(q("[data-g]"),function(b){ b.addEventListener("click",function(){
-    var i=+this.getAttribute("data-g"), g=D.vale.l[i]; var cv=cofreVale(); if(cv) cv.v+=g.v;
+    var i=+this.getAttribute("data-g");
     D.vale.l.splice(i,1); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-orc]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-orc")); if(k){ k.orc=this.value; salvar(); renderGastos(); } }); });
@@ -1290,7 +1354,6 @@ function renderGastos(){
     var v=num(inp.value); if(!v){ toast("Informe o valor.","err"); inp.focus(); return; }
     var kc=acharCat(id), iso=hojeISO(), p=iso.split("-");
     D.vale.l.push({d:(kc?kc.nome:"Gasto"), v:v, c:id, dt:p[2]+"/"+p[1], iso:iso});
-    var cv=cofreVale(); if(cv) cv.v-=v;
     salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok"); }
   Array.prototype.forEach.call(q("[data-pok]"),function(b){ b.addEventListener("click",function(){ _lancarCat(this.getAttribute("data-pok")); }); });
   Array.prototype.forEach.call(q(".gpl-in"),function(i){ i.addEventListener("keydown",function(e){
@@ -1303,8 +1366,20 @@ document.getElementById("gAdd").addEventListener("click",function(){
   if(!v){ toast("Informe o valor.","err"); document.getElementById("gVal").focus(); return; }
   var loc=document.getElementById("gLoc").value.trim();
   var cat=document.getElementById("gCat").value, p=iso.split("-"), kc=acharCat(cat);
-  D.vale.l.push({d:loc||(kc?kc.nome:"Gasto"), v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso});
-  var cv=cofreVale(); if(cv) cv.v-=v;
+  var selP=document.getElementById("gParc");
+  var np = selP ? (parseInt(selP.value,10)||1) : 1;
+  var nome = loc||(kc?kc.nome:"Gasto");
+  if(np > 1){
+    var vp = Math.round((v/np)*100)/100;
+    var pid = "p"+Date.now();
+    parcLista().push({ id:pid, d:nome, c:cat, vp:vp, n:np, pg:1, ini:iso });
+    D.vale.l.push({d:nome+" (1/"+np+")", v:vp, c:cat, dt:p[2]+"/"+p[1], iso:iso, pid:pid});
+
+    if(selP) selP.value="1";
+    parcDica();
+  } else {
+    D.vale.l.push({d:nome, v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso});
+  }
   document.getElementById("gLoc").value=""; document.getElementById("gVal").value="";
   salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok");
 });
@@ -1314,6 +1389,7 @@ document.getElementById("gNovoCiclo").addEventListener("click",function(){
   var novo=MES[m2]+"/"+MES[(m2+1)%12];
   if(!confirm('Começar o ciclo "'+novo+'"?\n\nOs lançamentos atuais serão apagados (os saldos já descontados permanecem).')) return;
   v.mesIni=m2; v.anoIni=a2; v.ciclo=novo; v.l=[];
+  parcVirarCiclo();
   salvar(); renderTudo();
 });
 
@@ -1426,6 +1502,15 @@ renderTudo();
 .cicrow>div{display:flex;flex-direction:column}
 .cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
 .cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
+.parchint{ font-size:12px; color:#8a97a0; margin:-2px 2px 10px; min-height:16px; }
+.parchint b{ color:#2FD9C9; }
+.parcbox{ background:#12161a; border:1px solid #23282e; border-radius:14px; padding:11px 12px; margin:0 0 14px; }
+.parcrow{ display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid #1c2126; font-size:12.5px; }
+.parcrow:last-child{ border-bottom:none; }
+.parcrow .pd{ flex:1; min-width:0; overflow-wrap:anywhere; color:#e8edf1; font-weight:700; }
+.parcrow .pv{ color:#fff; font-weight:800; font-variant-numeric:tabular-nums; }
+.parcrow .pn{ color:#8a97a0; font-size:11.5px; font-weight:700; }
+.parcrow .px{ background:none; border:none; color:#f87171; font-size:15px; cursor:pointer; padding:0 3px; }
 </style>
 <div id="__welcome" aria-hidden="true">
   <div class="__wbg"></div>
