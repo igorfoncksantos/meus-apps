@@ -915,7 +915,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v32 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v33 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1677,13 +1677,37 @@ function onSignedIn(){ if(_synced)return; _synced=true;
   try{ history.replaceState(null,'',location.pathname); }catch(e){}
   closeAuth(); subscribeRT(); pullRemote(); toast('Conectado ✓ sincronizando'); }
 function showConnect(){ closeMenu(); authScreen('<div class="auth-ic">'+svgIc('sync')+'</div><h2>Sincronizar aparelhos</h2>'+
-  '<p>Entre com <b>e-mail e senha</b> pra ver as mesmas tarefas no computador e no celular.</p>'+
+  '<p>Entre com <b>e-mail e senha</b> pra ver as mesmas tarefas no computador e no celular.<br><span style="opacity:.72">Se ainda não tiver conta, ela é criada na hora — sem e-mail de confirmação.</span></p>'+
   '<div class="field"><label>E-mail</label><input id="cnEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="'+(localStorage.getItem("norte-login")||"")+'"></div>'+
   '<div class="field"><label>Senha</label><input id="cnPw" type="password" placeholder="mín. 6 caracteres"></div>'+
   '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-ghost" onclick="connectSignup()">Criar conta</button><button class="btn-primary" onclick="connectLogin()">Entrar</button></div>'+
+  '<div class="actions"><button class="btn-primary" id="cnGo" style="flex:1" onclick="connectEnter()">Entrar ou criar conta</button></div>'+
   '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>'+
-  '<button class="auth-link" onclick="showCodeLogin()">Entrar sem senha (código no e-mail)</button>'); }
+  '<button class="auth-link" onclick="showCodeLogin()">Entrar por link no e-mail</button>'); }
+async function connectEnter(){ const e=((val('cnEmail')||'')+'').trim().toLowerCase(), pw=val('cnPw')||'';
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
+  if(pw.length<6){ authErr('A senha precisa de ao menos 6 caracteres.'); return; }
+  if(!sb){ authErr('Sem conexão com o servidor.'); return; }
+  const b=document.getElementById('cnGo'); const busy=v=>{ if(b){ b.disabled=v; b.textContent=v?'Entrando…':'Entrar ou criar conta'; } };
+  busy(true);
+  try{
+    let r=await sb.auth.signInWithPassword({email:e,password:pw});
+    if(!r.error){ session=r.data.session; localStorage.setItem('norte-login',e); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
+      markSession(); busy(false); closeAuth(); subscribeRT(); await pullRemote(); toast('Entrou ✓'); return; }
+    const m=((r.error&&r.error.message)||'')+'';
+    if(!/invalid login credentials/i.test(m)){ busy(false); authErr(m); return; }
+    const s2=await sb.auth.signUp({email:e,password:pw});
+    if(s2.error){ const m2=((s2.error&&s2.error.message)||'')+''; busy(false);
+      if(/already|registered|exists/i.test(m2)) authErr('Esse e-mail já tem conta, mas a senha não confere. Toque em "Esqueci a senha" pra definir uma nova.');
+      else authErr(m2);
+      return; }
+    let ses=(s2.data&&s2.data.session)||null;
+    if(!ses){ const g=await sb.auth.signInWithPassword({email:e,password:pw}); ses=(g.data&&g.data.session)||null; }
+    busy(false);
+    if(!ses){ authErr('Conta criada, mas falta confirmar o e-mail. Abra o link que enviei.'); return; }
+    session=ses; localStorage.setItem('norte-login',e); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
+    markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Conta criada ✓');
+  }catch(x){ busy(false); authErr('Erro: '+(x.message||x)); } }
 async function connectLogin(){ const e=val('cnEmail'), pw=val('cnPw');
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
   if(!pw){ authErr('Digite a senha.'); return; }
@@ -1692,30 +1716,30 @@ async function connectSignup(){ const e=val('cnEmail'), pw=val('cnPw');
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
   if(pw.length<6){ authErr('A senha precisa de ao menos 6 caracteres.'); return; }
   await doSignup(e,pw); }
-function showCodeLogin(){ authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Entrar com código</h2>'+
-  '<p>Enviamos um código de 6 dígitos pro seu e-mail (pode atrasar ou cair no spam). Se puder, prefira a senha.</p>'+
+function showCodeLogin(){ authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Entrar por e-mail</h2>'+
+  '<p>Mando um <b>link de acesso</b> pro seu e-mail. Abra o link neste mesmo aparelho.</p>'+
   '<div class="field"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="'+(localStorage.getItem("norte-login")||"")+'"></div>'+
   '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-ghost" onclick="showConnect()">Voltar</button><button class="btn-primary" onclick="magicLink()">Enviar código</button></div>'); }
+  '<div class="actions"><button class="btn-ghost" onclick="showConnect()">Voltar</button><button class="btn-primary" onclick="magicLink()">Enviar link</button></div>'); }
 let _otpEmail='';
 async function magicLink(){ const e=val('mlEmail');
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
   if(!sb){ authErr('Sem conexão. Tente com internet.'); return; }
-  try{ localStorage.setItem('norte-login',e);
-    const r=await sb.auth.signInWithOtp({email:e});
+  try{
+    const r=await sb.auth.signInWithOtp({email:e,emailRedirectTo:location.href.split('#')[0].split('?')[0]});
     if(r.error){ authErr(r.error.message); return; }
     showCodeScreen(e);
   }catch(x){ authErr('Erro: '+(x.message||x)); } }
 function showCodeScreen(e){ _otpEmail=e;
-  authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Digite o código</h2>'+
-    '<p>Enviei um código de <b>6 dígitos</b> pra <b style="color:var(--txt2)">'+escapeHtml(e)+'</b>. Confira o e-mail (e o spam) e digite abaixo.</p>'+
+  authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Confira o e-mail</h2>'+
+    '<p>Mandei um e-mail pra <b style="color:var(--txt2)">'+escapeHtml(e)+'</b>. <b>Toque no link</b> — ele abre já conectado.<br><span style="opacity:.72">Se vier um código de 6 dígitos, dá pra digitar aqui.</span></p>'+
     '<div class="field"><input id="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:24px;font-weight:800"></div>'+
     '<div class="auth-err" id="authErr"></div>'+
     '<div class="actions"><button class="btn-ghost" onclick="resendCode()">Reenviar</button><button class="btn-primary" onclick="verifyCode()">Entrar</button></div>'+
     '<button class="auth-link" onclick="showConnect()">Trocar e-mail</button>');
   setTimeout(function(){ const i=document.getElementById('otpCode'); if(i){ i.focus(); i.oninput=function(){ this.value=this.value.replace(/\D/g,'').slice(0,6); if(this.value.length===6)verifyCode(); }; } },120); }
 async function resendCode(){ const e=_otpEmail||localStorage.getItem('norte-login'); if(!e||!sb)return;
-  try{ await sb.auth.signInWithOtp({email:e}); toast('Código reenviado ✓'); }catch(x){} }
+  try{ await sb.auth.signInWithOtp({email:e,emailRedirectTo:location.href.split('#')[0].split('?')[0]}); toast('Reenviado ✓'); }catch(x){} }
 async function verifyCode(){ const c=(val('otpCode')||'').replace(/\D/g,''); const e=_otpEmail||localStorage.getItem('norte-login');
   if(c.length<6){ authErr('Digite os 6 dígitos.'); return; }
   if(!sb){ authErr('Sem conexão.'); return; }
@@ -1803,7 +1827,7 @@ function showLogin(){ closeMenu(); authScreen('<div class="auth-ic">🔓</div><h
 async function loginGo(){ await doLogin(val('lgEmail'),val('lgPw')); }
 async function doLogin(email,pw){ if(!sb){ authErr('Sem conexão.'); return; }
   try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
-    if(r.error){ authErr('E-mail ou senha incorretos.'); return; }
+    if(r.error){ authErr(((r.error.message||'')+'').replace(/^Invalid login credentials$/i,'E-mail ou senha incorretos.')); return; }
     session=r.data.session; localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
     markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Entrou ✓');
   }catch(e){ authErr('Erro: '+(e.message||e)); } }
