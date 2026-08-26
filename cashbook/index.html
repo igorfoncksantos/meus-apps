@@ -2034,5 +2034,51 @@ document.getElementById("cmApagar").addEventListener("click", function(){
   </div>
 </div>
 <script>(function(){try{var K="welcome-gastos";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
+
+<script>
+/* __manterTela — ao recarregar (banner de atualizacao), volta pra mesma aba e posicao */
+(function(){
+  var K = "keep-tela-" + location.pathname;
+  function abas(){
+    var sel = ["nav .navbar button", "nav button", ".tabs .tb"];
+    for (var i=0; i<sel.length; i++){
+      var el = document.querySelectorAll(sel[i]);
+      if (el && el.length > 1) return el;
+    }
+    return null;
+  }
+  function ativa(el){ return (" " + (el.className||"") + " ").indexOf(" on ") >= 0; }
+  function salvar(){
+    try{
+      var st = { y: window.scrollY || window.pageYOffset || 0 };
+      var a = abas();
+      if (a) for (var i=0; i<a.length; i++){ if (ativa(a[i])) { st.aba = i; break; } }
+      sessionStorage.setItem(K, JSON.stringify(st));
+    }catch(e){}
+  }
+  window.addEventListener("pagehide", salvar);
+  window.addEventListener("beforeunload", salvar);
+
+  function restaurar(){
+    var st = null;
+    try{ st = JSON.parse(sessionStorage.getItem(K) || "null"); }catch(e){}
+    if (!st) return;
+    try{ sessionStorage.removeItem(K); }catch(e){}
+    // a inicializacao de alguns apps roda depois; insiste ate a aba pegar
+    var tentativas = 6;
+    (function tentar(){
+      var a = abas();
+      if (a && typeof st.aba === "number" && a[st.aba] && !ativa(a[st.aba])) {
+        try{ a[st.aba].click(); }catch(e){}
+      }
+      if (--tentativas > 0) { setTimeout(tentar, 250); return; }
+      if (st.y) setTimeout(function(){ try{ window.scrollTo(0, st.y); }catch(e){} }, 120);
+    })();
+  }
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", function(){ setTimeout(restaurar, 80); });
+  else setTimeout(restaurar, 80);
+})();
+</script>
 </body>
 </html>
