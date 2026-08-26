@@ -835,6 +835,9 @@ function mesesAte(pz){
 }
 
 var _cxSel = {};
+var _cxScr = {};
+function _cxGuardaRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k) _cxScr[k]=c.scrollLeft; }); }
+function _cxDevolveRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k && _cxScr[k]) c.scrollLeft=_cxScr[k]; }); }
 function renderPatrimonio(){
   var tc=totalCx(), tt=total();
   document.getElementById("pTotal").textContent=brl(tt);
@@ -961,7 +964,7 @@ function renderPatrimonio(){
              '<div class="acoes"><button class="bt d" data-gdel="'+gi+'">Apagar nicho</button></div></div>';
       if(itens.length){
         if(!_cxSel[ow] || !itens.filter(function(y){ return String(y.id)===String(_cxSel[ow]); }).length) _cxSel[ow]=String(itens[0].id);
-        h+= '<div class="cxcar">';
+        h+= '<div class="cxcar" data-car="'+attr(ow)+'">';
         itens.forEach(function(x){ h+=cardMini(x, String(x.id)===String(_cxSel[ow])); });
         h+= '<button class="cxadd" data-gadd="'+gi+'">+ cofre</button></div>';
         var escolhido = itens.filter(function(y){ return String(y.id)===String(_cxSel[ow]); })[0];
@@ -972,7 +975,10 @@ function renderPatrimonio(){
       h+= '</div></div>';
     });
   }
+  _cxGuardaRolagem();
   document.getElementById("listaCx").innerHTML=h;
+  _cxDevolveRolagem();
+  requestAnimationFrame(_cxDevolveRolagem);
 
   var eD=document.getElementById("eDest"), sv=eD.value||"cart";
   function _eopt(val,name,cor){ return '<div class="cselopt'+(val==sv?" sel":"")+'" data-eopt="'+val+'"><span class="od" style="background:'+cor+'"></span>'+esc(name)+'</div>'; }
