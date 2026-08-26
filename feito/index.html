@@ -1095,6 +1095,20 @@
   function _kbdAltura(){ try{ var a=kbd.offsetHeight; if(a>60) document.body.style.setProperty("padding-bottom", a+"px", "important"); }catch(x){} }
   function _kbdAbre(){ document.body.classList.add('kbdopen'); _kbdAltura(); }
   function _kbdFecha(){ document.body.classList.remove('kbdopen'); try{ document.body.style.removeProperty("padding-bottom"); }catch(x){} }
+  var _kbdRepT=null;
+  function _kbdSolta(){ if(_kbdRepT){ clearTimeout(_kbdRepT); _kbdRepT=null; } }
+  function _kbdApagando(){
+    _kbdSolta(); var n=0;
+    _kbdRepT=setTimeout(function passo(){
+      if(!target || target.value===""){ _kbdSolta(); return; }
+      back(); n++;
+      _kbdRepT=setTimeout(passo, n<8?55:(n<20?34:20));
+    }, 420);
+  }
+  ["touchend","touchcancel","mouseup","mouseleave","pointerup","pointercancel"].forEach(function(ev){
+    try{ kbd.addEventListener(ev, _kbdSolta); }catch(x){}
+  });
+  try{ document.addEventListener("touchend", _kbdSolta); document.addEventListener("mouseup", _kbdSolta); window.addEventListener("blur", _kbdSolta); }catch(x){}
   function _kbdBrilho(el){ if(!el||!el.classList) return; el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
     setTimeout(function(){ try{ el.classList.remove("hit"); }catch(x){} }, 240);
     try{ if(navigator.vibrate) navigator.vibrate(8); }catch(x){}
@@ -1119,7 +1133,7 @@
     var special=(k==='shift'||k==='back'||k==='layer'||k==='sym'||k==='enter'||k==='hide');
     if(di!==null && !special){ ins(di); return; }
     if(k==='shift'){ caps = caps===0?1:(caps===1?2:0); render(); return; }
-    if(k==='back'){ back(); return; }
+    if(k==='back'){ back(); _kbdApagando(); return; }
     if(k==='layer'){ layer=(layer==='abc'?'num':'abc'); render(); return; }
     if(k==='sym'){ layer=(layer==='sym'?'num':'sym'); render(); return; }
     if(k==='enter'){ if(form&&form.requestSubmit){ form.requestSubmit(); } else if(form){ form.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); } setTimeout(function(){ autocaps(); render(); },0); return; }
