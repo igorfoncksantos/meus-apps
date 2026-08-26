@@ -119,6 +119,28 @@
   .cx .met .pz{color:var(--amber)}
   .cx .met .atr{color:var(--red)}
 
+.cxcar{display:flex;gap:11px;overflow-x:auto;padding:3px 1px 11px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cxcar::-webkit-scrollbar{display:none}
+.cxc{flex:0 0 200px;background:linear-gradient(160deg,#121a1e,#0b0e11);border:1px solid #23282e;
+  border-radius:16px;padding:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .1s;
+  -webkit-tap-highlight-color:transparent}
+.cxc:active{transform:scale(.985)}
+.cxc.on{border-color:var(--accent);box-shadow:0 6px 22px rgba(47,217,201,.16)}
+.cxc .ctop{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cxc .cdt{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.cxc .cnm{font-size:12.5px;font-weight:800;color:#e8edf1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cxc .cvl{font-size:21px;font-weight:800;color:#fff;margin-bottom:12px;font-variant-numeric:tabular-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cxc .cbar{height:6px;background:#171c21;border-radius:4px;overflow:hidden;margin-bottom:7px}
+.cxc .cbar i{display:block;height:100%;border-radius:4px}
+.cxc .cft{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;font-weight:700;color:#5f6a72;font-variant-numeric:tabular-nums}
+.cxc .cft b{color:#8a97a0}
+.cxc .cvale{font-size:9px;letter-spacing:.6px;color:#22C55E;font-weight:800;margin-top:6px;text-transform:uppercase}
+.cxdet{margin-top:2px}
+.cxadd{flex:0 0 200px;display:flex;align-items:center;justify-content:center;border:1px dashed #2a3138;
+  border-radius:16px;color:#5f6a72;font-size:12.5px;font-weight:800;cursor:pointer;background:transparent;
+  font-family:inherit;transition:border-color .15s,color .15s}
+.cxadd:hover{border-color:var(--accent);color:var(--accent)}
   /* nichos (grupos de cofres por dono) */
   .persum{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
   .persum .pchip{font-size:11.5px;font-weight:700;color:var(--txt2);background:var(--panel);border:1px solid var(--line);
@@ -812,6 +834,7 @@ function mesesAte(pz){
   return m;
 }
 
+var _cxSel = {};
 function renderPatrimonio(){
   var tc=totalCx(), tt=total();
   document.getElementById("pTotal").textContent=brl(tt);
@@ -827,6 +850,21 @@ function renderPatrimonio(){
   } else { document.getElementById("pVar").textContent="primeiro registro — feche o mês para começar o histórico"; }
 
   function attr(s){ return String(s==null?"":s).replace(/"/g,"&quot;"); }
+  function cardMini(x, sel){
+    var barra = "", rodape = '<span>sem meta</span><span>&mdash;</span>';
+    if(x.m > 0){
+      var q = Math.min(100, x.v / x.m * 100);
+      barra = '<i style="width:' + q + '%;background:' + x.c + '"></i>';
+      rodape = '<span><b>' + q.toFixed(0) + '%</b> da meta</span><span>de R$ ' + brl(x.m) + '</span>';
+    }
+    return '<div class="cxc' + (sel ? " on" : "") + '" data-cxsel="' + x.id + '">' +
+      '<div class="ctop"><span class="cdt" style="background:' + x.c + '"></span><span class="cnm">' + esc(x.n) + '</span></div>' +
+      '<div class="cvl">R$ ' + brl(x.v) + '</div>' +
+      '<div class="cbar">' + barra + '</div>' +
+      '<div class="cft">' + rodape + '</div>' +
+      (x.vale ? '<div class="cvale">banca o vale</div>' : '') +
+    '</div>';
+  }
   function cardCx(x){
     var met="";
     if(x.m>0){
@@ -921,9 +959,17 @@ function renderPatrimonio(){
              '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-gcolor="'+gi+'" value="'+oc+'"></div></div>' +
              swHTML("[data-gcolor='"+gi+"']") +
              '<div class="acoes"><button class="bt d" data-gdel="'+gi+'">Apagar nicho</button></div></div>';
-      itens.forEach(function(x){ h+=cardCx(x); });
-      h+= '<span class="gadd" data-gadd="'+gi+'">+ cofre</span>' +
-         '</div></div>';
+      if(itens.length){
+        if(!_cxSel[ow] || !itens.filter(function(y){ return y.id===_cxSel[ow]; }).length) _cxSel[ow]=itens[0].id;
+        h+= '<div class="cxcar">';
+        itens.forEach(function(x){ h+=cardMini(x, x.id===_cxSel[ow]); });
+        h+= '<button class="cxadd" data-gadd="'+gi+'">+ cofre</button></div>';
+        var escolhido = itens.filter(function(y){ return y.id===_cxSel[ow]; })[0];
+        h+= '<div class="cxdet">' + (escolhido ? cardCx(escolhido) : "") + '</div>';
+      } else {
+        h+= '<span class="gadd" data-gadd="'+gi+'">+ cofre</span>';
+      }
+      h+= '</div></div>';
     });
   }
   document.getElementById("listaCx").innerHTML=h;
@@ -1057,6 +1103,14 @@ function ligarPatr(){
     D.entradas.splice(i,1); salvar(); renderTudo(); }); });
 
   /* ---- nichos ---- */
+  Array.prototype.forEach.call(q("[data-cxsel]"),function(c){ c.addEventListener("click",function(e){
+    if(e.target.closest("[data-gadd]")) return;
+    var id=this.getAttribute("data-cxsel"), alvo=null;
+    D.cx.forEach(function(x){ if(x.id===id) alvo=x; });
+    if(!alvo) return;
+    _cxSel[alvo.own] = id;
+    renderPatrimonio();
+  }); });
   Array.prototype.forEach.call(q("[data-tog]"),function(hd){ hd.addEventListener("click",function(e){
     if(e.target.closest("[data-gedit]")) return;
     var ow=GOWN[+this.getAttribute("data-tog")]; D.collapsed[ow]=!D.collapsed[ow];
