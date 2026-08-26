@@ -373,6 +373,15 @@
 .cicrow>div{display:flex;flex-direction:column}
 .cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
 .cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
+.parcchips{ display:flex; gap:7px; overflow-x:auto; padding:3px 1px 5px; margin-bottom:2px;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.parcchips::-webkit-scrollbar{ display:none; }
+.pchip{ flex:0 0 auto; background:#12161a; border:1px solid #2a2f34; color:#8a97a0;
+  border-radius:999px; padding:9px 14px; font:inherit; font-size:13px; font-weight:800;
+  cursor:pointer; white-space:nowrap; transition:background .14s, color .14s, border-color .14s, transform .1s;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.pchip:active{ transform:scale(.93); }
+.pchip.on{ background:var(--accent); border-color:var(--accent); color:#04231f; box-shadow:0 4px 14px rgba(47,217,201,.28); }
 .parchint{ font-size:12px; color:#8a97a0; margin:-2px 2px 10px; min-height:16px; }
 .parchint b{ color:#2FD9C9; }
 .parcbox{ background:#12161a; border:1px solid #23282e; border-radius:14px; padding:11px 12px; margin:0 0 14px; }
@@ -521,9 +530,11 @@
   </div>
   <div class="campos">
     <div><label class="lb">Categoria</label><select id="gCat"></select></div>
-    <div style="max-width:118px"><label class="lb">Valor</label><input class="r" inputmode="decimal" id="gVal" placeholder="0,00"></div>
-    <div style="max-width:104px"><label class="lb">Parcelas</label><select id="gParc"></select></div>
+    <div style="max-width:130px"><label class="lb">Valor</label><input class="r" inputmode="decimal" id="gVal" placeholder="0,00"></div>
   </div>
+  <label class="lb" style="display:block;margin-top:2px">Parcelas</label>
+  <div class="parcchips" id="gParcChips"></div>
+  <input type="hidden" id="gParc" value="1">
   <div class="parchint" id="gParcHint"></div>
   <button class="bt p w" id="gAdd">Lançar gasto</button>
 
@@ -1080,12 +1091,26 @@ document.getElementById("btAplicar").addEventListener("click",function(){
 function parcLista(){ if(!D.vale.parc) D.vale.parc=[]; return D.vale.parc; }
 function parcMoeda(n){ return "R$ " + brl(n); }
 function parcEncher(){
-  var sel=document.getElementById("gParc"); if(!sel || sel._ok) return; sel._ok=1;
-  var h='<option value="1">À vista</option>';
-  for(var i=2;i<=12;i++) h+='<option value="'+i+'">'+i+'x</option>';
-  sel.innerHTML=h;
-  sel.addEventListener("change", parcDica);
+  var box=document.getElementById("gParcChips"); if(!box || box._ok) return; box._ok=1;
+  var h='<button type="button" class="pchip on" data-p="1">À vista</button>';
+  for(var i=2;i<=12;i++) h+='<button type="button" class="pchip" data-p="'+i+'">'+i+'x</button>';
+  box.innerHTML=h;
+  box.addEventListener("click", function(e){
+    var b=e.target.closest ? e.target.closest(".pchip") : null; if(!b) return;
+    parcSelecionar(b.getAttribute("data-p"));
+  });
   var val=document.getElementById("gVal"); if(val) val.addEventListener("input", parcDica);
+}
+function parcSelecionar(n){
+  var box=document.getElementById("gParcChips"), hid=document.getElementById("gParc");
+  if(!box||!hid) return;
+  hid.value = n;
+  Array.prototype.forEach.call(box.querySelectorAll(".pchip"), function(x){
+    if(x.getAttribute("data-p") === String(n)) x.className="pchip on"; else x.className="pchip";
+  });
+  var alvo=box.querySelector(".pchip.on");
+  if(alvo && alvo.scrollIntoView) { try{ alvo.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"}); }catch(e){} }
+  parcDica();
 }
 function parcDica(){
   var el=document.getElementById("gParcHint"); if(!el) return;
@@ -1375,8 +1400,7 @@ document.getElementById("gAdd").addEventListener("click",function(){
     parcLista().push({ id:pid, d:nome, c:cat, vp:vp, n:np, pg:1, ini:iso });
     D.vale.l.push({d:nome+" (1/"+np+")", v:vp, c:cat, dt:p[2]+"/"+p[1], iso:iso, pid:pid});
 
-    if(selP) selP.value="1";
-    parcDica();
+    parcSelecionar("1");
   } else {
     D.vale.l.push({d:nome, v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso});
   }
@@ -1502,6 +1526,15 @@ renderTudo();
 .cicrow>div{display:flex;flex-direction:column}
 .cicacts{flex-direction:row!important;align-items:flex-end;gap:8px}
 .cichint{font-size:12px;color:#9aa4ad;margin-top:2px}
+.parcchips{ display:flex; gap:7px; overflow-x:auto; padding:3px 1px 5px; margin-bottom:2px;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.parcchips::-webkit-scrollbar{ display:none; }
+.pchip{ flex:0 0 auto; background:#12161a; border:1px solid #2a2f34; color:#8a97a0;
+  border-radius:999px; padding:9px 14px; font:inherit; font-size:13px; font-weight:800;
+  cursor:pointer; white-space:nowrap; transition:background .14s, color .14s, border-color .14s, transform .1s;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.pchip:active{ transform:scale(.93); }
+.pchip.on{ background:var(--accent); border-color:var(--accent); color:#04231f; box-shadow:0 4px 14px rgba(47,217,201,.28); }
 .parchint{ font-size:12px; color:#8a97a0; margin:-2px 2px 10px; min-height:16px; }
 .parchint b{ color:#2FD9C9; }
 .parcbox{ background:#12161a; border:1px solid #23282e; border-radius:14px; padding:11px 12px; margin:0 0 14px; }
