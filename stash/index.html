@@ -532,7 +532,7 @@
 
   <div class="duo">
     <div class="cd" style="border-left-color:#a78bfa">
-      <div class="cl">Carteira de investimentos</div>
+      <div class="cl">Investido</div>
       <div class="cv"><input class="r" id="iCart" inputmode="decimal" style="border:none;background:transparent;padding:0;font-size:18px"></div>
       <div class="cm" id="pCartPc">—</div>
     </div>
@@ -558,7 +558,7 @@
     <div><label class="lb">Vai para</label>
       <div class="cselwrap">
         <input type="hidden" id="eDest" value="cart">
-        <button type="button" class="csel" id="eDestBtn"><span class="cseldot" id="eDestDot" style="background:#5c6469"></span><span id="eDestLbl">Carteira de investimentos</span><span class="cselcar">▾</span></button>
+        <button type="button" class="csel" id="eDestBtn"><span class="cseldot" id="eDestDot" style="background:#5c6469"></span><span id="eDestLbl">Investido</span><span class="cselcar">▾</span></button>
         <div class="cselpop" id="eDestPop"></div>
       </div></div>
     <div style="max-width:130px;display:flex;align-items:flex-end"><button class="bt p w" id="eAdd">Registrar</button></div>
@@ -769,6 +769,9 @@ if(D.vale && typeof D.vale.ciclo === "string" && /Ã/.test(D.vale.ciclo)) D.vale
 if(!D.ap || typeof D.ap !== "object") D.ap = {sal:"",con:""};
 if(!Array.isArray(D.cx)) D.cx = JSON.parse(JSON.stringify(PADRAO.cx));
 if(typeof D.carteira !== "number") D.carteira = 0;
+/* renomeado 27/08: "Carteira de investimentos" -> "Investido". As entradas
+   antigas guardaram o nome no registro; migro pra nao ficar historico com dois nomes. */
+if(Array.isArray(D.entradas)) D.entradas.forEach(function(e){ if(e.destN==="Carteira de investimentos") e.destN="Investido"; });
 var maxId = 0;
 D.cx.forEach(function(x,i){ if(!x.id) x.id = i+1; if(x.pz === undefined) x.pz = ""; if(x.id > maxId) maxId = x.id; });
 if(!D.cx.some(function(x){ return x.vale; })){
@@ -996,10 +999,10 @@ function renderPatrimonio(){
   var eD=document.getElementById("eDest"), sv=eD.value||"cart";
   function _eopt(val,name,cor){ return '<div class="cselopt'+(val==sv?" sel":"")+'" data-eopt="'+val+'"><span class="od" style="background:'+cor+'"></span>'+esc(name)+'</div>'; }
   var pop=document.getElementById("eDestPop");
-  var ph=_eopt("cart","Carteira de investimentos","#5c6469");
+  var ph=_eopt("cart","Investido","#5c6469");
   D.cx.forEach(function(x){ ph+=_eopt(x.id,x.n,x.c); });
   pop.innerHTML=ph;
-  var selN="Carteira de investimentos", selC="#5c6469";
+  var selN="Investido", selC="#5c6469";
   if(sv!=="cart"){ var scx=acharCx(sv); if(scx){ selN=scx.n; selC=scx.c; } else { eD.value="cart"; } }
   document.getElementById("eDestLbl").textContent=selN;
   document.getElementById("eDestDot").style.background=selC;
@@ -1168,7 +1171,7 @@ document.getElementById("eAdd").addEventListener("click",function(){
   if(!v){ toast("Informe o valor.","err"); document.getElementById("eVal").focus(); return; }
   var dest=document.getElementById("eDest").value;
   var d=document.getElementById("eDesc").value.trim()||"Entrada";
-  var destN="Carteira de investimentos";
+  var destN="Investido";
   if(dest==="cart"){ D.carteira+=v; } else { var c=acharCx(dest); if(c){ c.v+=v; destN=c.n; } }
   var h=new Date();
   D.entradas.push({d:d, v:v, dest:dest, destN:destN, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
