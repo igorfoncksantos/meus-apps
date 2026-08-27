@@ -1178,8 +1178,6 @@ function ligarPatr(){
     acharCx(this.getAttribute("data-n")).n=this.value.trim()||"Sem nome"; salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-c]"),function(i){ i.addEventListener("change",function(){
     acharCx(this.getAttribute("data-c")).c=this.value; salvar(); renderTudo(); }); });
-  Array.prototype.forEach.call(q("[data-p]"),function(i){ i.addEventListener("change",function(){
-    acharCx(this.getAttribute("data-p")).p=num(this.value); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-m]"),function(i){ i.addEventListener("change",function(){
     acharCx(this.getAttribute("data-m")).m=num(this.value); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-pz]"),function(i){ i.addEventListener("change",function(){
@@ -1512,6 +1510,7 @@ document.getElementById("btAplicar").addEventListener("click",function(){
   itens.forEach(function(x){ var q=tot*x.p/100; x.v+=q; somaV+=q; det.push({id:x.id,n:x.n,v:q}); });
   D.aportes.push({mes:mes, v:somaV, det:det, own:ow,
     dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
+  D.ap.tot="";   /* o total varia todo mes — nao fica guardado, pra nao ser aplicado por distracao */
   salvar(); renderTudo(); animarNovo("listaAportes","first");
   toast("Aporte de R$ "+brl(somaV)+" registrado e distribu\u00eddo.","ok");
 });
