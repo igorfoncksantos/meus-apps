@@ -150,6 +150,12 @@
     cursor:pointer;transition:border-color .16s,background .16s,transform .12s}
   .pcard:active{transform:scale(.99)}
   .pcard.on{border-color:var(--oc);background:linear-gradient(160deg,color-mix(in srgb,var(--oc) 11%,var(--panel)),var(--panel))}
+  /* o anel acende quando o dono esta escolhido */
+  .pcard svg .trk{stroke:rgba(128,128,128,.20);transition:stroke .2s ease}
+  .pcard svg .prg{transition:filter .2s ease}
+  .pcard.on svg .trk{stroke:color-mix(in srgb,var(--oc) 32%,transparent)}
+  .pcard.on svg .prg{filter:drop-shadow(0 0 3px var(--oc))}
+  .pcard.on svg{filter:drop-shadow(0 0 7px color-mix(in srgb,var(--oc) 45%,transparent))}
   .pcard svg{width:38px;height:38px;flex:none}
   .pcard .pt{min-width:0;flex:1}
   .pcard .pn{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);
@@ -1012,8 +1018,8 @@ function renderPatrimonio(){
       if(x.m>0){ somaV+=Math.min(x.v||0,x.m); somaM+=x.m; } });
     var pc = somaM>0 ? Math.min(100, somaV/somaM*100) : null;
     var CC = 2*Math.PI*15.9;
-    var anel = '<svg viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(128,128,128,.20)" stroke-width="5"/>'
-      + (pc===null ? "" : '<circle cx="21" cy="21" r="15.9" fill="none" stroke="'+oc+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+CC.toFixed(2)+'" stroke-dashoffset="'+(CC*(1-pc/100)).toFixed(2)+'" transform="rotate(-90 21 21)"/>')
+    var anel = '<svg viewBox="0 0 42 42" aria-hidden="true"><circle class="trk" cx="21" cy="21" r="15.9" fill="none" stroke-width="5"/>'
+      + (pc===null ? "" : '<circle class="prg" cx="21" cy="21" r="15.9" fill="none" stroke="'+oc+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+CC.toFixed(2)+'" stroke-dashoffset="'+(CC*(1-pc/100)).toFixed(2)+'" transform="rotate(-90 21 21)"/>')
       + "</svg>";
     var rodape = n + (n===1?" cofre":" cofres") + (pc===null ? "" : " · " + pc.toFixed(0) + "% das metas");
     return '<div class="pcard'+(on?" on":"")+'" data-pown="'+attr(ow)+'" style="--oc:'+oc+'">' + anel +
