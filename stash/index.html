@@ -137,7 +137,6 @@
 .cxc .cbar i{display:block;height:100%;border-radius:4px}
 .cxc .cft{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;font-weight:700;color:var(--mut2);font-variant-numeric:tabular-nums}
 .cxc .cft b{color:var(--mut)}
-.cxc .cvale{font-size:9px;letter-spacing:.6px;color:var(--green);font-weight:800;margin-top:6px;text-transform:uppercase}
 .cxdet{margin-top:2px}
 .cxadd{flex:0 0 200px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);
   border-radius:16px;color:var(--mut2);font-size:12.5px;font-weight:800;cursor:pointer;background:transparent;
@@ -689,7 +688,7 @@
   <div class="gp-rings" id="gRings"></div>
 
   <div class="cd" style="border-left-color:#22C55E;margin-bottom:11px">
-    <div class="cl">Saldo do cofre que banca o vale</div>
+    <div class="cl" id="gSaldoLbl">Saldo do cofre ligado</div>
     <div class="cv" id="gSaldoVale">—</div>
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
@@ -836,11 +835,9 @@ if(typeof D.carteira !== "number") D.carteira = 0;
    antigas guardaram o nome no registro; migro pra nao ficar historico com dois nomes. */
 if(Array.isArray(D.entradas)) D.entradas.forEach(function(e){ if(e.destN==="Carteira de investimentos") e.destN="Investido"; });
 var maxId = 0;
-D.cx.forEach(function(x,i){ if(!x.id) x.id = i+1; if(x.pz === undefined) x.pz = ""; if(x.id > maxId) maxId = x.id; });
-if(!D.cx.some(function(x){ return x.vale; })){
-  var vv = D.cx.filter(function(x){ return /vale/i.test(x.n); })[0];
-  if(vv) vv.vale = true;
-}
+D.cx.forEach(function(x,i){ if(!x.id) x.id = i+1; if(x.pz === undefined) x.pz = "";
+  if(x.vale !== undefined) delete x.vale;   /* conceito aposentado: o vinculo agora e por categoria */
+  if(x.id > maxId) maxId = x.id; });
 /* nichos (de quem sao as cofres) */
 if(!Array.isArray(D.owners)) D.owners = [];
 if(!Array.isArray(D.agg)) D.agg = [];
@@ -865,7 +862,20 @@ function salvar(){
   var s=document.getElementById("salvo"); s.className="sv on";
   clearTimeout(tS); tS=setTimeout(function(){ s.className="sv"; },1100);
 }
-function cofreVale(){ return D.cx.filter(function(x){ return x.vale; })[0] || null; }
+/* Quais cofres o Cashbook mostra no topo: os que as CATEGORIAS apontam.
+   Antes isso era um cofre unico, marcado a mao num botao "banca o vale" —
+   que so servia pra escolher esse card e nao entrava em conta nenhuma.
+   Virou redundante quando cada categoria ganhou seu proprio vinculo. */
+function cofresDoCashbook(){
+  var vistos=[], saida=[];
+  (D.vale.cats||[]).forEach(function(k){
+    if(!k.cofre) return;
+    if(vistos.indexOf(String(k.cofre))>=0) return;
+    var c=acharCx(k.cofre); if(!c) return;
+    vistos.push(String(k.cofre)); saida.push(c);
+  });
+  return saida;
+}
 function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElementById("gCfgToggle"); if(!c)return;
   var open=(c.style.display==="none"); c.style.display=open?"":"none"; if(b) b.className="gcfgtoggle"+(open?" on":""); }
 function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
@@ -949,7 +959,6 @@ function renderPatrimonio(){
       '<div class="cvl">R$ ' + brl(x.v) + '</div>' +
       '<div class="cbar">' + barra + '</div>' +
       '<div class="cft">' + rodape + '</div>' +
-      (x.vale ? '<div class="cvale">banca o vale</div>' : '') +
     '</div>';
   }
   function cardCx(x){
@@ -973,7 +982,7 @@ function renderPatrimonio(){
     /* o cartao do carrossel ja diz nome e valor — aqui nao se repete:
        o painel abre direto nos campos, com o saldo (o que ele mais mexe) na frente. */
     return '<div class="cx" style="border-left-color:'+x.c+'" data-cx="'+x.id+'">' +
-         '<div class="gr"><div><label class="lb">Saldo de '+esc(x.n)+(x.vale?' &middot; banca o vale':'')+'</label>' +
+         '<div class="gr"><div><label class="lb">Saldo de '+esc(x.n)+'</label>' +
            '<input class="r saldo" inputmode="decimal" data-v="'+x.id+'" value="'+brl(x.v)+'"></div></div>' + met +
            '<div class="gr"><div><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+attr(x.n)+'"></div></div>' +
            '<div class="gr">' +
@@ -981,7 +990,7 @@ function renderPatrimonio(){
              '<div><label class="lb">Até (mês)</label><input type="month" data-pz="'+x.id+'" value="'+(x.pz||"")+'" style="color-scheme:dark"></div>' +
            '</div>' +
            '<div class="gr"><div style="flex:1"><label class="lb">Dono do cofre</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
-           '<div class="acoes"><button class="bt n" data-vale="'+x.id+'">'+(x.vale?"✓ banca o vale":"marcar: banca o vale")+'</button>' +
+           '<div class="acoes">' +
            '<button class="bt d" data-del="'+x.id+'">Apagar cofre</button></div>' +
          '</div>';
   }
@@ -1024,7 +1033,7 @@ function renderPatrimonio(){
          '<div class="gpc">'+(PRIV?"•••":pc.toFixed(0)+"%")+'</div></div>';
     });
     if(semMeta.length){ h+='<div class="mtsem">Sem meta definida</div>';
-      semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+x.n+(x.vale?" · vale":"")+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; }); }
+      semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+x.n+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; }); }
   } else if(!owners.length){
     h+='<div class="vazio" style="padding:20px 4px"><div style="margin-bottom:13px;text-transform:none">Comece adicionando um <b style="color:var(--accent)">dono</b> (ex.: Minhas, da Miri) e os cofres de cada um.</div><button class="bt p" id="btDonoVazio" style="width:auto">+ Adicionar dono</button></div>';
   } else {
@@ -1166,10 +1175,6 @@ function ligarPatr(){
     acharCx(this.getAttribute("data-m")).m=num(this.value); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-pz]"),function(i){ i.addEventListener("change",function(){
     acharCx(this.getAttribute("data-pz")).pz=this.value; salvar(); renderTudo(); }); });
-  Array.prototype.forEach.call(q("[data-vale]"),function(b){ b.addEventListener("click",function(){
-    var id=this.getAttribute("data-vale");
-    D.cx.forEach(function(x){ x.vale = (x.id == id) ? !x.vale : false; });
-    salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-del]"),function(b){ b.addEventListener("click",function(){
     var c=acharCx(this.getAttribute("data-del"));
     if(!confirm('Apagar o cofre "'+c.n+'"?\n\nO saldo de R$ '+brl(c.v)+" some do patrimônio.")) return;
@@ -2150,14 +2155,20 @@ function renderGastos(){
   var bp=document.getElementById("relPdf"); if(bp && !bp._lig){ bp._lig=1; bp.addEventListener("click", relPdf); }
   document.getElementById("gPeriodo").textContent=c.per+" · "+diasRest()+" dias restantes";
 
-  var cv=cofreVale();
-  if(cv){
-    document.getElementById("gSaldoVale").textContent="R$ "+brl(cv.v);
-    document.getElementById("gSaldoMsg").innerHTML=cv.n+" · <b style='color:"+(cv.v<0?"#f87171":"#22C55E")+"'>"+
-      (cv.v<0?"saldo negativo":"você atualiza esse saldo na aba Patrimônio")+"</b>";
+  var cvs=cofresDoCashbook();
+  var lbl=document.getElementById("gSaldoLbl");
+  if(cvs.length){
+    var tv=0; cvs.forEach(function(c){ tv+=c.v||0; });
+    lbl.textContent = cvs.length===1 ? "Saldo do cofre ligado" : "Saldo dos cofres ligados";
+    document.getElementById("gSaldoVale").textContent="R$ "+brl(tv);
+    document.getElementById("gSaldoMsg").innerHTML = cvs.length===1
+      ? (esc(cvs[0].n)+" · <b style='color:"+(tv<0?"var(--red)":"var(--green)")+"'>"+
+         (tv<0?"saldo negativo":"você atualiza esse saldo na aba Patrimônio")+"</b>")
+      : cvs.map(function(c){ return esc(c.n)+" <b style='color:var(--txt2)'>R$ "+brl(c.v)+"</b>"; }).join(" · ");
   } else {
+    lbl.textContent="Saldo do cofre ligado";
     document.getElementById("gSaldoVale").textContent="—";
-    document.getElementById("gSaldoMsg").textContent="nenhum cofre marcado como fonte do vale (⚙ na tela Patrimônio)";
+    document.getElementById("gSaldoMsg").textContent="nenhuma categoria está ligada a um cofre — ligue no ⚙ da categoria, aqui embaixo";
   }
 
   var d=diasRest();
