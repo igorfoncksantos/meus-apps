@@ -601,11 +601,6 @@
   </div>
 
   <div class="duo">
-    <div class="cd" style="border-left-color:#a78bfa">
-      <div class="cl">Investido</div>
-      <div class="cv"><input class="r" id="iCart" inputmode="decimal" style="border:none;background:transparent;padding:0;font-size:18px"></div>
-      <div class="cm" id="pCartPc">—</div>
-    </div>
     <div class="cd" style="border-left-color:#22C55E">
       <div class="cl">Cofres</div>
       <div class="cv" id="pCx">R$ 0,00</div>
@@ -889,7 +884,10 @@ function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElem
 function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
   var v=document.getElementById("gVal"); if(v) setTimeout(function(){ try{ v.focus(); }catch(e){} },280); }
 function totalCx(){ var s=0; D.cx.forEach(function(x){ s+=x.v||0; }); return s; }
-function total(){ return (D.carteira||0) + totalCx(); }
+/* o "Investido" saiu da tela (27/08). Enquanto nao houver onde ver e
+   corrigir esse numero, ele nao entra no total — mas fica guardado em
+   D.carteira, pra voltar junto se o card voltar. */
+function total(){ return totalCx(); }
 
 /* feedback moderno (toast + animação de item novo) */
 function toast(msg,tipo){ var t=document.getElementById("__toast");
@@ -943,10 +941,8 @@ function renderPatrimonio(){
   sincronizarCores();
   var tc=totalCx(), tt=total();
   document.getElementById("pTotal").textContent=brl(tt);
-  document.getElementById("iCart").value=brl(D.carteira);
   document.getElementById("pCx").textContent="R$ "+brl(tc);
-  document.getElementById("pCartPc").textContent=tt?((D.carteira/tt*100).toFixed(1).replace(".",",")+"% do total"):"—";
-  document.getElementById("pCxPc").textContent=tt?((tc/tt*100).toFixed(1).replace(".",",")+"% · "+D.cx.length+" cofres"):"—";
+  document.getElementById("pCxPc").textContent=D.cx.length+(D.cx.length===1?" cofre":" cofres");
 
   if(D.hist.length){
     var ant=D.hist[D.hist.length-1].total, d=tt-ant, pc=ant?(d/ant*100):0;
@@ -1079,11 +1075,14 @@ function renderPatrimonio(){
   var eD=document.getElementById("eDest"), sv=eD.value||"cart";
   function _eopt(val,name,cor){ return '<div class="cselopt'+(val==sv?" sel":"")+'" data-eopt="'+val+'"><span class="od" style="background:'+cor+'"></span>'+esc(name)+'</div>'; }
   var pop=document.getElementById("eDestPop");
-  var ph=_eopt("cart","Investido","#5c6469");
+  var ph="";
   D.cx.forEach(function(x){ ph+=_eopt(x.id,x.n,x.c); });
   pop.innerHTML=ph;
-  var selN="Investido", selC="#5c6469";
-  if(sv!=="cart"){ var scx=acharCx(sv); if(scx){ selN=scx.n; selC=scx.c; } else { eD.value="cart"; } }
+  /* sem o "Investido", o destino padrao passa a ser o primeiro cofre */
+  var selN="—", selC="#5c6469";
+  var scx=acharCx(sv);
+  if(!scx && D.cx.length){ eD.value=String(D.cx[0].id); scx=D.cx[0]; }
+  if(scx){ selN=scx.n; selC=scx.c; }
   document.getElementById("eDestLbl").textContent=selN;
   document.getElementById("eDestDot").style.background=selC;
 
@@ -1223,7 +1222,6 @@ function ligarPatr(){
   var bv=document.getElementById("btDonoVazio"); if(bv) bv.addEventListener("click",function(){ document.getElementById("btNovoNicho").click(); });
 }
 
-document.getElementById("iCart").addEventListener("change",function(){ D.carteira=num(this.value); salvar(); renderTudo(); });
 
 document.getElementById("btNovoNicho").addEventListener("click",function(){
   var existente=document.getElementById("novoNichoInp"); if(existente){ existente.focus(); return; }
@@ -1247,8 +1245,12 @@ document.getElementById("eAdd").addEventListener("click",function(){
   if(!v){ toast("Informe o valor.","err"); document.getElementById("eVal").focus(); return; }
   var dest=document.getElementById("eDest").value;
   var d=document.getElementById("eDesc").value.trim()||"Entrada";
-  var destN="Investido";
-  if(dest==="cart"){ D.carteira+=v; } else { var c=acharCx(dest); if(c){ c.v+=v; destN=c.n; } }
+  var destN="—";
+  /* sem o "Investido" na tela, entrada so pode ir pra um cofre — senao o
+     dinheiro entraria num lugar que ninguem consegue ver nem corrigir */
+  var c=acharCx(dest);
+  if(!c){ toast("Escolha um cofre de destino.","err"); return; }
+  c.v+=v; destN=c.n;
   var h=new Date();
   D.entradas.push({d:d, v:v, dest:dest, destN:destN, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
   document.getElementById("eDesc").value=""; document.getElementById("eVal").value="";
