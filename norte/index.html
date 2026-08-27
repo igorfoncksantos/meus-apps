@@ -603,6 +603,15 @@
   .auth-or::before,.auth-or::after{ content:''; flex:1; height:1px; background:#2a2f35; }
   [data-theme="light"] .auth-or::before,[data-theme="light"] .auth-or::after,[data-theme="miri"] .auth-or::before,[data-theme="miri"] .auth-or::after{ background:var(--line); }
   /* teclado do PIN */
+  .biobtn{ display:flex; align-items:center; justify-content:center; gap:9px; width:100%;
+    margin:0 0 14px; padding:13px 14px; border:1px solid var(--line); border-radius:14px;
+    background:var(--panel2); color:var(--txt); font-family:inherit; font-size:14.5px;
+    font-weight:700; cursor:pointer; transition:transform .13s ease, opacity .18s ease; }
+  .biobtn svg{ width:22px; height:22px; flex:none; color:var(--accent); }
+  .biobtn:active{ transform:scale(.985); }
+  .biobtn.go{ opacity:.5; pointer-events:none; }
+  .bio-note{ font-size:12.5px; line-height:1.5; color:var(--mut); padding:11px 13px;
+    border:1px dashed var(--line); border-radius:12px; margin-bottom:8px; }
   .pdots{ display:flex; gap:16px; justify-content:center; margin:8px 0 12px; }
   .pdot{ width:15px; height:15px; border-radius:50%; border:2px solid #3a3f45; transition:.15s; }
   .pdot.on{ background:var(--accent); border-color:var(--accent); box-shadow:0 0 10px rgba(47,217,201,.5); }
@@ -922,7 +931,7 @@ function render(){
   ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
-  document.getElementById('footer').textContent = `Norte v34 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
+  document.getElementById('footer').textContent = `Norte v39 · ${fmtBR(cur)}/2026 · salvo no aparelho.`;
   save();
 }
 
@@ -1423,6 +1432,7 @@ function wcClose(){ document.getElementById('__welcome').classList.add('hidden')
 
 /* ================= ÍCONES SVG (minimalistas, traço) ================= */
 const ICONS={
+  bio:'<path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4"/><path d="M5 19.5C5.5 18 6 15 6 12c0-.7.12-1.37.34-2"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M21.8 16c.2-2 .13-5.35 0-6"/><path d="M9 6.8a6 6 0 0 1 9 5.2c0 .47 0 1.17-.02 2"/>',
   chevL:'<polyline points="15 18 9 12 15 6"/>',
   chevR:'<polyline points="9 18 15 12 9 6"/>',
   cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
@@ -1761,6 +1771,59 @@ async function disconnectAccount(){ if(!await uiConfirm('Você vai parar de sinc
   closeAuth(); toast('Desconectado — modo local'); }
 
 /* ===== PIN OPCIONAL (trava local, 4 dígitos, só números) ===== */
+/* ---------- desbloqueio por digital / rosto (WebAuthn) ----------
+   Mesma credencial dos outros 4 apps: todos vivem na mesma origem.
+   NAO substitui o PIN -- o PIN fica de reserva pra aparelho novo, sensor
+   falhando ou dados do site limpos. E uma tranca LOCAL, do mesmo nivel do
+   PIN (nada e conferido num servidor): o ganho e conveniencia, nao blindagem. */
+const BIOK='meusapps-bio';
+let _bioAuto=false;
+function bioApple(){ try{ return /iPad|iPhone|iPod/.test(navigator.userAgent)||(/Mac/.test(navigator.userAgent)&&'ontouchend' in document); }catch(e){ return false; } }
+function bioNome(){ return bioApple()?'Face ID / Touch ID':'digital'; }
+function bioDados(){ try{ return JSON.parse(localStorage.getItem(BIOK)||'null'); }catch(e){ return null; } }
+function bioLigada(){ const d=bioDados(); return !!(d&&d.id); }
+async function bioSuportado(){ try{
+    if(!window.isSecureContext||!window.PublicKeyCredential||!navigator.credentials||!navigator.credentials.create) return false;
+    return !!(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+  }catch(e){ return false; } }
+function _b64u(buf){ const a=new Uint8Array(buf); let t=''; for(let i=0;i<a.length;i++)t+=String.fromCharCode(a[i]);
+  return btoa(t).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function _unb64u(v){ v=String(v).replace(/-/g,'+').replace(/_/g,'/'); while(v.length%4)v+='=';
+  const b=atob(v),a=new Uint8Array(b.length); for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i); return a.buffer; }
+function _rnd(n){ return crypto.getRandomValues(new Uint8Array(n)); }
+async function bioRegistrar(){
+  const c=await navigator.credentials.create({publicKey:{
+    challenge:_rnd(32), rp:{name:'Meus Apps'},
+    user:{id:_rnd(16),name:(localStorage.getItem('norte-login')||'local'),displayName:'Desbloqueio'},
+    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},
+    timeout:60000, attestation:'none'}});
+  if(!c||!c.rawId) throw new Error('sem credencial');
+  localStorage.setItem(BIOK, JSON.stringify({id:_b64u(c.rawId),em:Date.now()}));
+  return true; }
+async function bioVerificar(){
+  const d=bioDados(); if(!d||!d.id) return false;
+  const c=await navigator.credentials.get({publicKey:{
+    challenge:_rnd(32),
+    allowCredentials:[{type:'public-key',id:_unb64u(d.id),transports:['internal']}],
+    userVerification:'required', timeout:60000}});
+  return !!c; }
+async function bioEntrar(auto){
+  const b=document.getElementById('bioBtn'); if(b)b.classList.add('go');
+  let ok=false; try{ ok=await bioVerificar(); }catch(e){ ok=false; }
+  if(ok){ markSession(); closeAuth(); return; }
+  if(b)b.classList.remove('go');
+  if(!auto) authErr('Nao reconheceu. Tente de novo ou use o PIN.'); }
+async function bioLinha(){
+  const r=document.getElementById('bioRow'); if(!r)return;
+  if(!(await bioSuportado())){ r.innerHTML='<div class="bio-note">Este aparelho nao oferece desbloqueio por digital ou rosto neste navegador.</div>'; return; }
+  r.innerHTML = bioLigada()
+    ? '<button class="del" onclick="bioDesligar()"><span class="ic">'+svgIc('bio')+'</span>Desativar '+bioNome()+'</button>'
+    : '<button onclick="bioLigar()"><span class="ic">'+svgIc('bio')+'</span>Ativar desbloqueio por '+bioNome()+'</button>'; }
+async function bioLigar(){ try{ await bioRegistrar(); toast('Desbloqueio por '+bioNome()+' ativado'); bioLinha(); }
+  catch(e){ authErr('Nao deu pra ativar. Confira se este aparelho tem digital ou rosto configurado.'); } }
+function bioDesligar(){ localStorage.removeItem(BIOK); toast('Desbloqueio por '+bioNome()+' desativado'); bioLinha(); }
+
 let _pin='', _pinMode='', _pinTmp='';
 function pinTitles(m){ return ({
   unlock:['Digite seu PIN',''], set1:['Criar PIN','Escolha um PIN de 4 dígitos'], set2:['Confirmar PIN','Repita o PIN'],
@@ -1771,12 +1834,17 @@ function pinKeypadHtml(){ let k=''; ['1','2','3','4','5','6','7','8','9','x','0'
     if(d==='x') k+='<span class="pkey empty"></span>';
     else if(d==='back') k+='<button class="pkey pkb" onclick="pinBack()">⌫</button>';
     else k+='<button class="pkey" onclick="pinTap(\''+d+'\')">'+d+'</button>'; }); return k; }
-function showPin(m){ _pinMode=m; _pin=''; const t=pinTitles(m);
-  authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+
+function showPin(m){ _pinMode=m; _pin='';
+  const bio=(m==='unlock'&&bioLigada()), t=bio?['Desbloquear','']:pinTitles(m);
+  authScreen('<div class="auth-ic">'+svgIc(bio?'bio':'lock')+'</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+
     '<div class="pdots" id="pdots">'+pinDotsHtml()+'</div>'+
     '<div class="auth-err" id="authErr" style="min-height:15px"></div>'+
+    (bio?'<button class="biobtn" id="bioBtn" onclick="bioEntrar()">'+svgIc('bio')+'<span>Usar '+bioNome()+'</span></button>':'')+
     '<div class="pkeypad">'+pinKeypadHtml()+'</div>'+
-    (m==='unlock'?'':'<button class="auth-link" onclick="closeAuth()">Cancelar</button>'), {lock:m==='unlock'}); }
+    (m==='unlock'?'':'<button class="auth-link" onclick="closeAuth()">Cancelar</button>'), {lock:m==='unlock'});
+  /* tenta sozinha uma vez ao abrir; se o navegador exigir toque (Safari),
+     o botao continua ali -- e o teclado do PIN tambem. */
+  if(bio&&!_bioAuto){ _bioAuto=true; setTimeout(function(){ bioEntrar(true); },380); } }
 /* aviso de toque no teclado do PIN: bolha + vibracao, e segurar apaga.
    A bolha mostra um PONTO, nunca o digito -- e um PIN. */
 let _pinRep=null;
@@ -1830,8 +1898,9 @@ function openPinMenu(){ closeMenu();
   if(!localStorage.getItem('norte-pin')){ showPin('set1'); return; }
   authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>Bloqueio por PIN</h2><p>O PIN está <b style="color:var(--green)">ativado</b> — pedido só ao abrir o app neste aparelho.</p>'+
     '<div class="act-list"><button onclick="showPin(\'chgcur\')"><span class="ic">'+svgIc('key')+'</span>Trocar PIN</button>'+
+    '<span id="bioRow" style="display:contents"></span>'+
     '<button class="del" onclick="showPin(\'offcur\')"><span class="ic">'+svgIc('ban')+'</span>Desativar PIN</button></div>'+
-    '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); }
+    '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); bioLinha(); }
 function maybeLockPin(){ if(localStorage.getItem('norte-pin') && !sessionStorage.getItem('norte-sess')) showPin('unlock'); }
 function showSignup(){ closeMenu(); authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>Criar sua conta</h2>'+
   '<div class="field"><label>E-mail (será seu login)</label><input id="suEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></div>'+

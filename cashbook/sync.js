@@ -16,7 +16,7 @@
 
   /* ---------- blob no localStorage ---------- */
   var _set=localStorage.setItem.bind(localStorage);
-  function skip(k){ return !k || k.indexOf('sb-')===0 || k.indexOf('welcome')===0 || k===LK.login || k===LK.pin || k===LK.synced || k===LK.nag; }
+  function skip(k){ return !k || k.indexOf('sb-')===0 || k.indexOf('welcome')===0 || k===LK.login || k===LK.pin || k===LK.synced || k===LK.nag || k==='meusapps-bio'; }
   function inScope(k){ if(!k||skip(k))return false; if(KEYS==='*')return true; for(var i=0;i<KEYS.length;i++){ var p=KEYS[i]; if(p.charAt(p.length-1)==='*'){ if(k.indexOf(p.slice(0,-1))===0)return true; } else if(k===p)return true; } return false; }
   localStorage.setItem=function(k,v){ _set(k,v); if(!_applying && inScope(k)) schedulePush(); };
   function getBlob(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(inScope(k))o[k]=localStorage.getItem(k); } return o; }
@@ -92,6 +92,10 @@
     '.sync-link{display:block;width:100%;background:none;border:none;color:#8a97a0;font-size:12.5px;margin-top:11px;cursor:pointer;text-decoration:underline;font-family:inherit}'+
     '.gbtn-g{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;padding:14px;border-radius:14px;border:1.5px solid #d7dbe0;background:#fff;color:#1f2226;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:2px;box-shadow:0 3px 12px rgba(0,0,0,.18);font-family:inherit}.gbtn-g:active{transform:scale(.97)}.gbtn-g b{color:#4285F4;font-size:19px}'+
     '.sync-or{display:flex;align-items:center;gap:10px;color:#98a1a8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:13px 0}.sync-or::before,.sync-or::after{content:"";flex:1;height:1px;background:#2a2f35}'+
+    '.biobtn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin:0 0 14px;padding:13px 14px;border:1px solid #2a3036;border-radius:14px;background:#0b0e11;color:#e8ebed;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;transition:.15s}'+
+    '.biobtn svg{width:22px;height:22px;flex:none;color:var(--sacc)}'+
+    '.biobtn:active{transform:scale(.985)}.biobtn.go{opacity:.5;pointer-events:none}'+
+    '.sync-note{font-size:12.5px;line-height:1.5;color:#828d95;padding:11px 13px;border:1px dashed #2a3036;border-radius:12px;margin-bottom:8px}'+
     '.pdots{display:flex;gap:16px;justify-content:center;margin:8px 0 12px}.pdot{width:15px;height:15px;border-radius:50%;border:2px solid #3a3f45;transition:.15s}.pdot.on{background:var(--sacc);border-color:var(--sacc);box-shadow:0 0 10px rgba(47,217,201,.5)}.pdots.shake{animation:pinsh .4s}@keyframes pinsh{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}'+
     '.pkeypad{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:4px 0 2px}.pkey{height:66px;border-radius:18px;border:1px solid #2a2f35;background:#121417;color:#f0f2f4;font-size:27px;font-weight:600;cursor:pointer;font-family:inherit;position:relative}.pinpv{position:fixed;z-index:2000001;display:flex;align-items:center;justify-content:center;pointer-events:none;border-radius:18px;background:linear-gradient(180deg,#f4fbfa,#cbe6e2);color:#07171b;font-weight:800;box-shadow:0 10px 26px rgba(0,0,0,.55);font-family:inherit;animation:pinpv .26s cubic-bezier(.25,1.4,.45,1) forwards}@keyframes pinpv{0%{transform:translate(-50%,-50%) scale(.8);opacity:0}22%{transform:translate(-50%,-96%) scale(1.28);opacity:1}62%{transform:translate(-50%,-96%) scale(1.28);opacity:1}100%{transform:translate(-50%,-88%) scale(1.12);opacity:0}}.pkey:active{transform:scale(.93);background:rgba(47,217,201,.14)}.pkey.empty{background:none;border:none}.pkey.pkb{font-size:21px;color:#98a1a8}'+
     '#syncBtn{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:9998;width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(20,23,27,.82);backdrop-filter:blur(8px);color:#cfd6db;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}#syncBtn.on{color:'+ACCENT+';border-color:rgba(47,217,201,.4)}#syncBtn svg{width:19px;height:19px}'+
@@ -106,7 +110,7 @@
   function err(m){ var e=document.getElementById('syncErr'); if(e){ e.textContent=m; e.style.display='block'; } }
   function toast(m){ var t=document.getElementById('syncToast'); if(!t){ t=document.createElement('div'); t.id='syncToast'; document.body.appendChild(t); } t.textContent=m; t.style.opacity='1'; clearTimeout(t._h); t._h=setTimeout(function(){t.style.opacity='0';},2400); }
 
-  var IC={sync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
+  var IC={bio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4"/><path d="M5 19.5C5.5 18 6 15 6 12c0-.7.12-1.37.34-2"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M21.8 16c.2-2 .13-5.35 0-6"/><path d="M9 6.8a6 6 0 0 1 9 5.2c0 .47 0 1.17-.02 2"/></svg>',sync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>',
     lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
     mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
     info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
@@ -224,11 +228,74 @@
     _synced=false; try{ if(sb)await sb.auth.signOut(); }catch(e){} if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
     session=null; localStorage.removeItem(LK.synced); localStorage.setItem(LK.nag,'1'); closeOv(); updateBtn(); toast('Desconectado'); };
 
+  /* ---------- desbloqueio por digital / rosto (WebAuthn) ----------
+     Vale pros 5 apps de uma vez: mesma origem, mesma credencial.
+     NAO substitui o PIN -- o PIN fica de reserva pra aparelho novo, sensor
+     falhando ou dados do site limpos. E uma tranca LOCAL, do mesmo nivel do
+     PIN (nada e conferido num servidor): o ganho e conveniencia, nao blindagem. */
+  var BIOK='meusapps-bio';
+  var _bioAuto=false;
+  function bioApple(){ try{ return /iPad|iPhone|iPod/.test(navigator.userAgent)||(/Mac/.test(navigator.userAgent)&&'ontouchend' in document); }catch(e){ return false; } }
+  function bioNome(){ return bioApple()?'Face ID / Touch ID':'digital'; }
+  function bioDados(){ try{ return JSON.parse(localStorage.getItem(BIOK)||'null'); }catch(e){ return null; } }
+  function bioLigada(){ var d=bioDados(); return !!(d&&d.id); }
+  async function bioSuportado(){ try{
+      if(!window.isSecureContext||!window.PublicKeyCredential||!navigator.credentials||!navigator.credentials.create) return false;
+      return !!(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+    }catch(e){ return false; } }
+  function _b64u(buf){ var a=new Uint8Array(buf),t=''; for(var i=0;i<a.length;i++)t+=String.fromCharCode(a[i]);
+    return btoa(t).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function _unb64u(v){ v=String(v).replace(/-/g,'+').replace(/_/g,'/'); while(v.length%4)v+='=';
+    var b=atob(v),a=new Uint8Array(b.length); for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i); return a.buffer; }
+  function _rnd(n){ return crypto.getRandomValues(new Uint8Array(n)); }
+  async function bioRegistrar(){
+    var c=await navigator.credentials.create({publicKey:{
+      challenge:_rnd(32), rp:{name:'Meus Apps'},
+      user:{id:_rnd(16),name:(localStorage.getItem(LK.login)||'local'),displayName:'Desbloqueio'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},
+      timeout:60000, attestation:'none'}});
+    if(!c||!c.rawId) throw new Error('sem credencial');
+    _set(BIOK, JSON.stringify({id:_b64u(c.rawId),em:Date.now()}));
+    return true; }
+  async function bioVerificar(){
+    var d=bioDados(); if(!d||!d.id) return false;
+    var c=await navigator.credentials.get({publicKey:{
+      challenge:_rnd(32),
+      allowCredentials:[{type:'public-key',id:_unb64u(d.id),transports:['internal']}],
+      userVerification:'required', timeout:60000}});
+    return !!c; }
+  window.__bio=async function(auto){
+    var b=document.getElementById('bioBtn'); if(b)b.classList.add('go');
+    var ok=false; try{ ok=await bioVerificar(); }catch(e){ ok=false; }
+    if(ok){ markSess(); closeOv(); return; }
+    if(b)b.classList.remove('go');
+    if(!auto) err('Nao reconheceu. Tente de novo ou use o PIN.'); };
+  async function bioLinha(){
+    var r=document.getElementById('bioRow'); if(!r)return;
+    if(!(await bioSuportado())){ r.innerHTML='<div class="sync-note">Este aparelho nao oferece desbloqueio por digital ou rosto neste navegador.</div>'; return; }
+    r.innerHTML = bioLigada()
+      ? '<button class="d" onclick="window.__bioOff()">'+IC.bio+' Desativar '+bioNome()+'</button>'
+      : '<button onclick="window.__bioOn()">'+IC.bio+' Ativar desbloqueio por '+bioNome()+'</button>'; }
+  window.__bioOn=async function(){ try{ await bioRegistrar(); toast('Desbloqueio por '+bioNome()+' ativado'); bioLinha(); }
+    catch(e){ err('Nao deu pra ativar. Confira se este aparelho tem digital ou rosto configurado.'); } };
+  window.__bioOff=function(){ localStorage.removeItem(BIOK); toast('Desbloqueio por '+bioNome()+' desativado'); bioLinha(); };
+
   /* ---------- PIN ---------- */
   function pinTitles(m){ return ({unlock:['Digite seu PIN',''],set1:['Criar PIN','Escolha um PIN de 4 dígitos'],set2:['Confirmar PIN','Repita o PIN'],chgcur:['PIN atual','Digite seu PIN atual'],chgnew:['Novo PIN','Escolha o novo PIN'],chgconf:['Confirmar','Repita o novo PIN'],offcur:['Desativar PIN','Digite seu PIN pra desativar']})[m]||['PIN','']; }
   function pdots(){ var s=''; for(var i=0;i<4;i++)s+='<span class="pdot'+(i<_pin.length?' on':'')+'"></span>'; return s; }
   function keypad(){ var k=''; ['1','2','3','4','5','6','7','8','9','x','0','back'].forEach(function(d){ if(d==='x')k+='<span class="pkey empty"></span>'; else if(d==='back')k+='<button class="pkey pkb" onclick="window.__pb()">⌫</button>'; else k+='<button class="pkey" onclick="window.__pt(\''+d+'\')">'+d+'</button>'; }); return k; }
-  function showPin(m){ _pinMode=m; _pin=''; var t=pinTitles(m); screen('<div class="sync-ic">'+IC.lock+'</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+'<div class="pdots" id="pdots">'+pdots()+'</div><div class="sync-err" id="syncErr" style="min-height:15px"></div><div class="pkeypad">'+keypad()+'</div>'+(m==='unlock'?'':'<button class="sync-link" onclick="window.__sc()">Cancelar</button>'), m==='unlock'); }
+  function showPin(m){ _pinMode=m; _pin='';
+    var bio=(m==='unlock'&&bioLigada()), t=bio?['Desbloquear','']:pinTitles(m);
+    screen('<div class="sync-ic">'+(bio?IC.bio:IC.lock)+'</div><h2>'+t[0]+'</h2>'+(t[1]?'<p>'+t[1]+'</p>':'')+
+      '<div class="pdots" id="pdots">'+pdots()+'</div>'+
+      '<div class="sync-err" id="syncErr" style="min-height:15px"></div>'+
+      (bio?'<button class="biobtn" id="bioBtn" onclick="window.__bio()">'+IC.bio+'<span>Usar '+bioNome()+'</span></button>':'')+
+      '<div class="pkeypad">'+keypad()+'</div>'+
+      (m==='unlock'?'':'<button class="sync-link" onclick="window.__sc()">Cancelar</button>'), m==='unlock');
+    /* tenta sozinha uma vez ao abrir; se o navegador exigir toque (Safari),
+       o botao continua ali -- e o teclado do PIN tambem. */
+    if(bio&&!_bioAuto){ _bioAuto=true; setTimeout(function(){ window.__bio(true); },380); } }
 
   /* aviso de toque no teclado do PIN: bolha + vibracao, e segurar apaga.
      A bolha mostra um PONTO, nunca o digito -- e um PIN; quem olha por cima
@@ -281,7 +348,7 @@
     else if(_pinMode==='chgconf'){ if(code===_pinTmp){ _set(LK.pin,h); closeOv(); toast('PIN alterado ✓'); } else { pinErrShake('Não conferiu'); setTimeout(function(){showPin('chgnew');},650); } }
     else if(_pinMode==='offcur'){ if(h===localStorage.getItem(LK.pin)){ localStorage.removeItem(LK.pin); closeOv(); toast('PIN desativado'); } else pinErrShake('PIN incorreto'); } }
   window.__pin=function(){ if(!localStorage.getItem(LK.pin)){ showPin('set1'); return; }
-    screen('<div class="sync-ic">'+IC.lock+'</div><h2>Bloqueio por PIN</h2><p>O PIN está <b style="color:#5c9a6b">ativado</b> — pedido só ao abrir o app neste aparelho.</p><div class="sync-list"><button onclick="window.__pc()">'+IC.pen+' Trocar PIN</button><button class="d" onclick="window.__po()">Desativar PIN</button></div><div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); };
+    screen('<div class="sync-ic">'+IC.lock+'</div><h2>Bloqueio por PIN</h2><p>O PIN está <b style="color:#5c9a6b">ativado</b> — pedido só ao abrir o app neste aparelho.</p><div class="sync-list"><button onclick="window.__pc()">'+IC.pen+' Trocar PIN</button><span id="bioRow" style="display:contents"></span><button class="d" onclick="window.__po()">Desativar PIN</button></div><div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); bioLinha(); };
   window.__pc=function(){ showPin('chgcur'); };
   window.__po=function(){ showPin('offcur'); };
   function maybeLock(){ if(localStorage.getItem(LK.pin) && !sessionStorage.getItem(LK.sess)) showPin('unlock'); }
