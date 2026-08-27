@@ -741,7 +741,12 @@
     <div style="min-width:140px"><label class="lb">Local</label><input id="gLoc" placeholder="Onde gastou"></div>
   </div>
   <div class="campos">
-    <div><label class="lb">Categoria</label><select id="gCat"></select></div>
+    <div><label class="lb">Categoria</label>
+      <div class="cselwrap">
+        <input type="hidden" id="gCat" value="">
+        <button type="button" class="csel" id="gCatBtn"><span class="cseldot" id="gCatDot" style="background:#5c6469"></span><span id="gCatLbl">&mdash;</span><span class="cselcar">&#9662;</span></button>
+        <div class="cselpop" id="gCatPop"></div>
+      </div></div>
     <div style="max-width:130px"><label class="lb">Valor</label><input class="r" inputmode="decimal" id="gVal" placeholder="0,00"></div>
   </div>
   <label class="lb" style="display:block;margin-top:2px">Parcelas</label>
@@ -1256,6 +1261,21 @@ document.getElementById("eAdd").addEventListener("click",function(){
   document.getElementById("eDesc").value=""; document.getElementById("eVal").value="";
   salvar(); renderTudo(); animarNovo("listaEntradas","first"); toast("Entrada registrada.","ok");
 });
+
+/* dropdown custom "Categoria" do lancar gasto (gCat) */
+(function(){
+  var btn=document.getElementById("gCatBtn"), pop=document.getElementById("gCatPop");
+  if(!btn||!pop) return;
+  btn.addEventListener("click",function(e){ e.stopPropagation(); var on=pop.classList.toggle("on"); btn.classList.toggle("open",on); });
+  pop.addEventListener("click",function(e){ e.stopPropagation(); var o=e.target.closest(".cselopt"); if(!o) return;
+    var id=o.getAttribute("data-gcopt"); if(!id) return;
+    document.getElementById("gCat").value=id;
+    document.getElementById("gCatLbl").textContent=o.textContent.trim();
+    var od=o.querySelector(".od"); document.getElementById("gCatDot").style.background=od?od.style.background:"#5c6469";
+    Array.prototype.forEach.call(pop.querySelectorAll(".cselopt"),function(x){x.classList.remove("sel");}); o.classList.add("sel");
+    pop.classList.remove("on"); btn.classList.remove("open"); });
+  document.addEventListener("click",function(){ pop.classList.remove("on"); btn.classList.remove("open"); });
+})();
 
 /* dropdown custom "Vai para" (eDest) */
 (function(){
@@ -2278,9 +2298,18 @@ function renderGastos(){
   document.getElementById("gBoxes").innerHTML=bh;
 
   // popular o select de categoria (preservando a seleção)
+  /* seletor de categoria: mesmo dropdown do app, nao o do navegador */
   var sc=document.getElementById("gCat"), sv=sc.value;
-  var so=""; D.vale.cats.forEach(function(k){ so+='<option value="'+k.id+'">'+(catIcoTxt(k)?catIcoTxt(k)+' ':'')+esc(k.nome)+'</option>'; });
-  sc.innerHTML=so; if(sv&&acharCat(sv)) sc.value=sv;
+  if(!acharCat(sv)) sv = D.vale.cats.length ? D.vale.cats[0].id : "";
+  sc.value=sv;
+  var so=""; D.vale.cats.forEach(function(k){
+    so+='<div class="cselopt'+(k.id==sv?" sel":"")+'" data-gcopt="'+k.id+'">' +
+        '<span class="od" style="background:'+k.cor+'"></span>'+esc(k.nome)+'</div>';
+  });
+  document.getElementById("gCatPop").innerHTML = so || '<div class="cselopt">Nenhuma categoria</div>';
+  var kSel=acharCat(sv);
+  document.getElementById("gCatLbl").textContent = kSel ? kSel.nome : "\u2014";
+  document.getElementById("gCatDot").style.background = kSel ? kSel.cor : "#5c6469";
 
   // lançamentos
   var h=D.vale.l.length?"":'<div class="vazio">Nenhum gasto lançado neste ciclo.</div>';
