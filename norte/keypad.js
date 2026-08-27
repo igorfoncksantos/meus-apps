@@ -207,6 +207,9 @@
     if(el.isConnected===false){ kbd.classList.remove('on'); _kbdFecha(); target=null; return; }
     target=el; startVal=el.value; form=el.closest?el.closest('form'):null;
     layer='abc';
+    /* decide o tipo ANTES de apagar o inputmode — senao a informacao some
+       e todo campo de numero abriria com o teclado de letras */
+    if(!el.getAttribute('data-kb')) el.setAttribute('data-kb', isNum(el) ? 'num' : 'text');
     el.setAttribute('inputmode','none');    // suprime o teclado nativo
     el.setAttribute('autocapitalize','off'); el.setAttribute('autocorrect','off'); el.setAttribute('spellcheck','false');
     show();
