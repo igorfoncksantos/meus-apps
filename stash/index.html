@@ -263,6 +263,32 @@
     border-color:color-mix(in srgb,var(--dono) 24%,transparent);border-left-color:var(--dono)}
   #t2 .bt.p{background:var(--dono);border-color:var(--dono)}
 
+  /* cofre travado: valor fixo, sai antes do rateio. Sem secao no topo —
+     o cadeado e o realce da linha ja dizem o que e, e eles descem pro fim. */
+  .aplock{width:30px;height:30px;flex:none;padding:0;border-radius:9px;cursor:pointer;
+    border:1px solid var(--line);background:var(--panel2);color:var(--mut);
+    display:grid;place-items:center;font-family:inherit;position:relative}
+  .aplock svg{width:15px;height:15px}
+  .aplock::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:44px;height:44px;border-radius:12px}
+  .aprow.trv{border-left-width:3px;background:color-mix(in srgb,var(--dono) 7%,var(--panel))}
+  .aprow.trv .aplock{border-color:color-mix(in srgb,var(--dono) 55%,var(--line));color:var(--dono)}
+  .aprow.trv input{color:var(--txt2);width:104px;text-align:right}
+  .aprow.trv .apc{color:var(--dono);font-weight:800}
+  /* quando travar deixa pontos sobrando, quem decide o destino e voce */
+  .aporf{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:11px 12px;margin:9px 0 0;
+    border-radius:12px;background:color-mix(in srgb,var(--amber) 11%,transparent);
+    border:1px solid color-mix(in srgb,var(--amber) 38%,transparent)}
+  .aporf .ot{flex:1 1 100%;font-size:12px;color:var(--txt);line-height:1.45}
+  .aporf .ot b{color:var(--amber);font-weight:800;font-variant-numeric:tabular-nums}
+  .aporf select{flex:1;min-width:120px;padding:9px 10px;font-size:12.5px}
+  .aporf button{flex:none;padding:10px 15px;border-radius:10px;border:1px solid var(--amber);
+    background:var(--amber);color:#1a1204;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
+  .aporf button:active{transform:scale(.98)}
+  .apconta{font-size:11.5px;color:var(--mut);margin-top:7px;line-height:1.5}
+  .apconta b{color:var(--txt2);font-variant-numeric:tabular-nums}
+  .apconta .neg{color:var(--red)}
+
   /* diagnostico alvo x real */
   .dgrow{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
   .dgtop{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
@@ -272,6 +298,11 @@
   .dgtrilho{position:relative;height:8px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);overflow:visible}
   .dgfill{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
   .dgalvo{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--txt2);border-radius:2px}
+  .dgtrav{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 9px}
+  .dgtrav span{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    color:var(--mut);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 11px}
+  .dgtrav b{color:var(--txt2);font-variant-numeric:tabular-nums}
+  .dgtrav svg{width:12px;height:12px;color:var(--dono)}
   .dglegenda{font-size:10.5px;color:var(--mut);margin:-2px 3px 13px;line-height:1.5}
   .dglegenda b{color:var(--txt2)}
   /* cofres do dono escolhido */
@@ -1275,6 +1306,20 @@ document.addEventListener("keydown",function(e){ if(e.key==="Escape" && _shOwn) 
 /* O cofre nao escolhe mais cor: herda a do dono, chapada. Em vez de trocar
    x.c em cada lugar que desenha, sincronizo o proprio dado antes de render —
    assim todo desenho que ja lia x.c continua funcionando sem mudanca. */
+/* o cadeado. Nao uso emoji: nem todo aparelho desenha igual. */
+var IC_TRV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+var IC_ABR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.6-1.4"/></svg>';
+
+/* travado: o cofre recebe um VALOR FIXO, tirado antes do rateio.
+   Serve pra obrigacao (vale, imposto, INSS), que nao negocia com a renda.
+   O percentual (x.p) fica guardado pra quando destravar. */
+function normalizarTrava(){
+  D.cx.forEach(function(x){
+    if(typeof x.trv !== "boolean") x.trv = false;
+    if(typeof x.tvv !== "number") x.tvv = 0;
+  });
+}
+
 function sincronizarCores(){
   D.cx.forEach(function(x){ x.c = D.ownerColors[x.own] || "#2FD9C9"; });
 }
@@ -1292,7 +1337,7 @@ function donoDoAporte(a){
 }
 
 function renderAporte(){
-  sincronizarCores();
+  sincronizarCores(); normalizarTrava();
   patOwn = donoValido(patOwn);
   var ow = patOwn;
   var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
@@ -1327,36 +1372,109 @@ function renderAporte(){
   var us=document.getElementById("apUsar");
   if(us) us.addEventListener("click",function(){ D.ap.tot=String(vb); salvar(); renderAporte(); });
 
-  /* a divisao do dono escolhido — o % se edita aqui, e so aqui */
+  /* A divisao. Cofre TRAVADO recebe valor fixo e sai antes do rateio; os
+     outros dividem o que sobra. Travados descem pro fim da lista — o
+     cadeado e o realce ja dizem o que eles sao, nao precisa de secao. */
   var itens=D.cx.filter(function(x){ return x.own===ow; });
-  var soma=0,h="";
-  itens.forEach(function(x){
-    soma+=x.p||0;
-    h+='<div class="aprow" style="border-left-color:'+x.c+'">' +
-       '<span class="an">'+esc(x.n)+'</span>' +
-       '<input class="r" inputmode="decimal" data-ap="'+x.id+'" value="'+(x.p||"")+'" placeholder="0">' +
-       '<span class="apc">%</span>' +
-       '<span class="av">R$ '+brl(tot*(x.p||0)/100)+'</span></div>';
-  });
+  var travados=itens.filter(function(x){ return x.trv; });
+  var rateia  =itens.filter(function(x){ return !x.trv; });
+
+  var somaTrav=0; travados.forEach(function(x){ somaTrav+=x.tvv||0; });
+  var sobra=tot-somaTrav;
+  var estourou = somaTrav>tot+0.005;
+  if(sobra<0) sobra=0;
+
+  var soma=0; rateia.forEach(function(x){ soma+=x.p||0; });
+
+  function linha(x){
+    if(x.trv){
+      return '<div class="aprow trv" style="border-left-color:'+x.c+'">' +
+        '<button class="aplock" data-trv="'+x.id+'" title="Destravar">'+IC_TRV+'</button>' +
+        '<span class="an">'+esc(x.n)+'</span>' +
+        '<span class="apc">R$</span>' +
+        '<input class="r" inputmode="decimal" data-tvv="'+x.id+'" value="'+(x.tvv?brl(x.tvv):"")+'" placeholder="0,00">' +
+        '</div>';
+    }
+    return '<div class="aprow" style="border-left-color:'+x.c+'">' +
+      '<button class="aplock" data-trv="'+x.id+'" title="Travar num valor fixo">'+IC_ABR+'</button>' +
+      '<span class="an">'+esc(x.n)+'</span>' +
+      '<input class="r" inputmode="decimal" data-ap="'+x.id+'" value="'+(x.p||"")+'" placeholder="0">' +
+      '<span class="apc">%</span>' +
+      '<span class="av">R$ '+brl(sobra*(x.p||0)/100)+'</span></div>';
+  }
+
+  var h="";
   if(!itens.length){ h='<div class="vazio">'+esc(ow||"Este dono")+' ainda n&atilde;o tem cofres.</div>'; }
   else {
-    var cor = Math.abs(soma-100)<0.01 ? "var(--green)" : "var(--red)";
-    h+='<div class="apsoma" style="border-left-color:'+cor+'"><span class="an">Total</span>' +
-       '<span class="ap" style="color:'+cor+'">'+brl(soma)+'%</span>' +
-       '<span class="av">R$ '+brl(tot*soma/100)+'</span></div>';
-    if(Math.abs(soma-100)>0.01){
-      h+='<div class="alerta">'+(soma>100
-        ? "Os percentuais de "+esc(ow)+" somam mais que 100% &mdash; voc&ecirc; distribuiria mais do que tem."
-        : "Faltam "+brl(100-soma)+" pontos. Esse peda&ccedil;o ficaria parado, sem destino.")+'</div>';
+    rateia.forEach(function(x){ h+=linha(x); });
+
+    if(rateia.length){
+      var cor = Math.abs(soma-100)<0.01 ? "var(--green)" : "var(--red)";
+      h+='<div class="apsoma" style="border-left-color:'+cor+'"><span class="an">Total do rateio</span>' +
+         '<span class="ap" style="color:'+cor+'">'+brl(soma)+'%</span>' +
+         '<span class="av">R$ '+brl(sobra*soma/100)+'</span></div>';
+
+      /* pontos sobrando: quem escolhe o destino e voce, nao o app */
+      if(Math.abs(soma-100)>0.01){
+        var falta=100-soma, sobrando=falta>0;
+        var opts=rateia.map(function(x){ return '<option value="'+x.id+'">'+esc(x.n)+' ('+brl(x.p||0)+'%)</option>'; }).join("");
+        h+='<div class="aporf"><div class="ot">' +
+          (sobrando
+            ? 'Sobraram <b>'+brl(falta)+' pontos</b> sem destino. Pra onde eles vao?'
+            : 'Passou <b>'+brl(-falta)+' pontos</b> de 100. De qual cofre eu tiro?') +
+          '</div><select id="apOrfDest">'+opts+'</select>' +
+          '<button id="apOrfBt">'+(sobrando?"Mandar pra la":"Tirar de la")+'</button></div>';
+      }
+    }
+
+    /* os travados fecham a lista */
+    travados.forEach(function(x){ h+=linha(x); });
+
+    if(estourou){
+      h+='<div class="alerta">Os travados somam R$ '+brl(somaTrav)+', mais do que o total a distribuir. Baixe um valor travado ou aumente o total.</div>';
     }
   }
   document.getElementById("listaAporte").innerHTML=h;
+
+  /* a conta fica no subtitulo do hero, nao numa secao propria */
+  document.getElementById("aMsg").innerHTML = ow
+    ? ("para "+esc(ow) + (somaTrav>0
+        ? (' &middot; <span class="'+(estourou?"neg":"")+'">travados R$ '+brl(somaTrav)+'</span> &middot; rateio sobre <b>R$ '+brl(sobra)+'</b>')
+        : ""))
+    : "\u2014";
+  document.getElementById("aMsg").className="hm apconta";
+
   Array.prototype.forEach.call(document.querySelectorAll("[data-ap]"),function(i){
     i.addEventListener("change",function(){
       var c=acharCx(this.getAttribute("data-ap")); if(!c) return;
       c.p=num(this.value); salvar(); renderAporte(); }); });
 
-  renderSugg(ow, tot);
+  Array.prototype.forEach.call(document.querySelectorAll("[data-tvv]"),function(i){
+    i.addEventListener("change",function(){
+      var c=acharCx(this.getAttribute("data-tvv")); if(!c) return;
+      c.tvv=num(this.value); salvar(); renderAporte(); }); });
+
+  /* travar/destravar: o % fica guardado pra quando destravar */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-trv]"),function(b){
+    b.addEventListener("click",function(){
+      var c=acharCx(this.getAttribute("data-trv")); if(!c) return;
+      c.trv=!c.trv;
+      if(c.trv && !c.tvv && c.p>0) c.tvv=Math.round(sobra*c.p)/100;  /* palpite: o que ele receberia hoje */
+      salvar(); renderAporte();
+      toast(c.trv ? (esc(c.n)+" travado em valor fixo.") : (esc(c.n)+" voltou pro rateio."), "ok");
+    }); });
+
+  var orfBt=document.getElementById("apOrfBt");
+  if(orfBt) orfBt.addEventListener("click",function(){
+    var id=document.getElementById("apOrfDest").value, c=acharCx(id); if(!c) return;
+    var falta=100-soma;
+    c.p=Math.round(((c.p||0)+falta)*100)/100;
+    if(c.p<0) c.p=0;
+    salvar(); renderAporte();
+    toast((falta>0?"+":"")+brl(falta)+" pontos em "+c.n+".","ok");
+  });
+
+  renderSugg(ow, sobra);
   renderDiag(ow);
   renderHistAportes();
 }
@@ -1388,13 +1506,23 @@ function renderDiag(ow){
     el.innerHTML='<div class="vazio">Depois do primeiro aporte registrado, aqui aparece o que cada cofre <b>realmente</b> recebeu, contra o que voc&ecirc; planejou.</div>';
     return;
   }
-  var linhas=D.cx.filter(function(x){ return x.own===ow && ((x.p||0)>0 || recebido[x.id]); });
+  var travRec=D.cx.filter(function(x){ return x.own===ow && x.trv && recebido[x.id]; });
+  var somaTravRec0=0; travRec.forEach(function(x){ somaTravRec0+=recebido[x.id]||0; });
+  var baseRat=total-somaTravRec0; if(baseRat<=0) baseRat=1;
+  var linhas=D.cx.filter(function(x){ return x.own===ow && !x.trv && ((x.p||0)>0 || recebido[x.id]); });
   linhas.sort(function(a,b){
-    var da=(recebido[a.id]||0)/total*100-(a.p||0), db=(recebido[b.id]||0)/total*100-(b.p||0);
+    var da=(recebido[a.id]||0)/baseRat*100-(a.p||0), db=(recebido[b.id]||0)/baseRat*100-(b.p||0);
     return da-db; });
-  var h='<div class="dglegenda">Sobre <b>'+n+'</b> aporte'+(n>1?"s":"")+' de <b>'+esc(ow)+'</b>, R$ '+brl(total)+' distribu&iacute;dos. A barra &eacute; o <b>real</b>; o tra&ccedil;o claro &eacute; o <b>alvo</b>.</div>';
+  /* tira o que foi travado da base: o percentual e sobre o que rateou */
+  var h='';
+  if(travRec.length){
+    h+='<div class="dgtrav">'+travRec.map(function(x){
+      return '<span>'+IC_TRV+esc(x.n)+' <b>R$ '+brl(recebido[x.id])+'</b></span>'; }).join('')+'</div>';
+  }
+  h+='<div class="dglegenda">Sobre <b>'+n+'</b> aporte'+(n>1?"s":"")+' de <b>'+esc(ow)+'</b>'+
+    (travRec.length?(', fora os travados,'):',')+' R$ '+brl(baseRat)+' rateados. A barra &eacute; o <b>real</b>; o tra&ccedil;o claro &eacute; o <b>alvo</b>.</div>';
   linhas.forEach(function(x){
-    var real=(recebido[x.id]||0)/total*100, alvo=x.p||0, dif=real-alvo;
+    var real=(recebido[x.id]||0)/baseRat*100, alvo=x.p||0, dif=real-alvo;
     var cor = Math.abs(dif)<=1 ? "var(--green)" : (dif<0 ? "var(--amber)" : "#38bdf8");
     var rot = Math.abs(dif)<=1 ? "no alvo" : ((dif>0?"+":"")+dif.toFixed(1).replace(".",",")+" pp");
     h+='<div class="dgrow"><div class="dgtop"><span class="dgn">'+esc(x.n)+'</span>' +
@@ -1425,6 +1553,25 @@ function renderHistAportes(){
       D.aportes.splice(i,1); salvar(); renderTudo(); }); });
 }
 
+/* O plano do aporte: travados levam valor fixo, o resto divide a sobra.
+   Uma funcao so, usada pela conferencia e pela aplicacao — assim o que
+   voce ve no pop-up e exatamente o que vai ser gravado. */
+function montarPlano(ow, tot){
+  var itens=D.cx.filter(function(x){ return x.own===ow; });
+  var trav=itens.filter(function(x){ return x.trv && (x.tvv||0)>0; });
+  var somaTrav=0; trav.forEach(function(x){ somaTrav+=x.tvv; });
+  var sobra=tot-somaTrav;
+  var estourou = somaTrav > tot+0.005;
+  if(sobra<0) sobra=0;
+  var rat=itens.filter(function(x){ return !x.trv && (x.p||0)>0; });
+  var somaPc=0; rat.forEach(function(x){ somaPc+=x.p; });
+  var plano=[];
+  trav.forEach(function(x){ plano.push({ x:x, v:x.tvv, rot:"travado", trv:true }); });
+  rat.forEach(function(x){ plano.push({ x:x, v:sobra*x.p/100, rot:brl(x.p)+"%", trv:false }); });
+  return { plano:plano, somaTrav:somaTrav, sobra:sobra, somaPc:somaPc,
+           temRateio:rat.length>0, estourou:estourou };
+}
+
 /* segunda confirmacao: um pop-up central que MOSTRA o que vai acontecer,
    em vez de so perguntar. Confirmar vira conferencia, nao reflexo. */
 var _apPend=null;
@@ -1432,21 +1579,26 @@ function fecharConfirma(){
   var m=document.getElementById("modalw");
   m.classList.remove("on"); m.setAttribute("aria-hidden","true"); _apPend=null;
 }
-function abrirConfirmaAporte(ow, tot, itens, soma){
-  _apPend={ ow:ow, tot:tot, itens:itens };
+function abrirConfirmaAporte(ow, tot, p){
+  _apPend={ ow:ow, tot:tot, plano:p.plano };
+  var soma=0; p.plano.forEach(function(it){ soma+=it.v; });
   var h='<div class="mtit">Confirmar aporte</div>' +
-    '<div class="mval">R$ '+brl(tot)+'</div>' +
-    '<div class="msub">para '+esc(ow)+' &middot; '+itens.length+(itens.length===1?" cofre":" cofres")+'</div>' +
+    '<div class="mval">R$ '+brl(soma)+'</div>' +
+    '<div class="msub">para '+esc(ow)+' &middot; '+p.plano.length+(p.plano.length===1?" cofre":" cofres")+'</div>' +
     '<div class="mlist">';
-  itens.forEach(function(x){
-    h+='<div class="mrow"><span class="mq" style="background:'+x.c+'"></span>' +
-       '<span class="mn">'+esc(x.n)+'</span>' +
-       '<span class="mp">'+brl(x.p)+'%</span>' +
-       '<span class="mv">+R$ '+brl(tot*x.p/100)+'</span></div>';
+  p.plano.forEach(function(it){
+    h+='<div class="mrow"><span class="mq" style="background:'+it.x.c+'"></span>' +
+       '<span class="mn">'+esc(it.x.n)+'</span>' +
+       '<span class="mp"'+(it.trv?' style="opacity:.75;font-size:10.5px"':"")+'>'+it.rot+'</span>' +
+       '<span class="mv">+R$ '+brl(it.v)+'</span></div>';
   });
-  h+='</div><div class="mnota">Isso <b>soma nos saldos</b> da tela Patrim&ocirc;nio. D&aacute; pra desfazer na lista de aportes.</div>';
-  if(Math.abs(soma-100)>0.01){
-    h+='<div class="mwarn">Os percentuais somam '+brl(soma)+'%, n&atilde;o 100%.</div>';
+  h+='</div>';
+  if(p.somaTrav>0){
+    h+='<div class="mnota">R$ '+brl(p.somaTrav)+' saem <b>travados</b>; os percentuais dividem os <b>R$ '+brl(p.sobra)+'</b> restantes.</div>';
+  }
+  h+='<div class="mnota">Isso <b>soma nos saldos</b> da tela Patrim&ocirc;nio. D&aacute; pra desfazer na lista de aportes.</div>';
+  if(p.temRateio && Math.abs(p.somaPc-100)>0.01){
+    h+='<div class="mwarn">Os percentuais somam '+brl(p.somaPc)+'%, n&atilde;o 100%.</div>';
   }
   h+='<div class="macoes"><button onclick="fecharConfirma()">Cancelar</button>' +
      '<button class="ok" onclick="confirmarAporte()">Confirmar</button></div>';
@@ -1459,11 +1611,11 @@ document.addEventListener("keydown",function(e){ if(e.key==="Escape" && _apPend)
 
 function confirmarAporte(){
   if(!_apPend) return;
-  var ow=_apPend.ow, tot=_apPend.tot, itens=_apPend.itens;
+  var ow=_apPend.ow, plano=_apPend.plano;
   fecharConfirma();
   var h=new Date(), mes=MES[h.getMonth()]+" "+h.getFullYear();
   var det=[], somaV=0;
-  itens.forEach(function(x){ var q=tot*x.p/100; x.v+=q; somaV+=q; det.push({id:x.id,n:x.n,v:q}); });
+  plano.forEach(function(it){ it.x.v+=it.v; somaV+=it.v; det.push({id:it.x.id,n:it.x.n,v:it.v}); });
   D.aportes.push({mes:mes, v:somaV, det:det, own:ow,
     dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
   D.ap.tot="";   /* o total varia todo mes — nao fica guardado, pra nao ser aplicado por distracao */
@@ -1475,10 +1627,10 @@ document.getElementById("btAplicar").addEventListener("click",function(){
   var ow=donoValido(patOwn), tot=totalAporte();
   if(!ow){ toast("Crie um dono primeiro.","err"); return; }
   if(!tot){ toast("Diga quanto vai distribuir.","err"); document.getElementById("aTot").focus(); return; }
-  var itens=D.cx.filter(function(x){ return x.own===ow && x.p>0; });
-  if(!itens.length){ toast("Nenhum cofre de "+ow+" tem % definido.","err"); return; }
-  var soma=0; itens.forEach(function(x){ soma+=x.p; });
-  abrirConfirmaAporte(ow, tot, itens, soma);
+  var p=montarPlano(ow, tot);
+  if(p.estourou){ toast("Os travados somam mais que o total a distribuir.","err"); return; }
+  if(!p.plano.length){ toast("Nenhum cofre de "+ow+" tem % ou valor travado.","err"); return; }
+  abrirConfirmaAporte(ow, tot, p);
 });
 
 /* ================== 3. GASTOS ================== */
