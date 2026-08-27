@@ -219,6 +219,38 @@
   .apsoma .ap{width:65px;text-align:right}
   .apsoma .av{width:104px;text-align:right;color:var(--txt2);font-variant-numeric:tabular-nums}
 
+  /* confirmacao central: mostra o que vai acontecer antes de acontecer */
+  .modalw{position:fixed;inset:0;z-index:950;display:none;align-items:center;justify-content:center;padding:20px}
+  .modalw.on{display:flex}
+  .modalw .mbg{position:absolute;inset:0;background:rgba(0,0,0,.66);
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:fbgin .18s ease}
+  .modalw .mcx{position:relative;width:100%;max-width:360px;background:var(--panel);
+    border:1px solid var(--line);border-radius:20px;padding:20px 18px 16px;
+    box-shadow:0 26px 70px rgba(0,0,0,.6);animation:mpop .26s cubic-bezier(.25,1.1,.4,1);
+    max-height:86vh;overflow:auto}
+  @keyframes mpop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+  .mtit{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);text-align:center}
+  .mval{font-size:30px;font-weight:800;color:var(--txt2);text-align:center;margin-top:8px;
+    font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .msub{font-size:12px;color:var(--mut);text-align:center;margin-top:5px}
+  .mlist{margin-top:15px;border-top:1px solid var(--line);padding-top:6px}
+  .mrow{display:flex;align-items:center;gap:9px;padding:8px 2px;font-size:12.5px}
+  .mrow+.mrow{border-top:1px solid var(--line)}
+  .mrow .mq{width:8px;height:8px;border-radius:3px;flex:none}
+  .mrow .mn{flex:1;min-width:0;color:var(--txt);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mrow .mp{color:var(--dono);font-weight:800;width:48px;text-align:right;font-variant-numeric:tabular-nums}
+  .mrow .mv{color:var(--green);font-weight:800;width:98px;text-align:right;font-variant-numeric:tabular-nums}
+  .mnota{font-size:11.5px;color:var(--mut);text-align:center;margin-top:14px;line-height:1.45}
+  .mnota b{color:var(--txt2)}
+  .mwarn{font-size:12px;color:var(--red);text-align:center;margin-top:11px;font-weight:700;line-height:1.4;
+    background:color-mix(in srgb,var(--red) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--red) 30%,transparent);border-radius:10px;padding:9px 11px}
+  .macoes{display:flex;gap:9px;margin-top:16px}
+  .macoes button{flex:1;padding:13px;border-radius:12px;font-family:inherit;font-size:14px;
+    font-weight:800;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
+  .macoes button:active{transform:scale(.985)}
+  .macoes button.ok{background:var(--dono);border-color:var(--dono);color:#04191a}
+
   /* na aba de aportes, o contexto inteiro segue a cor do dono */
   #t2 .hero{background:linear-gradient(160deg,color-mix(in srgb,var(--dono) 9%,transparent),color-mix(in srgb,var(--dono) 2%,transparent));
     border-color:color-mix(in srgb,var(--dono) 24%,transparent);border-left-color:var(--dono)}
@@ -320,6 +352,8 @@
   .bt.n{background:#171b20;border-color:#2a2f35;color:var(--mut)}
   .bt.w{width:100%}
   .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .ed .acoes{flex-wrap:nowrap}
+  .ed .acoes .bt{flex:1;min-width:0;padding:12px 10px}
 
   .box{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:10px;border-radius:13px}
   .box.o{border-left:3px solid #f0883e}
@@ -932,6 +966,7 @@ var _cxScr = {};
 function _cxGuardaRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k) _cxScr[k]=c.scrollLeft; }); }
 function _cxDevolveRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k && _cxScr[k]) c.scrollLeft=_cxScr[k]; }); }
 function renderPatrimonio(){
+  sincronizarCores();
   var tc=totalCx(), tt=total();
   document.getElementById("pTotal").textContent=brl(tt);
   document.getElementById("iCart").value=brl(D.carteira);
@@ -984,9 +1019,7 @@ function renderPatrimonio(){
          '<input class="r" inputmode="decimal" style="max-width:112px" data-v="'+x.id+'" value="'+brl(x.v)+'">' +
          '<button class="cog" data-cog="'+x.id+'">⚙</button></div>' + met +
          '<div class="ed'+(abertos[x.id]?" on":"")+'" data-ed="'+x.id+'">' +
-           '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+attr(x.n)+'"></div>' +
-           '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-c="'+x.id+'" value="'+x.c+'"></div></div>' +
-           swHTML("[data-c='"+x.id+"']") +
+           '<div class="gr"><div><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+attr(x.n)+'"></div></div>' +
            '<div class="gr">' +
              '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
              '<div><label class="lb">Até (mês)</label><input type="month" data-pz="'+x.id+'" value="'+(x.pz||"")+'" style="color-scheme:dark"></div>' +
@@ -1176,8 +1209,6 @@ function ligarPatr(){
     var c=acharCx(this.getAttribute("data-v")); if(c){ c.v=num(this.value); } salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-n]"),function(i){ i.addEventListener("change",function(){
     acharCx(this.getAttribute("data-n")).n=this.value.trim()||"Sem nome"; salvar(); renderTudo(); }); });
-  Array.prototype.forEach.call(q("[data-c]"),function(i){ i.addEventListener("change",function(){
-    acharCx(this.getAttribute("data-c")).c=this.value; salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-m]"),function(i){ i.addEventListener("change",function(){
     acharCx(this.getAttribute("data-m")).m=num(this.value); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-pz]"),function(i){ i.addEventListener("change",function(){
@@ -1351,6 +1382,13 @@ function folhaApagar(){
   salvar(); renderTudo();
 }
 document.addEventListener("keydown",function(e){ if(e.key==="Escape" && _shOwn) fecharFolha(); });
+/* O cofre nao escolhe mais cor: herda a do dono, chapada. Em vez de trocar
+   x.c em cada lugar que desenha, sincronizo o proprio dado antes de render —
+   assim todo desenho que ja lia x.c continua funcionando sem mudanca. */
+function sincronizarCores(){
+  D.cx.forEach(function(x){ x.c = D.ownerColors[x.own] || "#2FD9C9"; });
+}
+
 function verba(){ return Math.max(0, num(D.ap.sal)-num(D.ap.con)); }
 
 /* o total vem do que voce digita; se nao digitar, cai em salario menos contas */
@@ -1364,6 +1402,7 @@ function donoDoAporte(a){
 }
 
 function renderAporte(){
+  sincronizarCores();
   patOwn = donoValido(patOwn);
   var ow = patOwn;
   var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
@@ -1496,15 +1535,42 @@ function renderHistAportes(){
       D.aportes.splice(i,1); salvar(); renderTudo(); }); });
 }
 
-document.getElementById("btAplicar").addEventListener("click",function(){
-  var ow=donoValido(patOwn), tot=totalAporte();
-  if(!ow){ toast("Crie um dono primeiro.","err"); return; }
-  if(!tot){ toast("Diga quanto vai distribuir.","err"); document.getElementById("aTot").focus(); return; }
-  var itens=D.cx.filter(function(x){ return x.own===ow && x.p>0; });
-  if(!itens.length){ toast("Nenhum cofre de "+ow+" tem % definido.","err"); return; }
-  var soma=0; itens.forEach(function(x){ soma+=x.p; });
-  var aviso = Math.abs(soma-100)>0.01 ? ("\n\nAten\u00e7\u00e3o: os percentuais somam "+brl(soma)+"%, n\u00e3o 100%.") : "";
-  if(!confirm("Distribuir R$ "+brl(tot)+" nos cofres de "+ow+"?\n\nIsso SOMA nos saldos da tela Patrim\u00f4nio."+aviso)) return;
+/* segunda confirmacao: um pop-up central que MOSTRA o que vai acontecer,
+   em vez de so perguntar. Confirmar vira conferencia, nao reflexo. */
+var _apPend=null;
+function fecharConfirma(){
+  var m=document.getElementById("modalw");
+  m.classList.remove("on"); m.setAttribute("aria-hidden","true"); _apPend=null;
+}
+function abrirConfirmaAporte(ow, tot, itens, soma){
+  _apPend={ ow:ow, tot:tot, itens:itens };
+  var h='<div class="mtit">Confirmar aporte</div>' +
+    '<div class="mval">R$ '+brl(tot)+'</div>' +
+    '<div class="msub">para '+esc(ow)+' &middot; '+itens.length+(itens.length===1?" cofre":" cofres")+'</div>' +
+    '<div class="mlist">';
+  itens.forEach(function(x){
+    h+='<div class="mrow"><span class="mq" style="background:'+x.c+'"></span>' +
+       '<span class="mn">'+esc(x.n)+'</span>' +
+       '<span class="mp">'+brl(x.p)+'%</span>' +
+       '<span class="mv">+R$ '+brl(tot*x.p/100)+'</span></div>';
+  });
+  h+='</div><div class="mnota">Isso <b>soma nos saldos</b> da tela Patrim&ocirc;nio. D&aacute; pra desfazer na lista de aportes.</div>';
+  if(Math.abs(soma-100)>0.01){
+    h+='<div class="mwarn">Os percentuais somam '+brl(soma)+'%, n&atilde;o 100%.</div>';
+  }
+  h+='<div class="macoes"><button onclick="fecharConfirma()">Cancelar</button>' +
+     '<button class="ok" onclick="confirmarAporte()">Confirmar</button></div>';
+  var m=document.getElementById("modalw");
+  m.style.setProperty("--dono", D.ownerColors[ow]||"#2FD9C9");
+  document.getElementById("modalCx").innerHTML=h;
+  m.classList.add("on"); m.setAttribute("aria-hidden","false");
+}
+document.addEventListener("keydown",function(e){ if(e.key==="Escape" && _apPend) fecharConfirma(); });
+
+function confirmarAporte(){
+  if(!_apPend) return;
+  var ow=_apPend.ow, tot=_apPend.tot, itens=_apPend.itens;
+  fecharConfirma();
   var h=new Date(), mes=MES[h.getMonth()]+" "+h.getFullYear();
   var det=[], somaV=0;
   itens.forEach(function(x){ var q=tot*x.p/100; x.v+=q; somaV+=q; det.push({id:x.id,n:x.n,v:q}); });
@@ -1512,7 +1578,17 @@ document.getElementById("btAplicar").addEventListener("click",function(){
     dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
   D.ap.tot="";   /* o total varia todo mes — nao fica guardado, pra nao ser aplicado por distracao */
   salvar(); renderTudo(); animarNovo("listaAportes","first");
-  toast("Aporte de R$ "+brl(somaV)+" registrado e distribu\u00eddo.","ok");
+  toast("Aporte de R$ "+brl(somaV)+" registrado e distribuído.","ok");
+}
+
+document.getElementById("btAplicar").addEventListener("click",function(){
+  var ow=donoValido(patOwn), tot=totalAporte();
+  if(!ow){ toast("Crie um dono primeiro.","err"); return; }
+  if(!tot){ toast("Diga quanto vai distribuir.","err"); document.getElementById("aTot").focus(); return; }
+  var itens=D.cx.filter(function(x){ return x.own===ow && x.p>0; });
+  if(!itens.length){ toast("Nenhum cofre de "+ow+" tem % definido.","err"); return; }
+  var soma=0; itens.forEach(function(x){ soma+=x.p; });
+  abrirConfirmaAporte(ow, tot, itens, soma);
 });
 
 /* ================== 3. GASTOS ================== */
@@ -2089,6 +2165,11 @@ renderTudo();
   window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').then(watch).catch(function(){}); });
 })();
 </script>
+<div class="modalw" id="modalw" aria-hidden="true">
+  <div class="mbg" onclick="fecharConfirma()"></div>
+  <div class="mcx" id="modalCx" role="dialog" aria-modal="true" aria-label="Confirmar aporte"></div>
+</div>
+
 <div class="folha" id="folha" aria-hidden="true">
   <div class="fbg" onclick="fecharFolha()"></div>
   <div class="fcx" id="folhaCx" role="dialog" aria-label="Op&ccedil;&otilde;es"></div>
