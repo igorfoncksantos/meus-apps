@@ -281,10 +281,16 @@
     border:1px solid color-mix(in srgb,var(--amber) 38%,transparent)}
   .aporf .ot{flex:1 1 100%;font-size:12px;color:var(--txt);line-height:1.45}
   .aporf .ot b{color:var(--amber);font-weight:800;font-variant-numeric:tabular-nums}
-  .aporf select{flex:1;min-width:120px;padding:9px 10px;font-size:12.5px}
-  .aporf button{flex:none;padding:10px 15px;border-radius:10px;border:1px solid var(--amber);
+  .aporf .orfl{display:flex;gap:7px;width:100%;align-items:stretch}
+  .aporf .cselwrap{flex:1 1 0;min-width:0}
+  .aporf .cselwrap.qtd{flex:0 0 108px}
+  .aporf .csel{padding:10px 11px;font-size:12.5px;border-radius:10px}
+  .aporf .cselpop{max-height:236px;overflow:auto}
+  .aporf .cselopt{padding:9px 10px;font-size:12.5px}
+  .aporf .orfgo{flex:none;padding:10px 14px;border-radius:10px;border:1px solid var(--amber);
     background:var(--amber);color:#1a1204;font-family:inherit;font-size:12.5px;font-weight:800;cursor:pointer}
-  .aporf button:active{transform:scale(.98)}
+  .aporf .orfgo:active{transform:scale(.98)}
+  .aporf .orfgo[disabled]{opacity:.45;pointer-events:none}
   .apconta{font-size:11.5px;color:var(--mut);margin-top:7px;line-height:1.5}
   .apconta b{color:var(--txt2);font-variant-numeric:tabular-nums}
   .apconta .neg{color:var(--red)}
@@ -508,7 +514,7 @@
   .csel .cseldot{ width:11px; height:11px; border-radius:50%; flex:none; box-shadow:0 0 0 3px rgba(255,255,255,.04); }
   .csel .cselcar{ margin-left:auto; color:var(--mut2); font-size:11px; transition:transform .18s; }
   .csel.open .cselcar{ transform:rotate(180deg); }
-  .cselpop{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60; background:#12161a; border:1px solid #2f353b; border-radius:12px; padding:6px; box-shadow:0 16px 38px rgba(0,0,0,.55); display:none; max-height:240px; overflow-y:auto; }
+  .cselpop{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:6px; box-shadow:0 16px 38px rgba(0,0,0,.55); display:none; max-height:240px; overflow-y:auto; }
   .cselpop.on{ display:block; animation:cselin .16s ease; }
   @keyframes cselin{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
   .cselopt{ display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:9px; font-size:13.5px; font-weight:700; color:var(--txt2); cursor:pointer; transition:background .12s,transform .12s; }
@@ -1336,6 +1342,12 @@ function donoDoAporte(a){
   return null;
 }
 
+/* destino e quantidade da redistribuicao: quem escolhe e ele, nao o app */
+var _orfDest=null, _orfQtd=0;
+function optQtd(v, sel){
+  return '<div class="cselopt'+(sel?" sel":"")+'" data-orfq="'+v+'">'+brl(v)+'%</div>';
+}
+
 function renderAporte(){
   sincronizarCores(); normalizarTrava();
   patOwn = donoValido(patOwn);
@@ -1416,14 +1428,45 @@ function renderAporte(){
 
       /* pontos sobrando: quem escolhe o destino e voce, nao o app */
       if(Math.abs(soma-100)>0.01){
-        var falta=100-soma, sobrando=falta>0;
-        var opts=rateia.map(function(x){ return '<option value="'+x.id+'">'+esc(x.n)+' ('+brl(x.p||0)+'%)</option>'; }).join("");
+        var falta=Math.round((100-soma)*100)/100, sobrando=falta>0;
+        /* o destino guardado precisa continuar existindo e ainda rateando */
+        if(!rateia.filter(function(x){ return String(x.id)===String(_orfDest); }).length) _orfDest=String(rateia[0].id);
+        var alvoCx=rateia.filter(function(x){ return String(x.id)===String(_orfDest); })[0];
+
+        /* tirando, nao da pra tirar mais do que o cofre tem */
+        var teto = sobrando ? falta : Math.min(-falta, alvoCx.p||0);
+        teto = Math.round(teto*100)/100;
+        if(!(_orfQtd>0) || _orfQtd>teto) _orfQtd=teto;
+
+        var qopts='';
+        if(teto>0){
+          var inteiro=Math.floor(teto+0.0001);
+          if(teto>inteiro) qopts+=optQtd(teto, true);          /* a ponta quebrada primeiro */
+          for(var q=inteiro; q>=1; q--) qopts+=optQtd(q, q===teto);
+        }
+
+        var dopts=rateia.map(function(x){
+          return '<div class="cselopt'+(String(x.id)===String(_orfDest)?' sel':'')+'" data-orfd="'+x.id+'">' +
+            '<span class="od" style="background:'+x.c+'"></span>'+esc(x.n)+' <small style="color:var(--mut);font-weight:700">'+brl(x.p||0)+'%</small></div>';
+        }).join('');
+
         h+='<div class="aporf"><div class="ot">' +
           (sobrando
-            ? 'Sobraram <b>'+brl(falta)+' pontos</b> sem destino. Pra onde eles vao?'
-            : 'Passou <b>'+brl(-falta)+' pontos</b> de 100. De qual cofre eu tiro?') +
-          '</div><select id="apOrfDest">'+opts+'</select>' +
-          '<button id="apOrfBt">'+(sobrando?"Mandar pra la":"Tirar de la")+'</button></div>';
+            ? 'Sobraram <b>'+brl(falta)+' pontos</b> sem destino. Quanto vai pra onde?'
+            : 'Passou <b>'+brl(-falta)+' pontos</b> de 100. Quanto tiro de qual cofre?') +
+          '</div><div class="orfl">' +
+            '<div class="cselwrap">' +
+              '<button type="button" class="csel" id="orfDestBtn">' +
+                '<span class="cseldot" style="background:'+alvoCx.c+'"></span>' +
+                '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(alvoCx.n)+'</span>' +
+                '<span class="cselcar">&#9662;</span></button>' +
+              '<div class="cselpop" id="orfDestPop">'+dopts+'</div></div>' +
+            '<div class="cselwrap qtd">' +
+              '<button type="button" class="csel" id="orfQtdBtn"><span>'+brl(_orfQtd)+'%</span>' +
+                '<span class="cselcar">&#9662;</span></button>' +
+              '<div class="cselpop" id="orfQtdPop">'+qopts+'</div></div>' +
+            '<button class="orfgo" id="apOrfBt"'+(teto>0?'':' disabled')+'>'+(sobrando?"Mandar":"Tirar")+'</button>' +
+          '</div></div>';
       }
     }
 
@@ -1464,14 +1507,35 @@ function renderAporte(){
       toast(c.trv ? (esc(c.n)+" travado em valor fixo.") : (esc(c.n)+" voltou pro rateio."), "ok");
     }); });
 
+  /* os dois dropdowns do app: abre um, fecha o outro */
+  function ligaSel(btId, popId){
+    var b=document.getElementById(btId), p=document.getElementById(popId);
+    if(!b||!p) return;
+    b.addEventListener("click",function(e){
+      e.stopPropagation();
+      var abrir=!p.classList.contains("on");
+      Array.prototype.forEach.call(document.querySelectorAll(".aporf .cselpop"),function(o){ o.classList.remove("on"); });
+      Array.prototype.forEach.call(document.querySelectorAll(".aporf .csel"),function(o){ o.classList.remove("open"); });
+      if(abrir){ p.classList.add("on"); b.classList.add("open"); }
+    });
+  }
+  ligaSel("orfDestBtn","orfDestPop");
+  ligaSel("orfQtdBtn","orfQtdPop");
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-orfd]"),function(o){
+    o.addEventListener("click",function(){ _orfDest=this.getAttribute("data-orfd"); _orfQtd=0; renderAporte(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-orfq]"),function(o){
+    o.addEventListener("click",function(){ _orfQtd=num(this.getAttribute("data-orfq")); renderAporte(); }); });
+
   var orfBt=document.getElementById("apOrfBt");
   if(orfBt) orfBt.addEventListener("click",function(){
-    var id=document.getElementById("apOrfDest").value, c=acharCx(id); if(!c) return;
-    var falta=100-soma;
-    c.p=Math.round(((c.p||0)+falta)*100)/100;
+    var c=acharCx(_orfDest); if(!c || !(_orfQtd>0)) return;
+    var sinal = (100-soma) > 0 ? 1 : -1;
+    c.p=Math.round(((c.p||0)+sinal*_orfQtd)*100)/100;
     if(c.p<0) c.p=0;
-    salvar(); renderAporte();
-    toast((falta>0?"+":"")+brl(falta)+" pontos em "+c.n+".","ok");
+    var msg=(sinal>0?"+":"\u2212")+brl(_orfQtd)+" pontos em "+c.n+".";
+    _orfQtd=0;
+    salvar(); renderAporte(); toast(msg,"ok");
   });
 
   renderSugg(ow, sobra);
@@ -1608,6 +1672,10 @@ function abrirConfirmaAporte(ow, tot, p){
   m.classList.add("on"); m.setAttribute("aria-hidden","false");
 }
 document.addEventListener("keydown",function(e){ if(e.key==="Escape" && _apPend) fecharConfirma(); });
+document.addEventListener("click",function(){
+  Array.prototype.forEach.call(document.querySelectorAll(".aporf .cselpop"),function(o){ o.classList.remove("on"); });
+  Array.prototype.forEach.call(document.querySelectorAll(".aporf .csel"),function(o){ o.classList.remove("open"); });
+});
 
 function confirmarAporte(){
   if(!_apPend) return;
