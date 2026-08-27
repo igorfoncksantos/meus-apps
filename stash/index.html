@@ -297,6 +297,24 @@
   .apconta b{color:var(--txt2);font-variant-numeric:tabular-nums}
   .apconta .neg{color:var(--red)}
 
+  /* Cashbook: ligar categoria a um cofre. E SO GUIA — le o saldo, nunca escreve. */
+  .cflbl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin:10px 0 6px}
+  .cfgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+  .cfop{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:20px;cursor:pointer;
+    font-size:11.5px;font-weight:700;color:var(--mut);background:var(--panel2);border:1px solid var(--line)}
+  .cfop i{width:8px;height:8px;border-radius:50%;flex:none}
+  .cfop.on{color:var(--txt2);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,transparent)}
+  .cfpc{display:flex;align-items:center;gap:9px;margin-top:8px}
+  .cfpc label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin:0}
+  .cfpc input{max-width:78px;margin-left:auto;text-align:right}
+  .cfpc .un{font-size:11.5px;font-weight:800;color:var(--mut)}
+  .cfder{display:flex;align-items:center;gap:9px;margin-top:8px;font-size:12px}
+  .cfder .cfl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut)}
+  .cfder .cfv{margin-left:auto;font-weight:800;color:var(--txt2);font-variant-numeric:tabular-nums}
+  .cfder .cfo{font-size:10.5px;font-weight:700;color:var(--mut2)}
+  .cfavi{font-size:11px;line-height:1.45;color:var(--amber);margin-top:8px;padding:8px 10px;border-radius:9px;
+    background:color-mix(in srgb,var(--amber) 11%,transparent);border:1px solid color-mix(in srgb,var(--amber) 34%,transparent)}
+
   /* diagnostico alvo x real */
   .dgrow{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
   .dgtop{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
@@ -1989,6 +2007,70 @@ function diasRest(){
 function hojeISO(){ var h=new Date(); return h.getFullYear()+"-"+("0"+(h.getMonth()+1)).slice(-2)+"-"+("0"+h.getDate()).slice(-2); }
 document.getElementById("gDt").value=hojeISO();
 function acharCat(id){ return D.vale.cats.filter(function(c){ return c.id==id; })[0]; }
+/* o render fecha o painel de edicao; reabro o mesmo pra nao perder o lugar */
+function abreCatEd(id){
+  var e=document.querySelector('[data-caed="'+id+'"]');
+  if(e) e.style.display="block";
+}
+
+/* ---------- vinculo categoria <-> cofre (Cashbook) ----------
+   O Cashbook e GUIA: serve pra ver quanto ja gastou no mes e, na hora da
+   fatura, saber de qual cofre tirar. Por isso ele so LE o saldo do cofre —
+   nao mexe em Patrimonio nem em Aporte. O vinculo e opcional; sem ele, o
+   orcamento continua sendo digitado na mao, como sempre foi. */
+function normalizarCat(){
+  D.vale.cats.forEach(function(k){
+    if(typeof k.cofre !== "string") k.cofre = "";
+    if(typeof k.cpc !== "number") k.cpc = 0;
+    if(k.cofre && !acharCx(k.cofre)) k.cofre="";   /* cofre apagado desfaz o vinculo */
+  });
+}
+/* o orcamento da categoria: derivado do cofre quando ligada, digitado quando nao */
+function orcDaCat(k){
+  if(k.cofre){ var c=acharCx(k.cofre); if(c) return (c.v||0)*(k.cpc||0)/100; }
+  return num(k.orc);
+}
+/* quanto das categorias ligadas ao mesmo cofre ja foi comprometido */
+function somaPcCofre(cofreId, ignoraCatId){
+  var t=0;
+  D.vale.cats.forEach(function(k){
+    if(k.cofre!==cofreId) return;
+    if(ignoraCatId && k.id==ignoraCatId) return;
+    t+=k.cpc||0;
+  });
+  return Math.round(t*100)/100;
+}
+/* quanto do cofre as categorias ja comprometeram — puro aviso, nao trava nada */
+function avisoCofre(k){
+  var c=acharCx(k.cofre); if(!c) return "";
+  var total=somaPcCofre(k.cofre);
+  if(Math.abs(total-100)<0.01) return "";
+  return '<div class="cfavi">As categorias ligadas a <b>'+esc(c.n)+'</b> somam <b>'+brl(total)+'%</b>' +
+    (total<100 ? (' &mdash; sobram '+brl(100-total)+'% do cofre sem or&ccedil;amento.')
+               : (' &mdash; passa '+brl(total-100)+'% do que o cofre tem.')) + '</div>';
+}
+
+/* as pastilhas de cofre — mesmo desenho da grade de icones que ja existe */
+function cofreGridHTML(campoId, sel){
+  var h='<div class="cfgrid">';
+  h+='<span class="cfop'+(!sel?" on":"")+'" data-cfor="'+campoId+'" data-cfv="">Nenhum</span>';
+  D.cx.forEach(function(x){
+    h+='<span class="cfop'+(String(sel)===String(x.id)?" on":"")+'" data-cfor="'+campoId+'" data-cfv="'+x.id+'">' +
+       '<i style="background:'+x.c+'"></i>'+esc(x.n)+'</span>';
+  });
+  return h+'</div>';
+}
+function ligaCofreGrid(){
+  Array.prototype.forEach.call(document.querySelectorAll("[data-cfor]"),function(o){
+    o.addEventListener("click",function(){
+      var campo=document.getElementById(this.getAttribute("data-cfor"));
+      if(campo){ campo.value=this.getAttribute("data-cfv"); campo.dispatchEvent(new Event("change",{bubbles:true})); }
+      var irmaos=document.querySelectorAll('[data-cfor="'+this.getAttribute("data-cfor")+'"]');
+      Array.prototype.forEach.call(irmaos,function(x){ x.classList.remove("on"); });
+      this.classList.add("on");
+    });
+  });
+}
 var PICK_ICONS=["cart","cutlery","coffee","cup","pizza","bag","shirt","home","bed","tv","car","bus","plane","fuel","gift","heart","pill","dumbbell","baby","paw","book","graduation","gamepad","music","film","camera","phone","wifi","globe","ticket","scissors","wrench","bolt","droplet","leaf","coins","money","wallet","creditcard","bank","receipt","tag","star","clock","sun","folder","list","trending","barchart","gear"];
 function svgOr(n){ return (window.svgIc ? window.svgIc(n) : ""); }
 function catIcoHTML(k){ var e=k?(k.emoji||""):""; if(String(e).charAt(0)==="#") return '<span class="csvg" data-ic="'+e.slice(1)+'" style="color:'+(k.cor||"#fff")+'">'+svgOr(e.slice(1))+'</span>'; return e; }
@@ -2012,17 +2094,40 @@ function mostrarNovaCat(){
         '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" id="ncCor" value="#A78BFA"></div></div>' +
         swHTML("#ncCor") +
         '<div class="icolbl">Ícone</div>'+iconGridHTML("ncEmoji","#cart")+'<input type="hidden" id="ncEmoji" value="#cart">' +
+        '<div class="cflbl">Cofre relacionado (opcional)</div>' +
+        cofreGridHTML("ncCofre","") +
+        '<input type="hidden" id="ncCofre" value="">' +
+        '<div class="cfpc" id="ncPcBox" style="display:none"><label>Quanto do cofre e desta categoria</label>' +
+          '<input class="r" inputmode="decimal" id="ncCpc" placeholder="0"><span class="un">%</span></div>' +
+        '<div class="cfavi" id="ncAvi" style="display:none"></div>' +
         '<div class="acoes"><button class="bt p" id="ncOk" style="width:auto">Adicionar</button>' +
         '<button class="bt n" id="ncCancel" style="width:auto">Cancelar</button></div>' +
       '</div></div>';
   document.getElementById("ncCancel").addEventListener("click",resetNovaCat);
   document.getElementById("ncNome").focus();
+  ligaCofreGrid();
+  /* o campo de % so faz sentido depois de escolher um cofre */
+  function ncAtualiza(){
+    var cid=document.getElementById("ncCofre").value;
+    document.getElementById("ncPcBox").style.display = cid ? "" : "none";
+    var avi=document.getElementById("ncAvi");
+    if(!cid){ avi.style.display="none"; return; }
+    var usado=somaPcCofre(cid), c=acharCx(cid);
+    var livre=Math.round((100-usado)*100)/100;
+    avi.style.display="";
+    avi.innerHTML = usado>0
+      ? ("Outras categorias j&aacute; usam <b>"+brl(usado)+"%</b> de "+esc(c.n)+". Livre: <b>"+brl(livre)+"%</b>.")
+      : ("Nenhuma categoria usa "+esc(c.n)+" ainda. Livre: <b>100%</b>.");
+  }
+  document.getElementById("ncCofre").addEventListener("change",ncAtualiza);
   document.getElementById("ncOk").addEventListener("click",function(){
     var nm=document.getElementById("ncNome").value.trim();
     if(!nm){ toast("Dê um nome à categoria.","err"); document.getElementById("ncNome").focus(); return; }
+    var cof=document.getElementById("ncCofre").value;
     D.vale.cats.push({id:"c"+Date.now().toString(36),nome:nm,
       emoji:(document.getElementById("ncEmoji").value||"#cart"),
-      cor:document.getElementById("ncCor").value, orc:""});
+      cor:document.getElementById("ncCor").value, orc:"",
+      cofre:cof, cpc:(cof?num(document.getElementById("ncCpc").value):0)});
     salvar(); resetNovaCat(); renderGastos(); toast("Categoria criada.","ok");
   });
 }
@@ -2037,6 +2142,7 @@ function ligarFabLancar(){
   },{threshold:0.15}).observe(alvo);
 }
 function renderGastos(){
+  normalizarCat();
   ligarFabLancar();
   var c=cicloInfo();
   document.getElementById("gCiclo").textContent=c.nome;
@@ -2062,7 +2168,7 @@ function renderGastos(){
   // --- painel de anéis + hero ---
   var tO=0, tG=0, rh="";
   D.vale.cats.forEach(function(k){
-    var orc=num(k.orc), gas=gasto[k.id]||0, rest=orc-gas, pc=orc>0?Math.min(100,gas/orc*100):0, est=(orc>0&&rest<0);
+    var orc=orcDaCat(k), gas=gasto[k.id]||0, rest=orc-gas, pc=orc>0?Math.min(100,gas/orc*100):0, est=(orc>0&&rest<0);
     tO+=orc; tG+=gas;
     var off=213.628*(1-pc/100);
     rh+='<div class="gp-ring'+(est?' est':'')+'">' +
@@ -2107,18 +2213,30 @@ function renderGastos(){
   // --- cards editores de orçamento (compactos; o visual vem dos anéis) ---
   var bh="";
   D.vale.cats.forEach(function(k){
-    var orc=num(k.orc), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
+    var orc=orcDaCat(k), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
     bh+='<div class="box'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
         '<div class="bxhd"><div class="b2" style="color:'+k.cor+'">'+catIcoHTML(k)+' '+esc(k.nome)+'</div>' +
         '<button class="cog" data-catcog="'+k.id+'">⚙</button></div>' +
-        '<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
-          '<label class="lb" style="margin:0">Orçamento</label>' +
-          '<input class="r" style="max-width:120px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="0,00"></div>' +
+        (k.cofre && acharCx(k.cofre)
+          ? ('<div class="cfder"><span class="cfl">Or&ccedil;amento</span>' +
+             '<span class="cfo">'+brl(k.cpc||0)+'% de '+esc(acharCx(k.cofre).n)+'</span>' +
+             '<span class="cfv">R$ '+brl(orc)+'</span></div>')
+          : ('<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
+             '<label class="lb" style="margin:0">Or&ccedil;amento</label>' +
+             '<input class="r" style="max-width:120px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="0,00"></div>')) +
         '<div class="caed" data-caed="'+k.id+'" style="display:none">' +
           '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-catn="'+k.id+'" value="'+esc(k.nome)+'" maxlength="24"></div>' +
           '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-catc="'+k.id+'" value="'+k.cor+'"></div></div>' +
           '<div class="icolbl">Ícone</div>'+iconGridHTML("cate_"+k.id,k.emoji)+'<input type="hidden" id="cate_'+k.id+'" data-cate="'+k.id+'" value="'+esc(k.emoji)+'">' +
           swHTML("[data-catc='"+k.id+"']") +
+          '<div class="cflbl">Cofre relacionado (opcional)</div>' +
+          cofreGridHTML("cate_cof_"+k.id, k.cofre) +
+          '<input type="hidden" id="cate_cof_'+k.id+'" data-catcof="'+k.id+'" value="'+esc(k.cofre||"")+'">' +
+          (k.cofre
+            ? ('<div class="cfpc"><label>Quanto do cofre e desta categoria</label>' +
+               '<input class="r" inputmode="decimal" data-catpc="'+k.id+'" value="'+(k.cpc||"")+'" placeholder="0"><span class="un">%</span></div>' +
+               avisoCofre(k))
+            : '') +
           '<div class="acoes"><button class="bt d" data-catdel="'+k.id+'">Apagar categoria</button></div></div>' +
         '</div>';
   });
@@ -2148,6 +2266,16 @@ function renderGastos(){
     D.vale.l.splice(i,1); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-orc]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-orc")); if(k){ k.orc=this.value; salvar(); renderGastos(); } }); });
+  ligaCofreGrid();
+  Array.prototype.forEach.call(q("[data-catcof]"),function(i){ i.addEventListener("change",function(){
+    var k=acharCat(this.getAttribute("data-catcof")); if(!k) return;
+    k.cofre=this.value;
+    if(!k.cofre) k.cpc=0;
+    else if(!k.cpc){ var livre=100-somaPcCofre(k.cofre,k.id); k.cpc=Math.max(0,Math.round(livre*100)/100); }
+    salvar(); renderGastos(); abreCatEd(k.id); }); });
+  Array.prototype.forEach.call(q("[data-catpc]"),function(i){ i.addEventListener("change",function(){
+    var k=acharCat(this.getAttribute("data-catpc")); if(!k) return;
+    k.cpc=num(this.value); salvar(); renderGastos(); abreCatEd(k.id); }); });
   Array.prototype.forEach.call(q("[data-catcog]"),function(b){ b.addEventListener("click",function(){
     var el=document.querySelector('[data-caed="'+this.getAttribute("data-catcog")+'"]');
     el.style.display=(el.style.display==="none"?"block":"none"); }); });
