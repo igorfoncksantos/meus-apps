@@ -322,10 +322,11 @@
   .gadd:hover{background:color-mix(in srgb,var(--dono) 12%,transparent)}
   .tr{height:8px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:8px;border-radius:20px}
   .fl{height:100%;border-radius:20px}
-  .ed{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
-  .ed.on{display:block}
-  .ed .gr{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
-  .ed .gr>div{flex:1;min-width:104px}
+  .cx .gr{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+  .cx .gr>div{flex:1;min-width:104px}
+  /* o saldo e o campo mais mexido do app: entra grande e na frente */
+  input.r.saldo{font-size:19px;padding:12px 13px;letter-spacing:-.3px}
+  .cx .met{margin-bottom:11px}
 
   input,select{font-family:inherit;font-size:14px;color:var(--txt2);background:var(--panel2);
                border:1px solid #2a2f35;border-radius:10px;padding:10px 12px;outline:none;width:100%;
@@ -352,8 +353,8 @@
   .bt.n{background:#171b20;border-color:#2a2f35;color:var(--mut)}
   .bt.w{width:100%}
   .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-  .ed .acoes{flex-wrap:nowrap}
-  .ed .acoes .bt{flex:1;min-width:0;padding:12px 10px}
+  .cx .acoes{flex-wrap:nowrap}
+  .cx .acoes .bt{flex:1;min-width:0;padding:12px 10px}
 
   .box{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:10px;border-radius:13px}
   .box.o{border-left:3px solid #f0883e}
@@ -940,7 +941,6 @@ Array.prototype.forEach.call(document.querySelectorAll("nav button"),function(b)
 });
 
 /* ================== 1. PATRIMONIO ================== */
-var abertos = {};
 var GOWN = [];   // ordem dos nichos no render atual (indice -> nome)
 var patView = (function(){ try{ return localStorage.getItem("stash-patview")||"cx"; }catch(e){ return "cx"; } })();
 var patOwn  = (function(){ try{ return localStorage.getItem("stash-patown")||""; }catch(e){ return ""; } })();
@@ -1014,11 +1014,11 @@ function renderPatrimonio(){
       met+='</div>';
     }
     var opts=""; D.owners.forEach(function(o){ opts+='<option value="'+encodeURIComponent(o)+'"'+(o===x.own?" selected":"")+'>'+o+'</option>'; });
+    /* o cartao do carrossel ja diz nome e valor — aqui nao se repete:
+       o painel abre direto nos campos, com o saldo (o que ele mais mexe) na frente. */
     return '<div class="cx" style="border-left-color:'+x.c+'" data-cx="'+x.id+'">' +
-         '<div class="lin"><span class="nm">'+x.n+(x.vale?' <span style="font-size:9px;color:#22C55E">· banca o vale</span>':'')+'</span>' +
-         '<input class="r" inputmode="decimal" style="max-width:112px" data-v="'+x.id+'" value="'+brl(x.v)+'">' +
-         '<button class="cog" data-cog="'+x.id+'">⚙</button></div>' + met +
-         '<div class="ed'+(abertos[x.id]?" on":"")+'" data-ed="'+x.id+'">' +
+         '<div class="gr"><div><label class="lb">Saldo de '+esc(x.n)+(x.vale?' &middot; banca o vale':'')+'</label>' +
+           '<input class="r saldo" inputmode="decimal" data-v="'+x.id+'" value="'+brl(x.v)+'"></div></div>' + met +
            '<div class="gr"><div><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+attr(x.n)+'"></div></div>' +
            '<div class="gr">' +
              '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
@@ -1027,7 +1027,7 @@ function renderPatrimonio(){
            '<div class="gr"><div style="flex:1"><label class="lb">Dono do cofre</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
            '<div class="acoes"><button class="bt n" data-vale="'+x.id+'">'+(x.vale?"✓ banca o vale":"marcar: banca o vale")+'</button>' +
            '<button class="bt d" data-del="'+x.id+'">Apagar cofre</button></div>' +
-         '</div></div>';
+         '</div>';
   }
 
 
@@ -1202,9 +1202,6 @@ function ligarAgg(){
 
 function ligarPatr(){
   var q=function(s){ return document.querySelectorAll(s); };
-  Array.prototype.forEach.call(q("[data-cog]"),function(b){ b.addEventListener("click",function(){
-    var id=this.getAttribute("data-cog"); abertos[id]=!abertos[id];
-    document.querySelector('[data-ed="'+id+'"]').className="ed"+(abertos[id]?" on":""); }); });
   Array.prototype.forEach.call(q("[data-v]"),function(i){ i.addEventListener("change",function(){
     var c=acharCx(this.getAttribute("data-v")); if(c){ c.v=num(this.value); } salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-n]"),function(i){ i.addEventListener("change",function(){
