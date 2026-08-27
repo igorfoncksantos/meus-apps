@@ -361,6 +361,19 @@
   .goal .gv{font-size:12px;font-weight:700;color:var(--mut2);margin-top:3px;font-variant-numeric:tabular-nums}
   .goal .gm{font-size:10px;color:var(--mut);font-weight:600;margin-top:2px}
   .goal .gpc{font-size:16px;font-weight:800;color:var(--txt2);font-variant-numeric:tabular-nums;flex-shrink:0}
+  /* o prazo na aba de Metas: dois cofres em 31% nao sao a mesma coisa se um
+     vence em dezembro e o outro em 2030 */
+  .goal .gz{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px;font-size:10px;font-weight:700;color:var(--mut2)}
+  .goal .gz b{color:var(--txt2);font-variant-numeric:tabular-nums}
+  .goal .gchip{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:2px 6px;border-radius:5px;white-space:nowrap}
+  .goal .gchip.tarde{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red);
+    border:1px solid color-mix(in srgb,var(--red) 40%,transparent)}
+  .goal .gchip.curto{background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber);
+    border:1px solid color-mix(in srgb,var(--amber) 38%,transparent)}
+  .goal .gchip.folga{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green);
+    border:1px solid color-mix(in srgb,var(--green) 34%,transparent)}
+  .goal.risco{border-color:color-mix(in srgb,var(--amber) 42%,var(--line))}
+  .goal.venceu{border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
   .mtsem{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:16px 2px 9px}
   .msemrow{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:11px;margin-bottom:7px}
   .msemrow .msq{width:9px;height:9px;border-radius:3px;flex-shrink:0}
@@ -935,6 +948,20 @@ function donoValido(atual){ var l=D.owners.slice(); D.cx.forEach(function(x){ if
   if(l.indexOf(atual)>=0) return atual; return l.length?l[0]:""; }
 function setPatView(v){ patView=v; try{ localStorage.setItem("stash-patview",v); }catch(e){} renderPatrimonio(); }
 
+/* O ritmo real de um cofre: a media do que ele recebeu por aporte registrado.
+   Uso o historico e nao o percentual planejado porque o que interessa aqui e
+   o que aconteceu, nao o que estava previsto. Sem aporte nenhum devolve null
+   e a etiqueta simplesmente nao aparece. */
+function ritmoDoCofre(id){
+  var tot=0, n=0;
+  (D.aportes||[]).forEach(function(a){
+    var achou=false;
+    (a.det||[]).forEach(function(p){ if(String(p.id)===String(id)){ tot+=p.v; achou=true; } });
+    if(achou) n++;
+  });
+  return n ? {media:tot/n, n:n} : null;
+}
+
 function mesesAte(pz){
   if(!pz) return null;
   var p = pz.split("-");
@@ -985,7 +1012,9 @@ function renderPatrimonio(){
           '<span>faltam R$ '+brl(falta)+'</span>';
       var mm=mesesAte(x.pz);
       if(mm!==null){
-        if(mm<=0){ met+='<span class="atr">prazo vencido</span>'; }
+        /* mm===0 e o proprio mes do prazo: ainda da tempo, nao esta vencido */
+        if(mm<0){ met+='<span class="atr">prazo vencido</span>'; }
+        else if(mm===0){ met+='<span class="pz">R$ '+brl(falta)+' ainda este mês</span>'; }
         else {
           var need=falta/mm;
           met+='<span class="pz">R$ '+brl(need)+'/mês até '+x.pz.split("-")[1]+'/'+x.pz.split("-")[0]+'</span>';
@@ -1041,11 +1070,34 @@ function renderPatrimonio(){
     if(!D.cx.length){ h+='<div class="vazio" style="padding:20px 4px">Nenhum cofre ainda. Crie um no modo <b style="color:var(--accent)">Cofres</b>.</div>'; }
     comMeta.forEach(function(x){
       var pc=Math.min(100,x.v/x.m*100), falta=Math.max(0,x.m-x.v), CC=2*Math.PI*15.9, off=CC*(1-pc/100);
-      h+='<div class="goal"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(128,128,128,.22)" stroke-width="5"/>' +
+      /* o prazo: quanto precisa por mes, e se o ritmo real da conta.
+         mesesAte devolve 0 no proprio mes do prazo — isso e "vence este mes",
+         nao "vencido": o mes inteiro ainda esta na mao. */
+      var gz="", risco="", mm=mesesAte(x.pz);
+      if(falta<=0){ gz='<div class="gz"><span class="gchip folga">&#10003; fechada</span></div>'; }
+      else if(mm===null){ gz='<div class="gz">sem prazo definido</div>'; }
+      else if(mm<0){ risco=" venceu";
+        gz='<div class="gz"><span class="gchip tarde">prazo vencido</span><span>faltaram <b>R$ '+brl(falta)+'</b></span></div>'; }
+      else {
+        var need = mm>0 ? falta/mm : falta;
+        var quando = mm>0 ? ("at&eacute; "+x.pz.split("-")[1]+"/"+x.pz.split("-")[0]) : "ainda este m&ecirc;s";
+        var r=ritmoDoCofre(x.id), chip="";
+        if(mm===0){
+          /* vence no proprio mes: comparar uma media mensal com um valor que
+             vence agora nao diz nada. O que importa e o prazo. */
+          risco=" risco"; chip='<span class="gchip curto">vence este m&ecirc;s</span>';
+        } else if(r){
+          if(r.media < need*0.995){ risco=" risco"; chip='<span class="gchip curto">ritmo curto</span>'; }
+          else chip='<span class="gchip folga">no ritmo</span>';
+        }
+        gz='<div class="gz">'+chip+'<span><b>R$ '+brl(need)+'</b>'+(mm>0?"/m&ecirc;s ":" ")+quando+'</span>' +
+           ((r && mm>0) ? ('<span>&middot; vem recebendo <b>R$ '+brl(r.media)+'</b></span>') : "") + '</div>';
+      }
+      h+='<div class="goal'+risco+'"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(128,128,128,.22)" stroke-width="5"/>' +
          '<circle cx="21" cy="21" r="15.9" fill="none" stroke="'+x.c+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+CC.toFixed(2)+'" stroke-dashoffset="'+off.toFixed(2)+'" transform="rotate(-90 21 21)"/></svg>' +
          '<div class="gt"><div class="gn">'+x.n+'</div><div class="gv">R$ '+brl(x.v)+' / '+brl(x.m)+'</div>' +
-         '<div class="gm">'+(falta>0?("faltam R$ "+brl(falta)):"meta batida &#10003;")+'</div></div>' +
-         '<div class="gpc">'+(PRIV?"•••":pc.toFixed(0)+"%")+'</div></div>';
+         '<div class="gm">'+(falta>0?("faltam R$ "+brl(falta)):"meta batida &#10003;")+'</div>' + gz +
+         '</div><div class="gpc">'+(PRIV?"•••":pc.toFixed(0)+"%")+'</div></div>';
     });
     if(semMeta.length){ h+='<div class="mtsem">Sem meta definida</div>';
       semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+x.n+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; }); }
@@ -1615,11 +1667,14 @@ function renderSugg(ow, tot){
   var el=document.getElementById("apSugg"); if(!el) return;
   var cand=D.cx.filter(function(x){ return x.own===ow && x.m>0 && x.v<x.m; });
   var alvo=null, smsg="";
-  var atr=cand.filter(function(x){ var mm=mesesAte(x.pz); if(mm===null||mm<=0) return false;
-    var need=(x.m-x.v)/mm, tem=x.p>0?(tot*x.p/100):0; return tem<need; });
+  /* mm===0 e o proprio mes do prazo: e a meta MAIS urgente que existe, nao
+     uma vencida — precisa do valor cheio agora. So mm<0 fica de fora. */
+  var atr=cand.filter(function(x){ var mm=mesesAte(x.pz); if(mm===null||mm<0) return false;
+    var need=mm>0?((x.m-x.v)/mm):(x.m-x.v), tem=x.p>0?(tot*x.p/100):0; return tem<need; });
   if(atr.length){ atr.sort(function(a,b){ return mesesAte(a.pz)-mesesAte(b.pz); }); alvo=atr[0];
-    var mmA=mesesAte(alvo.pz);
-    smsg='<b>'+esc(alvo.n)+'</b> est&aacute; atrasada &mdash; precisa de R$ '+brl((alvo.m-alvo.v)/mmA)+'/m&ecirc;s pro prazo.'; }
+    var mmA=mesesAte(alvo.pz), faltaA=alvo.m-alvo.v;
+    smsg='<b>'+esc(alvo.n)+'</b> est&aacute; atrasada &mdash; precisa de R$ ' +
+         (mmA>0 ? (brl(faltaA/mmA)+'/m&ecirc;s pro prazo.') : (brl(faltaA)+' ainda este m&ecirc;s.')); }
   else if(cand.length){ cand.sort(function(a,b){ return (b.v/b.m)-(a.v/a.m); }); alvo=cand[0];
     smsg='Falta pouco pra fechar <b>'+esc(alvo.n)+'</b> &mdash; R$ '+brl(alvo.m-alvo.v)+'.'; }
   el.innerHTML = alvo ? ('<div class="sugg"><div class="si">&#127919;</div><div class="st">'+smsg+'</div><div class="sa">&rarr;</div></div>') : "";
