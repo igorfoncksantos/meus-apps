@@ -514,7 +514,11 @@
   .csel .cseldot{ width:11px; height:11px; border-radius:50%; flex:none; box-shadow:0 0 0 3px rgba(255,255,255,.04); }
   .csel .cselcar{ margin-left:auto; color:var(--mut2); font-size:11px; transition:transform .18s; }
   .csel.open .cselcar{ transform:rotate(180deg); }
-  .cselpop{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:6px; box-shadow:0 16px 38px rgba(0,0,0,.55); display:none; max-height:240px; overflow-y:auto; }
+  /* o pop tinha a MESMA cor dos cards atras dele — opaco, mas sem contraste,
+     entao lia como translucido. Superficie levantada + sombra dupla resolvem. */
+  .cselpop{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:60;
+    background:color-mix(in srgb, var(--panel) 87%, var(--txt));
+    border:1px solid color-mix(in srgb, var(--line) 60%, var(--txt)); border-radius:12px; padding:6px; box-shadow:0 18px 44px rgba(0,0,0,.62), 0 0 0 1px rgba(0,0,0,.45); display:none; max-height:240px; overflow-y:auto; }
   .cselpop.on{ display:block; animation:cselin .16s ease; }
   @keyframes cselin{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
   .cselopt{ display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:9px; font-size:13.5px; font-weight:700; color:var(--txt2); cursor:pointer; transition:background .12s,transform .12s; }
