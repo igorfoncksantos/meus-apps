@@ -310,6 +310,10 @@
   .cfder{display:flex;align-items:center;gap:9px;margin-top:8px;font-size:12px}
   .cfder .cfl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut)}
   .cfder .cfv{margin-left:auto;font-weight:800;color:var(--txt2);font-variant-numeric:tabular-nums}
+  .cfder .cfv2{margin-left:auto;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+    padding:3px 8px;border-radius:6px;color:var(--mut);background:var(--panel2);border:1px solid var(--line)}
+  .cfder .cfv2.auto{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+  .cfder .cfo b{color:var(--txt2);font-variant-numeric:tabular-nums}
   .cfder .cfo{font-size:10.5px;font-weight:700;color:var(--mut2)}
   .cfavi{font-size:11px;line-height:1.45;color:var(--amber);margin-top:8px;padding:8px 10px;border-radius:9px;
     background:color-mix(in srgb,var(--amber) 11%,transparent);border:1px solid color-mix(in srgb,var(--amber) 34%,transparent)}
@@ -2030,10 +2034,20 @@ function normalizarCat(){
     if(k.cofre && !acharCx(k.cofre)) k.cofre="";   /* cofre apagado desfaz o vinculo */
   });
 }
-/* o orcamento da categoria: derivado do cofre quando ligada, digitado quando nao */
+/* O orcamento da categoria. O campo manual SEMPRE existe e manda quando
+   preenchido; vazio, cai no que o cofre daria. Mesma logica do "Total a
+   distribuir" no aporte — um numero so, com uma reserva clara. */
 function orcDaCat(k){
-  if(k.cofre){ var c=acharCx(k.cofre); if(c) return (c.v||0)*(k.cpc||0)/100; }
-  return num(k.orc);
+  var manual=num(k.orc);
+  if(manual>0) return manual;
+  var d=orcDoCofre(k);
+  return d===null ? 0 : d;
+}
+/* so o valor que o cofre daria — pra mostrar do lado, sem virar o orcamento */
+function orcDoCofre(k){
+  if(!k.cofre) return null;
+  var c=acharCx(k.cofre); if(!c) return null;
+  return (c.v||0)*(k.cpc||0)/100;
 }
 /* quanto das categorias ligadas ao mesmo cofre ja foi comprometido */
 function somaPcCofre(cofreId, ignoraCatId){
@@ -2224,17 +2238,18 @@ function renderGastos(){
   // --- cards editores de orçamento (compactos; o visual vem dos anéis) ---
   var bh="";
   D.vale.cats.forEach(function(k){
-    var orc=orcDaCat(k), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
+    var orc=orcDaCat(k), dc=orcDoCofre(k), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
     bh+='<div class="box'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
         '<div class="bxhd"><div class="b2" style="color:'+k.cor+'">'+catIcoHTML(k)+' '+esc(k.nome)+'</div>' +
         '<button class="cog" data-catcog="'+k.id+'">⚙</button></div>' +
-        (k.cofre && acharCx(k.cofre)
-          ? ('<div class="cfder"><span class="cfl">Or&ccedil;amento</span>' +
-             '<span class="cfo">'+brl(k.cpc||0)+'% de '+esc(acharCx(k.cofre).n)+'</span>' +
-             '<span class="cfv">R$ '+brl(orc)+'</span></div>')
-          : ('<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
-             '<label class="lb" style="margin:0">Or&ccedil;amento</label>' +
-             '<input class="r" style="max-width:120px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="0,00"></div>')) +
+        '<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
+          '<label class="lb" style="margin:0">Or&ccedil;amento</label>' +
+          '<input class="r" style="max-width:120px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="'+(dc===null?"0,00":brl(dc))+'"></div>' +
+        (dc===null ? '' :
+          ('<div class="cfder"><span class="cfo">'+brl(k.cpc||0)+'% de '+esc(acharCx(k.cofre).n)+' d&aacute; <b>R$ '+brl(dc)+'</b></span>' +
+           (num(k.orc)>0
+             ? '<span class="cfv2">usando o seu</span>'
+             : '<span class="cfv2 auto">em uso</span>')+'</div>')) +
         '<div class="caed" data-caed="'+k.id+'" style="display:none">' +
           '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-catn="'+k.id+'" value="'+esc(k.nome)+'" maxlength="24"></div>' +
           '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-catc="'+k.id+'" value="'+k.cor+'"></div></div>' +
