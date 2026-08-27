@@ -92,6 +92,8 @@
   h2::before{content:"";width:5px;height:14px;border-radius:3px;background:var(--accent);flex-shrink:0}
   h2 .add{margin-left:auto;font-size:11px;font-weight:800;color:var(--accent);cursor:pointer;letter-spacing:.3px;text-transform:none}
 
+  /* a cor do dono escolhido manda no contexto dele — sem dono, e o teal do app */
+  :root{ --dono:var(--accent); }
   .hero{background:linear-gradient(160deg,rgba(47,217,201,.08),rgba(47,217,201,.02));
         border:1px solid #1e3a40;border-left:4px solid var(--accent);border-radius:14px;padding:16px 18px;margin-bottom:11px}
   .hero .hl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
@@ -125,7 +127,7 @@
   border-radius:16px;padding:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .1s;
   -webkit-tap-highlight-color:transparent}
 .cxc:active{transform:scale(.985)}
-.cxc.on{border-color:var(--accent);box-shadow:0 6px 22px rgba(47,217,201,.16)}
+.cxc.on{border-color:var(--dono);box-shadow:0 6px 22px color-mix(in srgb,var(--dono) 20%,transparent)}
 .cxc .ctop{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .cxc .cdt{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
 .cxc .cnm{font-size:12.5px;font-weight:800;color:#e8edf1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -140,7 +142,7 @@
 .cxadd{flex:0 0 200px;display:flex;align-items:center;justify-content:center;border:1px dashed #2a3138;
   border-radius:16px;color:#5f6a72;font-size:12.5px;font-weight:800;cursor:pointer;background:transparent;
   font-family:inherit;transition:border-color .15s,color .15s}
-.cxadd:hover{border-color:var(--accent);color:var(--accent)}
+.cxadd:hover{border-color:var(--dono);color:var(--dono)}
   /* cartao de pessoa (substitui o nicho que abria e fechava) */
   .pcards{display:flex;gap:9px;overflow-x:auto;padding:2px 1px 4px;margin-bottom:11px;scrollbar-width:none}
   .pcards::-webkit-scrollbar{display:none}
@@ -148,7 +150,7 @@
     background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:11px 34px 11px 11px;
     cursor:pointer;transition:border-color .16s,background .16s,transform .12s}
   .pcard:active{transform:scale(.99)}
-  .pcard.on{border-color:var(--oc)}
+  .pcard.on{border-color:var(--oc);background:linear-gradient(160deg,color-mix(in srgb,var(--oc) 11%,var(--panel)),var(--panel))}
   .pcard svg{width:38px;height:38px;flex:none}
   .pcard .pt{min-width:0;flex:1}
   .pcard .pn{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);
@@ -192,7 +194,7 @@
     background:var(--panel);border:1px solid var(--line);color:var(--mut);font-size:12px;
     font-weight:700;cursor:pointer;font-family:inherit}
   .apown .od{width:8px;height:8px;border-radius:50%;flex:none;background:var(--oc)}
-  .apown.on{border-color:var(--oc);color:var(--txt2)}
+  .apown.on{border-color:var(--oc);color:var(--txt2);background:color-mix(in srgb,var(--oc) 13%,var(--panel))}
   .apown small{font-weight:800;color:var(--mut2);font-variant-numeric:tabular-nums;font-size:11px}
   .apdica{font-size:12px;color:var(--mut);margin:-4px 3px 13px;line-height:1.5}
   .apdica a{color:var(--accent);font-weight:700;text-decoration:none;border-bottom:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);cursor:pointer}
@@ -208,7 +210,7 @@
     border:1px solid var(--line);border-left-width:3px;border-radius:11px;margin-bottom:7px}
   .aprow .an{flex:1;min-width:0;font-size:12.5px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .aprow input{width:58px;flex:none;text-align:right;padding:6px 7px;font-size:12.5px;font-weight:800;
-    background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--amber);font-family:inherit}
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--dono);font-family:inherit}
   .aprow .apc{font-size:10px;font-weight:700;color:var(--mut);flex:none}
   .aprow .av{width:104px;flex:none;text-align:right;font-size:12.5px;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums}
   .apsoma{display:flex;align-items:center;gap:9px;padding:11px;border-radius:11px;background:var(--panel2);
@@ -216,6 +218,11 @@
   .apsoma .an{flex:1;color:var(--txt2)}
   .apsoma .ap{width:65px;text-align:right}
   .apsoma .av{width:104px;text-align:right;color:var(--txt2);font-variant-numeric:tabular-nums}
+
+  /* na aba de aportes, o contexto inteiro segue a cor do dono */
+  #t2 .hero{background:linear-gradient(160deg,color-mix(in srgb,var(--dono) 9%,transparent),color-mix(in srgb,var(--dono) 2%,transparent));
+    border-color:color-mix(in srgb,var(--dono) 24%,transparent);border-left-color:var(--dono)}
+  #t2 .bt.p{background:var(--dono);border-color:var(--dono)}
 
   /* diagnostico alvo x real */
   .dgrow{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
@@ -236,11 +243,11 @@
   .segt button.on{background:var(--accent);color:#04191a}
   .subtabs .add{margin-left:auto}
   /* sugestão de próximo aporte */
-  .sugg{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,rgba(47,217,201,.13),rgba(47,217,201,.03));border:1px solid rgba(47,217,201,.32);border-radius:14px;padding:12px 13px;margin-bottom:14px}
-  .sugg .si{width:30px;height:30px;border-radius:9px;background:rgba(47,217,201,.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .sugg{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,color-mix(in srgb,var(--dono) 14%,transparent),color-mix(in srgb,var(--dono) 3%,transparent));border:1px solid color-mix(in srgb,var(--dono) 32%,transparent);border-radius:14px;padding:12px 13px;margin-bottom:14px}
+  .sugg .si{width:30px;height:30px;border-radius:9px;background:color-mix(in srgb,var(--dono) 20%,transparent);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
   .sugg .st{flex:1;font-size:12.5px;color:var(--txt);line-height:1.35}
   .sugg .st b{color:var(--txt2);font-weight:800}
-  .sugg .sa{color:var(--accent);font-size:18px;font-weight:800}
+  .sugg .sa{color:var(--dono);font-size:18px;font-weight:800}
   /* aba Metas */
   .goal{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:12px 13px;margin-bottom:10px}
   .goal svg{width:54px;height:54px;flex-shrink:0}
@@ -278,9 +285,9 @@
   .apk.on{border-color:var(--accent);background:rgba(47,217,201,.1);color:#fff}
   .apk input{display:none}
   .apk .apkdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3)}
-  .gadd{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--accent);cursor:pointer;
-    padding:10px 15px;margin-top:5px;border:1px dashed rgba(47,217,201,.42);border-radius:12px;background:rgba(47,217,201,.05)}
-  .gadd:hover{background:rgba(47,217,201,.11)}
+  .gadd{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--dono);cursor:pointer;
+    padding:10px 15px;margin-top:5px;border:1px dashed color-mix(in srgb,var(--dono) 42%,transparent);border-radius:12px;background:color-mix(in srgb,var(--dono) 6%,transparent)}
+  .gadd:hover{background:color-mix(in srgb,var(--dono) 12%,transparent)}
   .tr{height:8px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:8px;border-radius:20px}
   .fl{height:100%;border-radius:20px}
   .ed{display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
@@ -903,9 +910,9 @@ var abertos = {};
 var GOWN = [];   // ordem dos nichos no render atual (indice -> nome)
 var patView = (function(){ try{ return localStorage.getItem("stash-patview")||"cx"; }catch(e){ return "cx"; } })();
 var patOwn  = (function(){ try{ return localStorage.getItem("stash-patown")||""; }catch(e){ return ""; } })();
-var apOwn   = (function(){ try{ return localStorage.getItem("stash-apown")||""; }catch(e){ return ""; } })();
-function setPatOwn(o){ patOwn=o; try{ localStorage.setItem("stash-patown",o); }catch(e){} renderPatrimonio(); }
-function setApOwn(o){ apOwn=o; try{ localStorage.setItem("stash-apown",o); }catch(e){} renderAporte(); }
+function setPatOwn(o){ patOwn=o; try{ localStorage.setItem("stash-patown",o); }catch(e){} renderPatrimonio(); renderAporte(); }
+/* uma pessoa escolhida vale no app inteiro — Patrimonio e Aportes juntos */
+function setApOwn(o){ patOwn=o; try{ localStorage.setItem("stash-patown",o); }catch(e){} renderAporte(); renderPatrimonio(); }
 /* o dono precisa existir; se sumiu (renomeado/apagado), cai no primeiro */
 function donoValido(atual){ var l=D.owners.slice(); D.cx.forEach(function(x){ if(l.indexOf(x.own)<0) l.push(x.own); });
   if(l.indexOf(atual)>=0) return atual; return l.length?l[0]:""; }
@@ -1053,6 +1060,11 @@ function renderPatrimonio(){
       h+= '<span class="gadd" data-gadd="'+attr(ow)+'">+ cofre</span>';
     }
   }
+  /* a cor do dono escolhido passa a valer pra aba inteira */
+  var t1=document.getElementById("t1");
+  if(patView==="cx" && patOwn) t1.style.setProperty("--dono", D.ownerColors[patOwn]||"#2FD9C9");
+  else t1.style.removeProperty("--dono");
+
   _cxGuardaRolagem();
   document.getElementById("listaCx").innerHTML=h;
   _cxDevolveRolagem();
@@ -1311,7 +1323,7 @@ function folhaSalvaNome(){
   if(D.ownerColors[old]!==undefined){ if(!D.ownerColors[nn]) D.ownerColors[nn]=D.ownerColors[old]; delete D.ownerColors[old]; }
   if(D.collapsed[old]!==undefined){ D.collapsed[nn]=D.collapsed[old]; delete D.collapsed[old]; }
   if(_cxSel[old]!==undefined){ _cxSel[nn]=_cxSel[old]; delete _cxSel[old]; }
-  if(patOwn===old) setPatOwn(nn); if(apOwn===old) setApOwn(nn);
+  if(patOwn===old) setPatOwn(nn);
   fecharFolha(); salvar(); renderTudo(); toast("Dono renomeado.","ok");
 }
 
@@ -1336,8 +1348,8 @@ function folhaApagar(){
   var oi=D.owners.indexOf(ow); if(oi>=0) D.owners.splice(oi,1);
   delete D.ownerColors[ow]; delete D.collapsed[ow]; delete _cxSel[ow];
   fecharFolha();
-  patOwn=donoValido(""); apOwn=donoValido("");
-  try{ localStorage.setItem("stash-patown",patOwn); localStorage.setItem("stash-apown",apOwn); }catch(e){}
+  patOwn=donoValido("");
+  try{ localStorage.setItem("stash-patown",patOwn); }catch(e){}
   salvar(); renderTudo();
 }
 document.addEventListener("keydown",function(e){ if(e.key==="Escape" && _shOwn) fecharFolha(); });
@@ -1354,8 +1366,8 @@ function donoDoAporte(a){
 }
 
 function renderAporte(){
-  apOwn = donoValido(apOwn);
-  var ow = apOwn;
+  patOwn = donoValido(patOwn);
+  var ow = patOwn;
   var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
 
   /* de quem e este aporte */
@@ -1369,6 +1381,8 @@ function renderAporte(){
     '<div class="vazio">Crie um dono na tela Patrim&ocirc;nio primeiro.</div>';
   Array.prototype.forEach.call(document.querySelectorAll("[data-apown]"),function(b){
     b.addEventListener("click",function(){ setApOwn(this.getAttribute("data-apown")); }); });
+
+  document.getElementById("t2").style.setProperty("--dono", (ow && D.ownerColors[ow]) || "#2FD9C9");
 
   var tot=totalAporte(), vb=verba();
   var ti=document.getElementById("aTot"); if(document.activeElement!==ti) ti.value=D.ap.tot||"";
@@ -1485,7 +1499,7 @@ function renderHistAportes(){
 }
 
 document.getElementById("btAplicar").addEventListener("click",function(){
-  var ow=donoValido(apOwn), tot=totalAporte();
+  var ow=donoValido(patOwn), tot=totalAporte();
   if(!ow){ toast("Crie um dono primeiro.","err"); return; }
   if(!tot){ toast("Diga quanto vai distribuir.","err"); document.getElementById("aTot").focus(); return; }
   var itens=D.cx.filter(function(x){ return x.own===ow && x.p>0; });
