@@ -523,6 +523,10 @@
   #t3 .gp-ring .rg{ font-size:13px; font-weight:800; color:var(--txt2); margin-top:6px; font-variant-numeric:tabular-nums; }
   #t3 .gp-ring .rg small{ font-size:10.5px; color:var(--mut2); font-weight:700; }
   #t3 .gp-ring .rr{ font-size:10.5px; color:var(--mut); font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums; }
+  /* o orcamento no cartao e editavel: o pontilhado e o convite */
+  #t3 .gp-ring .rgorc{ cursor:pointer; border-bottom:1px dashed color-mix(in srgb,var(--mut) 70%,transparent);
+    padding-bottom:1px; }
+  #t3 .gp-ring .rgorc:active{ color:var(--txt2); }
   #t3 .gp-ring .rd{ font-size:10px; color:var(--amber); font-weight:700; margin-top:2px; margin-bottom:9px; font-variant-numeric:tabular-nums; }
   #t3 .gp-ring.est .rr{ color:var(--red); }
   #t3 .gp-ring .gplanc{ margin-top:auto; width:100%; background:color-mix(in srgb,var(--accent) 14%,transparent); border:1px solid color-mix(in srgb,var(--accent) 42%,transparent); color:var(--accent); font-size:11px; font-weight:800; border-radius:9px; padding:6px 0; cursor:pointer; transition:transform .1s; }
@@ -2203,7 +2207,10 @@ function renderGastos(){
           '<text class="pcT" x="48" y="54" text-anchor="middle">'+(orc>0?Math.round(pc)+"%":"")+'</text>' +
         '</svg>' +
         '<div class="rname" style="color:'+k.cor+'">'+catIcoHTML(k)+'<span class="rnm">'+esc(k.nome)+'</span></div>' +
-        '<div class="rg">R$ '+brl(gas)+' <small>/ '+brl(orc)+'</small></div>' +
+        '<div class="rg" data-rgw="'+k.id+'">R$ '+brl(gas)+' <small class="rgorc" data-rgorc="'+k.id+'" title="Tocar pra editar o or&ccedil;amento">/ '+brl(orc)+'</small></div>' +
+        '<div class="gpl-form" data-rgf="'+k.id+'" style="display:none">' +
+          '<input class="gpl-in" inputmode="decimal" data-rgin="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="'+brl(orc)+'">' +
+          '<button class="gpl-ok" data-rgok="'+k.id+'">&#10003;</button></div>' +
         '<div class="rr">resta R$ '+brl(rest)+'</div>' +
         '<div class="rd">R$ '+brl(rest>0?rest/d:0)+'/dia</div>' +
         '<button class="gplanc" data-planc="'+k.id+'">+ lançar</button>' +
@@ -2329,6 +2336,27 @@ function renderGastos(){
     D.vale.l.push({d:(kc?kc.nome:"Gasto"), v:v, c:id, dt:p[2]+"/"+p[1], iso:iso});
     salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok"); }
   Array.prototype.forEach.call(q("[data-pok]"),function(b){ b.addEventListener("click",function(){ _lancarCat(this.getAttribute("data-pok")); }); });
+
+  /* orcamento editado direto no cartao — o mesmo campo do painel de baixo,
+     so que ao alcance do polegar. Vazio volta pro valor do cofre. */
+  function _salvaOrc(id){
+    var inp=document.querySelector('.gpl-in[data-rgin="'+id+'"]'); if(!inp) return;
+    var k=acharCat(id); if(!k) return;
+    k.orc=inp.value.trim();
+    salvar(); renderTudo();
+    toast(k.orc ? ("Or\u00e7amento de "+k.nome+": R$ "+brl(num(k.orc))) : (k.nome+" voltou pro valor do cofre."), "ok");
+  }
+  Array.prototype.forEach.call(q("[data-rgorc]"),function(b){ b.addEventListener("click",function(){
+    var id=this.getAttribute("data-rgorc");
+    var rg=document.querySelector('[data-rgw="'+id+'"]'), f=document.querySelector('[data-rgf="'+id+'"]');
+    if(!rg||!f) return;
+    rg.style.display="none"; f.style.display="flex";
+    var inp=f.querySelector(".gpl-in"); if(inp){ inp.focus(); inp.select(); }
+  }); });
+  Array.prototype.forEach.call(q("[data-rgok]"),function(b){ b.addEventListener("click",function(){ _salvaOrc(this.getAttribute("data-rgok")); }); });
+  Array.prototype.forEach.call(q("[data-rgin]"),function(i){ i.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){ e.preventDefault(); _salvaOrc(this.getAttribute("data-rgin")); }
+    if(e.key==="Escape"){ e.preventDefault(); renderGastos(); } }); });
   Array.prototype.forEach.call(q(".gpl-in"),function(i){ i.addEventListener("keydown",function(e){
     if(e.key==="Enter"){ e.preventDefault(); _lancarCat(this.getAttribute("data-pin")); } }); });
 }
