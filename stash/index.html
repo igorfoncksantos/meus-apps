@@ -309,7 +309,7 @@
   .pcog::after,.aggcard .cog::after,.cx .cog::after,.box .cog::after{
     content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:44px;height:44px;border-radius:12px}
-  .aggcard .cog{font-size:14px;line-height:1;padding:0;display:grid;place-items:center}
+  .aggcard .cog{font-size:17px;font-weight:800;line-height:1;padding:0;display:grid;place-items:center}
   .subtabs .segt button{padding:11px 15px}
   [data-theme="editorial"] .segt button{color:#5f574b}
   .pjuntos{font-size:11px;font-weight:700;color:var(--mut);text-align:right;margin:-4px 3px 12px;letter-spacing:.02em}
@@ -557,8 +557,8 @@
     padding:10px 12px;margin:9px 0 0;font-family:inherit;color:var(--txt2)}
   .dobra .dn{flex:1;min-width:0;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px}
   .dobra .dc{font-size:11px;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums}
-  .dobra .dv{font-size:10px;color:var(--mut);transition:transform .18s ease}
-  .dobra.aberta .dv{transform:rotate(180deg)}
+  .dobra .dv{font-size:15px;font-weight:800;line-height:1;color:var(--mut);width:15px;text-align:center}
+  .dobra.aberta .dv{color:var(--accent)}
   .dobrado{margin-top:8px}
   .escolhidos{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
   .semnada{font-size:11.5px;color:var(--mut);margin:9px 2px 0}
@@ -744,7 +744,7 @@
     background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 15px; color:var(--txt2);
     font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer; }
   #t3 .gcfgtoggle .gcfgchev{ color:var(--mut); transition:transform .2s,color .2s; font-size:11px; }
-  #t3 .gcfgtoggle.on .gcfgchev{ transform:rotate(180deg); color:var(--accent); }
+  #t3 .gcfgtoggle.on .gcfgchev{ color:var(--accent); }
   .cbfab{ position:fixed; right:16px; bottom:calc(86px + env(safe-area-inset-bottom)); z-index:25;
     display:flex; align-items:center; gap:8px; height:52px; padding:0 20px; border:none; border-radius:26px; cursor:pointer;
     background:var(--accent); color:#04231f; font-family:inherit; font-size:15px; font-weight:800;
@@ -882,7 +882,7 @@
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
 
-  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()"><span>⚙ Ciclo, orçamentos e categorias</span><span class="gcfgchev">▾</span></button>
+  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()" aria-expanded="false"><span>Ciclo, orçamentos e categorias</span><span class="gcfgchev">+</span></button>
   <div id="gCfg" style="display:none">
     <div class="orclab">Período do ciclo</div>
     <div class="cicbox">
@@ -906,7 +906,7 @@
       <div class="cichint" id="cicHint">—</div>
     </div>
     <div id="gParcAtivos"></div>
-    <div class="orclab">Orçamento de cada categoria — toque no ⚙ pra editar</div>
+    <div class="orclab">Orçamento de cada categoria — toque no + pra editar</div>
     <div id="gBoxes"></div>
     <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
   </div>
@@ -1071,7 +1071,9 @@ function cofresDoCashbook(){
   return saida;
 }
 function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElementById("gCfgToggle"); if(!c)return;
-  var open=(c.style.display==="none"); c.style.display=open?"":"none"; if(b) b.className="gcfgtoggle"+(open?" on":""); }
+  var open=(c.style.display==="none"); c.style.display=open?"":"none";
+  if(b){ b.className="gcfgtoggle"+(open?" on":""); b.setAttribute("aria-expanded",open?"true":"false");
+         sinal(b.querySelector(".gcfgchev"), open); } }
 function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
   var v=document.getElementById("gVal"); if(v) setTimeout(function(){ try{ v.focus(); }catch(e){} },280); }
 /* um numero redondo logo acima do saldo, so pra desenhar o exemplo */
@@ -1159,7 +1161,14 @@ function mesesAte(pz){
 }
 
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-var VERSAO = 'v74';
+/* + encolhido, \u2212 mostrando. Um sinal so em todo lugar que abre e fecha. */
+var MAIS = '+', MENOS = '\u2212';
+function sinal(el, aberto){
+  if(!el) return;
+  el.textContent = aberto ? MENOS : MAIS;
+  el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+}
+var VERSAO = 'v75';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -1331,10 +1340,10 @@ function renderPatrimonio(){
          pra fora da tela. Fica recolhido: o titulo ja diz quantos sao e
          quanto somam, que e o que interessa de relance. */
       var somaSem=0; semMeta.forEach(function(x){ somaSem+=x.v||0; });
-      h+='<button class="dobra'+(_semAberto?' aberta':'')+'" id="btSemMeta">' +
+      h+='<button class="dobra'+(_semAberto?' aberta':'')+'" id="btSemMeta" aria-expanded="'+(_semAberto?'true':'false')+'">' +
           '<span class="dn">Sem meta definida</span>' +
           '<span class="dc">'+semMeta.length+' &middot; R$ '+brl(somaSem)+'</span>' +
-          '<span class="dv">&#9662;</span></button>';
+          '<span class="dv">'+(_semAberto?MENOS:MAIS)+'</span></button>';
       if(_semAberto){
         h+='<div class="dobrado">';
         semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+esc(x.n)+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; });
@@ -1486,10 +1495,10 @@ function aggEditor(a,ai){
     var its=D.cx.filter(function(x){ return x.own===ow; }); if(!its.length) return;
     var quant=its.filter(function(c){ return aggHas(a,c.id); }).length;
     var ch=ai+'|'+oi, aberto=!!_aggAberto[ch];
-    body+='<button class="dobra'+(aberto?' aberta':'')+'" data-aggdobra="'+ch+'">' +
+    body+='<button class="dobra'+(aberto?' aberta':'')+'" data-aggdobra="'+ch+'" aria-expanded="'+(aberto?'true':'false')+'">' +
           '<span class="dn">'+esc(ow)+'</span>' +
           '<span class="dc">'+(quant?(quant+' de '+its.length):its.length+' cofres')+'</span>' +
-          '<span class="dv">&#9662;</span></button>';
+          '<span class="dv">'+(aberto?MENOS:MAIS)+'</span></button>';
     if(aberto) body+='<div class="aggpick dobrado">'+its.map(etiqueta).join('')+'</div>';
   });
   body+='<div class="acoes"><button class="bt d" data-aggdel="'+ai+'">Apagar agregado</button></div>';
@@ -1508,7 +1517,7 @@ function renderAgg(){
     var temCofre = (a.cx || []).some(function(id){ return !!acharCx(id); });
     h+='<div class="aggcard">' +
        '<div class="aggtop"><span class="aggnm">'+esc(a.nome||"Agregado")+'</span>' +
-       '<button class="cog aggcog" data-aggcog="'+ai+'">&#9881;</button></div>' +
+       '<button class="cog aggcog" data-aggcog="'+ai+'" aria-expanded="false">+</button></div>' +
        (temCofre
          ? ('<div class="aggring">' + aggAnel(a, 66) +
             '<div class="aggri"><div class="aggrv">R$ ' + brl(tot) + '</div>' +
@@ -1528,7 +1537,11 @@ function ligarAgg(){
     var idx=D.agg.length-1; setTimeout(function(){ var ed=document.querySelector('[data-agged="'+idx+'"]'); if(ed) ed.style.display="block"; var nm=document.querySelector('[data-aggn="'+idx+'"]'); if(nm) nm.focus(); },0);
   });
   Array.prototype.forEach.call(q("[data-aggcog]"),function(b){ b.addEventListener("click",function(){
-    var ed=document.querySelector('[data-agged="'+this.getAttribute("data-aggcog")+'"]'); if(ed) ed.style.display=ed.style.display==="none"?"block":"none"; }); });
+    var ed=document.querySelector('[data-agged="'+this.getAttribute("data-aggcog")+'"]');
+    if(!ed) return;
+    var abre = ed.style.display==="none";
+    ed.style.display = abre ? "block" : "none";
+    sinal(this, abre); }); });
   Array.prototype.forEach.call(q("[data-aggn]"),function(i){ i.addEventListener("change",function(){
     var a=D.agg[+this.getAttribute("data-aggn")]; if(a){ a.nome=this.value.trim(); salvar(); renderPatrimonio(); } }); });
   Array.prototype.forEach.call(q("[data-aggcx]"),function(c){ c.addEventListener("change",function(){
@@ -2601,7 +2614,7 @@ function renderGastos(){
   } else {
     lbl.textContent="Saldo do cofre ligado";
     document.getElementById("gSaldoVale").textContent="—";
-    document.getElementById("gSaldoMsg").textContent="nenhuma categoria está ligada a um cofre — ligue no ⚙ da categoria, aqui embaixo";
+    document.getElementById("gSaldoMsg").textContent="nenhuma categoria está ligada a um cofre — ligue no + da categoria, aqui embaixo";
   }
 
   var d=diasRest();
@@ -2663,7 +2676,7 @@ function renderGastos(){
     var orc=orcDaCat(k), dc=orcDoCofre(k), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
     bh+='<div class="box'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
         '<div class="bxhd"><div class="b2" style="color:'+k.cor+'">'+catIcoHTML(k)+' '+esc(k.nome)+'</div>' +
-        '<button class="cog" data-catcog="'+k.id+'">⚙</button></div>' +
+        '<button class="cog" data-catcog="'+k.id+'" aria-expanded="false">+</button></div>' +
         '<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
           '<label class="lb" style="margin:0">Or&ccedil;amento</label>' +
           '<input class="r" style="max-width:120px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="'+(dc===null?"0,00":brl(dc))+'"></div>' +
@@ -2735,7 +2748,10 @@ function renderGastos(){
     k.cpc=num(this.value); salvar(); renderGastos(); abreCatEd(k.id); }); });
   Array.prototype.forEach.call(q("[data-catcog]"),function(b){ b.addEventListener("click",function(){
     var el=document.querySelector('[data-caed="'+this.getAttribute("data-catcog")+'"]');
-    el.style.display=(el.style.display==="none"?"block":"none"); }); });
+    if(!el) return;
+    var abre = el.style.display==="none";
+    el.style.display = abre ? "block" : "none";
+    sinal(this, abre); }); });
   Array.prototype.forEach.call(q("[data-catn]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-catn")); if(k){ k.nome=this.value.trim()||"Categoria"; salvar(); renderGastos(); } }); });
   Array.prototype.forEach.call(q("[data-cate]"),function(i){ i.addEventListener("change",function(){
