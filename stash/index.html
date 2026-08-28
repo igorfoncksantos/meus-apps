@@ -112,8 +112,16 @@
   header .calcpill.tem .dot{ display:block; }
 
   .calcp{ position:fixed; right:12px; bottom:calc(98px + env(safe-area-inset-bottom)); z-index:41;
-    width:min(322px, calc(100vw - 24px)); background:var(--panel); border:1px solid var(--line);
-    border-radius:16px; box-shadow:0 14px 40px rgba(0,0,0,.5); padding:11px; display:none; }
+    width:min(290px, calc(100vw - 24px)); border:1px solid var(--line);
+    border-radius:16px; padding:10px; display:none; touch-action:none;
+    /* O tema Cockpit deixa o --panel em rgba(...,.8), e a calculadora ficava
+       transparente. Pintar o --panel POR CIMA do --bg opaco garante fundo
+       solido em qualquer tema, e o desfoque atras separa do que fica embaixo. */
+    background:linear-gradient(var(--panel),var(--panel)), var(--bg);
+    -webkit-backdrop-filter:blur(12px) saturate(1.15); backdrop-filter:blur(12px) saturate(1.15);
+    box-shadow:0 20px 52px rgba(0,0,0,.62), 0 0 0 1px rgba(0,0,0,.34); }
+  .calcp.arrastando{ box-shadow:0 26px 62px rgba(0,0,0,.7), 0 0 0 1px rgba(0,0,0,.4);
+    transition:none; cursor:grabbing; }
   .calcp.on{ display:block; }
   /* Os tres movimentos contam coisas diferentes, de proposito:
      ABRIR e MINIMIZAR viajam ate o icone la em cima — a conta veio de lá e volta pra lá.
@@ -149,23 +157,26 @@
     .calcp.abrindo,.calcp.minimizando,.calcp.fechando,header .calcpill.recebeu,.calcg button.hit{ animation:none; }
     .calcp.fechando,.calcp.minimizando{ display:none; } }
 
-  .calch{ display:flex; align-items:center; gap:8px; margin-bottom:9px; }
-  .calch .tt{ flex:1; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--mut); }
-  .calch button{ width:30px; height:30px; border-radius:9px; border:1px solid var(--line);
+  .calch{ display:flex; align-items:center; gap:7px; margin-bottom:8px; cursor:grab; touch-action:none; }
+  .calch:active{ cursor:grabbing; }
+  /* o risquinho diz, sem escrever, que da pra pegar e mover */
+  .calch .puxa{ width:26px; height:4px; border-radius:4px; background:var(--line); flex-shrink:0; }
+  .calch .tt{ flex:1; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--mut); }
+  .calch button{ width:28px; height:28px; border-radius:9px; border:1px solid var(--line); flex-shrink:0;
     background:var(--panel2); color:var(--mut); font-size:15px; font-weight:800; cursor:pointer; line-height:1; }
   .calch button:active{ transform:scale(.9); }
   .calch .fecha{ color:var(--red); }
 
   .calcv{ background:var(--panel2); border:1px solid var(--line); border-radius:11px;
-    padding:9px 12px; text-align:right; margin-bottom:9px; }
-  .calcv .exp{ font-size:11.5px; color:var(--mut); min-height:16px; font-variant-numeric:tabular-nums;
+    padding:8px 11px; text-align:right; margin-bottom:8px; }
+  .calcv .exp{ font-size:11px; color:var(--mut); min-height:15px; font-variant-numeric:tabular-nums;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; direction:rtl; }
-  .calcv .res{ font-size:25px; font-weight:800; color:var(--txt2); font-variant-numeric:tabular-nums;
+  .calcv .res{ font-size:23px; font-weight:800; color:var(--txt2); font-variant-numeric:tabular-nums;
     line-height:1.15; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-  .calcg{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
-  .calcg button{ height:46px; border-radius:11px; border:1px solid transparent; cursor:pointer;
-    background:var(--panel2); color:var(--txt2); font-size:19px; font-weight:700;
+  .calcg{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  .calcg button{ height:42px; border-radius:11px; border:1px solid transparent; cursor:pointer;
+    background:var(--panel2); color:var(--txt2); font-size:18px; font-weight:700;
     font-family:inherit; transition:transform .08s; }
   .calcg button:active{ transform:scale(.93); }
   .calcg .op{ background:color-mix(in srgb,var(--dono) 14%,transparent); color:var(--dono); font-weight:800; }
@@ -173,12 +184,12 @@
   .calcg .ig{ background:var(--dono); color:var(--onacc,#07171b); font-weight:800; grid-row:span 2; }
   .calcg .z{ grid-column:span 2; }
 
-  .calcusar{ width:100%; margin-top:9px; height:42px; border-radius:11px; border:none; cursor:pointer;
+  .calcusar{ width:100%; margin-top:8px; height:38px; border-radius:11px; border:none; cursor:pointer;
     background:var(--dono); color:var(--onacc,#07171b); font-family:inherit;
     font-size:13px; font-weight:800; letter-spacing:.3px; }
   .calcusar:disabled{ background:var(--panel2); color:var(--mut); cursor:default; }
   .calcusar:not(:disabled):active{ transform:scale(.97); }
-  .calcalvo{ font-size:10.5px; color:var(--mut); text-align:center; margin-top:7px; }
+  .calcalvo{ font-size:10px; color:var(--mut); text-align:center; margin-top:6px; line-height:1.35; }
 
   .hero{background:linear-gradient(160deg,rgba(47,217,201,.08),rgba(47,217,201,.02));
         border:1px solid #1e3a40;border-left:4px solid var(--accent);border-radius:14px;padding:16px 18px;margin-bottom:11px}
@@ -2839,6 +2850,7 @@ renderTudo();
 
 <div class="calcp" id="calcP" role="dialog" aria-label="Calculadora">
   <div class="calch">
+    <span class="puxa"></span>
     <span class="tt">Calculadora</span>
     <button onclick="calcMin()" title="Minimizar — guarda a conta" aria-label="Minimizar">−</button>
     <button class="fecha" onclick="calcFechar()" title="Fechar — apaga a conta" aria-label="Fechar">×</button>
@@ -3030,6 +3042,53 @@ renderTudo();
     pinta();
   };
 
+  /* ===== arrastar =====
+     A calculadora flutua, entao tem que dar pra tirar ela da frente. A alca e
+     a barra de cima; os botoes dela seguem clicaveis porque o arrasto so
+     comeca fora deles. A posicao fica guardada na sessao, junto com a conta. */
+  var PK = "stash-calc-pos";
+  function aplicaPos(p){
+    var el = document.getElementById("calcP");
+    if (!p){ el.style.left = el.style.top = ""; el.style.right = "12px"; el.style.bottom = ""; return; }
+    var r = el.getBoundingClientRect();
+    var la = r.width || 290, al = r.height || 420;
+    var x = Math.max(6, Math.min(p.x, window.innerWidth  - la - 6));
+    var y = Math.max(6, Math.min(p.y, window.innerHeight - al - 6));
+    el.style.left = x + "px"; el.style.top = y + "px";
+    el.style.right = "auto"; el.style.bottom = "auto";
+  }
+  function posSalva(){ try{ return JSON.parse(sessionStorage.getItem(PK) || "null"); }catch(e){ return null; } }
+
+  (function ligaArrasto(){
+    var el, alca, pegando = false, dx = 0, dy = 0;
+    document.addEventListener("pointerdown", function(e){
+      alca = e.target.closest ? e.target.closest(".calch") : null;
+      if (!alca) return;
+      if (e.target.closest("button")) return;   /* minimizar e fechar continuam botoes */
+      el = document.getElementById("calcP");
+      var r = el.getBoundingClientRect();
+      dx = e.clientX - r.left; dy = e.clientY - r.top;
+      pegando = true; el.classList.add("arrastando");
+      try{ alca.setPointerCapture(e.pointerId); }catch(x){}
+      e.preventDefault();
+    });
+    document.addEventListener("pointermove", function(e){
+      if (!pegando) return;
+      aplicaPos({ x: e.clientX - dx, y: e.clientY - dy });
+      e.preventDefault();
+    });
+    function solta(){
+      if (!pegando) return;
+      pegando = false; el.classList.remove("arrastando");
+      var r = el.getBoundingClientRect();
+      try{ sessionStorage.setItem(PK, JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) })); }catch(x){}
+    }
+    document.addEventListener("pointerup", solta);
+    document.addEventListener("pointercancel", solta);
+    /* girar a tela ou abrir o teclado muda o tamanho: traz de volta pra dentro */
+    window.addEventListener("resize", function(){ var p = posSalva(); if (p) aplicaPos(p); });
+  })();
+
   /* mede, na hora, o caminho do painel ate o icone — assim a animacao acerta
      o alvo em qualquer tamanho de tela, em vez de um valor chutado */
   function miraOIcone(){
@@ -3049,6 +3108,7 @@ renderTudo();
     var p = document.getElementById("calcP");
     limpaAnim(p);
     p.classList.add("on");
+    aplicaPos(posSalva());
     miraOIcone();
     void p.offsetWidth;
     p.classList.add("abrindo");
