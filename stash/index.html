@@ -2972,10 +2972,18 @@ renderTudo();
     for (var j = 1; j < t.length - 1; j += 2) res = t[j] === "+" ? res + t[j+1] : res - t[j+1];
     return isFinite(res) ? res : null;
   }
+  /* Arredondar dinheiro nao pode ser v*100: em binario 1.005*100 da
+     100.49999999999999, e o meio centavo desce em vez de subir. Varri os
+     10.000 valores de meio centavo entre 0,005 e 99,995: 572 erravam assim.
+     Passar pela notacao exponencial nao faz essa multiplicacao, e os 572 somem. */
+  function centavos(v){
+    var sinal = v < 0 ? -1 : 1;
+    return sinal * Number(Math.round(Number(Math.abs(v) + "e+2")) + "e-2");
+  }
   function fmt(v){
     if (v === null || v === undefined) return "0";
     var neg = v < 0; v = Math.abs(v);
-    var arred = Math.round(v * 100) / 100;
+    var arred = centavos(v);
     var p = arred.toFixed(2).split(".");
     var inteiro = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     var out = p[1] === "00" ? inteiro : (inteiro + "," + p[1]);
@@ -3018,7 +3026,7 @@ renderTudo();
   window.calcIgual  = function(){
     var v = resolve(exp);
     if (v === null) return;
-    exp = String(Math.round(v * 100) / 100);
+    exp = String(centavos(v));
     pinta();
   };
 
