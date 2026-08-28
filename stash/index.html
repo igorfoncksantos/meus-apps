@@ -224,6 +224,10 @@
   .hero .hv{font-size:31px;font-weight:800;color:var(--txt2);line-height:1.05;margin-top:6px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
   .hero .hv small{font-size:15px;color:var(--mut)}
   .hero .hm{font-size:11.5px;color:var(--mut);margin-top:7px}
+  /* a contagem de cofres vive aqui agora, discreta, ao lado do rotulo */
+  .hero .hl em{font-style:normal;font-weight:600;letter-spacing:.4px;text-transform:none;
+    font-size:10.5px;color:var(--mut);opacity:.85}
+  .cd .cm b{font-weight:800;font-variant-numeric:tabular-nums}
 
   .duo{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:11px}
   .cd{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
@@ -746,18 +750,12 @@
 <!-- =============== 1. PATRIMONIO =============== -->
 <section class="tela on" id="t1">
   <div class="hero">
-    <div class="hl">Patrimônio total</div>
+    <div class="hl">Patrimônio total <em id="pCount"></em></div>
     <div class="hv"><small>R$ </small><span id="pTotal">0,00</span></div>
     <div class="hm" id="pVar">—</div>
   </div>
 
-  <div class="duo">
-    <div class="cd" style="border-left-color:#22C55E">
-      <div class="cl">Cofres</div>
-      <div class="cv" id="pCx">R$ 0,00</div>
-      <div class="cm" id="pCxPc">—</div>
-    </div>
-  </div>
+  <div class="duo" id="pDuo"></div>
 
   <div class="subtabs">
     <div class="segt"><button id="segCx" class="on" onclick="setPatView('cx')">Cofres</button><button id="segMt" onclick="setPatView('metas')">Metas</button><button id="segAg" onclick="setPatView('agg')">Agregados</button></div>
@@ -1047,6 +1045,32 @@ function totalCx(){ var s=0; D.cx.forEach(function(x){ s+=x.v||0; }); return s; 
    D.carteira, pra voltar junto se o card voltar. */
 function total(){ return totalCx(); }
 
+/* quanto uma pessoa tem hoje, somando so os cofres dela */
+function totalDono(ow){ var s=0; D.cx.forEach(function(x){ if(x.own===ow) s+=x.v||0; }); return s; }
+/* e quanto ela tinha no ultimo mes fechado. So da pra saber se o retrato daquele
+   mes guardou o dono de cada cofre — os retratos passaram a guardar em 28/08,
+   entao mes fechado antes disso devolve null e o cartao mostra a contagem. */
+function totalDonoNoHist(h, ow){
+  if(!h || !h.cx) return null;
+  var temDono=false, s=0;
+  h.cx.forEach(function(c){ if(c.own===undefined || c.own===null) return; temDono=true; if(c.own===ow) s+=c.v||0; });
+  return temDono ? s : null;
+}
+/* o quanto subiu, em reais e em porcento */
+function variacao(agora, antes){
+  if(antes===null || antes===undefined) return null;
+  var d=agora-antes;
+  return { d:d, pc: antes ? (d/antes*100) : 0 };
+}
+function mesCurto(m){
+  var p=String(m||"").split(" ");
+  return (p.length>1 && p[1]===String(new Date().getFullYear())) ? p[0] : m;
+}
+function seloVar(v){
+  return '<b style="color:'+(v.d>=0?"var(--green)":"var(--red)")+'">' +
+         (v.d>=0?"\u25B2 +":"\u25BC \u2212") + "R$ " + brl(Math.abs(v.d)) + "</b>";
+}
+
 /* feedback moderno (toast + animação de item novo) */
 function toast(msg,tipo){ var t=document.getElementById("__toast");
   if(!t){ t=document.createElement("div"); t.id="__toast"; document.body.appendChild(t); }
@@ -1113,8 +1137,32 @@ function renderPatrimonio(){
   sincronizarCores();
   var tc=totalCx(), tt=total();
   document.getElementById("pTotal").textContent=brl(tt);
-  document.getElementById("pCx").textContent="R$ "+brl(tc);
-  document.getElementById("pCxPc").textContent=D.cx.length+(D.cx.length===1?" cofre":" cofres");
+  document.getElementById("pCount").textContent=D.cx.length?("\u00b7 "+D.cx.length+(D.cx.length===1?" cofre":" cofres")):"";
+
+  /* um cartao por pessoa, com quanto ela tem e quanto subiu no mes.
+     So com duas pessoas ou mais: com uma so, o cartao repetiria o total
+     de cima — que era exatamente o problema que essa mudanca resolveu. */
+  var pduo=document.getElementById("pDuo");
+  var ultimo = D.hist.length ? D.hist[D.hist.length-1] : null;
+  var donos = D.owners.slice();
+  D.cx.forEach(function(x){ if(x.own && donos.indexOf(x.own)<0) donos.push(x.own); });
+  if(donos.length>=2){
+    pduo.style.display="";
+    pduo.innerHTML = donos.map(function(o){
+      var oc = D.ownerColors[o] || "#2FD9C9";
+      var t  = totalDono(o);
+      var n  = D.cx.filter(function(x){ return x.own===o; }).length;
+      var v  = variacao(t, totalDonoNoHist(ultimo, o));
+      var pe = v ? (seloVar(v)+" desde "+esc(mesCurto(ultimo.mes)))
+                 : (n + (n===1?" cofre":" cofres"));
+      return '<div class="cd" style="border-left-color:'+oc+'">' +
+             '<div class="cl">'+esc(o)+'</div>' +
+             '<div class="cv">R$ '+brl(t)+'</div>' +
+             '<div class="cm">'+pe+'</div></div>';
+    }).join("");
+  } else {
+    pduo.style.display="none"; pduo.innerHTML="";
+  }
 
   if(D.hist.length){
     var ant=D.hist[D.hist.length-1].total, d=tt-ant, pc=ant?(d/ant*100):0;
@@ -1542,7 +1590,10 @@ document.getElementById("btSnap").addEventListener("click",function(){
     if(!confirm('Já existe registro de "'+nome+'". Substituir pelo valor de agora?')) return;
     D.hist.pop();
   } else if(!confirm('Guardar o patrimônio de hoje como "'+nome+'"?')) return;
-  D.hist.push({mes:nome, total:total(), carteira:D.carteira, cx:D.cx.map(function(x){ return {n:x.n,v:x.v}; })});
+  /* guarda o dono e o id junto: e o que permite dizer, no mes que vem,
+     quanto cada um subiu — sem isso so daria pra falar do total */
+  D.hist.push({mes:nome, total:total(), carteira:D.carteira,
+    cx:D.cx.map(function(x){ return {n:x.n, v:x.v, own:x.own, id:x.id}; })});
   salvar(); renderTudo(); animarNovo("listaHist","first"); toast("Mês guardado no histórico.","ok");
 });
 
