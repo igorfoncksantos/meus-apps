@@ -1159,7 +1159,7 @@ function mesesAte(pz){
 }
 
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-var VERSAO = 'v73';
+var VERSAO = 'v74';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -1265,10 +1265,10 @@ function renderPatrimonio(){
   if(segC){ segC.className=(patView==="cx"?"on":""); }
   if(segM){ segM.className=(patView==="metas"?"on":""); }
   if(segA){ segA.className=(patView==="agg"?"on":""); }
-  /* entrada avulsa, fechar mes e historico sao do Patrimonio, nao do agregado:
-     a aba Agregados serve so pra escolher os cofres e ver a soma */
+  /* entrada avulsa, fechar mes e historico sao do Patrimonio em si — nao das
+     abas que olham pra ele de um jeito. So aparecem em Cofres. */
   var pb=document.getElementById("patBaixo");
-  if(pb){ pb.style.display=(patView==="agg"?"none":""); }
+  if(pb){ pb.style.display=(patView==="cx"?"":"none"); }
   /* "+ dono" so faz sentido na aba dos cofres */
   if(bnn){ bnn.style.display=(patView==="cx"?"":"none"); }
   var h="";
