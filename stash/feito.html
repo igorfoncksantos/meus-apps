@@ -1134,20 +1134,31 @@ body{ padding-top:6px; }
     kbd.innerHTML=h; if(document.body.classList.contains("kbdopen")) _kbdAltura();
   }
   function fire(){ target.dispatchEvent(new Event('input',{bubbles:true})); }
+  /* onde se escreve direto no texto (o nome do item, a nota, o subitem)
+     nao existe .value nem cursor de campo: quem cuida disso e o proprio
+     navegador, pelo execCommand, que preserva onde o cursor esta */
+  function ehTexto(){ return target && target.isContentEditable; }
   function ins(ch){
+    if(ehTexto()){ document.execCommand("insertText", false, ch); if(caps===1){ caps=0; render(); } return; }
     var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ s=e=v.length; }
     target.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{target.setSelectionRange(p,p);}catch(x){}
     fire(); if(caps===1){ caps=0; render(); }
   }
   function back(){
+    if(ehTexto()){ document.execCommand("delete"); return; }
     var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ target.value=v.slice(0,-1); }
     else if(s!==e){ target.value=v.slice(0,s)+v.slice(e); try{target.setSelectionRange(s,s);}catch(x){} }
     else if(s>0){ target.value=v.slice(0,s-1)+v.slice(s); try{target.setSelectionRange(s-1,s-1);}catch(x){} }
     fire();
   }
-  function autocaps(){ caps = target.value.length ? 0 : 1; }
+  /* texto solto nao tem .value; ler ele quebrava o teclado calado,
+     antes mesmo de ele aparecer */
+  function autocaps(){
+    var t = ehTexto() ? (target.textContent || "") : (target.value || "");
+    caps = t.length ? 0 : 1;
+  }
 
 
   function _kbdAltura(){ try{ var a=kbd.offsetHeight; if(a>60) document.body.style.setProperty("padding-bottom", a+"px", "important"); }catch(x){} }
@@ -1195,7 +1206,7 @@ body{ padding-top:6px; }
     if(k==='back'){ back(); _kbdApagando(); return; }
     if(k==='layer'){ layer=(layer==='abc'?'num':'abc'); render(); return; }
     if(k==='sym'){ layer=(layer==='sym'?'num':'sym'); render(); return; }
-    if(k==='enter'){ if(form&&form.requestSubmit){ form.requestSubmit(); } else if(form){ form.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); } setTimeout(function(){ autocaps(); render(); },0); return; }
+    if(k==='enter'){ if(ehTexto()){ target.blur(); hide(); return; } if(form&&form.requestSubmit){ form.requestSubmit(); } else if(form){ form.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); } setTimeout(function(){ autocaps(); render(); },0); return; }
     if(k==='hide'){ hide(); try{target.blur();}catch(x){} return; }
   });
 
@@ -1216,10 +1227,14 @@ body{ padding-top:6px; }
     var el=e.target;
     if(!el || !el.tagName) return;
     if(el===campo || el===campoQt) return;
-    if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return;
-    if(el.type==="date" || el.type==="month" || el.type==="file") return;
-    if(!el.closest(".fov")) return;   /* so dentro da folha */
-    numerico=ehNumero(el);
+    var solto = !!el.isContentEditable;   /* nome do item, nota, subitem, categoria */
+    if(!solto){
+      if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return;
+      /* a data segue com o calendario do sistema — por enquanto ele e melhor que nada */
+      if(el.type==="date" || el.type==="month" || el.type==="file") return;
+      if(!el.closest(".fov")) return;   /* campo de formulario: so dentro da folha */
+    }
+    numerico = !solto && ehNumero(el);
     if(TOUCH) el.setAttribute("inputmode","none");
     target=el; show();
   });
@@ -1229,6 +1244,7 @@ body{ padding-top:6px; }
     if(!kbd.classList.contains('on')) return;
     if(kbd.contains(e.target) || e.target===campo || e.target===campoQt) return;
     if(e.target.closest && e.target.closest(".fov")) return;
+    if(e.target===target || (target && target.contains && target.contains(e.target))) return;
     hide();
   }, true);
 })();
