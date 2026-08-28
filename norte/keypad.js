@@ -146,14 +146,14 @@
     try{ kbd.addEventListener(ev, _kbdSolta); }catch(x){}
   });
   try{ document.addEventListener("touchend", _kbdSolta); document.addEventListener("mouseup", _kbdSolta); window.addEventListener("blur", _kbdSolta); }catch(x){}
-  function _kbdBrilho(el){ if(!el||!el.classList) return; el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
+  function _kbdBrilho(el, txt){ if(!el||!el.classList) return; el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
     setTimeout(function(){ try{ el.classList.remove("hit"); }catch(x){} }, 240);
     try{ if(navigator.vibrate) navigator.vibrate(8); }catch(x){}
     try{
       var r=el.getBoundingClientRect(); if(!r.width) return;
       var b=document.createElement("div"); b.className="kbdpv";
       var oculto = target && (target.type==="password");
-      b.textContent = oculto ? "•" : (el.textContent||"").trim().slice(0,7);
+      b.textContent = (txt != null) ? txt : (oculto ? "\u2022" : (el.textContent||"").trim().slice(0,7));
       var la=el.offsetWidth||r.width, al=el.offsetHeight||r.height;
       var meio=r.left+r.width/2, folga=la*0.70+4;
       if(meio<folga) meio=folga; if(meio>window.innerWidth-folga) meio=window.innerWidth-folga;
@@ -164,6 +164,7 @@
       setTimeout(function(){ try{ b.parentNode.removeChild(b); }catch(y){} }, 300);
     }catch(x){}
   }
+  try{ window.__kbdBrilho = _kbdBrilho; }catch(x){}
   function onKey(e){
     var t=e.target.closest && e.target.closest('[data-k],[data-ins]'); if(!t) return; _kbdBrilho(t);
     if(e.cancelable) e.preventDefault();      // não rouba o foco do campo, não vira scroll/zoom
