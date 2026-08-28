@@ -550,6 +550,19 @@
   .aggempty2{font-size:11.5px;color:var(--mut2);margin-top:8px;font-style:italic}
   .agged{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
   .aggown{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--mut);margin:11px 0 6px}
+
+  /* grupo que abre e fecha — com vinte cofres, a lista aberta e uma parede */
+  .dobra{display:flex;align-items:center;gap:8px;width:100%;text-align:left;cursor:pointer;
+    background:var(--panel2);border:1px solid var(--line);border-radius:11px;
+    padding:10px 12px;margin:9px 0 0;font-family:inherit;color:var(--txt2)}
+  .dobra .dn{flex:1;min-width:0;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.6px}
+  .dobra .dc{font-size:11px;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums}
+  .dobra .dv{font-size:10px;color:var(--mut);transition:transform .18s ease}
+  .dobra.aberta .dv{transform:rotate(180deg)}
+  .dobrado{margin-top:8px}
+  .escolhidos{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+  .semnada{font-size:11.5px;color:var(--mut);margin:9px 2px 0}
+  .versao{text-align:center;font-size:10.5px;color:var(--mut2);margin:26px 0 6px;letter-spacing:.3px}
   .aggpick{display:flex;flex-wrap:wrap;gap:7px}
   .apk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--txt2);background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:8px 11px;cursor:pointer;transition:border-color .14s,background .14s,color .14s}
   .apk.on{border-color:var(--accent);background:rgba(47,217,201,.1);color:var(--txt2)}
@@ -808,6 +821,7 @@
   <h2>Histórico do patrimônio</h2>
   <div id="listaHist"></div>
   </div>
+  <div class="versao" id="pVersao"></div>
 </section>
 
 <!-- =============== 2. APORTE =============== -->
@@ -1144,7 +1158,13 @@ function mesesAte(pz){
   return m;
 }
 
+/* mesma versao do sw.js — mexeu num, mexe no outro */
+var VERSAO = 'v73';
 var _cxSel = {};
+/* a lista dos cofres sem meta e os grupos do editor de agregado nascem
+   fechados: e o estado que cabe na tela. */
+var _semAberto = false;
+var _aggAberto = {};
 var _cxScr = {};
 function _cxGuardaRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k) _cxScr[k]=c.scrollLeft; }); }
 function _cxDevolveRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k && _cxScr[k]) c.scrollLeft=_cxScr[k]; }); }
@@ -1153,6 +1173,8 @@ function renderPatrimonio(){
   var tc=totalCx(), tt=total();
   document.getElementById("pTotal").textContent=brl(tt);
   document.getElementById("pCount").textContent=D.cx.length?("\u00b7 "+D.cx.length+(D.cx.length===1?" cofre":" cofres")):"";
+  var pv=document.getElementById("pVersao");
+  if(pv) pv.textContent="Stash "+VERSAO;
 
 
   var pvar=document.getElementById("pVar");
@@ -1304,8 +1326,21 @@ function renderPatrimonio(){
          '<div class="gm">'+(falta>0?("faltam R$ "+brl(falta)):"meta batida &#10003;")+'</div>' + gz +
          '</div><div class="gpc">'+(PRIV?"•••":pc.toFixed(0)+"%")+'</div></div>';
     });
-    if(semMeta.length){ h+='<div class="mtsem">Sem meta definida</div>';
-      semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+x.n+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; }); }
+    if(semMeta.length){
+      /* vinte cofres abertos aqui viravam uma parede que empurrava tudo
+         pra fora da tela. Fica recolhido: o titulo ja diz quantos sao e
+         quanto somam, que e o que interessa de relance. */
+      var somaSem=0; semMeta.forEach(function(x){ somaSem+=x.v||0; });
+      h+='<button class="dobra'+(_semAberto?' aberta':'')+'" id="btSemMeta">' +
+          '<span class="dn">Sem meta definida</span>' +
+          '<span class="dc">'+semMeta.length+' &middot; R$ '+brl(somaSem)+'</span>' +
+          '<span class="dv">&#9662;</span></button>';
+      if(_semAberto){
+        h+='<div class="dobrado">';
+        semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+esc(x.n)+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; });
+        h+='</div>';
+      }
+    }
   } else if(patView==="agg"){
     /* Aqui o "Juntos" deixa de ser uma linha solta e vira o cabecalho da aba:
        o total do casal em cima, e os recortes dele logo abaixo. */
@@ -1430,13 +1465,32 @@ function aggEditor(a,ai){
     '<input data-aggn="'+ai+'" value="'+esc(a.nome||"")+'" placeholder="Ex.: Reserva do casal"></div></div>' +
     '<label class="lb" style="margin-top:4px">Cofres incluídos</label>';
   var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
-  owners.forEach(function(ow){
+
+  /* o que ja esta escolhido fica sempre a vista, no topo — senao voce precisa
+     abrir tudo pra lembrar o que marcou */
+  function etiqueta(c){
+    var on=aggHas(a,c.id);
+    return '<label class="apk'+(on?' on':'')+'"><input type="checkbox" data-aggcx="'+ai+'" value="'+c.id+'"'+(on?' checked':'')+'>' +
+           '<span class="apkdot" style="background:'+c.c+'"></span>'+esc(c.n)+'</label>';
+  }
+  var marcados=D.cx.filter(function(c){ return aggHas(a,c.id); });
+  if(marcados.length){
+    body+='<div class="escolhidos">'+marcados.map(etiqueta).join('')+'</div>';
+  } else {
+    body+='<div class="semnada">Nenhum cofre escolhido ainda \u2014 abra uma pessoa abaixo.</div>';
+  }
+
+  /* e cada pessoa vira um grupo fechado: onze do Igor mais nove da Miri,
+     todos abertos ao mesmo tempo, e uma parede de etiquetas */
+  owners.forEach(function(ow,oi){
     var its=D.cx.filter(function(x){ return x.own===ow; }); if(!its.length) return;
-    body+='<div class="aggown">'+esc(ow)+'</div><div class="aggpick">';
-    its.forEach(function(c){ var on=aggHas(a,c.id);
-      body+='<label class="apk'+(on?" on":"")+'"><input type="checkbox" data-aggcx="'+ai+'" value="'+c.id+'"'+(on?" checked":"")+'>' +
-        '<span class="apkdot" style="background:'+c.c+'"></span>'+esc(c.n)+'</label>'; });
-    body+='</div>';
+    var quant=its.filter(function(c){ return aggHas(a,c.id); }).length;
+    var ch=ai+'|'+oi, aberto=!!_aggAberto[ch];
+    body+='<button class="dobra'+(aberto?' aberta':'')+'" data-aggdobra="'+ch+'">' +
+          '<span class="dn">'+esc(ow)+'</span>' +
+          '<span class="dc">'+(quant?(quant+' de '+its.length):its.length+' cofres')+'</span>' +
+          '<span class="dv">&#9662;</span></button>';
+    if(aberto) body+='<div class="aggpick dobrado">'+its.map(etiqueta).join('')+'</div>';
   });
   body+='<div class="acoes"><button class="bt d" data-aggdel="'+ai+'">Apagar agregado</button></div>';
   return body;
@@ -1508,6 +1562,15 @@ function ligarPatr(){
     if(!confirm("Remover a entrada de R$ "+brl(e.v)+"?\n\nO valor será descontado de onde foi lançado.")) return;
     if(e.dest==="cart") D.carteira-=e.v; else { var c=acharCx(e.dest); if(c) c.v-=e.v; }
     D.entradas.splice(i,1); salvar(); renderTudo(); }); });
+
+  var bsm=document.getElementById("btSemMeta");
+  if(bsm) bsm.addEventListener("click",function(){ _semAberto=!_semAberto; renderPatrimonio(); });
+  Array.prototype.forEach.call(q("[data-aggdobra]"),function(b){ b.addEventListener("click",function(){
+    var k=this.getAttribute("data-aggdobra"); _aggAberto[k]=!_aggAberto[k]; renderPatrimonio();
+    /* o editor fecha ao redesenhar; reabre o mesmo agregado */
+    var ai=k.split("|")[0], ed=document.querySelector('[data-agged="'+ai+'"]');
+    if(ed) ed.style.display="";
+  }); });
 
   /* o botao da previa abre o cofre do exemplo ja na aba Cofres, que e onde
      o campo Meta R$ vive — assim nao sobra "e agora, onde eu digito?" */
