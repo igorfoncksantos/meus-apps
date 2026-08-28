@@ -307,7 +307,12 @@
   #kbd.num .k{ height:50px; font-size:23px; font-weight:700; }#kbd.num .row:last-child .k{ height:44px; font-size:19px; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:#ffffff; opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,#f4fbfa,#cbe6e2); color:#07171b; font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }
 </style>
   
-  </head>
+  <style>
+/* aqui dentro o app de fora ja tem cabecalho: este sobra */
+header{ display:none !important; }
+body{ padding-top:6px; }
+</style>
+</head>
 <body>
 <div id="flash"></div>
 
@@ -757,6 +762,9 @@
       '<div class="fsh-a"><button type="button" class="fsk-g" id="fskC">Cancelar</button>'+
       '<button type="button" class="fsk-p" id="fskO">Salvar</button></div>');
     var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
+    /* quantidade, preco e segundos pedem o discador; o resto, as letras */
+    if(tipo==="number") i.setAttribute("data-kb","numeric");
+    else if(/quantidade|pre\u00e7o|segundos/i.test(titulo)) i.setAttribute("data-kb","decimal");
     function ok(){ var v=i.value; fClose(); setTimeout(function(){ cb(v); },40); }
     sh.querySelector("#fskC").addEventListener("click",fClose);
     sh.querySelector("#fskO").addEventListener("click",ok);
@@ -1075,7 +1083,7 @@
   var campo=document.getElementById('campo'); if(!campo) return;
   var campoQt=document.getElementById('campoQt');
   var form=document.getElementById('form');
-  var target=campo;
+  var target=campo, numerico=false;
   var TOUCH = (window.matchMedia && matchMedia('(pointer:coarse)').matches);
   if(TOUCH){ campo.setAttribute('inputmode','none'); if(campoQt) campoQt.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
   campo.setAttribute('autocapitalize','off'); campo.setAttribute('autocorrect','off'); campo.setAttribute('spellcheck','false');
@@ -1112,7 +1120,7 @@
   }
   function render(){
     var h='';
-    if(target===campoQt){   // teclado SO com numeros (estilo discador)
+    if(numerico){   // teclado SO com numeros (estilo discador)
       kbd.classList.add('num');
       NUMPAD.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
       h+='<div class="row">'+['enter','hide'].map(keyHTML).join('')+'</div>';
@@ -1193,13 +1201,34 @@
 
   function show(){ if(!TOUCH) return; autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); }
   function hide(){ kbd.classList.remove('on'); _kbdFecha(); }
-  function focusCampo(){ target=campo; show(); }
-  function focusQt(){ target=campoQt; show(); }
+  function focusCampo(){ target=campo; numerico=false; show(); }
+  function focusQt(){ target=campoQt; numerico=true; show(); }
+
+  /* As perguntas da folha (Quantidade, Preco, Nota...) criam o campo na hora,
+     entao nao da pra ligar um por um: escuta o foco e adota qualquer campo
+     que aparecer dentro dela. O de data fica de fora — ali o calendario do
+     sistema ainda e melhor que nada. */
+  function ehNumero(el){
+    var im=(el.getAttribute("data-kb")||el.getAttribute("inputmode")||"").toLowerCase();
+    return el.type==="number" || im==="decimal" || im==="numeric";
+  }
+  document.addEventListener("focusin", function(e){
+    var el=e.target;
+    if(!el || !el.tagName) return;
+    if(el===campo || el===campoQt) return;
+    if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return;
+    if(el.type==="date" || el.type==="month" || el.type==="file") return;
+    if(!el.closest(".fov")) return;   /* so dentro da folha */
+    numerico=ehNumero(el);
+    if(TOUCH) el.setAttribute("inputmode","none");
+    target=el; show();
+  });
   campo.addEventListener('focus', focusCampo); campo.addEventListener('click', focusCampo);
   if(campoQt){ campoQt.addEventListener('focus', focusQt); campoQt.addEventListener('click', focusQt); }
   document.addEventListener('pointerdown', function(e){
     if(!kbd.classList.contains('on')) return;
     if(kbd.contains(e.target) || e.target===campo || e.target===campoQt) return;
+    if(e.target.closest && e.target.closest(".fov")) return;
     hide();
   }, true);
 })();

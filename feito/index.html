@@ -789,6 +789,9 @@
       '<div class="fsh-a"><button type="button" class="fsk-g" id="fskC">Cancelar</button>'+
       '<button type="button" class="fsk-p" id="fskO">Salvar</button></div>');
     var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
+    /* quantidade, preco e segundos pedem o discador; o resto, as letras */
+    if(tipo==="number") i.setAttribute("data-kb","numeric");
+    else if(/quantidade|pre\u00e7o|segundos/i.test(titulo)) i.setAttribute("data-kb","decimal");
     function ok(){ var v=i.value; fClose(); setTimeout(function(){ cb(v); },40); }
     sh.querySelector("#fskC").addEventListener("click",fClose);
     sh.querySelector("#fskO").addEventListener("click",ok);
@@ -1107,7 +1110,7 @@
   var campo=document.getElementById('campo'); if(!campo) return;
   var campoQt=document.getElementById('campoQt');
   var form=document.getElementById('form');
-  var target=campo;
+  var target=campo, numerico=false;
   var TOUCH = (window.matchMedia && matchMedia('(pointer:coarse)').matches);
   if(TOUCH){ campo.setAttribute('inputmode','none'); if(campoQt) campoQt.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
   campo.setAttribute('autocapitalize','off'); campo.setAttribute('autocorrect','off'); campo.setAttribute('spellcheck','false');
@@ -1144,7 +1147,7 @@
   }
   function render(){
     var h='';
-    if(target===campoQt){   // teclado SO com numeros (estilo discador)
+    if(numerico){   // teclado SO com numeros (estilo discador)
       kbd.classList.add('num');
       NUMPAD.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
       h+='<div class="row">'+['enter','hide'].map(keyHTML).join('')+'</div>';
@@ -1225,13 +1228,34 @@
 
   function show(){ if(!TOUCH) return; autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); }
   function hide(){ kbd.classList.remove('on'); _kbdFecha(); }
-  function focusCampo(){ target=campo; show(); }
-  function focusQt(){ target=campoQt; show(); }
+  function focusCampo(){ target=campo; numerico=false; show(); }
+  function focusQt(){ target=campoQt; numerico=true; show(); }
+
+  /* As perguntas da folha (Quantidade, Preco, Nota...) criam o campo na hora,
+     entao nao da pra ligar um por um: escuta o foco e adota qualquer campo
+     que aparecer dentro dela. O de data fica de fora — ali o calendario do
+     sistema ainda e melhor que nada. */
+  function ehNumero(el){
+    var im=(el.getAttribute("data-kb")||el.getAttribute("inputmode")||"").toLowerCase();
+    return el.type==="number" || im==="decimal" || im==="numeric";
+  }
+  document.addEventListener("focusin", function(e){
+    var el=e.target;
+    if(!el || !el.tagName) return;
+    if(el===campo || el===campoQt) return;
+    if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return;
+    if(el.type==="date" || el.type==="month" || el.type==="file") return;
+    if(!el.closest(".fov")) return;   /* so dentro da folha */
+    numerico=ehNumero(el);
+    if(TOUCH) el.setAttribute("inputmode","none");
+    target=el; show();
+  });
   campo.addEventListener('focus', focusCampo); campo.addEventListener('click', focusCampo);
   if(campoQt){ campoQt.addEventListener('focus', focusQt); campoQt.addEventListener('click', focusQt); }
   document.addEventListener('pointerdown', function(e){
     if(!kbd.classList.contains('on')) return;
     if(kbd.contains(e.target) || e.target===campo || e.target===campoQt) return;
+    if(e.target.closest && e.target.closest(".fov")) return;
     hide();
   }, true);
 })();
