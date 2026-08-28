@@ -227,7 +227,16 @@
   /* a contagem de cofres vive aqui agora, discreta, ao lado do rotulo */
   .hero .hl em{font-style:normal;font-weight:600;letter-spacing:.4px;text-transform:none;
     font-size:10.5px;color:var(--mut);opacity:.85}
-  .cd .cm b{font-weight:800;font-variant-numeric:tabular-nums}
+  /* o quanto subiu no mes deixa de ser uma nota de rodape: vira uma pilula
+     com o mesmo peso de leitura do numero grande logo acima */
+  .hvar{display:inline-flex;align-items:baseline;gap:8px;margin-top:10px;
+    font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums;
+    border-radius:20px;padding:4px 12px;border:1px solid transparent}
+  .hvar em{font-style:normal;font-weight:600;font-size:11px;color:var(--mut);letter-spacing:.2px}
+  .hvar.sobe{color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent);
+    border-color:color-mix(in srgb,var(--green) 30%,transparent)}
+  .hvar.desce{color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent);
+    border-color:color-mix(in srgb,var(--red) 30%,transparent)}
 
   .duo{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:11px}
   .cd{flex:1;min-width:140px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
@@ -504,6 +513,19 @@
   .goal.risco{border-color:color-mix(in srgb,var(--amber) 42%,var(--line))}
   .goal.venceu{border-color:color-mix(in srgb,var(--red) 45%,var(--line))}
   .mtsem{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin:16px 2px 9px}
+
+  /* a previa: um cofre de verdade desenhado com uma meta de mentira, pra
+     mostrar o que a aba faz. Apagada, tracejada e com etiqueta — em app de
+     dinheiro, exemplo que parece dado real e pior que nao ter exemplo. */
+  .previa{position:relative;border:1px dashed var(--line);border-radius:16px;
+    padding:16px 12px 15px;margin:4px 0 14px;text-align:center}
+  .previa .goal{opacity:.45;pointer-events:none;text-align:left;margin-bottom:0}
+  .pvtag{position:absolute;top:-9px;left:15px;font-size:9px;font-weight:800;
+    text-transform:uppercase;letter-spacing:.09em;color:var(--mut);background:var(--bg);
+    border:1px solid var(--line);border-radius:5px;padding:2px 8px}
+  .pvleg{font-size:12px;color:var(--mut);line-height:1.55;margin-top:13px}
+  .pvleg b{color:var(--txt2);font-weight:700}
+  .previa .bt{margin-top:12px;width:auto;display:inline-block}
   .msemrow{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--panel);border:1px solid var(--line);border-radius:11px;margin-bottom:7px}
   .msemrow .msq{width:9px;height:9px;border-radius:3px;flex-shrink:0}
   .msemrow .mn{flex:1;font-size:12.5px;color:var(--txt);font-weight:600}
@@ -755,7 +777,6 @@
     <div class="hm" id="pVar">—</div>
   </div>
 
-  <div class="duo" id="pDuo"></div>
 
   <div class="subtabs">
     <div class="segt"><button id="segCx" class="on" onclick="setPatView('cx')">Cofres</button><button id="segMt" onclick="setPatView('metas')">Metas</button><button id="segAg" onclick="setPatView('agg')">Agregados</button></div>
@@ -1039,23 +1060,17 @@ function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElem
   var open=(c.style.display==="none"); c.style.display=open?"":"none"; if(b) b.className="gcfgtoggle"+(open?" on":""); }
 function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
   var v=document.getElementById("gVal"); if(v) setTimeout(function(){ try{ v.focus(); }catch(e){} },280); }
+/* um numero redondo logo acima do saldo, so pra desenhar o exemplo */
+function metaExemplo(v){
+  v = Math.max(Number(v) || 0, 1);
+  return Math.max(1000, Math.pow(10, Math.ceil(Math.log10(v))));
+}
 function totalCx(){ var s=0; D.cx.forEach(function(x){ s+=x.v||0; }); return s; }
 /* o "Investido" saiu da tela (27/08). Enquanto nao houver onde ver e
    corrigir esse numero, ele nao entra no total — mas fica guardado em
    D.carteira, pra voltar junto se o card voltar. */
 function total(){ return totalCx(); }
 
-/* quanto uma pessoa tem hoje, somando so os cofres dela */
-function totalDono(ow){ var s=0; D.cx.forEach(function(x){ if(x.own===ow) s+=x.v||0; }); return s; }
-/* e quanto ela tinha no ultimo mes fechado. So da pra saber se o retrato daquele
-   mes guardou o dono de cada cofre — os retratos passaram a guardar em 28/08,
-   entao mes fechado antes disso devolve null e o cartao mostra a contagem. */
-function totalDonoNoHist(h, ow){
-  if(!h || !h.cx) return null;
-  var temDono=false, s=0;
-  h.cx.forEach(function(c){ if(c.own===undefined || c.own===null) return; temDono=true; if(c.own===ow) s+=c.v||0; });
-  return temDono ? s : null;
-}
 /* o quanto subiu, em reais e em porcento */
 function variacao(agora, antes){
   if(antes===null || antes===undefined) return null;
@@ -1139,36 +1154,17 @@ function renderPatrimonio(){
   document.getElementById("pTotal").textContent=brl(tt);
   document.getElementById("pCount").textContent=D.cx.length?("\u00b7 "+D.cx.length+(D.cx.length===1?" cofre":" cofres")):"";
 
-  /* um cartao por pessoa, com quanto ela tem e quanto subiu no mes.
-     So com duas pessoas ou mais: com uma so, o cartao repetiria o total
-     de cima — que era exatamente o problema que essa mudanca resolveu. */
-  var pduo=document.getElementById("pDuo");
-  var ultimo = D.hist.length ? D.hist[D.hist.length-1] : null;
-  var donos = D.owners.slice();
-  D.cx.forEach(function(x){ if(x.own && donos.indexOf(x.own)<0) donos.push(x.own); });
-  if(donos.length>=2){
-    pduo.style.display="";
-    pduo.innerHTML = donos.map(function(o){
-      var oc = D.ownerColors[o] || "#2FD9C9";
-      var t  = totalDono(o);
-      var n  = D.cx.filter(function(x){ return x.own===o; }).length;
-      var v  = variacao(t, totalDonoNoHist(ultimo, o));
-      var pe = v ? (seloVar(v)+" desde "+esc(mesCurto(ultimo.mes)))
-                 : (n + (n===1?" cofre":" cofres"));
-      return '<div class="cd" style="border-left-color:'+oc+'">' +
-             '<div class="cl">'+esc(o)+'</div>' +
-             '<div class="cv">R$ '+brl(t)+'</div>' +
-             '<div class="cm">'+pe+'</div></div>';
-    }).join("");
-  } else {
-    pduo.style.display="none"; pduo.innerHTML="";
-  }
 
+  var pvar=document.getElementById("pVar");
   if(D.hist.length){
-    var ant=D.hist[D.hist.length-1].total, d=tt-ant, pc=ant?(d/ant*100):0;
-    document.getElementById("pVar").innerHTML="<b style='color:"+(d>=0?"var(--green)":"var(--red)")+"'>"+
-      (d>=0?"▲ +":"▼ −")+"R$ "+brl(Math.abs(d))+" ("+brl(Math.abs(pc))+"%)</b> desde "+D.hist[D.hist.length-1].mes;
-  } else { document.getElementById("pVar").textContent="primeiro registro — feche o mês para começar o histórico"; }
+    var ult=D.hist[D.hist.length-1], d=tt-ult.total, pc=ult.total?(d/ult.total*100):0;
+    pvar.className="hvar "+(d>=0?"sobe":"desce");
+    pvar.innerHTML="<b>"+(d>=0?"\u25B2 +":"\u25BC \u2212")+"R$ "+brl(Math.abs(d))+"</b>"+
+      ' <em>'+brl(Math.abs(pc))+"% \u00b7 desde "+esc(mesCurto(ult.mes))+"</em>";
+  } else {
+    pvar.className="hm";
+    pvar.textContent="primeiro registro — feche o mês para começar o histórico";
+  }
 
   function attr(s){ return String(s==null?"":s).replace(/"/g,"&quot;"); }
   function cardMini(x, sel){
@@ -1258,6 +1254,25 @@ function renderPatrimonio(){
     var comMeta=D.cx.filter(function(x){return x.m>0;}).sort(function(a,b){return (b.v/(b.m||1))-(a.v/(a.m||1));});
     var semMeta=D.cx.filter(function(x){return !(x.m>0);});
     if(!D.cx.length){ h+='<div class="vazio" style="padding:20px 4px">Nenhum cofre ainda. Crie um no modo <b style="color:var(--accent)">Cofres</b>.</div>'; }
+    else if(!comMeta.length){
+      /* nenhuma meta ainda: em vez de explicar, mostra. Pega o cofre de maior
+         saldo e desenha ele como ficaria — com uma meta redonda de exemplo. */
+      var ex = D.cx.slice().sort(function(a,b){ return (b.v||0)-(a.v||0); })[0];
+      var mEx = metaExemplo(ex.v), pcEx = Math.min(100,(ex.v||0)/mEx*100);
+      var faltaEx = Math.max(0, mEx-(ex.v||0)), CCx = 2*Math.PI*15.9;
+      var dt = new Date(); dt.setMonth(dt.getMonth()+12);
+      var mesEx = ("0"+(dt.getMonth()+1)).slice(-2)+"/"+dt.getFullYear();
+      h += '<div class="previa"><span class="pvtag">exemplo</span>' +
+        '<div class="goal"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="rgba(128,128,128,.22)" stroke-width="5"/>' +
+        '<circle cx="21" cy="21" r="15.9" fill="none" stroke="'+ex.c+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+CCx.toFixed(2)+'" stroke-dashoffset="'+(CCx*(1-pcEx/100)).toFixed(2)+'" transform="rotate(-90 21 21)"/></svg>' +
+        '<div class="gt"><div class="gn">'+esc(ex.n)+'</div>' +
+        '<div class="gv">R$ '+brl(ex.v)+' / '+brl(mEx)+'</div>' +
+        '<div class="gm">faltam R$ '+brl(faltaEx)+'</div>' +
+        '<div class="gz"><span class="gchip folga">no ritmo</span><span><b>R$ '+brl(faltaEx/12)+'</b>/m&ecirc;s at&eacute; '+mesEx+'</span></div>' +
+        '</div><div class="gpc">'+(PRIV?"\u2022\u2022\u2022":pcEx.toFixed(0)+"%")+'</div></div>' +
+        '<div class="pvleg">O saldo e o nome s&atilde;o seus; a meta de <b>R$ '+brl(mEx)+'</b> e o prazo s&atilde;o s&oacute; pra mostrar.<br>&Eacute; assim que um cofre fica depois que voc&ecirc; define uma meta.</div>' +
+        '<button class="bt p" id="btPrimeiraMeta">Definir uma meta</button></div>';
+    }
     comMeta.forEach(function(x){
       var pc=Math.min(100,x.v/x.m*100), falta=Math.max(0,x.m-x.v), CC=2*Math.PI*15.9, off=CC*(1-pc/100);
       /* o prazo: quanto precisa por mes, e se o ritmo real da conta.
@@ -1296,9 +1311,13 @@ function renderPatrimonio(){
        o total do casal em cima, e os recortes dele logo abaixo. */
     var tj=0; D.cx.forEach(function(x){ tj+=x.v||0; });
     var somaAgg=0; (D.agg||[]).forEach(function(a){ somaAgg+=aggTotal(a); });
-    h += '<div class="jhero"><div class="jk">Juntos</div><div class="jv">R$ '+brl(tj)+'</div>' +
+    /* o numero grande e o assunto DA ABA: o que os agregados somam.
+       Antes mostrava o patrimonio inteiro e dizia "R$ 0,00 combinados"
+       logo abaixo — dois numeros certos se contradizendo na mesma caixa. */
+    h += '<div class="jhero"><div class="jk">Combinado nos agregados</div>' +
+         '<div class="jv">R$ '+brl(somaAgg)+'</div>' +
          '<div class="jm">'+((D.agg||[]).length
-            ? ((D.agg.length===1?"1 agregado":(D.agg.length+" agregados"))+" &middot; R$ "+brl(somaAgg)+" combinados")
+            ? ((D.agg.length===1?"1 agregado":(D.agg.length+" agregados"))+" &middot; de R$ "+brl(tj)+" no total")
             : "nenhum agregado ainda")+'</div></div>';
     h += renderAgg();
   } else if(!owners.length){
@@ -1490,6 +1509,17 @@ function ligarPatr(){
     if(e.dest==="cart") D.carteira-=e.v; else { var c=acharCx(e.dest); if(c) c.v-=e.v; }
     D.entradas.splice(i,1); salvar(); renderTudo(); }); });
 
+  /* o botao da previa abre o cofre do exemplo ja na aba Cofres, que e onde
+     o campo Meta R$ vive — assim nao sobra "e agora, onde eu digito?" */
+  var bpm=document.getElementById("btPrimeiraMeta");
+  if(bpm) bpm.addEventListener("click",function(){
+    var ex = D.cx.slice().sort(function(a,b){ return (b.v||0)-(a.v||0); })[0];
+    if(!ex) return;
+    if(ex.own){ patOwn=ex.own; try{ localStorage.setItem("stash-patown",ex.own); }catch(e){} }
+    _cxSel[ex.own]=String(ex.id);
+    setPatView("cx");
+  });
+
   /* ---- nichos ---- */
   Array.prototype.forEach.call(q("[data-cxsel]"),function(c){ c.addEventListener("click",function(e){
     if(e.target.closest("[data-gadd]")) return;
@@ -1590,8 +1620,9 @@ document.getElementById("btSnap").addEventListener("click",function(){
     if(!confirm('Já existe registro de "'+nome+'". Substituir pelo valor de agora?')) return;
     D.hist.pop();
   } else if(!confirm('Guardar o patrimônio de hoje como "'+nome+'"?')) return;
-  /* guarda o dono e o id junto: e o que permite dizer, no mes que vem,
-     quanto cada um subiu — sem isso so daria pra falar do total */
+  /* guarda o dono e o id de cada cofre. Hoje o topo so fala do total, mas
+     retrato que nao guarda nao da pra recuperar depois: se um dia a variacao
+     por pessoa voltar, os meses fechados a partir de agora ja tem o dado */
   D.hist.push({mes:nome, total:total(), carteira:D.carteira,
     cx:D.cx.map(function(x){ return {n:x.n, v:x.v, own:x.own, id:x.id}; })});
   salvar(); renderTudo(); animarNovo("listaHist","first"); toast("Mês guardado no histórico.","ok");
