@@ -24,6 +24,16 @@
   .chip.novo{border-style:dashed;color:#2FD9C9;border-color:#23555c}
 
   #listas{margin-bottom:12px}
+  /* o total repartido: a soma grande, de quantos itens ela veio, o que falta */
+  .tsoma{font-size:13px;font-weight:800;color:#FBBF24}
+  .tsoma span{font-size:11px;font-weight:700;color:#98a1a8}
+  .tlin{display:flex;justify-content:space-between;gap:10px;align-items:center;
+    font-size:11px;color:#98a1a8;margin-top:6px}
+  .tlin i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+  .tlin b{color:#f0f2f4;font-variant-numeric:tabular-nums}
+  .tsem{font-size:10.5px;color:#FBBF24;margin-top:9px;opacity:.9}
+  /* a etiqueta de repeticao usa o teal, pra nao competir com preco e prazo */
+  .tag.rep{color:#2FD9C9;border-color:rgba(47,217,201,.42)}
   #listas .chip.on{background:#0d2b30;border-color:#2FD9C9;color:#8ee9df}
 
   .bar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
@@ -494,6 +504,27 @@
   }
 
   // ---------- render
+  /* Um item que repete volta desmarcado quando o ciclo dele vira. Nao apaga
+     nada nem cria item novo: so desmarca, entao o historico do item continua. */
+  var _CICLO = { dia: 864e5, semana: 7*864e5, mes: 30*864e5 };
+  function renascer(){
+    var mudou=false;
+    (D.listas||[]).forEach(function(li){
+      (li.itens||[]).forEach(function(o){
+        if(!o.rep || !o.feito) return;
+        var passou = _CICLO[o.rep] || _CICLO.semana;
+        if(!o.fdt || (Date.now() - o.fdt) >= passou){
+          o.feito=false; delete o.fdt; mudou=true;
+        }
+      });
+    });
+    if(mudou) grava();
+    return mudou;
+  }
+
+  /* o esc2 mora no outro bloco de script; aqui precisa do proprio */
+  function esc1(x){ return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
   function pinta(){
     if(window.__TIMERS){ window.__TIMERS.forEach(clearInterval); } window.__TIMERS=[];
     pintaListas(); pintaChips(); pintaSugestoes();
@@ -529,9 +560,36 @@
     document.getElementById("cont").textContent=f+" de "+t+(t?" · "+Math.round(f/t*100)+"%":"");
     document.getElementById("fill").style.width=(t?(f/t*100):0)+"%";
 
-    var soma=0, temPreco=false;
-    l.itens.forEach(function(o){ if(o.preco){ temPreco=true; soma+=(+o.preco||0)*(+o.qtd||1); } });
-    document.getElementById("total").textContent=temPreco?("R$ "+soma.toFixed(2).replace(".",",")):"";
+    /* O total somava so o que tem preco e nao dizia isso — entao era sempre
+       menor que a verdade, calado. Agora ele conta em quantos itens se apoia,
+       reparte por categoria e avisa quantos ficaram de fora. */
+    var soma=0, comPreco=0, semPreco=0, porCat={};
+    l.itens.forEach(function(o){
+      if(o.preco){
+        var v=(+o.preco||0)*(+o.qtd||1);
+        soma+=v; comPreco++;
+        var k=o.cat||"__sem"; porCat[k]=(porCat[k]||0)+v;
+      } else semPreco++;
+    });
+    var elT=document.getElementById("total");
+    if(!comPreco){ elT.innerHTML=""; }
+    else {
+      var linhas="";
+      /* so vale repartir quando ha mais de uma categoria com preco */
+      var ks=Object.keys(porCat);
+      if(ks.length>1){
+        ks.sort(function(a,b){ return porCat[b]-porCat[a]; }).forEach(function(k){
+          var c=(k==="__sem")?{nome:"Sem categoria",cor:"#5b646a"}:cat(k);
+          if(!c) c={nome:"Sem categoria",cor:"#5b646a"};
+          linhas+='<div class="tlin"><span><i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</span>' +
+                  '<b>R$ '+porCat[k].toFixed(2).replace(".",",")+'</b></div>';
+        });
+      }
+      elT.innerHTML =
+        '<div class="tsoma">R$ '+soma.toFixed(2).replace(".",",") +
+        ' <span>em '+comPreco+(comPreco===1?" item":" itens")+'</span></div>' + linhas +
+        (semPreco ? ('<div class="tsem">'+semPreco+(semPreco===1?" item ainda sem pre\u00e7o":" itens ainda sem pre\u00e7o")+'</div>') : "");
+    }
 
     var c2=cat(filtro);
     document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
@@ -560,7 +618,11 @@
     cr.addEventListener("pointerdown",function(ev){ comecaArrasto(ev,li); });
 
     var bx=document.createElement("div"); bx.className="box";
-    bx.addEventListener("click",function(){ it.feito=!it.feito; if(it.feito) flashFeito(); grava(); pinta(); });
+    bx.addEventListener("click",function(){
+      it.feito=!it.feito;
+      /* a data da conclusao e o que permite o item voltar sozinho depois */
+      if(it.feito){ it.fdt=Date.now(); flashFeito(); } else delete it.fdt;
+      grava(); pinta(); });
 
     var meio=document.createElement("div"); meio.className="meio";
     var tx=document.createElement("div"); tx.className="txt";
@@ -579,6 +641,8 @@
     if(it.qtd) etiqueta("q",it.qtd+"×","quantidade",function(){
       fAsk("Quantidade",it.qtd,function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","vazio apaga");
     });
+    if(it.rep) etiqueta("rep","\u21bb "+({dia:"todo dia",semana:"toda semana",mes:"todo m\u00eas"}[it.rep]||it.rep),"repete",function(){
+      it.rep=null; delete it.fdt; grava(); pinta(); });
     if(it.preco) etiqueta("p","R$ "+(+it.preco).toFixed(2).replace(".",","),"preço",function(){
       fAsk("Preço",it.preco,function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
     });
@@ -740,7 +804,8 @@
       {id:"4",ic:"pen",     nome:"Nota"},
       {id:"5",ic:"list",    nome:"Subitem"},
       {id:"6",ic:"dumbbell",nome:"Séries × reps × carga", sub:"ex: 4×10 · 60kg"},
-      {id:"7",ic:"clock",   nome:"Cronômetro de descanso", sub:"em segundos"}
+      {id:"7",ic:"clock",   nome:"Cronômetro de descanso", sub:"em segundos"},
+      {id:"8",ic:"cal",     nome:"Repetir",                sub:"volta desmarcado sozinho"}
     ],function(op){
       if(op==="1") fAsk("Quantidade",it.qtd||"",function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","ex: 3");
       else if(op==="2") fAsk("Preço",it.preco||"",function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
@@ -751,6 +816,16 @@
         if(it.carga&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
         it.carga=v.trim(); grava(); pinta(); },"text","ex: 4×10 · 60kg");
       else if(op==="7") fAsk("Descanso em segundos",it.crono||"60",function(v){ it.crono=+v||60; grava(); pinta(); },"number");
+      else if(op==="8") fMenu("Com que frequência volta?",[
+        {id:"dia",   ic:"cal", nome:"Todo dia"},
+        {id:"semana",ic:"cal", nome:"Toda semana"},
+        {id:"mes",   ic:"cal", nome:"Todo mês"},
+        {id:"nao",   ic:"x",   nome:"Não repetir", sub:"tira a repetição"}
+      ],function(r){
+        it.rep = (r==="nao") ? null : r;
+        if(!it.rep) delete it.fdt;
+        grava(); pinta();
+      });
     });
   }
 
@@ -1020,7 +1095,10 @@
     r.readAsText(f); e.target.value="";
   });
 
-  ler(); pinta();
+  ler(); renascer(); pinta();
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden && renascer()) pinta();
+  });
 })();
 </script>
 <script>
