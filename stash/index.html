@@ -1280,7 +1280,10 @@ function renderPatrimonio(){
       }
       met+='</div>';
     }
-    var opts=""; D.owners.forEach(function(o){ opts+='<option value="'+encodeURIComponent(o)+'"'+(o===x.own?" selected":"")+'>'+o+'</option>'; });
+    var opts=""; D.owners.forEach(function(o){
+      opts+='<div class="cselopt'+(o===x.own?" sel":"")+'" data-ownop="'+x.id+'" data-ownval="'+encodeURIComponent(o)+'">' +
+            '<span class="cseldot" style="background:'+(D.ownerColors[o]||"#5c6469")+'"></span>'+esc(o)+'</div>';
+    });
     /* o cartao do carrossel ja diz nome e valor — aqui nao se repete:
        o painel abre direto nos campos, com o saldo (o que ele mais mexe) na frente. */
     return '<div class="cx" style="border-left-color:'+x.c+'" data-cx="'+x.id+'">' +
@@ -1291,7 +1294,12 @@ function renderPatrimonio(){
              '<div><label class="lb">Meta R$</label><input class="r" inputmode="decimal" data-m="'+x.id+'" value="'+(x.m||"")+'"></div>' +
              '<div><label class="lb">Até (mês)</label><input type="month" data-pz="'+x.id+'" value="'+(x.pz||"")+'" style="color-scheme:dark"></div>' +
            '</div>' +
-           '<div class="gr"><div style="flex:1"><label class="lb">Dono do cofre</label><select data-own="'+x.id+'">'+opts+'</select></div></div>' +
+           '<div class="gr"><div style="flex:1"><label class="lb">Dono do cofre</label>' +
+             '<div class="cselwrap"><button type="button" class="csel" data-ownbt="'+x.id+'">' +
+               '<span class="cseldot" style="background:'+(D.ownerColors[x.own]||"#5c6469")+'"></span>' +
+               '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.own||"sem dono")+'</span>' +
+               '<span class="cselcar">&#9662;</span></button>' +
+             '<div class="cselpop" data-ownpop="'+x.id+'">'+opts+'</div></div></div></div>' +
            '<div class="acoes">' +
            '<button class="bt d" data-del="'+x.id+'">Apagar cofre</button></div>' +
          '</div>';
@@ -1662,8 +1670,20 @@ function ligarPatr(){
     setPatOwn(this.getAttribute("data-pown")); }); });
   Array.prototype.forEach.call(q("[data-psheet]"),function(b){ b.addEventListener("click",function(e){
     e.stopPropagation(); abrirFolhaDono(this.getAttribute("data-psheet")); }); });
-  Array.prototype.forEach.call(q("[data-own]"),function(s){ s.addEventListener("change",function(){
-    var c=acharCx(this.getAttribute("data-own")); if(c){ c.own=decodeURIComponent(this.value); salvar(); renderTudo(); } }); });
+  /* abre e fecha o seletor de dono */
+  Array.prototype.forEach.call(q("[data-ownbt]"),function(b){ b.addEventListener("click",function(e){
+    e.stopPropagation();
+    var id=this.getAttribute("data-ownbt");
+    var pop=document.querySelector('[data-ownpop="'+id+'"]');
+    var abrir=!pop.classList.contains("on");
+    Array.prototype.forEach.call(q("[data-ownpop]"),function(o){ o.classList.remove("on"); });
+    Array.prototype.forEach.call(q("[data-ownbt]"),function(o){ o.classList.remove("open"); });
+    if(abrir){ pop.classList.add("on"); this.classList.add("open"); }
+  }); });
+  Array.prototype.forEach.call(q("[data-ownop]"),function(o){ o.addEventListener("click",function(){
+    var c=acharCx(this.getAttribute("data-ownop"));
+    if(c){ c.own=decodeURIComponent(this.getAttribute("data-ownval")); salvar(); renderTudo(); }
+  }); });
   Array.prototype.forEach.call(q("[data-gadd]"),function(b){ b.addEventListener("click",function(){
     var ow=this.getAttribute("data-gadd"), span=this;
     if(span.parentNode.querySelector(".novacxi")) { span.parentNode.querySelector(".novacxi").focus(); return; }

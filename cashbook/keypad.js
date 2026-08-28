@@ -225,3 +225,182 @@
     hide();
   }, true);
 })();
+
+
+/* ===== calendario do app (troca o do sistema nos campos de data e mes) ===== */
+(function(){
+  var CFG2 = window.__SYNC_CFG || {};
+  var AC = CFG2.accent || '#2FD9C9';
+  function hx2(h){ h=h.replace('#',''); if(h.length===3){h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];} return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+  var r2 = hx2(AC);
+  var suave = 'rgba('+r2[0]+','+r2[1]+','+r2[2]+',.16)';
+  var tinta = (r2[0]*.299+r2[1]*.587+r2[2]*.114) > 150 ? '#06131a' : '#04181c';
+  var TOQUE = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
+
+  var MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var MESC = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var SEM = ['D','S','T','Q','Q','S','S'];
+
+  var css = ''
+    + '#cal{position:fixed;left:0;right:0;bottom:0;z-index:2000001;display:none;'
+    +   'background:linear-gradient(180deg,#0e1216,#070a0c);border-top:1px solid #20262b;'
+    +   'padding:12px 12px calc(12px + env(safe-area-inset-bottom));'
+    +   'box-shadow:0 -14px 36px rgba(0,0,0,.6);-webkit-user-select:none;user-select:none;'
+    +   'font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}'
+    + '#cal.on{display:block}'
+    + '#cal .cw{max-width:400px;margin:0 auto}'
+    + '#cal .ch{display:flex;align-items:center;gap:8px;margin-bottom:10px}'
+    + '#cal .ct{flex:1;text-align:center;font-size:15px;font-weight:800;color:#f0f2f4;text-transform:capitalize}'
+    + '#cal .cn{width:40px;height:40px;flex:none;border:1px solid #262c32;background:#12171b;color:#9fb0b8;'
+    +   'border-radius:11px;font-size:17px;font-weight:800;cursor:pointer;display:grid;place-items:center;font-family:inherit}'
+    + '#cal .cn:active{transform:scale(.95)}'
+    + '#cal .cs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}'
+    + '#cal .cs span{text-align:center;font-size:10.5px;font-weight:800;color:#5f6a71;padding:3px 0}'
+    + '#cal .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
+    + '#cal .cg button{height:42px;border:0;background:#12171b;color:#e6eaee;border-radius:10px;'
+    +   'font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform .1s,background .12s}'
+    + '#cal .cg button:active{transform:scale(.93)}'
+    + '#cal .cg button.fora{background:transparent;color:#3a4248}'
+    + '#cal .cg button.hoje{box-shadow:inset 0 0 0 1px ' + suave + '}'
+    + '#cal .cg button.sel{background:' + AC + ';color:' + tinta + '}'
+    + '#cal .cm{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}'
+    + '#cal .cm button{height:48px;border:0;background:#12171b;color:#e6eaee;border-radius:11px;'
+    +   'font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;text-transform:capitalize}'
+    + '#cal .cm button.sel{background:' + AC + ';color:' + tinta + '}'
+    + '#cal .cb{display:flex;gap:8px;margin-top:11px}'
+    + '#cal .cb button{flex:1;height:44px;border:1px solid #262c32;background:#12171b;color:#cfd6db;'
+    +   'border-radius:12px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer}'
+    + '#cal .cb button.ok{background:' + AC + ';border-color:' + AC + ';color:' + tinta + '}';
+  var st2 = document.createElement('style'); st2.textContent = css; document.head.appendChild(st2);
+
+  var cal = document.createElement('div'); cal.id = 'cal';
+  var alvo = null, tipo = 'date', vendo = null, escolhido = null;
+
+  function doisD(n){ return (n<10?'0':'') + n; }
+  function leValor(el){
+    var v = (el.value || '').trim();
+    var m;
+    if (tipo === 'month') { m = v.match(/^(\d{4})-(\d{2})$/); return m ? new Date(+m[1], +m[2]-1, 1) : null; }
+    m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+  }
+  function grava(d){
+    if (!alvo) return;
+    alvo.value = d ? (tipo === 'month'
+      ? (d.getFullYear() + '-' + doisD(d.getMonth()+1))
+      : (d.getFullYear() + '-' + doisD(d.getMonth()+1) + '-' + doisD(d.getDate()))) : '';
+    alvo.dispatchEvent(new Event('input', {bubbles:true}));
+    alvo.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+
+  function pinta(){
+    var hoje = new Date();
+    var h = '<div class="cw">';
+    if (tipo === 'month') {
+      h += '<div class="ch"><button class="cn" data-cn="-1">&#8249;</button>'
+        +  '<div class="ct">' + vendo.getFullYear() + '</div>'
+        +  '<button class="cn" data-cn="1">&#8250;</button></div><div class="cm">';
+      for (var m = 0; m < 12; m++) {
+        var sel = escolhido && escolhido.getFullYear() === vendo.getFullYear() && escolhido.getMonth() === m;
+        h += '<button class="' + (sel?'sel':'') + '" data-cm="' + m + '">' + MESC[m] + '</button>';
+      }
+      h += '</div>';
+    } else {
+      h += '<div class="ch"><button class="cn" data-cn="-1">&#8249;</button>'
+        +  '<div class="ct">' + MES[vendo.getMonth()] + ' ' + vendo.getFullYear() + '</div>'
+        +  '<button class="cn" data-cn="1">&#8250;</button></div><div class="cs">';
+      for (var s = 0; s < 7; s++) h += '<span>' + SEM[s] + '</span>';
+      h += '</div><div class="cg">';
+      var pri = new Date(vendo.getFullYear(), vendo.getMonth(), 1);
+      var ini = pri.getDay();
+      var dias = new Date(vendo.getFullYear(), vendo.getMonth()+1, 0).getDate();
+      var antes = new Date(vendo.getFullYear(), vendo.getMonth(), 0).getDate();
+      for (var i = ini - 1; i >= 0; i--) h += '<button class="fora" data-cd="' + (-i-0) + '" disabled>' + (antes-i) + '</button>';
+      for (var d = 1; d <= dias; d++) {
+        var cls = [];
+        if (hoje.getFullYear()===vendo.getFullYear() && hoje.getMonth()===vendo.getMonth() && hoje.getDate()===d) cls.push('hoje');
+        if (escolhido && escolhido.getFullYear()===vendo.getFullYear() && escolhido.getMonth()===vendo.getMonth() && escolhido.getDate()===d) cls.push('sel');
+        h += '<button class="' + cls.join(' ') + '" data-cd="' + d + '">' + d + '</button>';
+      }
+      h += '</div>';
+    }
+    h += '<div class="cb"><button data-cx="limpa">Limpar</button>'
+      +  '<button data-cx="hoje">Hoje</button>'
+      +  '<button class="ok" data-cx="fecha">Pronto</button></div></div>';
+    cal.innerHTML = h;
+  }
+
+  function altura(){
+    try {
+      var a = cal.offsetHeight;
+      if (a > 60) {
+        document.body.style.setProperty('padding-bottom', a+'px', 'important');
+        document.documentElement.style.setProperty('--kbh', a+'px');
+      }
+    } catch(e){}
+  }
+  function abre(el){
+    if (!cal.parentNode) document.body.appendChild(cal);
+    alvo = el;
+    tipo = (el.type === 'month') ? 'month' : 'date';
+    escolhido = leValor(el);
+    vendo = escolhido ? new Date(escolhido.getTime()) : new Date();
+    pinta();
+    cal.classList.add('on');
+    document.body.classList.add('kbdopen');
+    altura();
+  }
+  function fecha(){
+    cal.classList.remove('on');
+    document.body.classList.remove('kbdopen');
+    try { document.body.style.removeProperty('padding-bottom'); } catch(e){}
+    try { document.documentElement.style.removeProperty('--kbh'); } catch(e){}
+    alvo = null;
+  }
+  try { window.__calFecha = fecha; } catch(e){}
+
+  cal.addEventListener('pointerdown', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    e.preventDefault();
+    if (b.hasAttribute('data-cn')) {
+      var p = +b.getAttribute('data-cn');
+      vendo = (tipo === 'month')
+        ? new Date(vendo.getFullYear() + p, 0, 1)
+        : new Date(vendo.getFullYear(), vendo.getMonth() + p, 1);
+      pinta(); return;
+    }
+    if (b.hasAttribute('data-cm')) {
+      escolhido = new Date(vendo.getFullYear(), +b.getAttribute('data-cm'), 1);
+      grava(escolhido); pinta(); fecha(); return;
+    }
+    if (b.hasAttribute('data-cd')) {
+      if (b.disabled) return;
+      escolhido = new Date(vendo.getFullYear(), vendo.getMonth(), +b.getAttribute('data-cd'));
+      grava(escolhido); pinta(); fecha(); return;
+    }
+    var x = b.getAttribute('data-cx');
+    if (x === 'limpa') { escolhido = null; grava(null); fecha(); }
+    else if (x === 'hoje') { escolhido = new Date(); vendo = new Date(); grava(escolhido); pinta(); fecha(); }
+    else if (x === 'fecha') { fecha(); }
+  });
+
+  function ehData(el){
+    if (!el || el.tagName !== 'INPUT') return false;
+    if (el.getAttribute('data-kb') === 'off') return false;
+    var t = (el.type || '').toLowerCase();
+    return t === 'date' || t === 'month';
+  }
+  document.addEventListener('focusin', function(e){
+    if (!TOQUE && !ehData(e.target)) return;
+    if (!ehData(e.target)) return;
+    /* o campo continua guardando a data no formato de sempre; so quem
+       desenha muda. O readOnly e o que impede o painel do sistema de subir. */
+    e.target.readOnly = true;
+    e.target.blur();
+    abre(e.target);
+  });
+  document.addEventListener('pointerdown', function(e){
+    if (!cal.classList.contains('on')) return;
+    if (cal.contains(e.target) || e.target === alvo) return;
+    fecha();
+  }, true);
+})();
