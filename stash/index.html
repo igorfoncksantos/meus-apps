@@ -309,7 +309,11 @@
   .pcog::after,.aggcard .cog::after,.cx .cog::after,.box .cog::after{
     content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:44px;height:44px;border-radius:12px}
-  .aggcard .cog{font-size:17px;font-weight:800;line-height:1;padding:0;display:grid;place-items:center}
+  .aggcard .cog{width:26px;height:26px;padding:0;border-radius:9px;
+    border:1px solid var(--line);background:var(--panel2);color:var(--mut);
+    font-family:inherit;font-size:16px;font-weight:800;line-height:1;
+    display:grid;place-items:center;cursor:pointer;transition:border-color .15s,color .15s}
+  .aggcard .cog[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
   .subtabs .segt button{padding:11px 15px}
   [data-theme="editorial"] .segt button{color:#5f574b}
   .pjuntos{font-size:11px;font-weight:700;color:var(--mut);text-align:right;margin:-4px 3px 12px;letter-spacing:.02em}
@@ -1168,7 +1172,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v75';
+var VERSAO = 'v76';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -1522,7 +1526,7 @@ function renderAgg(){
          ? ('<div class="aggring">' + aggAnel(a, 66) +
             '<div class="aggri"><div class="aggrv">R$ ' + brl(tot) + '</div>' +
             '<div class="aggrf">' + aggFatias(a) + '</div></div></div>')
-         : '<div class="aggempty2">Nenhum cofre escolhido &mdash; toque na engrenagem.</div>') +
+         : '<div class="aggempty2">Nenhum cofre escolhido &mdash; toque no + pra escolher.</div>') +
        '<div class="agged" data-agged="'+ai+'" style="display:none">'+aggEditor(a,ai)+'</div>' +
        '</div>';
   });
