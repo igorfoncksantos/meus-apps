@@ -190,6 +190,11 @@
   .calcusar:disabled{ background:var(--panel2); color:var(--mut); cursor:default; }
   .calcusar:not(:disabled):active{ transform:scale(.97); }
   .calcalvo{ font-size:10px; color:var(--mut); text-align:center; margin-top:6px; line-height:1.35; }
+  /* a parte de baixo tambem move o painel: o risquinho avisa que da pra pegar aqui */
+  .calcrodape{ cursor:grab; touch-action:none; }
+  .calcrodape:active{ cursor:grabbing; }
+  .calch .puxa,.calcrodape .puxa{ width:26px; height:4px; border-radius:4px; background:var(--line); flex-shrink:0; }
+  .calcrodape .puxa.baixo{ display:block; margin:7px auto 1px; }
 
   .hero{background:linear-gradient(160deg,rgba(47,217,201,.08),rgba(47,217,201,.02));
         border:1px solid #1e3a40;border-left:4px solid var(--accent);border-radius:14px;padding:16px 18px;margin-bottom:11px}
@@ -2869,8 +2874,11 @@ renderTudo();
     <button class="ig" onclick="calcIgual()">=</button>
     <button class="z" onclick="calcDig('0')">0</button><button onclick="calcDig(',')">,</button>
   </div>
-  <button class="calcusar" id="calcUsar" onclick="calcUsarValor()" disabled>Usar este valor</button>
-  <div class="calcalvo" id="calcAlvo">toque num campo de dinheiro pra poder usar o resultado</div>
+  <div class="calcrodape">
+    <button class="calcusar" id="calcUsar" onclick="calcUsarValor()" disabled>Usar este valor</button>
+    <div class="calcalvo" id="calcAlvo">toque num campo de dinheiro pra poder usar o resultado</div>
+    <span class="puxa baixo"></span>
+  </div>
 </div>
 
 <script>
@@ -2923,7 +2931,7 @@ renderTudo();
    Regras que o Igor pediu: continua aberta ao trocar de aba (por isso ela vive
    fora das .tela), minimizar GUARDA a conta, fechar APAGA, e o icone fica
    sempre a vista no topo. O estado vive na sessao: minimizei, rolei o app,
-   voltei — a conta continua lá. */
+   voltei, ou ate fechei o app — a conta continua lá. */
 (function(){
   var CK = "stash-calc";
   var exp = "";        // a conta sendo montada, com ponto decimal
@@ -3001,6 +3009,14 @@ renderTudo();
     var out = p[1] === "00" ? inteiro : (inteiro + "," + p[1]);
     return (neg ? "-" : "") + out;
   }
+  /* O visor mostra 1.540 com ponto de milhar, mas o num() do app so tira o
+     ponto quando existe virgula: sem ela, parseFloat("1.540") devolve 1,54 e o
+     saldo seria destruido em silencio. Pro CAMPO vai sempre virgula decimal e
+     nenhum separador de milhar. */
+  function fmtCampo(v){
+    var c = centavos(v);
+    return c.toFixed(2).replace(".", ",");
+  }
   function bonito(e){
     return e.replace(/\*/g, " × ").replace(/\//g, " ÷ ").replace(/\+/g, " + ")
             .replace(/(\d)-/g, "$1 − ").replace(/\./g, ",");
@@ -3014,7 +3030,7 @@ renderTudo();
     re.textContent = exp === "" ? "0" : (v === null ? "—" : fmt(v));
     var pill = document.getElementById("calcPill");
     if (pill) pill.className = "calcpill" + (exp ? " tem" : "");
-    try { sessionStorage.setItem(CK, exp); } catch(e2) {}
+    try { localStorage.setItem(CK, exp); } catch(e2) {}
   }
 
   window.calcDig = function(c){
@@ -3049,39 +3065,61 @@ renderTudo();
   var PK = "stash-calc-pos";
   function aplicaPos(p){
     var el = document.getElementById("calcP");
-    if (!p){ el.style.left = el.style.top = ""; el.style.right = "12px"; el.style.bottom = ""; return; }
-    var r = el.getBoundingClientRect();
-    var la = r.width || 290, al = r.height || 420;
+    var la = el.offsetWidth  || 290;
+    var al = el.offsetHeight || 420;
+    /* sem lugar guardado ela nasce no meio da tela */
+    if (!p) p = { x: (window.innerWidth - la) / 2, y: (window.innerHeight - al) / 2 };
     var x = Math.max(6, Math.min(p.x, window.innerWidth  - la - 6));
     var y = Math.max(6, Math.min(p.y, window.innerHeight - al - 6));
     el.style.left = x + "px"; el.style.top = y + "px";
     el.style.right = "auto"; el.style.bottom = "auto";
   }
-  function posSalva(){ try{ return JSON.parse(sessionStorage.getItem(PK) || "null"); }catch(e){ return null; } }
+  function posSalva(){ try{ return JSON.parse(localStorage.getItem(PK) || "null"); }catch(e){ return null; } }
 
   (function ligaArrasto(){
-    var el, alca, pegando = false, dx = 0, dy = 0;
+    /* Da pra pegar pela barra de cima OU pela area de baixo. Como embaixo mora
+       um botao, o arrasto so comeca depois que o dedo anda 6px: toque curto
+       continua acionando o botao, toque que se move arrasta o painel. */
+    var ALCAS = ".calch, .calcrodape", LIMIAR = 6;
+    var el, alca, atento = false, movendo = false, dx = 0, dy = 0, x0 = 0, y0 = 0;
+
     document.addEventListener("pointerdown", function(e){
-      alca = e.target.closest ? e.target.closest(".calch") : null;
+      alca = e.target.closest ? e.target.closest(ALCAS) : null;
       if (!alca) return;
-      if (e.target.closest("button")) return;   /* minimizar e fechar continuam botoes */
       el = document.getElementById("calcP");
+      limpaAnim(el);   /* animacao em curso desloca a medida */
       var r = el.getBoundingClientRect();
       dx = e.clientX - r.left; dy = e.clientY - r.top;
-      pegando = true; el.classList.add("arrastando");
+      x0 = e.clientX; y0 = e.clientY;
+      atento = true; movendo = false;
       try{ alca.setPointerCapture(e.pointerId); }catch(x){}
-      e.preventDefault();
     });
+
     document.addEventListener("pointermove", function(e){
-      if (!pegando) return;
+      if (!atento) return;
+      if (!movendo){
+        if (Math.abs(e.clientX - x0) < LIMIAR && Math.abs(e.clientY - y0) < LIMIAR) return;
+        movendo = true; el.classList.add("arrastando");
+      }
       aplicaPos({ x: e.clientX - dx, y: e.clientY - dy });
       e.preventDefault();
     });
+
     function solta(){
-      if (!pegando) return;
-      pegando = false; el.classList.remove("arrastando");
-      var r = el.getBoundingClientRect();
-      try{ sessionStorage.setItem(PK, JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) })); }catch(x){}
+      if (!atento) return;
+      atento = false;
+      if (!movendo) return;              /* nao arrastou: era um toque, deixa o clique passar */
+      movendo = false; el.classList.remove("arrastando");
+      var gx = parseFloat(el.style.left), gy = parseFloat(el.style.top);
+      if (isFinite(gx) && isFinite(gy))
+        try{ localStorage.setItem(PK, JSON.stringify({ x: Math.round(gx), y: Math.round(gy) })); }catch(x){}
+      /* engole o clique que vem depois do arrasto, senao soltar em cima do
+         "Usar este valor" acabaria aplicando o valor sem querer */
+      document.addEventListener("click", function engole(ev){
+        ev.stopPropagation(); ev.preventDefault();
+        document.removeEventListener("click", engole, true);
+      }, true);
+      setTimeout(function(){ /* se nenhum clique vier, o engolidor cai sozinho */ }, 0);
     }
     document.addEventListener("pointerup", solta);
     document.addEventListener("pointercancel", solta);
@@ -3140,7 +3178,12 @@ renderTudo();
     });
   };
   /* fechar: nao viaja pra lugar nenhum, porque nao foi guardada em lugar nenhum */
-  window.calcFechar = function(){ some("fechando", function(){ exp = ""; pinta(); }); };
+  /* fechar zera tudo: a conta E o lugar. A proxima abertura volta pro meio. */
+  window.calcFechar = function(){ some("fechando", function(){
+    exp = ""; pinta();
+    try{ localStorage.removeItem(PK); }catch(e){}
+    aplicaPos(null);
+  }); };
 
   /* a tecla da calculadora usa a MESMA animacao do teclado do app: mesmo pulo,
      mesmo claro, mesma bolha acima do dedo e mesma vibracao. */
@@ -3159,7 +3202,7 @@ renderTudo();
   window.calcUsarValor = function(){
     var v = resolve(exp);
     if (v === null || !alvo || !document.body.contains(alvo)) return;
-    alvo.value = fmt(v);
+    alvo.value = fmtCampo(v);
     alvo.dispatchEvent(new Event("input",  {bubbles:true}));
     alvo.dispatchEvent(new Event("change", {bubbles:true}));
     if (typeof toast === "function") toast("Valor aplicado");
@@ -3167,7 +3210,7 @@ renderTudo();
   };
 
   /* volta o que estava na conta ao recarregar dentro da mesma sessao */
-  try { exp = sessionStorage.getItem(CK) || ""; } catch(e) {}
+  try { exp = localStorage.getItem(CK) || ""; } catch(e) {}
   pinta();
 })();
 </script>
