@@ -24,6 +24,8 @@
   .chip.novo{border-style:dashed;color:#2FD9C9;border-color:#23555c}
 
   #listas{margin-bottom:12px}
+  /* a nota vazia mostra do que se trata, sem virar texto de verdade */
+  .nota:empty::before{ content:"escreva aqui"; color:#5b646a; }
   /* o total repartido: a soma grande, de quantos itens ela veio, o que falta */
   .tsoma{font-size:13px;font-weight:800;color:#FBBF24}
   .tsoma span{font-size:11px;font-weight:700;color:#98a1a8}
@@ -279,7 +281,7 @@
 
   /* ===== TECLADO PROPRIO DO APP (2026-08-20) ===== */
   body.kbdopen{ padding-bottom:calc(372px + env(safe-area-inset-bottom)) !important; }
-  #kbd{ position:fixed; left:0; right:0; bottom:0; z-index:300; display:none;
+  #kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; display:none;
         background:linear-gradient(180deg,#0e1216,#070a0c); border-top:1px solid #20262b;
         padding:8px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);
         -webkit-user-select:none; user-select:none; touch-action:manipulation; }
@@ -597,6 +599,7 @@
 
   function editavel(el,ini,onOk){
     el.contentEditable="true"; el.textContent=ini;
+    if(window.__kbTouch) el.setAttribute("inputmode","none");
     el.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); el.blur(); } });
     el.addEventListener("blur",function(){ onOk(el.textContent.trim()); });
   }
@@ -666,9 +669,13 @@
     ex.appendChild(mais);
     meio.appendChild(ex);
 
-    if(it.nota!==undefined && it.nota!==""){
+    if(it.nota!==undefined){
       var nt=document.createElement("div"); nt.className="nota";
-      editavel(nt,it.nota,function(t){ it.nota=t; grava(); if(t==="") pinta(); });
+      editavel(nt,it.nota,function(t){
+        /* sair sem escrever nada apaga a nota, em vez de deixar uma linha vazia */
+        if(t===""){ delete it.nota; grava(); pinta(); }
+        else { it.nota=t; grava(); }
+      });
       meio.appendChild(nt);
     }
 
@@ -726,15 +733,16 @@
     if(fCssOk) return; fCssOk=true;
     var s=document.createElement("style");
     s.textContent=
-    ".fov{position:fixed;inset:0;z-index:900000;display:flex;align-items:flex-end;justify-content:center;"+
+    ".fov{position:fixed;inset:0;z-index:900000;display:flex;align-items:center;justify-content:center;"+
+      "padding:18px 14px calc(18px + var(--kbh,0px));transition:padding-bottom .18s ease;"+
       "background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:fFade .18s ease}"+
     ".fov.out{animation:fFade .16s ease reverse forwards}"+
     "@keyframes fFade{from{opacity:0}to{opacity:1}}"+
     "@keyframes fUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}"+
-    ".fsheet{width:100%;max-width:440px;background:#15181b;border:1px solid #2a2f34;border-bottom:0;"+
-      "border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));"+
-      "box-shadow:0 -12px 40px rgba(0,0,0,.5);animation:fUp .22s cubic-bezier(.34,1.4,.64,1)}"+
-    "@media(min-width:560px){.fov{align-items:center}.fsheet{border-radius:18px;border-bottom:1px solid #2a2f34}}"+
+    ".fsheet{width:100%;max-width:440px;background:#15181b;border:1px solid #2a2f34;"+
+      "border-radius:18px;padding:16px 14px;max-height:calc(100vh - var(--kbh,0px) - 44px);overflow:auto;"+
+      "box-shadow:0 18px 50px rgba(0,0,0,.62);animation:fUp .22s cubic-bezier(.34,1.4,.64,1)}"+
+
     ".fsh-t{font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#8a97a0;padding:2px 6px 12px}"+
     ".fsh-l{display:flex;flex-direction:column;gap:4px}"+
     ".fsh-i{display:flex;align-items:center;gap:12px;width:100%;background:transparent;border:0;cursor:pointer;"+
@@ -755,6 +763,9 @@
     document.head.appendChild(s);
   }
   function fClose(){
+    /* fechar a caixa fecha o teclado junto: ele veio dela, nao faz sentido
+       ficar sozinho na tela ocupando metade dela */
+    try{ if(window.__kbdHide) window.__kbdHide(); }catch(e){}
     var o=document.getElementById("fSheetOv");
     if(o){ o.classList.add("out"); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },170); }
     document.removeEventListener("keydown",fEsc);
@@ -789,6 +800,9 @@
       '<div class="fsh-a"><button type="button" class="fsk-g" id="fskC">Cancelar</button>'+
       '<button type="button" class="fsk-p" id="fskO">Salvar</button></div>');
     var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
+    /* marcar no foco e tarde: no celular o teclado do sistema ja subiu.
+       A data fica de fora — ali quem abre e o calendario, e ele e bem-vindo. */
+    if(window.__kbTouch && tipo!=="date") i.setAttribute("inputmode","none");
     /* quantidade, preco e segundos pedem o discador; o resto, as letras */
     if(tipo==="number") i.setAttribute("data-kb","numeric");
     else if(/quantidade|pre\u00e7o|segundos/i.test(titulo)) i.setAttribute("data-kb","decimal");
@@ -813,7 +827,22 @@
       if(op==="1") fAsk("Quantidade",it.qtd||"",function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","ex: 3");
       else if(op==="2") fAsk("Preço",it.preco||"",function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
       else if(op==="3") fAsk("Prazo",it.prazo||"",function(v){ it.prazo=v.trim(); grava(); pinta(); },"date");
-      else if(op==="4"){ if(it.nota===undefined||it.nota==="") it.nota="escreva aqui"; grava(); pinta(); }
+      else if(op==="4"){
+        var nova = (it.nota===undefined||it.nota==="");
+        if(nova) it.nota="";
+        grava(); pinta();
+        /* sem isto, escolher "Nota" nao fazia nada visivel: a nota nascia
+           vazia no meio da lista e voce tinha que achar e tocar nela */
+        setTimeout(function(){
+          var lis=document.querySelectorAll("#grupos li");
+          for(var q=0;q<lis.length;q++){
+            if(lis[q]._item!==it) continue;
+            var nt=lis[q].querySelector(".nota");
+            if(nt){ try{ nt.focus(); }catch(e){} }
+            break;
+          }
+        }, 120);
+      }
       else if(op==="5") fAsk("Novo subitem","",function(v){ if(v.trim()){ it.subs=it.subs||[]; it.subs.push({t:v.trim(),ok:false}); } grava(); pinta(); });
       else if(op==="6") fAsk("Séries × reps × carga",it.carga||"",function(v){
         if(it.carga&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
@@ -1112,6 +1141,8 @@
   var form=document.getElementById('form');
   var target=campo, numerico=false;
   var TOUCH = (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  /* o resto do app precisa saber disso pra marcar o campo ANTES do foco */
+  try{ window.__kbTouch = TOUCH; }catch(x){}
   if(TOUCH){ campo.setAttribute('inputmode','none'); if(campoQt) campoQt.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
   campo.setAttribute('autocapitalize','off'); campo.setAttribute('autocorrect','off'); campo.setAttribute('spellcheck','false');
 
@@ -1188,9 +1219,22 @@
   }
 
 
-  function _kbdAltura(){ try{ var a=kbd.offsetHeight; if(a>60) document.body.style.setProperty("padding-bottom", a+"px", "important"); }catch(x){} }
+  function _kbdAltura(){
+    try{
+      var a=kbd.offsetHeight;
+      if(a>60){
+        document.body.style.setProperty("padding-bottom", a+"px", "important");
+        /* quem estiver sobreposto na tela precisa saber quanto sobrou de altura */
+        document.documentElement.style.setProperty("--kbh", a+"px");
+      }
+    }catch(x){}
+  }
   function _kbdAbre(){ document.body.classList.add('kbdopen'); _kbdAltura(); }
-  function _kbdFecha(){ document.body.classList.remove('kbdopen'); try{ document.body.style.removeProperty("padding-bottom"); }catch(x){} }
+  function _kbdFecha(){
+    document.body.classList.remove('kbdopen');
+    try{ document.body.style.removeProperty("padding-bottom"); }catch(x){}
+    try{ document.documentElement.style.removeProperty("--kbh"); }catch(x){}
+  }
   var _kbdRepT=null;
   function _kbdSolta(){ if(_kbdRepT){ clearTimeout(_kbdRepT); _kbdRepT=null; } }
   function _kbdApagando(){
@@ -1239,6 +1283,8 @@
 
   function show(){ if(!TOUCH) return; autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); }
   function hide(){ kbd.classList.remove('on'); _kbdFecha(); }
+  /* o resto do app precisa poder fechar o teclado (a folha, ao sair) */
+  try{ window.__kbdHide = hide; }catch(x){}
   function focusCampo(){ target=campo; numerico=false; show(); }
   function focusQt(){ target=campoQt; numerico=true; show(); }
 
