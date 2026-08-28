@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<title>Afazeres</title>
+<title>Feito</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{background:#000;min-height:100%}
@@ -24,6 +24,16 @@
   .chip.novo{border-style:dashed;color:#2FD9C9;border-color:#23555c}
 
   #listas{margin-bottom:12px}
+  /* o total repartido: a soma grande, de quantos itens ela veio, o que falta */
+  .tsoma{font-size:13px;font-weight:800;color:#FBBF24}
+  .tsoma span{font-size:11px;font-weight:700;color:#98a1a8}
+  .tlin{display:flex;justify-content:space-between;gap:10px;align-items:center;
+    font-size:11px;color:#98a1a8;margin-top:6px}
+  .tlin i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+  .tlin b{color:#f0f2f4;font-variant-numeric:tabular-nums}
+  .tsem{font-size:10.5px;color:#FBBF24;margin-top:9px;opacity:.9}
+  /* a etiqueta de repeticao usa o teal, pra nao competir com preco e prazo */
+  .tag.rep{color:#2FD9C9;border-color:rgba(47,217,201,.42)}
   #listas .chip.on{background:#0d2b30;border-color:#2FD9C9;color:#8ee9df}
 
   .bar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
@@ -58,7 +68,7 @@
 
   ul{list-style:none}
   li{display:flex;align-items:flex-start;gap:10px;background:#121417;border:1px solid #262a2e;
-     border-left:4px solid #5b646a;border-radius:11px;padding:13px 11px 13px 9px;margin-bottom:9px}
+     border-left:4px solid #5b646a;border-radius:11px;padding:10px 11px 10px 9px;margin-bottom:7px}
   li.done{background:#0d1a13;border-color:#1f4a2f}
   .cor{flex-shrink:0;width:10px;align-self:stretch;border-radius:5px;cursor:grab;min-height:26px;touch-action:none}
   li.arrasta{opacity:.92;box-shadow:0 10px 26px rgba(0,0,0,.7);border-color:#2FD9C9;position:relative;z-index:5}
@@ -296,13 +306,14 @@
   #kbd.num .row{ max-width:400px; margin-left:auto; margin-right:auto; gap:10px; margin-bottom:10px; }
   #kbd.num .k{ height:66px; font-size:27px; font-weight:700; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:#ffffff; opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,#f4fbfa,#cbe6e2); color:#07171b; font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }
 </style>
-  <meta name="theme-color" content="#000000"></head>
+  
+  </head>
 <body>
 <div id="flash"></div>
 
 <header>
-  <div class="k">Afazeres</div>
-  <div class="s">quadrado marca feito &middot; texto edita &middot; barrinha colorida: arraste pra reordenar, toque pra trocar categoria</div>
+  <div class="k">Feito</div>
+  <div class="s">toque no quadrado pra concluir &middot; arraste a barrinha pra reordenar</div>
 </header>
 
 <div class="chips" id="listas"></div>
@@ -319,7 +330,7 @@
   <div class="linha">
     <input id="campo" placeholder="O que precisa ser feito?" enterkeyhint="done">
     <input id="campoQt" class="qt" placeholder="qtd" inputmode="decimal">
-    <button type="button" class="mic" id="btVoz" title="Ditar">🎙</button>
+    <button type="button" class="mic" id="btVoz" title="Ditar"><span data-ic="mic"></span></button>
     <button type="submit" aria-label="Adicionar">+</button>
   </div>
   <div class="sel chips" id="seletor"></div>
@@ -331,7 +342,6 @@
 
 <div class="acoes">
   <button id="btDesmarcar" class="rec2">Desmarcar tudo</button>
-  <button id="btLimpaTudo" class="perigo">Limpar tudo</button>
   <button id="btMais" class="mais">•••</button>
 </div>
 
@@ -348,20 +358,21 @@
 <div class="menu" id="menu">
   <div class="cx">
     <h3>Lista</h3>
-    <button class="bt" id="btRenomear">✎ Renomear lista</button>
-    <button class="bt" id="btDuplicar">⧉ Duplicar lista</button>
-    <button class="bt" id="btLimpaFeitas">✓ Limpar concluídas</button>
-    <button class="bt pg" id="btApagarLista">🗑 Apagar esta lista</button>
+    <button class="bt" id="btRenomear"><span data-ic="pen"></span> Renomear lista</button>
+    <button class="bt" id="btDuplicar"><span data-ic="dup"></span> Duplicar lista</button>
+    <button class="bt" id="btLimpaFeitas"><span data-ic="check"></span> Limpar concluídas</button>
+    <button class="bt pg" id="btLimpaTudo">Limpar tudo</button>
+    <button class="bt pg" id="btApagarLista"><span data-ic="trash"></span> Apagar esta lista</button>
 
     <h3 class="sep">Modelos</h3>
-    <button class="bt ac" id="btSalvarModelo">★ Salvar esta lista como modelo</button>
+    <button class="bt ac" id="btSalvarModelo"><span data-ic="star"></span> Salvar esta lista como modelo</button>
     <div id="listaModelos"></div>
     <div class="obs" id="semModelos">Nenhum modelo salvo.</div>
 
     <h3 class="sep">Backup</h3>
-    <button class="bt" id="btCompartilhar">↗ Compartilhar como texto</button>
-    <button class="bt" id="btExportar">⬇ Baixar backup (.json)</button>
-    <button class="bt" id="btImportar">⬆ Restaurar backup</button>
+    <button class="bt" id="btCompartilhar"><span data-ic="share"></span> Compartilhar como texto</button>
+    <button class="bt" id="btExportar"><span data-ic="download"></span> Baixar backup (.json)</button>
+    <button class="bt" id="btImportar"><span data-ic="upload"></span> Restaurar backup</button>
     <input type="file" id="arquivo" accept="application/json" style="display:none">
     <button class="bt fechar" id="btFechar">Fechar</button>
   </div>
@@ -420,9 +431,10 @@
       }));
     });
     el.appendChild(chip("+ Lista",null,false,function(){
-      var n=prompt("Nome da nova lista:"); if(n===null) return; n=n.trim(); if(!n) return;
-      var nl={id:uid(),nome:n,cats:[],itens:[]}; D.listas.push(nl); D.atual=nl.id;
-      filtro="tudo"; catNova=""; grava(); pinta();
+      fAsk("Nova lista","",function(n){ n=n.trim(); if(!n) return;
+        var nl={id:uid(),nome:n,cats:[],itens:[]}; D.listas.push(nl); D.atual=nl.id;
+        filtro="tudo"; catNova=""; grava(); pinta();
+      },"text","como quer chamar?");
     },"novo"));
   }
 
@@ -460,6 +472,27 @@
   }
 
   // ---------- render
+  /* Um item que repete volta desmarcado quando o ciclo dele vira. Nao apaga
+     nada nem cria item novo: so desmarca, entao o historico do item continua. */
+  var _CICLO = { dia: 864e5, semana: 7*864e5, mes: 30*864e5 };
+  function renascer(){
+    var mudou=false;
+    (D.listas||[]).forEach(function(li){
+      (li.itens||[]).forEach(function(o){
+        if(!o.rep || !o.feito) return;
+        var passou = _CICLO[o.rep] || _CICLO.semana;
+        if(!o.fdt || (Date.now() - o.fdt) >= passou){
+          o.feito=false; delete o.fdt; mudou=true;
+        }
+      });
+    });
+    if(mudou) grava();
+    return mudou;
+  }
+
+  /* o esc2 mora no outro bloco de script; aqui precisa do proprio */
+  function esc1(x){ return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
   function pinta(){
     if(window.__TIMERS){ window.__TIMERS.forEach(clearInterval); } window.__TIMERS=[];
     pintaListas(); pintaChips(); pintaSugestoes();
@@ -495,9 +528,36 @@
     document.getElementById("cont").textContent=f+" de "+t+(t?" · "+Math.round(f/t*100)+"%":"");
     document.getElementById("fill").style.width=(t?(f/t*100):0)+"%";
 
-    var soma=0, temPreco=false;
-    l.itens.forEach(function(o){ if(o.preco){ temPreco=true; soma+=(+o.preco||0)*(+o.qtd||1); } });
-    document.getElementById("total").textContent=temPreco?("R$ "+soma.toFixed(2).replace(".",",")):"";
+    /* O total somava so o que tem preco e nao dizia isso — entao era sempre
+       menor que a verdade, calado. Agora ele conta em quantos itens se apoia,
+       reparte por categoria e avisa quantos ficaram de fora. */
+    var soma=0, comPreco=0, semPreco=0, porCat={};
+    l.itens.forEach(function(o){
+      if(o.preco){
+        var v=(+o.preco||0)*(+o.qtd||1);
+        soma+=v; comPreco++;
+        var k=o.cat||"__sem"; porCat[k]=(porCat[k]||0)+v;
+      } else semPreco++;
+    });
+    var elT=document.getElementById("total");
+    if(!comPreco){ elT.innerHTML=""; }
+    else {
+      var linhas="";
+      /* so vale repartir quando ha mais de uma categoria com preco */
+      var ks=Object.keys(porCat);
+      if(ks.length>1){
+        ks.sort(function(a,b){ return porCat[b]-porCat[a]; }).forEach(function(k){
+          var c=(k==="__sem")?{nome:"Sem categoria",cor:"#5b646a"}:cat(k);
+          if(!c) c={nome:"Sem categoria",cor:"#5b646a"};
+          linhas+='<div class="tlin"><span><i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</span>' +
+                  '<b>R$ '+porCat[k].toFixed(2).replace(".",",")+'</b></div>';
+        });
+      }
+      elT.innerHTML =
+        '<div class="tsoma">R$ '+soma.toFixed(2).replace(".",",") +
+        ' <span>em '+comPreco+(comPreco===1?" item":" itens")+'</span></div>' + linhas +
+        (semPreco ? ('<div class="tsem">'+semPreco+(semPreco===1?" item ainda sem pre\u00e7o":" itens ainda sem pre\u00e7o")+'</div>') : "");
+    }
 
     var c2=cat(filtro);
     document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
@@ -526,7 +586,11 @@
     cr.addEventListener("pointerdown",function(ev){ comecaArrasto(ev,li); });
 
     var bx=document.createElement("div"); bx.className="box";
-    bx.addEventListener("click",function(){ it.feito=!it.feito; if(it.feito) flashFeito(); grava(); pinta(); });
+    bx.addEventListener("click",function(){
+      it.feito=!it.feito;
+      /* a data da conclusao e o que permite o item voltar sozinho depois */
+      if(it.feito){ it.fdt=Date.now(); flashFeito(); } else delete it.fdt;
+      grava(); pinta(); });
 
     var meio=document.createElement("div"); meio.className="meio";
     var tx=document.createElement("div"); tx.className="txt";
@@ -543,16 +607,17 @@
       s.addEventListener("click",onEdit); ex.appendChild(s); return s;
     }
     if(it.qtd) etiqueta("q",it.qtd+"×","quantidade",function(){
-      var v=prompt("Quantidade:",it.qtd); if(v===null) return; it.qtd=v.trim(); grava(); pinta();
+      fAsk("Quantidade",it.qtd,function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","vazio apaga");
     });
+    if(it.rep) etiqueta("rep","\u21bb "+({dia:"todo dia",semana:"toda semana",mes:"todo m\u00eas"}[it.rep]||it.rep),"repete",function(){
+      it.rep=null; delete it.fdt; grava(); pinta(); });
     if(it.preco) etiqueta("p","R$ "+(+it.preco).toFixed(2).replace(".",","),"preço",function(){
-      var v=prompt("Preço (só número):",it.preco); if(v===null) return;
-      it.preco=v.replace(",",".").trim(); grava(); pinta();
+      fAsk("Preço",it.preco,function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
     });
     if(it.carga) etiqueta("q",it.carga,"séries × reps × carga",function(){
-      var v=prompt("Séries × reps × carga:",it.carga); if(v===null) return;
-      if(v.trim()&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
-      it.carga=v.trim(); grava(); pinta();
+      fAsk("Séries × reps × carga",it.carga,function(v){
+        if(v.trim()&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
+        it.carga=v.trim(); grava(); pinta(); },"text","ex: 4×10 · 60kg");
     });
     if(it.hist && it.hist.length) etiqueta("","antes: "+it.hist[it.hist.length-1],"último registro",function(){
       alert("Histórico:\n• "+it.hist.slice().reverse().join("\n• "));
@@ -561,8 +626,7 @@
       var dd=Math.ceil((new Date(it.prazo+"T00:00:00")-new Date(new Date().toDateString()))/86400000);
       var rot=dd===0?"hoje":(dd===1?"amanhã":(dd<0?Math.abs(dd)+"d atrás":"em "+dd+"d"));
       var e=etiqueta("d "+(dd<=1?"perto":""),"⏱ "+rot,it.prazo,function(){
-        var v=prompt("Prazo (AAAA-MM-DD), vazio apaga:",it.prazo); if(v===null) return;
-        it.prazo=v.trim(); grava(); pinta();
+        fAsk("Prazo",it.prazo,function(v){ it.prazo=v.trim(); grava(); pinta(); },"date","vazio apaga");
       });
     }
     var mais=document.createElement("span"); mais.className="tag add"; mais.textContent="+";
@@ -624,19 +688,113 @@
   }
   function fmt(s){ var m=Math.floor(s/60), r=s%60; return m+":"+(r<10?"0":"")+r; }
 
+  // ---------- folha de opções (substitui os prompts numerados)
+  var fCssOk=false;
+  function fCss(){
+    if(fCssOk) return; fCssOk=true;
+    var s=document.createElement("style");
+    s.textContent=
+    ".fov{position:fixed;inset:0;z-index:900000;display:flex;align-items:flex-end;justify-content:center;"+
+      "background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:fFade .18s ease}"+
+    ".fov.out{animation:fFade .16s ease reverse forwards}"+
+    "@keyframes fFade{from{opacity:0}to{opacity:1}}"+
+    "@keyframes fUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}"+
+    ".fsheet{width:100%;max-width:440px;background:#15181b;border:1px solid #2a2f34;border-bottom:0;"+
+      "border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));"+
+      "box-shadow:0 -12px 40px rgba(0,0,0,.5);animation:fUp .22s cubic-bezier(.34,1.4,.64,1)}"+
+    "@media(min-width:560px){.fov{align-items:center}.fsheet{border-radius:18px;border-bottom:1px solid #2a2f34}}"+
+    ".fsh-t{font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#8a97a0;padding:2px 6px 12px}"+
+    ".fsh-l{display:flex;flex-direction:column;gap:4px}"+
+    ".fsh-i{display:flex;align-items:center;gap:12px;width:100%;background:transparent;border:0;cursor:pointer;"+
+      "padding:11px 8px;border-radius:12px;text-align:left;color:#f0f2f4;font:inherit;font-size:15px;transition:background .12s}"+
+    ".fsh-i:hover,.fsh-i:active{background:#1d2228}"+
+    ".fsh-ic{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:10px;"+
+      "background:rgba(47,217,201,.13);color:#2FD9C9;font-size:16px}"+
+    ".fsh-n{display:flex;flex-direction:column;line-height:1.25}"+
+    ".fsh-n em{font-style:normal;font-size:12px;color:#5b646a;margin-top:1px}"+
+    ".fsh-f{padding:2px 6px 4px}"+
+    ".fsh-f input{width:100%;box-sizing:border-box;background:#12161b;border:1px solid #2a2f34;border-radius:12px;"+
+      "padding:13px 14px;color:#f0f2f4;font:inherit;font-size:16px;outline:none}"+
+    ".fsh-f input:focus{border-color:#2FD9C9;box-shadow:0 0 0 3px rgba(47,217,201,.15)}"+
+    ".fsh-a{display:flex;gap:8px;padding:14px 6px 2px}"+
+    ".fsh-a button{flex:1;padding:12px;border-radius:12px;border:1px solid #2a2f34;cursor:pointer;font:inherit;font-weight:700;font-size:15px}"+
+    ".fsk-g{background:transparent;color:#c7ced3}"+
+    ".fsk-p{background:#2FD9C9;color:#08251f;border-color:#2FD9C9}";
+    document.head.appendChild(s);
+  }
+  function fClose(){
+    var o=document.getElementById("fSheetOv");
+    if(o){ o.classList.add("out"); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },170); }
+    document.removeEventListener("keydown",fEsc);
+  }
+  function fEsc(e){ if(e.key==="Escape") fClose(); }
+  function fOverlay(html){
+    fCss(); fClose();
+    var ov=document.createElement("div"); ov.id="fSheetOv"; ov.className="fov";
+    var sh=document.createElement("div"); sh.className="fsheet"; sh.innerHTML=html;
+    ov.appendChild(sh);
+    ov.addEventListener("click",function(e){ if(e.target===ov) fClose(); });
+    document.body.appendChild(ov);
+    document.addEventListener("keydown",fEsc);
+    if(window.paintIcons) try{ window.paintIcons(sh); }catch(e){}
+    return sh;
+  }
+  function fMenu(titulo,ops,cb){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div><div class="fsh-l"></div>');
+    var lista=sh.querySelector(".fsh-l");
+    ops.forEach(function(o){
+      var b=document.createElement("button"); b.type="button"; b.className="fsh-i";
+      b.innerHTML='<span class="fsh-ic"><span data-ic="'+o.ic+'"></span></span>'+
+                  '<span class="fsh-n">'+o.nome+(o.sub?'<em>'+o.sub+'</em>':'')+'</span>';
+      b.addEventListener("click",function(){ fClose(); setTimeout(function(){ cb(o.id); },40); });
+      lista.appendChild(b);
+    });
+    if(window.paintIcons) try{ window.paintIcons(lista); }catch(e){}
+  }
+  function fAsk(titulo,valor,cb,tipo,dica){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div>'+
+      '<div class="fsh-f"><input id="fskIn" type="'+(tipo||"text")+'" placeholder="'+(dica||"")+'"></div>'+
+      '<div class="fsh-a"><button type="button" class="fsk-g" id="fskC">Cancelar</button>'+
+      '<button type="button" class="fsk-p" id="fskO">Salvar</button></div>');
+    var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
+    function ok(){ var v=i.value; fClose(); setTimeout(function(){ cb(v); },40); }
+    sh.querySelector("#fskC").addEventListener("click",fClose);
+    sh.querySelector("#fskO").addEventListener("click",ok);
+    i.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); ok(); } });
+    setTimeout(function(){ try{ i.focus(); i.select(); }catch(e){} },80);
+  }
+
   function menuItem(it){
-    var op=prompt(
-      "1 = quantidade\n2 = preço\n3 = prazo (AAAA-MM-DD)\n4 = nota\n5 = subitem\n6 = séries × reps × carga\n7 = cronômetro de descanso\n\nDigite o número:");
-    if(op===null) return;
-    op=op.trim();
-    if(op==="1"){ var v=prompt("Quantidade:",it.qtd||""); if(v!==null) it.qtd=v.trim(); }
-    else if(op==="2"){ var v2=prompt("Preço (só número):",it.preco||""); if(v2!==null) it.preco=v2.replace(",",".").trim(); }
-    else if(op==="3"){ var v3=prompt("Prazo AAAA-MM-DD:",it.prazo||""); if(v3!==null) it.prazo=v3.trim(); }
-    else if(op==="4"){ if(it.nota===undefined||it.nota==="") it.nota="escreva aqui"; }
-    else if(op==="5"){ var v5=prompt("Subitem:"); if(v5!==null&&v5.trim()){ it.subs=it.subs||[]; it.subs.push({t:v5.trim(),ok:false}); } }
-    else if(op==="6"){ var v6=prompt("Ex: 4×10 · 60kg",it.carga||""); if(v6!==null){ if(it.carga&&v6.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); } it.carga=v6.trim(); } }
-    else if(op==="7"){ var v7=prompt("Descanso em segundos:",it.crono||"60"); if(v7!==null) it.crono=+v7||60; }
-    grava(); pinta();
+    fMenu("Adicionar ao item",[
+      {id:"1",ic:"tag",     nome:"Quantidade",  sub:"ex: 3"},
+      {id:"2",ic:"money",   nome:"Preço"},
+      {id:"3",ic:"cal",     nome:"Prazo"},
+      {id:"4",ic:"pen",     nome:"Nota"},
+      {id:"5",ic:"list",    nome:"Subitem"},
+      {id:"6",ic:"dumbbell",nome:"Séries × reps × carga", sub:"ex: 4×10 · 60kg"},
+      {id:"7",ic:"clock",   nome:"Cronômetro de descanso", sub:"em segundos"},
+      {id:"8",ic:"cal",     nome:"Repetir",                sub:"volta desmarcado sozinho"}
+    ],function(op){
+      if(op==="1") fAsk("Quantidade",it.qtd||"",function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","ex: 3");
+      else if(op==="2") fAsk("Preço",it.preco||"",function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
+      else if(op==="3") fAsk("Prazo",it.prazo||"",function(v){ it.prazo=v.trim(); grava(); pinta(); },"date");
+      else if(op==="4"){ if(it.nota===undefined||it.nota==="") it.nota="escreva aqui"; grava(); pinta(); }
+      else if(op==="5") fAsk("Novo subitem","",function(v){ if(v.trim()){ it.subs=it.subs||[]; it.subs.push({t:v.trim(),ok:false}); } grava(); pinta(); });
+      else if(op==="6") fAsk("Séries × reps × carga",it.carga||"",function(v){
+        if(it.carga&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
+        it.carga=v.trim(); grava(); pinta(); },"text","ex: 4×10 · 60kg");
+      else if(op==="7") fAsk("Descanso em segundos",it.crono||"60",function(v){ it.crono=+v||60; grava(); pinta(); },"number");
+      else if(op==="8") fMenu("Com que frequência volta?",[
+        {id:"dia",   ic:"cal", nome:"Todo dia"},
+        {id:"semana",ic:"cal", nome:"Toda semana"},
+        {id:"mes",   ic:"cal", nome:"Todo mês"},
+        {id:"nao",   ic:"x",   nome:"Não repetir", sub:"tira a repetição"}
+      ],function(r){
+        it.rep = (r==="nao") ? null : r;
+        if(!it.rep) delete it.fdt;
+        grava(); pinta();
+      });
+    });
   }
 
   // ---------- arrastar
@@ -733,8 +891,10 @@
     });
   }
   document.getElementById("btNovaCat").addEventListener("click",function(){
-    var l=L(), n=prompt("Nome da categoria:"); if(n===null) return; n=n.trim(); if(!n) return;
-    l.cats.push({id:uid(),nome:n,cor:PALETA[l.cats.length%PALETA.length]}); grava(); pintaCats();
+    var l=L();
+    fAsk("Nova categoria","",function(n){ n=n.trim(); if(!n) return;
+      l.cats.push({id:uid(),nome:n,cor:PALETA[l.cats.length%PALETA.length]}); grava(); pintaCats();
+    },"text","ex: Mercado");
   });
 
   // ---------- adicionar
@@ -792,7 +952,7 @@
     var l=L(), alvo=l.itens.filter(noFiltro);
     if(!alvo.length) return;
     if(confirm("Apagar "+alvo.length+" itens?")){
-      l.itens=l.itens.filter(function(o){ return !noFiltro(o); }); grava(); pinta();
+      l.itens=l.itens.filter(function(o){ return !noFiltro(o); }); grava(); pinta(); fecha();
     }
   });
 
@@ -804,8 +964,10 @@
   menu.addEventListener("click",function(e){ if(e.target===menu) fecha(); });
 
   document.getElementById("btRenomear").addEventListener("click",function(){
-    var l=L(), n=prompt("Nome da lista:",l.nome); if(n===null) return; n=n.trim(); if(!n) return;
-    l.nome=n; grava(); pinta(); fecha();
+    var l=L();
+    fAsk("Renomear lista",l.nome,function(n){ n=n.trim(); if(!n) return;
+      l.nome=n; grava(); pinta(); fecha();
+    });
   });
   document.getElementById("btDuplicar").addEventListener("click",function(){
     var l=L(); var c=JSON.parse(JSON.stringify(l));
@@ -822,13 +984,15 @@
 
   // ---------- modelos
   document.getElementById("btSalvarModelo").addEventListener("click",function(){
-    var l=L(), n=prompt("Nome do modelo:",l.nome); if(n===null) return; n=n.trim(); if(!n) return;
-    var m={id:uid(),nome:n,cats:JSON.parse(JSON.stringify(l.cats)),
-           itens:l.itens.map(function(o){
-             return {texto:o.texto,cat:o.cat,qtd:o.qtd||"",preco:o.preco||"",carga:o.carga||"",
-                     crono:o.crono||0,nota:o.nota||"",subs:(o.subs||[]).map(function(s){return {t:s.t,ok:false}})};
-           })};
-    D.modelos.push(m); grava(); pintaModelos();
+    var l=L();
+    fAsk("Salvar como modelo",l.nome,function(n){ n=n.trim(); if(!n) return;
+      var m={id:uid(),nome:n,cats:JSON.parse(JSON.stringify(l.cats)),
+             itens:l.itens.map(function(o){
+               return {texto:o.texto,cat:o.cat,qtd:o.qtd||"",preco:o.preco||"",carga:o.carga||"",
+                       crono:o.crono||0,nota:o.nota||"",subs:(o.subs||[]).map(function(s){return {t:s.t,ok:false}})};
+             })};
+      D.modelos.push(m); grava(); pintaModelos();
+    },"text","nome do modelo");
   });
   function pintaModelos(){
     var box=document.getElementById("listaModelos"); box.innerHTML="";
@@ -899,45 +1063,12 @@
     r.readAsText(f); e.target.value="";
   });
 
-  ler(); pinta();
+  ler(); renascer(); pinta();
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden && renascer()) pinta();
+  });
 })();
 </script>
-<style>
-#__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}
-#__welcome.__on{display:flex}
-#__welcome .__wbg{position:absolute;inset:0;background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;animation:__wFade .28s ease forwards}
-#__welcome .__wcard{position:relative;max-width:360px;width:100%;border-radius:24px;padding:30px 26px 26px;text-align:center;background:linear-gradient(180deg,#151b23,#0c1117);border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);transform:translateY(20px) scale(.93);opacity:0;animation:__wIn .5s cubic-bezier(.34,1.56,.64,1) .04s forwards}
-#__welcome .__wglow{position:absolute;top:-46px;left:50%;width:190px;height:190px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(47,217,201,.34),transparent 70%);opacity:0;animation:__wFade .6s ease .16s forwards;pointer-events:none}
-#__welcome .__wemoji{position:relative;font-size:54px;line-height:1;display:inline-block;transform:scale(0);animation:__wPop .6s cubic-bezier(.2,1.5,.4,1) .12s forwards}
-#__welcome .__wtt{position:relative;font-size:22px;font-weight:800;color:#fff;margin-top:12px;letter-spacing:-.3px;opacity:0;animation:__wUp .45s ease .22s forwards}
-#__welcome .__wtx{position:relative;font-size:14.5px;color:#aeb8c0;margin-top:11px;line-height:1.55;opacity:0;animation:__wUp .45s ease .3s forwards}
-#__welcome .__wpr{position:relative;font-size:12px;color:#8090a0;margin-top:15px;opacity:0;animation:__wUp .45s ease .37s forwards}
-#__welcome .__wbtn{position:relative;overflow:hidden;margin-top:22px;width:100%;border:none;border-radius:14px;padding:15px;font-size:15.5px;font-weight:800;font-family:inherit;cursor:pointer;color:#04120a;background:linear-gradient(135deg,#2FD9C9,#1fb3a6);box-shadow:0 10px 26px rgba(47,217,201,.32);opacity:0;animation:__wUp .45s ease .44s forwards;transition:transform .12s}
-#__welcome .__wbtn:active{transform:scale(.97)}
-#__welcome .__wbtn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:__wSheen 1.1s ease .62s}
-#__welcome.__leaving .__wcard{animation:__wOut .2s ease forwards}
-#__welcome.__leaving .__wbg{animation:__wFadeOut .2s ease forwards}
-@keyframes __wFade{to{opacity:1}}
-@keyframes __wFadeOut{to{opacity:0}}
-@keyframes __wIn{to{transform:translateY(0) scale(1);opacity:1}}
-@keyframes __wOut{to{transform:translateY(12px) scale(.96);opacity:0}}
-@keyframes __wPop{0%{transform:scale(0)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
-@keyframes __wUp{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
-@keyframes __wSheen{0%{left:-60%}100%{left:135%}}
-@media (prefers-reduced-motion:reduce){#__welcome *{animation-duration:.01s!important}}
-</style>
-<div id="__welcome" aria-hidden="true">
-  <div class="__wbg"></div>
-  <div class="__wcard" role="dialog">
-    <div class="__wglow"></div>
-    <div class="__wemoji">✅</div>
-    <div class="__wtt">Bem-vindo ao Afazeres</div>
-    <div class="__wtx">Suas listas de tarefas do jeito que você quiser — categorias, subitens, prazos e muito mais.</div>
-    <div class="__wpr">🔒 Seus dados ficam só neste aparelho — ninguém mais vê.</div>
-    <button class="__wbtn" id="__welcomeBtn">Começar &rarr;</button>
-  </div>
-</div>
-<script>(function(){try{var K="welcome-afazeres";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
 <script>
 /* ===== TECLADO PROPRIO DO APP (so no campo principal) ===== */
 (function(){
@@ -953,7 +1084,7 @@
   var caps=1, layer='abc';   // caps: 0 off, 1 uma letra, 2 trava
   var ACC=['á','à','â','ã','é','ê','í','ó','ô','õ','ú','ç'];
   var ABC=[['q','w','e','r','t','y','u','i','o','p'],
-           ['a','s','d','f','g','h','j','k','l'],
+           ['a','s','d','f','g','h','j','k','l','ç'],
            ['shift','z','x','c','v','b','n','m','back']];
   var NUM=[['1','2','3','4','5','6','7','8','9','0'],
            ['@','#','$','%','&','-','_','/','(',')'],
@@ -1071,6 +1202,89 @@
     if(kbd.contains(e.target) || e.target===campo || e.target===campoQt) return;
     hide();
   }, true);
+})();
+</script>
+
+<script src="icons.js"></script>
+<style>
+#__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}
+#__welcome.__on{display:flex}
+#__welcome .__wbg{position:absolute;inset:0;background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;animation:__wFade .28s ease forwards}
+#__welcome .__wcard{position:relative;max-width:360px;width:100%;border-radius:24px;padding:30px 26px 26px;text-align:center;background:linear-gradient(180deg,#151b23,#0c1117);border:1px solid rgba(255,255,255,.09);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);transform:translateY(20px) scale(.93);opacity:0;animation:__wIn .5s cubic-bezier(.34,1.56,.64,1) .04s forwards}
+#__welcome .__wglow{position:absolute;top:-46px;left:50%;width:190px;height:190px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(47,217,201,.34),transparent 70%);opacity:0;animation:__wFade .6s ease .16s forwards;pointer-events:none}
+#__welcome .__wemoji{position:relative;font-size:54px;line-height:1;display:inline-block;transform:scale(0);animation:__wPop .6s cubic-bezier(.2,1.5,.4,1) .12s forwards}
+#__welcome .__wtt{position:relative;font-size:22px;font-weight:800;color:#fff;margin-top:12px;letter-spacing:-.3px;opacity:0;animation:__wUp .45s ease .22s forwards}
+#__welcome .__wtx{position:relative;font-size:14.5px;color:#aeb8c0;margin-top:11px;line-height:1.55;opacity:0;animation:__wUp .45s ease .3s forwards}
+#__welcome .__wpr{position:relative;font-size:12px;color:#8090a0;margin-top:15px;opacity:0;animation:__wUp .45s ease .37s forwards}
+#__welcome .__wbtn{position:relative;overflow:hidden;margin-top:22px;width:100%;border:none;border-radius:14px;padding:15px;font-size:15.5px;font-weight:800;font-family:inherit;cursor:pointer;color:#04120a;background:linear-gradient(135deg,#2FD9C9,#1fb3a6);box-shadow:0 10px 26px rgba(47,217,201,.32);opacity:0;animation:__wUp .45s ease .44s forwards;transition:transform .12s}
+#__welcome .__wbtn:active{transform:scale(.97)}
+#__welcome .__wbtn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:__wSheen 1.1s ease .62s}
+#__welcome.__leaving .__wcard{animation:__wOut .2s ease forwards}
+#__welcome.__leaving .__wbg{animation:__wFadeOut .2s ease forwards}
+@keyframes __wFade{to{opacity:1}}@keyframes __wFadeOut{to{opacity:0}}
+@keyframes __wIn{to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes __wOut{to{transform:translateY(12px) scale(.96);opacity:0}}
+@keyframes __wPop{0%{transform:scale(0)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes __wUp{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
+@keyframes __wSheen{0%{left:-60%}100%{left:135%}}
+@media (prefers-reduced-motion:reduce){#__welcome *{animation-duration:.01s!important}}
+</style>
+<div id="__welcome" aria-hidden="true">
+  <div class="__wbg"></div>
+  <div class="__wcard" role="dialog">
+    <div class="__wglow"></div>
+    <div class="__wemoji">✅</div>
+    <div class="__wtt">Bem-vindo ao Feito</div>
+    <div class="__wtx">Suas listas de tarefas do jeito que você quiser — categorias, subitens, prazos e muito mais.</div>
+    <div class="__wpr">🔒 Seus dados ficam só neste aparelho — ninguém mais vê.</div>
+    <button class="__wbtn" id="__welcomeBtn">Começar &rarr;</button>
+  </div>
+</div>
+<script>(function(){try{var K="welcome-afazeres";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
+
+<script>
+/* __manterTela — ao recarregar (banner de atualizacao), volta pra mesma aba e posicao */
+(function(){
+  var K = "keep-tela-" + location.pathname;
+  function abas(){
+    var sel = ["nav .navbar button", "nav button", ".tabs .tb"];
+    for (var i=0; i<sel.length; i++){
+      var el = document.querySelectorAll(sel[i]);
+      if (el && el.length > 1) return el;
+    }
+    return null;
+  }
+  function ativa(el){ return (" " + (el.className||"") + " ").indexOf(" on ") >= 0; }
+  function salvar(){
+    try{
+      var st = { y: window.scrollY || window.pageYOffset || 0 };
+      var a = abas();
+      if (a) for (var i=0; i<a.length; i++){ if (ativa(a[i])) { st.aba = i; break; } }
+      sessionStorage.setItem(K, JSON.stringify(st));
+    }catch(e){}
+  }
+  window.addEventListener("pagehide", salvar);
+  window.addEventListener("beforeunload", salvar);
+
+  function restaurar(){
+    var st = null;
+    try{ st = JSON.parse(sessionStorage.getItem(K) || "null"); }catch(e){}
+    if (!st) return;
+    try{ sessionStorage.removeItem(K); }catch(e){}
+    // a inicializacao de alguns apps roda depois; insiste ate a aba pegar
+    var tentativas = 6;
+    (function tentar(){
+      var a = abas();
+      if (a && typeof st.aba === "number" && a[st.aba] && !ativa(a[st.aba])) {
+        try{ a[st.aba].click(); }catch(e){}
+      }
+      if (--tentativas > 0) { setTimeout(tentar, 250); return; }
+      if (st.y) setTimeout(function(){ try{ window.scrollTo(0, st.y); }catch(e){} }, 120);
+    })();
+  }
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", function(){ setTimeout(restaurar, 80); });
+  else setTimeout(restaurar, 80);
 })();
 </script>
 </body>
