@@ -95,6 +95,36 @@
 
   /* a cor do dono escolhido manda no contexto dele — sem dono, e o teal do app */
   :root{ --dono:var(--accent); --onacc:#07171b; }
+
+  /* ===== aba Agregados ===== */
+  .jhero{background:linear-gradient(160deg,rgba(47,217,201,.09),rgba(47,217,201,.02));
+    border:1px solid #1e3a40;border-left:4px solid var(--accent);border-radius:14px;
+    padding:15px 17px;margin-bottom:13px}
+  .jhero .jk{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+  .jhero .jv{font-size:29px;font-weight:800;color:var(--txt2);line-height:1.05;margin-top:5px;
+    letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+  .jhero .jm{font-size:11.5px;color:var(--mut);margin-top:6px}
+
+  /* o anel de fatias: quem pos quanto, sem precisar comparar numero com numero */
+  .aggring{display:flex;align-items:center;gap:13px;margin-top:9px}
+  .aggring svg{flex-shrink:0;transform:rotate(-90deg)}
+  .aggri{flex:1;min-width:0}
+  .aggrv{font-size:19px;font-weight:800;color:var(--txt2);font-variant-numeric:tabular-nums;line-height:1.1}
+  .aggrf{display:flex;flex-wrap:wrap;gap:3px 13px;margin-top:6px}
+  .aggrf span{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;white-space:nowrap;color:var(--txt2)}
+  .aggrf span b{font-variant-numeric:tabular-nums}
+  .aggrf .fd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .aggrf span u{text-decoration:none;color:var(--mut);font-weight:600}
+
+  /* a meta do casal */
+  .aggbar{height:7px;background:var(--panel2);border-radius:20px;overflow:hidden;margin-top:11px}
+  .aggbar i{display:block;height:100%;background:var(--accent);border-radius:20px;transition:width .3s}
+  .aggmet{display:flex;justify-content:space-between;gap:9px;margin-top:6px;font-size:11px;color:var(--mut)}
+  .aggmet b{color:var(--txt2);font-variant-numeric:tabular-nums}
+  .aggpz{margin-top:4px;font-size:11px;font-weight:700;color:var(--amber)}
+  .aggpz.atr{color:var(--red)}
+  .aggdica{font-size:11px;color:var(--mut);line-height:1.45;margin:2px 0 8px}
+  .aggdica b{color:var(--txt2)}
   /* ===== calculadora flutuante ===== */
   /* o icone mora no cabecalho, que fica preso no topo — assim ele esta sempre
      a vista sem brigar com o botao de sincronizacao, que ja ocupa o canto. */
@@ -274,8 +304,9 @@
   .pcog::after,.aggcard .cog::after,.cx .cog::after,.box .cog::after{
     content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
     width:44px;height:44px;border-radius:12px}
-  .aggcard .cog{font-size:16px;line-height:1;padding:2px 6px}
+  .aggcard .cog{font-size:14px;line-height:1;padding:0;display:grid;place-items:center}
   .subtabs .segt button{padding:11px 15px}
+  [data-theme="editorial"] .segt button{color:#5f574b}
   .pjuntos{font-size:11px;font-weight:700;color:var(--mut);text-align:right;margin:-4px 3px 12px;letter-spacing:.02em}
   .pjuntos b{color:var(--txt2);font-weight:800;font-variant-numeric:tabular-nums}
 
@@ -490,6 +521,7 @@
   .aggempty b{color:var(--accent)}
   .aggcard{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin-bottom:9px;box-shadow:0 5px 16px rgba(0,0,0,.18)}
   .aggtop{display:flex;align-items:center;gap:10px}
+  .aggtop .cog{flex-shrink:0}
   .aggnm{font-size:15px;font-weight:800;color:var(--txt2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .aggtot{font-size:16px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
   .aggcard .aggcog{margin-left:0}
@@ -736,7 +768,7 @@
   </div>
 
   <div class="subtabs">
-    <div class="segt"><button id="segCx" class="on" onclick="setPatView('cx')">Cofres</button><button id="segMt" onclick="setPatView('metas')">Metas</button></div>
+    <div class="segt"><button id="segCx" class="on" onclick="setPatView('cx')">Cofres</button><button id="segMt" onclick="setPatView('metas')">Metas</button><button id="segAg" onclick="setPatView('agg')">Agregados</button></div>
     <span class="add" id="btNovoNicho">+ dono</span>
   </div>
   <div id="listaCx"></div>
@@ -1168,9 +1200,13 @@ function renderPatrimonio(){
   var owners=D.owners.slice();
   D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
   GOWN=owners;
-  var segC=document.getElementById("segCx"), segM=document.getElementById("segMt"), bnn=document.getElementById("btNovoNicho");
-  if(segC){ segC.className=(patView==="metas"?"":"on"); segM.className=(patView==="metas"?"on":""); }
-  if(bnn){ bnn.style.display=(patView==="metas"?"none":""); }
+  var segC=document.getElementById("segCx"), segM=document.getElementById("segMt"),
+      segA=document.getElementById("segAg"), bnn=document.getElementById("btNovoNicho");
+  if(segC){ segC.className=(patView==="cx"?"on":""); }
+  if(segM){ segM.className=(patView==="metas"?"on":""); }
+  if(segA){ segA.className=(patView==="agg"?"on":""); }
+  /* "+ dono" so faz sentido na aba dos cofres */
+  if(bnn){ bnn.style.display=(patView==="cx"?"":"none"); }
   var h="";
   if(patView==="metas"){
     var comMeta=D.cx.filter(function(x){return x.m>0;}).sort(function(a,b){return (b.v/(b.m||1))-(a.v/(a.m||1));});
@@ -1209,6 +1245,16 @@ function renderPatrimonio(){
     });
     if(semMeta.length){ h+='<div class="mtsem">Sem meta definida</div>';
       semMeta.forEach(function(x){ h+='<div class="msemrow"><span class="msq" style="background:'+x.c+'"></span><span class="mn">'+x.n+'</span><span class="mv">R$ '+brl(x.v)+'</span></div>'; }); }
+  } else if(patView==="agg"){
+    /* Aqui o "Juntos" deixa de ser uma linha solta e vira o cabecalho da aba:
+       o total do casal em cima, e os recortes dele logo abaixo. */
+    var tj=0; D.cx.forEach(function(x){ tj+=x.v||0; });
+    var somaAgg=0; (D.agg||[]).forEach(function(a){ somaAgg+=aggTotal(a); });
+    h += '<div class="jhero"><div class="jk">Juntos</div><div class="jv">R$ '+brl(tj)+'</div>' +
+         '<div class="jm">'+((D.agg||[]).length
+            ? ((D.agg.length===1?"1 agregado":(D.agg.length+" agregados"))+" &middot; R$ "+brl(somaAgg)+" combinados")
+            : "nenhum agregado ainda")+'</div></div>';
+    h += renderAgg();
   } else if(!owners.length){
     h+='<div class="vazio" style="padding:20px 4px"><div style="margin-bottom:13px;text-transform:none">Comece adicionando um <b style="color:var(--accent)">dono</b> (ex.: Minhas, da Miri) e os cofres de cada um.</div><button class="bt p" id="btDonoVazio" style="width:auto">+ Adicionar dono</button></div>';
   } else {
@@ -1219,7 +1265,6 @@ function renderPatrimonio(){
     owners.forEach(function(o){ h += cardPessoa(o, o===ow); });
     h += '</div>';
     if(owners.length>=2) h += '<div class="pjuntos">Juntos <b>R$ '+brl(tc)+'</b></div>';
-    h += renderAgg();
 
     var itens=D.cx.filter(function(x){ return x.own===ow; });
     if(itens.length){
@@ -1283,9 +1328,46 @@ function acharCx(id){ return D.cx.filter(function(x){ return x.id == id; })[0]; 
 /* ===== Agregados (somas escolhidas a mao) ===== */
 function aggHas(a,id){ return (a.cx||[]).some(function(x){ return x==id; }); }
 function aggTotal(a){ var t=0; (a.cx||[]).forEach(function(id){ var c=acharCx(id); if(c) t+=c.v||0; }); return t; }
+/* quanto cada pessoa tem dentro do agregado — some os cofres dela que entram nele */
+function aggPorDono(a){
+  var m = {};
+  (a.cx || []).forEach(function(id){
+    var c = acharCx(id); if (!c) return;
+    m[c.own] = (m[c.own] || 0) + (Number(c.v) || 0);
+  });
+  return m;
+}
+/* o anel de fatias: uma volta, uma fatia por pessoa, na cor de cada uma */
+function aggAnel(a, tam){
+  var por = aggPorDono(a), tot = aggTotal(a), CC = 2 * Math.PI * 15.9, acc = 0, arcos = "";
+  Object.keys(por).forEach(function(o){
+    var fr = tot > 0 ? por[o] / tot : 0; if (fr <= 0) return;
+    var comp = CC * fr;
+    arcos += '<circle cx="21" cy="21" r="15.9" fill="none" stroke="' + (D.ownerColors[o] || "#2FD9C9") +
+      '" stroke-width="5" stroke-dasharray="' + comp.toFixed(2) + ' ' + (CC - comp).toFixed(2) +
+      '" stroke-dashoffset="' + (-acc).toFixed(2) + '"></circle>';
+    acc += comp;
+  });
+  return '<svg viewBox="0 0 42 42" width="' + tam + '" height="' + tam + '" aria-hidden="true">' +
+    '<circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--panel2)" stroke-width="5"></circle>' + arcos + '</svg>';
+}
+function aggFatias(a){
+  var por = aggPorDono(a), tot = aggTotal(a);
+  return Object.keys(por).map(function(o){
+    var pc = tot > 0 ? (por[o] / tot * 100) : 0;
+    return '<span><i class="fd" style="background:' + (D.ownerColors[o] || "#2FD9C9") + '"></i><b>' + pc.toFixed(0) + '%</b> ' +
+           esc(o) + '<u>R$ ' + brl(por[o]) + '</u></span>';
+  }).join("");
+}
+
 function aggEditor(a,ai){
   var body='<div class="gr"><div style="flex:1"><label class="lb">Nome do agregado</label>' +
     '<input data-aggn="'+ai+'" value="'+esc(a.nome||"")+'" placeholder="Ex.: Reserva do casal"></div></div>' +
+    '<div class="gr">' +
+      '<div><label class="lb">Meta do casal R$</label><input class="r" inputmode="decimal" data-aggm="'+ai+'" value="'+(a.m||"")+'" placeholder="0"></div>' +
+      '<div><label class="lb">Até (mês)</label><input type="month" data-aggpz="'+ai+'" value="'+(a.pz||"")+'" style="color-scheme:dark"></div>' +
+    '</div>' +
+    '<div class="aggdica">A meta aqui é <b>uma só</b>, do que vocês querem juntos — não a soma das metas de cada cofre.</div>' +
     '<label class="lb" style="margin-top:4px">Cofres incluídos</label>';
   var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
   owners.forEach(function(ow){
@@ -1309,11 +1391,29 @@ function renderAgg(){
     var tot=aggTotal(a);
     var itens=(a.cx||[]).map(function(id){ return acharCx(id); }).filter(Boolean);
     var chips=itens.map(function(c){ return '<span class="achip"><i style="background:'+c.c+'"></i>'+esc(c.n)+' <small>'+esc(c.own)+'</small> R$ '+brl(c.v)+'</span>'; }).join("");
+    /* meta do casal: uma barra so, com o que falta e o quanto por mes pros dois */
+    var meta = "";
+    if (a.m > 0){
+      var q = Math.min(100, tot / a.m * 100), falta = Math.max(0, a.m - tot);
+      meta = '<div class="aggbar"><i style="width:' + q + '%"></i></div>' +
+             '<div class="aggmet"><span><b>' + q.toFixed(1).replace(".", ",") + '%</b> de R$ ' + brl(a.m) + '</span>' +
+             '<span>faltam <b>R$ ' + brl(falta) + '</b></span></div>';
+      var mm = mesesAte(a.pz);
+      if (mm !== null && falta > 0){
+        var quando = mm > 0 ? ("R$ " + brl(falta / mm) + "/m&ecirc;s pros dois &middot; at&eacute; " + a.pz.split("-")[1] + "/" + a.pz.split("-")[0])
+                  : (mm === 0 ? ("R$ " + brl(falta) + " ainda este m&ecirc;s") : "prazo vencido");
+        meta += '<div class="aggpz' + (mm < 0 ? " atr" : "") + '">' + quando + '</div>';
+      }
+    }
+    var temCofre = (a.cx || []).some(function(id){ return !!acharCx(id); });
     h+='<div class="aggcard">' +
        '<div class="aggtop"><span class="aggnm">'+esc(a.nome||"Agregado")+'</span>' +
-       '<span class="aggtot">R$ '+brl(tot)+'</span>' +
-       '<button class="cog aggcog" data-aggcog="'+ai+'">⚙</button></div>' +
-       (chips?('<div class="aggchips">'+chips+'</div>'):'<div class="aggempty2">Nenhum cofre selecionado — toque na engrenagem.</div>') +
+       '<button class="cog aggcog" data-aggcog="'+ai+'">&#9881;</button></div>' +
+       (temCofre
+         ? ('<div class="aggring">' + aggAnel(a, 66) +
+            '<div class="aggri"><div class="aggrv">R$ ' + brl(tot) + '</div>' +
+            '<div class="aggrf">' + aggFatias(a) + '</div></div></div>' + meta)
+         : '<div class="aggempty2">Nenhum cofre escolhido &mdash; toque na engrenagem.</div>') +
        '<div class="agged" data-agged="'+ai+'" style="display:none">'+aggEditor(a,ai)+'</div>' +
        '</div>';
   });
@@ -1329,6 +1429,10 @@ function ligarAgg(){
   });
   Array.prototype.forEach.call(q("[data-aggcog]"),function(b){ b.addEventListener("click",function(){
     var ed=document.querySelector('[data-agged="'+this.getAttribute("data-aggcog")+'"]'); if(ed) ed.style.display=ed.style.display==="none"?"block":"none"; }); });
+  Array.prototype.forEach.call(q("[data-aggm]"),function(i){ i.addEventListener("change",function(){
+    var a=D.agg[Number(this.getAttribute("data-aggm"))]; if(a){ a.m=num(this.value); salvar(); renderPatrimonio(); } }); });
+  Array.prototype.forEach.call(q("[data-aggpz]"),function(i){ i.addEventListener("change",function(){
+    var a=D.agg[Number(this.getAttribute("data-aggpz"))]; if(a){ a.pz=this.value||""; salvar(); renderPatrimonio(); } }); });
   Array.prototype.forEach.call(q("[data-aggn]"),function(i){ i.addEventListener("change",function(){
     var a=D.agg[+this.getAttribute("data-aggn")]; if(a){ a.nome=this.value.trim(); salvar(); renderPatrimonio(); } }); });
   Array.prototype.forEach.call(q("[data-aggcx]"),function(c){ c.addEventListener("change",function(){
