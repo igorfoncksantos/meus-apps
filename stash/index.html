@@ -301,6 +301,7 @@
   .pcard .pv{font-size:15px;font-weight:800;color:var(--txt2);margin-top:2px;font-variant-numeric:tabular-nums}
   .pcard .pm{font-size:9.5px;font-weight:600;color:var(--mut2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pcog{position:absolute;top:8px;right:8px;width:23px;height:23px;border-radius:8px;padding:0;
+    font-size:15px;font-weight:800;line-height:1;
     border:1px solid var(--line);background:var(--panel2);color:var(--mut);font-size:10px;
     display:grid;place-items:center;cursor:pointer;font-family:inherit}
   .pcard.on .pcog{border-color:color-mix(in srgb,var(--oc) 45%,var(--line))}
@@ -1172,7 +1173,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v76';
+var VERSAO = 'v77';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -1268,7 +1269,7 @@ function renderPatrimonio(){
       '<div class="pt"><div class="pn">'+esc(ow)+'</div>' +
       '<div class="pv">R$ '+brl(tot)+'</div>' +
       '<div class="pm">'+rodape+'</div></div>' +
-      '<button class="pcog" data-psheet="'+attr(ow)+'" title="Op&ccedil;&otilde;es do dono">&#9881;</button></div>';
+      '<button class="pcog" data-psheet="'+attr(ow)+'" title="Op&ccedil;&otilde;es do dono" aria-expanded="false">+</button></div>';
   }
   var owners=D.owners.slice();
   D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
@@ -1722,8 +1723,12 @@ document.getElementById("aTot").addEventListener("input",function(){
 /* ---------- folha de op&ccedil;&otilde;es (sobe pela base, n&atilde;o empurra a tela) ---------- */
 var _shOwn=null;
 function folhaHTML(inner){ document.getElementById("folhaCx").innerHTML='<div class="puxa"></div>'+inner; }
-function abrirFolhaDono(ow){ _shOwn=ow; folhaMenu(); var f=document.getElementById("folha"); f.classList.add("on"); f.setAttribute("aria-hidden","false"); }
-function fecharFolha(){ var f=document.getElementById("folha"); f.classList.remove("on"); f.setAttribute("aria-hidden","true"); _shOwn=null; }
+function abrirFolhaDono(ow){ _shOwn=ow; folhaMenu();
+  var f=document.getElementById("folha"); f.classList.add("on"); f.setAttribute("aria-hidden","false");
+  sinal(document.querySelector('[data-psheet="'+String(ow).replace(/"/g,"&quot;")+'"]'), true); }
+function fecharFolha(){ var f=document.getElementById("folha"); f.classList.remove("on"); f.setAttribute("aria-hidden","true");
+  Array.prototype.forEach.call(document.querySelectorAll("[data-psheet]"),function(b){ sinal(b,false); });
+  _shOwn=null; }
 function folhaMenu(){
   folhaHTML('<div class="ftit">'+esc(_shOwn)+'</div>' +
     '<button class="fop" onclick="folhaRenomear()"><span class="fic">&#9998;</span>Renomear dono</button>' +
