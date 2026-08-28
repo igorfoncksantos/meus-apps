@@ -407,6 +407,12 @@
     font-weight:800;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
   .macoes button:active{transform:scale(.985)}
   .macoes button.ok{background:var(--dono);border-color:var(--dono);color:#04191a}
+  /* quando a acao apaga alguma coisa, o botao de confirmar assume o vermelho:
+     a cor precisa dizer o que vai acontecer, nao so o texto */
+  .macoes button.perigo{background:var(--red);border-color:var(--red);color:#2a0b0b}
+  .mtit{font-size:17px;font-weight:800;color:var(--txt2);text-align:center;letter-spacing:-.2px;text-transform:none}
+  .mtxt{font-size:13.5px;color:var(--mut);text-align:center;margin-top:10px;line-height:1.55;white-space:pre-line}
+  .mtxt b{color:var(--txt2)}
 
   /* na aba de aportes, o contexto inteiro segue a cor do dono */
   #t2 .hero{background:linear-gradient(160deg,color-mix(in srgb,var(--dono) 9%,transparent),color-mix(in srgb,var(--dono) 2%,transparent));
@@ -1081,6 +1087,44 @@ function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElem
          sinal(b.querySelector(".gcfgchev"), open); } }
 function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
   var v=document.getElementById("gVal"); if(v) setTimeout(function(){ try{ v.focus(); }catch(e){} },280); }
+/* Pergunta do app, no lugar da do navegador. Devolve uma promessa: quem
+   chama usa "await". Alem do texto, aceita um titulo, o rotulo do botao e
+   se a acao e destrutiva (ai o confirmar fica vermelho). Esc e o fundo
+   cancelam — cancelar tem que ser sempre o caminho mais facil. */
+var _confResolve = null;
+function appConfirm(texto, opts){
+  opts = opts || {};
+  return new Promise(function(resolve){
+    var w = document.getElementById("confw"), cx = document.getElementById("confCx");
+    if(!w || !cx){ resolve(window.confirm(texto)); return; }   /* rede de seguranca */
+    _confResolve = resolve;
+    cx.innerHTML =
+      '<div class="mtit">'+esc(opts.titulo || "Tem certeza?")+'</div>' +
+      '<div class="mtxt">'+esc(texto)+'</div>' +
+      '<div class="macoes">' +
+        '<button type="button" data-confno>'+esc(opts.cancelar || "Cancelar")+'</button>' +
+        '<button type="button" class="'+(opts.perigo?"perigo":"ok")+'" data-confsim>'+esc(opts.ok || "Confirmar")+'</button>' +
+      '</div>';
+    w.classList.add("on"); w.setAttribute("aria-hidden","false");
+    var b = cx.querySelector("[data-confsim]"); if(b) b.focus();
+  });
+}
+function _confFecha(v){
+  var w = document.getElementById("confw");
+  if(w){ w.classList.remove("on"); w.setAttribute("aria-hidden","true"); }
+  var r = _confResolve; _confResolve = null;
+  if(r) r(v);
+}
+document.addEventListener("click", function(e){
+  if(e.target.closest("[data-confsim]")) _confFecha(true);
+  else if(e.target.closest("[data-confno]")) _confFecha(false);
+});
+document.addEventListener("keydown", function(e){
+  if(!_confResolve) return;
+  if(e.key === "Escape") _confFecha(false);
+  else if(e.key === "Enter") _confFecha(true);
+});
+
 /* um numero redondo logo acima do saldo, so pra desenhar o exemplo */
 function metaExemplo(v){
   v = Math.max(Number(v) || 0, 1);
@@ -1173,7 +1217,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v77';
+var VERSAO = 'v78';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -1555,9 +1599,10 @@ function ligarAgg(){
     salvar(); renderPatrimonio();
     setTimeout(function(){ var ed=document.querySelector('[data-agged="'+ai+'"]'); if(ed) ed.style.display="block"; },0);
   }); });
-  Array.prototype.forEach.call(q("[data-aggdel]"),function(b){ b.addEventListener("click",function(){
+  Array.prototype.forEach.call(q("[data-aggdel]"),function(b){ b.addEventListener("click",async function(){
     var ai=+this.getAttribute("data-aggdel"), a=D.agg[ai];
-    if(!confirm('Apagar o agregado "'+((a&&a.nome)||"sem nome")+'"?')) return;
+    if(!await appConfirm('O agregado "'+((a&&a.nome)||"sem nome")+'" some da lista.\n\nOs cofres dele nao sao tocados — so a soma deixa de existir.',
+        {titulo:"Apagar o agregado?", ok:"Apagar", perigo:true})) return;
     D.agg.splice(ai,1); salvar(); renderPatrimonio(); }); });
 }
 
@@ -1571,13 +1616,15 @@ function ligarPatr(){
     acharCx(this.getAttribute("data-m")).m=num(this.value); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-pz]"),function(i){ i.addEventListener("change",function(){
     acharCx(this.getAttribute("data-pz")).pz=this.value; salvar(); renderTudo(); }); });
-  Array.prototype.forEach.call(q("[data-del]"),function(b){ b.addEventListener("click",function(){
+  Array.prototype.forEach.call(q("[data-del]"),function(b){ b.addEventListener("click",async function(){
     var c=acharCx(this.getAttribute("data-del"));
-    if(!confirm('Apagar o cofre "'+c.n+'"?\n\nO saldo de R$ '+brl(c.v)+" some do patrimônio.")) return;
+    if(!await appConfirm('O saldo de R$ '+brl(c.v)+' sai do patrimonio, e o cofre some dos agregados em que estiver.',
+        {titulo:'Apagar "'+c.n+'"?', ok:"Apagar", perigo:true})) return;
     D.cx=D.cx.filter(function(x){ return x.id != c.id; }); salvar(); renderTudo(); }); });
-  Array.prototype.forEach.call(q("[data-de]"),function(b){ b.addEventListener("click",function(){
+  Array.prototype.forEach.call(q("[data-de]"),function(b){ b.addEventListener("click",async function(){
     var i=+this.getAttribute("data-de"), e=D.entradas[i];
-    if(!confirm("Remover a entrada de R$ "+brl(e.v)+"?\n\nO valor será descontado de onde foi lançado.")) return;
+    if(!await appConfirm("R$ "+brl(e.v)+" sai de onde foi lancado.",
+        {titulo:"Remover a entrada?", ok:"Remover", perigo:true})) return;
     if(e.dest==="cart") D.carteira-=e.v; else { var c=acharCx(e.dest); if(c) c.v-=e.v; }
     D.entradas.splice(i,1); salvar(); renderTudo(); }); });
 
@@ -1695,12 +1742,14 @@ document.getElementById("eAdd").addEventListener("click",function(){
   document.addEventListener("click",function(){ pop.classList.remove("on"); btn.classList.remove("open"); });
 })();
 
-document.getElementById("btSnap").addEventListener("click",function(){
+document.getElementById("btSnap").addEventListener("click",async function(){
   var h=new Date(), nome=MES[h.getMonth()]+" "+h.getFullYear();
   if(D.hist.length && D.hist[D.hist.length-1].mes===nome){
-    if(!confirm('Já existe registro de "'+nome+'". Substituir pelo valor de agora?')) return;
+    if(!await appConfirm('Ja existe um retrato de "'+nome+'". O valor de agora entra no lugar dele.',
+      {titulo:"Substituir o mes?", ok:"Substituir", perigo:true})) return;
     D.hist.pop();
-  } else if(!confirm('Guardar o patrimônio de hoje como "'+nome+'"?')) return;
+  } else if(!await appConfirm("Guarda um retrato de R$ "+brl(total())+" com a data de hoje. E dele que sai o quanto subiu no mes.",
+      {titulo:'Fechar "'+nome+'"?', ok:"Guardar"})) return;
   /* guarda o dono e o id de cada cofre. Hoje o topo so fala do total, mas
      retrato que nao guarda nao da pra recuperar depois: se um dia a variacao
      por pessoa voltar, os meses fechados a partir de agora ja tem o dado */
@@ -1769,11 +1818,13 @@ function folhaSalvaCor(){
   D.ownerColors[_shOwn]=c; fecharFolha(); salvar(); renderTudo(); toast("Cor trocada.","ok");
 }
 
-function folhaApagar(){
+async function folhaApagar(){
   var ow=_shOwn, itens=D.cx.filter(function(x){return x.own===ow;});
-  if(itens.length){ if(!confirm('Apagar o nicho "'+ow+'" e os '+itens.length+' cofres dele?\n\nOs saldos somem do patrim&ocirc;nio.')) return;
+  if(itens.length){ if(!await appConfirm('Vai junto '+(itens.length===1?"o cofre dele":"os "+itens.length+" cofres dele")+', e o saldo sai do patrimonio.',
+      {titulo:'Apagar "'+ow+'"?', ok:"Apagar tudo", perigo:true})) return;
     D.cx=D.cx.filter(function(x){return x.own!==ow;}); }
-  else { if(!confirm('Apagar o nicho "'+ow+'"?')) return; }
+  else { if(!await appConfirm("Nao ha cofre nenhum nele.",
+      {titulo:'Apagar "'+ow+'"?', ok:"Apagar", perigo:true})) return; }
   var oi=D.owners.indexOf(ow); if(oi>=0) D.owners.splice(oi,1);
   delete D.ownerColors[ow]; delete D.collapsed[ow]; delete _cxSel[ow];
   fecharFolha();
@@ -2086,9 +2137,10 @@ function renderHistAportes(){
   });
   document.getElementById("listaAportes").innerHTML=la;
   Array.prototype.forEach.call(document.querySelectorAll("[data-da]"),function(b){
-    b.addEventListener("click",function(){
+    b.addEventListener("click",async function(){
       var i=+this.getAttribute("data-da"), a=D.aportes[i];
-      if(!confirm("Desfazer o aporte de R$ "+brl(a.v)+"?\n\nOs valores saem de volta dos cofres.")) return;
+      if(!await appConfirm("Cada cofre devolve o que recebeu neste aporte.",
+        {titulo:"Desfazer R$ "+brl(a.v)+"?", ok:"Desfazer", perigo:true})) return;
       (a.det||[]).forEach(function(p){ var c=acharCx(p.id); if(c) c.v-=p.v; });
       D.aportes.splice(i,1); salvar(); renderTudo(); }); });
 }
@@ -2339,10 +2391,11 @@ function parcRenderAtivos(){
   });
   box.innerHTML = h + '</div>';
   Array.prototype.forEach.call(box.querySelectorAll("[data-parcdel]"),function(b){
-    b.addEventListener("click",function(){
+    b.addEventListener("click",async function(){
       var i=+this.getAttribute("data-parcdel"), p=parcLista()[i];
       if(!p) return;
-      if(!confirm("Cancelar o parcelamento de " + p.d + "? As parcelas que faltam deixam de ser lancadas; as ja lancadas ficam.")) return;
+      if(!await appConfirm("As parcelas que faltam deixam de ser lancadas. As que ja entraram ficam.",
+        {titulo:"Cancelar o parcelamento de "+p.d+"?", ok:"Cancelar parcelamento", perigo:true})) return;
       parcLista().splice(i,1); salvar(); renderTudo();
     });
   });
@@ -2767,11 +2820,12 @@ function renderGastos(){
     var k=acharCat(this.getAttribute("data-cate")); if(k){ k.emoji=this.value.trim()||"🏷️"; salvar(); renderGastos(); } }); });
   Array.prototype.forEach.call(q("[data-catc]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-catc")); if(k){ k.cor=this.value; salvar(); renderGastos(); } }); });
-  Array.prototype.forEach.call(q("[data-catdel]"),function(b){ b.addEventListener("click",function(){
+  Array.prototype.forEach.call(q("[data-catdel]"),function(b){ b.addEventListener("click",async function(){
     var id=this.getAttribute("data-catdel"), k=acharCat(id);
     if(D.vale.cats.length<=1){ toast("Deixe pelo menos uma categoria.","err"); return; }
     var usados=D.vale.l.filter(function(x){ return x.c==id; }).length;
-    if(!confirm('Apagar a categoria "'+(k?k.nome:"")+'"?'+(usados?'\n\n'+usados+' lançamento(s) dela ficam sem categoria (mas seguem no ciclo).':''))) return;
+    if(!await appConfirm(usados ? (usados+" lancamento(s) dela ficam sem categoria, mas seguem no ciclo.") : "Nenhum lancamento usa essa categoria.",
+        {titulo:'Apagar "'+(k?k.nome:"")+'"?', ok:"Apagar", perigo:true})) return;
     D.vale.cats=D.vale.cats.filter(function(c){ return c.id!=id; }); salvar(); renderGastos(); }); });
   // lançar direto na categoria (por anel)
   Array.prototype.forEach.call(q("[data-planc]"),function(b){ b.addEventListener("click",function(){
@@ -2833,10 +2887,11 @@ document.getElementById("gAdd").addEventListener("click",function(){
   salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok");
 });
 
-document.getElementById("gNovoCiclo").addEventListener("click",function(){
+document.getElementById("gNovoCiclo").addEventListener("click",async function(){
   var v=D.vale, m2=(v.mesIni+1)%12, a2=v.mesIni===11?v.anoIni+1:v.anoIni;
   var novo=MES[m2]+"/"+MES[(m2+1)%12];
-  if(!confirm('Começar o ciclo "'+novo+'"?\n\nOs lançamentos atuais serão apagados (os saldos já descontados permanecem).')) return;
+  if(!await appConfirm("Os lancamentos deste ciclo sao apagados. Os saldos que voce ja descontou dos cofres continuam como estao.",
+      {titulo:'Comecar "'+novo+'"?', ok:"Comecar", perigo:true})) return;
   var c0=cicloInfo();
   if((v.l||[]).length){ if(!v.hist) v.hist=[]; v.hist.push({ ciclo:v.ciclo, per:c0.per, l:v.l.slice() }); }
   v.mesIni=m2; v.anoIni=a2; v.ciclo=novo; v.l=[];
@@ -2857,10 +2912,11 @@ document.getElementById("btImp").addEventListener("click",function(){ document.g
 document.getElementById("fileImp").addEventListener("change",function(){
   var f=this.files[0]; if(!f) return;
   var fr=new FileReader();
-  fr.onload=function(){
+  fr.onload=async function(){
     try{
       var o=JSON.parse(fr.result);
-      if(!confirm("Substituir todos os dados atuais pelo backup?")) return;
+      if(!await appConfirm("Tudo que esta no aparelho agora e trocado pelo conteudo do arquivo. Nao da pra desfazer.",
+        {titulo:"Substituir pelo backup?", ok:"Substituir", perigo:true})) return;
       D=o; ["hist","aportes","entradas"].forEach(function(k){ if(!D[k]) D[k]=[]; });
       if(!D.vale) D.vale=JSON.parse(JSON.stringify(PADRAO.vale)); if(!D.vale.l) D.vale.l=[];
       if(!Array.isArray(D.vale.cats)) D.vale.cats=[
@@ -2925,6 +2981,11 @@ renderTudo();
   window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').then(watch).catch(function(){}); });
 })();
 </script>
+<div class="modalw" id="confw" aria-hidden="true">
+  <div class="mbg" data-confno></div>
+  <div class="mcx" id="confCx" role="dialog" aria-modal="true"></div>
+</div>
+
 <div class="modalw" id="modalw" aria-hidden="true">
   <div class="mbg" onclick="fecharConfirma()"></div>
   <div class="mcx" id="modalCx" role="dialog" aria-modal="true" aria-label="Confirmar aporte"></div>
