@@ -116,15 +116,7 @@
   .aggrf .fd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
   .aggrf span u{text-decoration:none;color:var(--mut);font-weight:600}
 
-  /* a meta do casal */
-  .aggbar{height:7px;background:var(--panel2);border-radius:20px;overflow:hidden;margin-top:11px}
-  .aggbar i{display:block;height:100%;background:var(--accent);border-radius:20px;transition:width .3s}
-  .aggmet{display:flex;justify-content:space-between;gap:9px;margin-top:6px;font-size:11px;color:var(--mut)}
-  .aggmet b{color:var(--txt2);font-variant-numeric:tabular-nums}
-  .aggpz{margin-top:4px;font-size:11px;font-weight:700;color:var(--amber)}
-  .aggpz.atr{color:var(--red)}
-  .aggdica{font-size:11px;color:var(--mut);line-height:1.45;margin:2px 0 8px}
-  .aggdica b{color:var(--txt2)}
+
   /* ===== calculadora flutuante ===== */
   /* o icone mora no cabecalho, que fica preso no topo — assim ele esta sempre
      a vista sem brigar com o botao de sincronizacao, que ja ocupa o canto. */
@@ -773,6 +765,7 @@
   </div>
   <div id="listaCx"></div>
 
+  <div id="patBaixo">
   <h2>Entrada avulsa</h2>
   <div class="campos">
     <div style="min-width:140px"><label class="lb">De onde veio</label><input id="eDesc" placeholder="Freela, extra, presente…"></div>
@@ -795,6 +788,7 @@
 
   <h2>Histórico do patrimônio</h2>
   <div id="listaHist"></div>
+  </div>
 </section>
 
 <!-- =============== 2. APORTE =============== -->
@@ -1205,6 +1199,10 @@ function renderPatrimonio(){
   if(segC){ segC.className=(patView==="cx"?"on":""); }
   if(segM){ segM.className=(patView==="metas"?"on":""); }
   if(segA){ segA.className=(patView==="agg"?"on":""); }
+  /* entrada avulsa, fechar mes e historico sao do Patrimonio, nao do agregado:
+     a aba Agregados serve so pra escolher os cofres e ver a soma */
+  var pb=document.getElementById("patBaixo");
+  if(pb){ pb.style.display=(patView==="agg"?"none":""); }
   /* "+ dono" so faz sentido na aba dos cofres */
   if(bnn){ bnn.style.display=(patView==="cx"?"":"none"); }
   var h="";
@@ -1363,11 +1361,6 @@ function aggFatias(a){
 function aggEditor(a,ai){
   var body='<div class="gr"><div style="flex:1"><label class="lb">Nome do agregado</label>' +
     '<input data-aggn="'+ai+'" value="'+esc(a.nome||"")+'" placeholder="Ex.: Reserva do casal"></div></div>' +
-    '<div class="gr">' +
-      '<div><label class="lb">Meta do casal R$</label><input class="r" inputmode="decimal" data-aggm="'+ai+'" value="'+(a.m||"")+'" placeholder="0"></div>' +
-      '<div><label class="lb">Até (mês)</label><input type="month" data-aggpz="'+ai+'" value="'+(a.pz||"")+'" style="color-scheme:dark"></div>' +
-    '</div>' +
-    '<div class="aggdica">A meta aqui é <b>uma só</b>, do que vocês querem juntos — não a soma das metas de cada cofre.</div>' +
     '<label class="lb" style="margin-top:4px">Cofres incluídos</label>';
   var owners=D.owners.slice(); D.cx.forEach(function(x){ if(owners.indexOf(x.own)<0) owners.push(x.own); });
   owners.forEach(function(ow){
@@ -1391,20 +1384,6 @@ function renderAgg(){
     var tot=aggTotal(a);
     var itens=(a.cx||[]).map(function(id){ return acharCx(id); }).filter(Boolean);
     var chips=itens.map(function(c){ return '<span class="achip"><i style="background:'+c.c+'"></i>'+esc(c.n)+' <small>'+esc(c.own)+'</small> R$ '+brl(c.v)+'</span>'; }).join("");
-    /* meta do casal: uma barra so, com o que falta e o quanto por mes pros dois */
-    var meta = "";
-    if (a.m > 0){
-      var q = Math.min(100, tot / a.m * 100), falta = Math.max(0, a.m - tot);
-      meta = '<div class="aggbar"><i style="width:' + q + '%"></i></div>' +
-             '<div class="aggmet"><span><b>' + q.toFixed(1).replace(".", ",") + '%</b> de R$ ' + brl(a.m) + '</span>' +
-             '<span>faltam <b>R$ ' + brl(falta) + '</b></span></div>';
-      var mm = mesesAte(a.pz);
-      if (mm !== null && falta > 0){
-        var quando = mm > 0 ? ("R$ " + brl(falta / mm) + "/m&ecirc;s pros dois &middot; at&eacute; " + a.pz.split("-")[1] + "/" + a.pz.split("-")[0])
-                  : (mm === 0 ? ("R$ " + brl(falta) + " ainda este m&ecirc;s") : "prazo vencido");
-        meta += '<div class="aggpz' + (mm < 0 ? " atr" : "") + '">' + quando + '</div>';
-      }
-    }
     var temCofre = (a.cx || []).some(function(id){ return !!acharCx(id); });
     h+='<div class="aggcard">' +
        '<div class="aggtop"><span class="aggnm">'+esc(a.nome||"Agregado")+'</span>' +
@@ -1412,7 +1391,7 @@ function renderAgg(){
        (temCofre
          ? ('<div class="aggring">' + aggAnel(a, 66) +
             '<div class="aggri"><div class="aggrv">R$ ' + brl(tot) + '</div>' +
-            '<div class="aggrf">' + aggFatias(a) + '</div></div></div>' + meta)
+            '<div class="aggrf">' + aggFatias(a) + '</div></div></div>')
          : '<div class="aggempty2">Nenhum cofre escolhido &mdash; toque na engrenagem.</div>') +
        '<div class="agged" data-agged="'+ai+'" style="display:none">'+aggEditor(a,ai)+'</div>' +
        '</div>';
@@ -1429,10 +1408,6 @@ function ligarAgg(){
   });
   Array.prototype.forEach.call(q("[data-aggcog]"),function(b){ b.addEventListener("click",function(){
     var ed=document.querySelector('[data-agged="'+this.getAttribute("data-aggcog")+'"]'); if(ed) ed.style.display=ed.style.display==="none"?"block":"none"; }); });
-  Array.prototype.forEach.call(q("[data-aggm]"),function(i){ i.addEventListener("change",function(){
-    var a=D.agg[Number(this.getAttribute("data-aggm"))]; if(a){ a.m=num(this.value); salvar(); renderPatrimonio(); } }); });
-  Array.prototype.forEach.call(q("[data-aggpz]"),function(i){ i.addEventListener("change",function(){
-    var a=D.agg[Number(this.getAttribute("data-aggpz"))]; if(a){ a.pz=this.value||""; salvar(); renderPatrimonio(); } }); });
   Array.prototype.forEach.call(q("[data-aggn]"),function(i){ i.addEventListener("change",function(){
     var a=D.agg[+this.getAttribute("data-aggn")]; if(a){ a.nome=this.value.trim(); salvar(); renderPatrimonio(); } }); });
   Array.prototype.forEach.call(q("[data-aggcx]"),function(c){ c.addEventListener("change",function(){
