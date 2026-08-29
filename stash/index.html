@@ -397,6 +397,10 @@
   .mrow .mn{flex:1;min-width:0;color:var(--txt);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mrow .mp{color:var(--dono);font-weight:800;width:48px;text-align:right;font-variant-numeric:tabular-nums}
   .mrow .mv{color:var(--green);font-weight:800;width:98px;text-align:right;font-variant-numeric:tabular-nums}
+  .mrow .mv.sai{color:var(--red)}
+  .mrow .mv.neutro{color:var(--txt2)}
+  .mrow .mtx{color:var(--mut);font-weight:600;width:auto;text-align:right;font-size:11.5px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
   .mnota{font-size:11.5px;color:var(--mut);text-align:center;margin-top:14px;line-height:1.45}
   .mnota b{color:var(--txt2)}
   .mwarn{font-size:12px;color:var(--red);text-align:center;margin-top:11px;font-weight:700;line-height:1.4;
@@ -453,7 +457,21 @@
 
   /* Cashbook: ligar categoria a um cofre. E SO GUIA — le o saldo, nunca escreve. */
   .cflbl{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin:10px 0 6px}
+  /* a linha de identidade: icone, cor e nome lado a lado */
+  .caid{display:flex;align-items:flex-end;gap:9px}
+  .caid .campoNome{flex:1;min-width:0}
+  .caabre{width:46px;height:46px;flex:none;border-radius:12px;cursor:pointer;
+    background:var(--panel2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;position:relative}
+  .caabre[aria-expanded="true"]{border-color:var(--accent)}
+  .caabre .csvg{width:22px;height:22px}
+  .caabre .bolha{width:20px;height:20px;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+  .caabre::after{content:"";position:absolute;right:4px;bottom:4px;width:0;height:0;
+    border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid var(--mut2)}
+  .cafio{height:1px;background:var(--line);margin:14px 0 2px;border:none}
   .cfgrid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+  .cfdono{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--mut2);margin:9px 0 5px}
   .cfop{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:20px;cursor:pointer;
     font-size:11.5px;font-weight:700;color:var(--mut);background:var(--panel2);border:1px solid var(--line)}
   .cfop i{width:8px;height:8px;border-radius:50%;flex:none}
@@ -979,7 +997,12 @@
   </div>
 
   <div class="acoes">
-    <button class="bt n" id="gNovoCiclo">Começar ciclo novo</button>
+    <button class="bt p w" id="gNovoCiclo">Aplicar e registrar</button>
+  </div>
+  <div class="nota" style="margin-top:-4px">
+    Fecha o ciclo: desconta dos cofres o que cada categoria ligada gastou,
+    guarda o ciclo no histórico e começa o próximo. O relatório fica no
+    <b>Histórico e relatório</b>, logo acima.
   </div>
 
   <h2>Backup</h2>
@@ -1109,7 +1132,9 @@ function appConfirm(texto, opts){
     _confResolve = resolve;
     cx.innerHTML =
       '<div class="mtit">'+esc(opts.titulo || "Tem certeza?")+'</div>' +
-      '<div class="mtxt">'+esc(texto)+'</div>' +
+      /* opts.html: quando a confirmacao precisa MOSTRAR o que vai acontecer,
+         e nao so descrever. Conferencia vale mais que reflexo. */
+      (opts.html ? opts.html : '<div class="mtxt">'+esc(texto)+'</div>') +
       '<div class="macoes">' +
         '<button type="button" data-confno>'+esc(opts.cancelar || "Cancelar")+'</button>' +
         '<button type="button" class="'+(opts.perigo?"perigo":"ok")+'" data-confsim>'+esc(opts.ok || "Confirmar")+'</button>' +
@@ -1226,7 +1251,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v87';
+var VERSAO = 'v88';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -2329,7 +2354,7 @@ function relHist(){ if(!D.vale.hist) D.vale.hist=[]; return D.vale.hist; }
 function relCiclos(){
   var c=cicloInfo();
   var lista=[{ nome:(D.vale.ciclo||"Ciclo atual"), per:c.per, l:(D.vale.l||[]) }];
-  relHist().slice().reverse().forEach(function(h){ lista.push({ nome:h.ciclo, per:h.per, l:(h.l||[]) }); });
+  relHist().slice().reverse().forEach(function(h){ lista.push({ nome:h.ciclo, per:h.per, l:(h.l||[]), apl:(h.apl||[]), aplDt:h.aplDt }); });
   return lista;
 }
 function relDados(i){
@@ -2370,6 +2395,31 @@ function relRender(){
   }
   if(!algum) hh+='<div class="exvazio">Nenhum gasto neste ciclo.</div>';
   hh+='</div><div class="exf"><span class="t">Total do ciclo</span><span class="v">R$ '+brl(d.total)+'</span></div></div>';
+  /* o que este fechamento tirou dos cofres — so existe em ciclo ja fechado */
+  var apl=d.c.apl||[];
+  if(apl.length){
+    var somaApl=0; apl.forEach(function(a){ somaApl+=a.v; });
+    hh+='<div class="ex" style="margin-top:10px"><div class="exh"><span class="t">Descontado dos cofres</span>' +
+        '<span class="p">'+esc(d.c.aplDt||"")+'</span></div><div class="exb">';
+    apl.forEach(function(a){
+      hh+='<div class="exl"><span class="cdot" style="background:'+(a.cor||"#5c6469")+'"></span>' +
+          '<span class="n">'+esc(a.nome)+'</span><span class="d"></span>' +
+          '<span class="pc" style="color:var(--mut2);font-size:11px">'+esc((a.cats||[]).join(", "))+'</span>' +
+          '<span class="v" style="color:var(--red)">&minus;R$ '+brl(a.v)+'</span></div>';
+    });
+    hh+='</div><div class="exf"><span class="t">Saiu dos cofres</span><span class="v" style="color:var(--red)">&minus;R$ '+brl(somaApl)+'</span></div></div>';
+    res.innerHTML = hh;
+    var lh0="";
+    (d.c.l||[]).slice().reverse().forEach(function(x){
+      var k0=acharCat(x.c), cor0 = k0 ? k0.cor : "#5c6469";
+      lh0+='<div class="lc" style="border-left-color:'+cor0+'"><span class="ld">'+esc(x.dt)+'</span>'
+          +'<span class="lo">'+esc(x.d)+'<small>'+(k0?catIcoHTML(k0):"")+' '+esc(k0?k0.nome:"sem categoria")+'</small></span>'
+          +'<span class="lv">R$ '+brl(x.v)+'</span></div>';
+    });
+    lst.innerHTML = lh0 || '<div class="exvazio">Sem lançamentos.</div>';
+    setTimeout(function(){ if(window.paintIcons) window.paintIcons(lst); },0);
+    return;
+  }
   res.innerHTML = hh;
   var lh="";
   (d.c.l||[]).slice().reverse().forEach(function(x){
@@ -2394,6 +2444,15 @@ function relPdf(){
     h+='<tr><td>'+esc(k.nome)+'</td><td class="num">R$ '+brl(v)+'</td><td class="num">'+pc+'%</td></tr>';
   });
   h+='</table><div class="tot">Total: R$ '+brl(d.total)+'</div>';
+  var aplP=d.c.apl||[];
+  if(aplP.length){
+    var somaP=0; aplP.forEach(function(a){ somaP+=a.v; });
+    h+='<h2>Descontado dos cofres</h2><table><tr><th>Cofre</th><th>Categorias</th><th class="num">Valor</th></tr>';
+    aplP.forEach(function(a){
+      h+='<tr><td>'+esc(a.nome)+'</td><td>'+esc((a.cats||[]).join(", "))+'</td><td class="num">R$ '+brl(a.v)+'</td></tr>';
+    });
+    h+='</table><div class="tot">Saiu dos cofres: R$ '+brl(somaP)+'</div>';
+  }
   h+='<h2>Lançamentos</h2><table><tr><th>Data</th><th>Local</th><th>Categoria</th><th class="num">Valor</th></tr>';
   (d.c.l||[]).forEach(function(x){
     var k=acharCat(x.c);
@@ -2432,7 +2491,8 @@ function parcDica(){
   var sel=document.getElementById("gParc"), val=document.getElementById("gVal");
   var n=sel?parseInt(sel.value,10):1, v=val?num(val.value):0;
   if(!n || n<2 || !v){ el.innerHTML=""; return; }
-  el.innerHTML = n + "x de <b>" + parcMoeda(v/n) + "</b> por ciclo, lançada sozinha na virada. Não desconta do cofre.";
+  el.innerHTML = n + "x de <b>" + parcMoeda(v/n) + "</b> por ciclo, lançada sozinha na virada. " +
+    "No fim do ciclo sai do cofre <b>a parcela</b>, nunca o total.";
 }
 function parcRenderAtivos(){
   var box=document.getElementById("gParcAtivos"); if(!box) return;
@@ -2621,14 +2681,66 @@ function avisoCofre(k){
 
 /* as pastilhas de cofre — mesmo desenho da grade de icones que ja existe */
 function cofreGridHTML(campoId, sel){
-  var h='<div class="cfgrid">';
-  h+='<span class="cfop'+(!sel?" on":"")+'" data-cfor="'+campoId+'" data-cfv="">Nenhum</span>';
-  D.cx.forEach(function(x){
-    h+='<span class="cfop'+(String(sel)===String(x.id)?" on":"")+'" data-cfor="'+campoId+'" data-cfv="'+x.id+'">' +
-       '<i style="background:'+x.c+'"></i>'+esc(x.n)+'</span>';
+  function pastilha(x){
+    return '<span class="cfop'+(String(sel)===String(x.id)?" on":"")+'" data-cfor="'+campoId+'" data-cfv="'+x.id+'">' +
+           '<i style="background:'+x.c+'"></i>'+esc(x.n)+'</span>';
+  }
+  var h='<div class="cfgrid">' +
+        '<span class="cfop'+(!sel?" on":"")+'" data-cfor="'+campoId+'" data-cfv="">Nenhum</span></div>';
+  /* dois donos costumam ter cofre de mesmo nome (Saude, Casa, Viagem...).
+     sem o nome de quem e, so a cor separava — e cor nao e identidade. */
+  var donos=(D.owners||[]).slice(), vistos={}, umSo=(donos.length<=1);
+  donos.forEach(function(o){
+    var meus=D.cx.filter(function(x){ return x.own===o; });
+    if(!meus.length) return;
+    if(!umSo) h+='<div class="cfdono">'+esc(o)+'</div>';
+    h+='<div class="cfgrid">';
+    meus.forEach(function(x){ vistos[String(x.id)]=1; h+=pastilha(x); });
+    h+='</div>';
   });
-  return h+'</div>';
+  var orfaos=D.cx.filter(function(x){ return !vistos[String(x.id)]; });
+  if(orfaos.length){
+    if(!umSo) h+='<div class="cfdono">sem dono</div>';
+    h+='<div class="cfgrid">';
+    orfaos.forEach(function(x){ h+=pastilha(x); });
+    h+='</div>';
+  }
+  return h;
 }
+/* A ligacao passou a mover dinheiro no fim do ciclo — entao ela pede
+   confirmacao antes de valer, mostrando o cofre, o saldo e quem mais puxa
+   dele. Vale nos dois sentidos: ligar e desligar. */
+function confirmaLigacao(nomeCat, cofreId, cofreAntigoId){
+  var novo = cofreId ? acharCx(cofreId) : null;
+  var velho = cofreAntigoId ? acharCx(cofreAntigoId) : null;
+  if(!novo){
+    return appConfirm("", {
+      titulo: 'Desligar de "' + (velho ? velho.n : "cofre") + '"?',
+      html: '<div class="mtxt">O que voc&ecirc; gastar em <b>' + esc(nomeCat) + '</b> deixa de sair de <b>' +
+            esc(velho ? velho.n : "") + '</b> no fim do ciclo.</div>' +
+            '<div class="mnota">Os descontos que j&aacute; foram aplicados ficam como est&atilde;o.</div>',
+      ok: "Desligar", perigo: true });
+  }
+  var outras = [];
+  D.vale.cats.forEach(function(o){
+    if(String(o.cofre) === String(novo.id) && o.nome !== nomeCat) outras.push(o.nome);
+  });
+  var h = '<div class="mtxt">No fim do ciclo, tudo que voc&ecirc; lan&ccedil;ar em <b>' + esc(nomeCat) +
+          '</b> sai de <b>' + esc(novo.n) + '</b>.</div>' +
+          '<div class="mlist">' +
+          '<div class="mrow"><span class="mq" style="background:' + novo.c + '"></span>' +
+            '<span class="mn">' + esc(novo.n) + (novo.own ? ' <span style="font-weight:400;color:var(--mut2)">&middot; ' + esc(novo.own) + '</span>' : '') + '</span>' +
+            '<span class="mv neutro">R$ ' + brl(novo.v || 0) + '</span></div>';
+  if(outras.length){
+    h += '<div class="mrow"><span class="mq" style="background:transparent"></span>' +
+         '<span class="mn" style="font-weight:400;color:var(--mut)">j&aacute; puxam daqui</span>' +
+         '<span class="mtx">' + esc(outras.join(", ")) + '</span></div>';
+  }
+  h += '</div><div class="mnota">Enquanto o ciclo estiver aberto, <b>nada sai</b> do cofre. ' +
+       'O desconto acontece quando voc&ecirc; tocar em <b>Aplicar e registrar</b>.</div>';
+  return appConfirm("", { titulo: 'Ligar "' + nomeCat + '" a ' + novo.n + '?', html: h, ok: "Ligar" });
+}
+
 function ligaCofreGrid(){
   Array.prototype.forEach.call(document.querySelectorAll("[data-cfor]"),function(o){
     o.addEventListener("click",function(){
@@ -2659,10 +2771,14 @@ function mostrarNovaCat(){
   document.getElementById("gNewCatWrap").innerHTML=
     '<div class="box" style="border-left:3px solid var(--accent)">' +
       '<div class="caed" style="margin:0;padding:0;border:none">' +
-        '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input id="ncNome" placeholder="Ex.: Transporte" maxlength="24"></div>' +
-        '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" id="ncCor" value="#A78BFA"></div></div>' +
-        swHTML("#ncCor") +
-        '<div class="icolbl">Ícone</div>'+iconGridHTML("ncEmoji","#cart")+'<input type="hidden" id="ncEmoji" value="#cart">' +
+        '<div class="caid">' +
+          '<button type="button" class="caabre" id="ncIcoBt" aria-expanded="false" title="Ícone"><span class="csvg" id="ncIcoPv" style="color:#A78BFA">'+svgOr("cart")+'</span></button>' +
+          '<button type="button" class="caabre" id="ncCorBt" aria-expanded="false" title="Cor"><span class="bolha" id="ncCorPv" style="background:#A78BFA"></span></button>' +
+          '<div class="campoNome"><label class="lb">Nome</label><input id="ncNome" placeholder="Ex.: Transporte" maxlength="24"></div>' +
+        '</div>' +
+        '<div id="ncIcoBox" style="display:none">'+iconGridHTML("ncEmoji","#cart")+'</div><input type="hidden" id="ncEmoji" value="#cart">' +
+        '<div id="ncCorBox" style="display:none;margin-top:8px">'+swHTML("#ncCor")+'</div><input type="hidden" id="ncCor" value="#A78BFA">' +
+        '<hr class="cafio">' +
         '<div class="cflbl">Cofre relacionado (opcional)</div>' +
         cofreGridHTML("ncCofre","") +
         '<input type="hidden" id="ncCofre" value="">' +
@@ -2675,6 +2791,25 @@ function mostrarNovaCat(){
   document.getElementById("ncCancel").addEventListener("click",resetNovaCat);
   document.getElementById("ncNome").focus();
   ligaCofreGrid();
+  /* as paredes de icone e cor so aparecem quando voce pede */
+  (function(){
+    function alterna(bt,cx){ var abre=(cx.style.display==="none");
+      cx.style.display=abre?"":"none"; bt.setAttribute("aria-expanded",abre?"true":"false"); }
+    var bi=document.getElementById("ncIcoBt"), ci=document.getElementById("ncIcoBox");
+    var bc=document.getElementById("ncCorBt"), cc=document.getElementById("ncCorBox");
+    bi.addEventListener("click",function(){ alterna(bi,ci); });
+    bc.addEventListener("click",function(){ alterna(bc,cc); });
+    document.getElementById("ncEmoji").addEventListener("change",function(){
+      var n=String(this.value||"").replace("#","");
+      document.getElementById("ncIcoPv").innerHTML=svgOr(n);
+      alterna(bi,ci);
+    });
+    document.getElementById("ncCor").addEventListener("change",function(){
+      document.getElementById("ncCorPv").style.background=this.value;
+      document.getElementById("ncIcoPv").style.color=this.value;
+      alterna(bc,cc);
+    });
+  })();
   /* o campo de % so faz sentido depois de escolher um cofre */
   function ncAtualiza(){
     var cid=document.getElementById("ncCofre").value;
@@ -2689,10 +2824,11 @@ function mostrarNovaCat(){
       : ("Nenhuma categoria usa "+esc(c.n)+" ainda. Livre: <b>100%</b>.");
   }
   document.getElementById("ncCofre").addEventListener("change",ncAtualiza);
-  document.getElementById("ncOk").addEventListener("click",function(){
+  document.getElementById("ncOk").addEventListener("click",async function(){
     var nm=document.getElementById("ncNome").value.trim();
     if(!nm){ toast("Dê um nome à categoria.","err"); document.getElementById("ncNome").focus(); return; }
     var cof=document.getElementById("ncCofre").value;
+    if(cof && !await confirmaLigacao(nm, cof, "")) return;
     D.vale.cats.push({id:"c"+Date.now().toString(36),nome:nm,
       emoji:(document.getElementById("ncEmoji").value||"#cart"),
       cor:document.getElementById("ncCor").value, orc:"",
@@ -2804,10 +2940,16 @@ function renderGastos(){
              ? '<span class="cfv2">usando o seu</span>'
              : '<span class="cfv2 auto">em uso</span>')+'</div>')) +
         '<div class="caed" data-caed="'+k.id+'" style="display:none">' +
-          '<div class="gr"><div style="flex:2"><label class="lb">Nome</label><input data-catn="'+k.id+'" value="'+esc(k.nome)+'" maxlength="24"></div>' +
-          '<div style="max-width:70px"><label class="lb">Cor</label><input type="color" data-catc="'+k.id+'" value="'+k.cor+'"></div></div>' +
-          '<div class="icolbl">Ícone</div>'+iconGridHTML("cate_"+k.id,k.emoji)+'<input type="hidden" id="cate_'+k.id+'" data-cate="'+k.id+'" value="'+esc(k.emoji)+'">' +
-          swHTML("[data-catc='"+k.id+"']") +
+          '<div class="caid">' +
+            '<button type="button" class="caabre" data-abrir="ico_'+k.id+'" aria-expanded="false" title="Ícone">'+catIcoHTML(k)+'</button>' +
+            '<button type="button" class="caabre" data-abrir="cor_'+k.id+'" aria-expanded="false" title="Cor"><span class="bolha" style="background:'+k.cor+'"></span></button>' +
+            '<div class="campoNome"><label class="lb">Nome</label><input data-catn="'+k.id+'" value="'+esc(k.nome)+'" maxlength="24"></div>' +
+          '</div>' +
+          '<div id="cx_ico_'+k.id+'" style="display:none">'+iconGridHTML("cate_"+k.id,k.emoji)+'</div>' +
+          '<input type="hidden" id="cate_'+k.id+'" data-cate="'+k.id+'" value="'+esc(k.emoji)+'">' +
+          '<div id="cx_cor_'+k.id+'" style="display:none;margin-top:8px">'+swHTML("[data-catc='"+k.id+"']")+'</div>' +
+          '<input type="hidden" data-catc="'+k.id+'" value="'+k.cor+'">' +
+          '<hr class="cafio">' +
           '<div class="cflbl">Cofre relacionado (opcional)</div>' +
           cofreGridHTML("cate_cof_"+k.id, k.cofre) +
           '<input type="hidden" id="cate_cof_'+k.id+'" data-catcof="'+k.id+'" value="'+esc(k.cofre||"")+'">' +
@@ -2855,15 +2997,25 @@ function renderGastos(){
   Array.prototype.forEach.call(q("[data-orc]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-orc")); if(k){ k.orc=this.value; salvar(); renderGastos(); } }); });
   ligaCofreGrid();
-  Array.prototype.forEach.call(q("[data-catcof]"),function(i){ i.addEventListener("change",function(){
+  Array.prototype.forEach.call(q("[data-catcof]"),function(i){ i.addEventListener("change",async function(){
     var k=acharCat(this.getAttribute("data-catcof")); if(!k) return;
-    k.cofre=this.value;
+    var novo=this.value||"", antigo=k.cofre||"";
+    if(novo===antigo) return;
+    /* recusou: redesenha pra pastilha voltar pro cofre que valia */
+    if(!await confirmaLigacao(k.nome, novo, antigo)){ renderGastos(); abreCatEd(k.id); return; }
+    k.cofre=novo;
     if(!k.cofre) k.cpc=0;
     else if(!k.cpc){ var livre=100-somaPcCofre(k.cofre,k.id); k.cpc=Math.max(0,Math.round(livre*100)/100); }
     salvar(); renderGastos(); abreCatEd(k.id); }); });
   Array.prototype.forEach.call(q("[data-catpc]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-catpc")); if(!k) return;
     k.cpc=num(this.value); salvar(); renderGastos(); abreCatEd(k.id); }); });
+  /* abre a parede de icone / de cor da categoria que ja existe */
+  Array.prototype.forEach.call(q("[data-abrir]"),function(b){ b.addEventListener("click",function(){
+    var cx=document.getElementById("cx_"+this.getAttribute("data-abrir")); if(!cx) return;
+    var abre=(cx.style.display==="none");
+    cx.style.display=abre?"":"none"; this.setAttribute("aria-expanded",abre?"true":"false");
+  }); });
   Array.prototype.forEach.call(q("[data-catcog]"),function(b){ b.addEventListener("click",function(){
     var el=document.querySelector('[data-caed="'+this.getAttribute("data-catcog")+'"]');
     if(!el) return;
@@ -2943,17 +3095,121 @@ document.getElementById("gAdd").addEventListener("click",function(){
   salvar(); renderTudo(); animarNovo("listaGastos","first"); toast("Gasto lançado.","ok");
 });
 
-document.getElementById("gNovoCiclo").addEventListener("click",async function(){
+/* Quanto cada cofre perde neste fechamento, e o que fica de fora.
+   O valor vem da soma dos lancamentos do ciclo: uma compra parcelada so
+   deixou a PARCELA aqui, entao e a parcela que sai. */
+function planoDoFechamento(){
+  var porCat={}, cofres=[], idx={}, fora=[], totalSai=0, totalCiclo=0;
+  (D.vale.l||[]).forEach(function(x){
+    if(porCat[x.c]==null) porCat[x.c]=0;
+    porCat[x.c]+=x.v; totalCiclo+=x.v;
+  });
+  D.vale.cats.forEach(function(k){
+    var v=porCat[k.id]||0; if(!v) return;
+    if(!k.cofre || !acharCx(k.cofre)){ fora.push({nome:k.nome, cor:k.cor, v:v}); return; }
+    var c=acharCx(k.cofre), key=String(c.id);
+    if(idx[key]==null){ idx[key]=cofres.length; cofres.push({cx:c, v:0, cats:[]}); }
+    var alvo=cofres[idx[key]];
+    alvo.v+=v; alvo.cats.push(k.nome); totalSai+=v;
+  });
+  /* gasto de categoria apagada nao tem como saber de onde sai */
+  for(var id in porCat){
+    if(acharCat(id) || !porCat[id]) continue;
+    fora.push({nome:"categoria removida", cor:"#5c6469", v:porCat[id]});
+  }
+  return { cofres:cofres, fora:fora, totalSai:totalSai, totalCiclo:totalCiclo };
+}
+
+document.getElementById("gNovoCiclo").addEventListener("click",function(){
+  var p=planoDoFechamento();
+  var v=D.vale, m2=(v.mesIni+1)%12;
+  var novo=MES[m2]+"/"+MES[(m2+1)%12];
+  /* o ciclo termina na vespera do dia escolhido, no mes seguinte */
+  var ci=cicloInfo(), ag=new Date();
+  var hoje=new Date(ag.getFullYear(),ag.getMonth(),ag.getDate());
+  var faltam=Math.round((ci.fim-hoje)/86400000);
+  var h='<div class="mtit">Fechar ' + esc(v.ciclo||"o ciclo") + '</div>' +
+        '<div class="mval">R$ ' + brl(p.totalSai) + '</div>' +
+        '<div class="msub">' + (p.cofres.length
+          ? ('sai de ' + p.cofres.length + (p.cofres.length===1?" cofre":" cofres"))
+          : 'nenhum cofre é descontado') + '</div>';
+  if(p.cofres.length){
+    h+='<div class="mlist">';
+    p.cofres.forEach(function(o){
+      h+='<div class="mrow"><span class="mq" style="background:'+o.cx.c+'"></span>' +
+         '<span class="mn">'+esc(o.cx.n)+'</span>' +
+         '<span class="mtx">'+esc(o.cats.join(", "))+'</span>' +
+         '<span class="mv sai">&minus;R$ '+brl(o.v)+'</span></div>';
+    });
+    h+='</div>';
+  }
+  /* o ponto fraco de escolher a ligacao na mao e esquecer de ligar.
+     entao o que NAO vai descontar aparece aqui, antes de ser tarde. */
+  if(p.fora.length){
+    var somaFora=0; p.fora.forEach(function(f){ somaFora+=f.v; });
+    h+='<div class="mlist">' +
+       '<div class="mrow"><span class="mq" style="background:transparent"></span>' +
+       '<span class="mn" style="font-weight:400;color:var(--mut)">sem cofre ligado</span>' +
+       '<span class="mv neutro">R$ '+brl(somaFora)+'</span></div>';
+    p.fora.forEach(function(f){
+      h+='<div class="mrow"><span class="mq" style="background:'+f.cor+';opacity:.5"></span>' +
+         '<span class="mn" style="font-weight:400;color:var(--mut2);font-size:12px">'+esc(f.nome)+'</span>' +
+         '<span class="mtx">não desconta</span></div>';
+    });
+    h+='</div>';
+  }
+  var neg=[];
+  p.cofres.forEach(function(o){ if(o.v > (o.cx.v||0)) neg.push(o.cx.n); });
+  if(neg.length){
+    h+='<div class="mwarn">'+esc(neg.join(", "))+(neg.length===1?" fica":" ficam")+' com saldo negativo.</div>';
+  }
+  if(faltam>0){
+    h+='<div class="mwarn" style="color:var(--amber);border-color:color-mix(in srgb,var(--amber) 34%,transparent);' +
+       'background:color-mix(in srgb,var(--amber) 10%,transparent)">O ciclo vai at&eacute; <b>' +
+       esc(ci.per.split(" a ")[1]) + '</b> — ainda ' + (faltam===1?"falta 1 dia":"faltam "+faltam+" dias") + '.</div>';
+  }
+  h+='<div class="mnota">Cada desconto entra como <b>retirada</b> na lista do Patrim&ocirc;nio — d&aacute; pra desfazer l&aacute;. ' +
+     'Depois o ciclo vai pro hist&oacute;rico e come&ccedil;a <b>'+esc(novo)+'</b>.</div>';
+  h+='<div class="macoes"><button onclick="fecharFechamento()">Cancelar</button>' +
+     '<button class="ok" onclick="confirmarFechamento()">Aplicar e registrar</button></div>';
+  var m=document.getElementById("modalw");
+  m.style.setProperty("--dono","#2FD9C9");
+  document.getElementById("modalCx").innerHTML=h;
+  m.classList.add("on"); m.setAttribute("aria-hidden","false");
+});
+
+window.fecharFechamento=function(){
+  var m=document.getElementById("modalw");
+  m.classList.remove("on"); m.setAttribute("aria-hidden","true");
+};
+
+window.confirmarFechamento=function(){
+  var p=planoDoFechamento();
   var v=D.vale, m2=(v.mesIni+1)%12, a2=v.mesIni===11?v.anoIni+1:v.anoIni;
   var novo=MES[m2]+"/"+MES[(m2+1)%12];
-  if(!await appConfirm("Os lancamentos deste ciclo sao apagados. Os saldos que voce ja descontou dos cofres continuam como estao.",
-      {titulo:'Comecar "'+novo+'"?', ok:"Comecar", perigo:true})) return;
+  var h0=new Date();
+  var dt=("0"+h0.getDate()).slice(-2)+"/"+("0"+(h0.getMonth()+1)).slice(-2);
+  var aplicado=[];
+  p.cofres.forEach(function(o){
+    o.cx.v = (o.cx.v||0) - o.v;
+    aplicado.push({ cofre:String(o.cx.id), nome:o.cx.n, cor:o.cx.c, v:o.v, cats:o.cats.slice() });
+    /* o mesmo lancamento avulso de retirada: o dinheiro sai onde da pra ver */
+    D.entradas.push({ d:"Cashbook · "+(v.ciclo||"ciclo"), v:o.v, s:-1,
+      dest:o.cx.id, destN:o.cx.n, dt:dt });
+  });
   var c0=cicloInfo();
-  if((v.l||[]).length){ if(!v.hist) v.hist=[]; v.hist.push({ ciclo:v.ciclo, per:c0.per, l:v.l.slice() }); }
+  if((v.l||[]).length || aplicado.length){
+    if(!v.hist) v.hist=[];
+    v.hist.push({ ciclo:v.ciclo, per:c0.per, l:(v.l||[]).slice(), apl:aplicado, aplDt:dt });
+  }
   v.mesIni=m2; v.anoIni=a2; v.ciclo=novo; v.l=[];
   parcVirarCiclo();
-  salvar(); renderTudo();
-});
+  salvar(); fecharFechamento(); renderTudo();
+  /* abre o relatorio do ciclo que acabou de fechar */
+  _relSel=1; relRender();
+  var g=document.getElementById("relGrp"); if(g) g.classList.add("aberto");
+  toast(aplicado.length ? "Aplicado e registrado." : "Ciclo fechado.","ok");
+};
 
 /* ================== BACKUP ================== */
 document.getElementById("btExp").addEventListener("click",function(){
