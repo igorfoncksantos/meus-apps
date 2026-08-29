@@ -1217,7 +1217,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v85';
+var VERSAO = 'v86';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -3411,18 +3411,21 @@ renderTudo();
        um botao, o arrasto so comeca depois que o dedo anda 6px: toque curto
        continua acionando o botao, toque que se move arrasta o painel. */
     var ALCAS = ".calch, .calcrodape", LIMIAR = 6;
-    var el, alca, atento = false, movendo = false, dx = 0, dy = 0, x0 = 0, y0 = 0;
+    var el, alca, pid = null, atento = false, movendo = false, dx = 0, dy = 0, x0 = 0, y0 = 0;
 
     document.addEventListener("pointerdown", function(e){
       alca = e.target.closest ? e.target.closest(ALCAS) : null;
       if (!alca) return;
+      /* o minimizar e o fechar moram DENTRO da alca: se eu capturar o
+         ponteiro aqui, o clique deles vai parar na alca e o botao nunca
+         dispara. No mouse isso e fatal; no toque passava despercebido. */
+      if (e.target.closest("button, input, a")) { alca = null; return; }
       el = document.getElementById("calcP");
       limpaAnim(el);   /* animacao em curso desloca a medida */
       var r = el.getBoundingClientRect();
       dx = e.clientX - r.left; dy = e.clientY - r.top;
       x0 = e.clientX; y0 = e.clientY;
-      atento = true; movendo = false;
-      try{ alca.setPointerCapture(e.pointerId); }catch(x){}
+      atento = true; movendo = false; pid = e.pointerId;
     });
 
     document.addEventListener("pointermove", function(e){
@@ -3430,6 +3433,8 @@ renderTudo();
       if (!movendo){
         if (Math.abs(e.clientX - x0) < LIMIAR && Math.abs(e.clientY - y0) < LIMIAR) return;
         movendo = true; el.classList.add("arrastando");
+        /* so agora, quando virou arrasto de verdade */
+        try{ if (alca) alca.setPointerCapture(pid); }catch(x){}
       }
       aplicaPos({ x: e.clientX - dx, y: e.clientY - dy });
       e.preventDefault();
