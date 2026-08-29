@@ -495,6 +495,10 @@
   .segt{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
   .segt button{border:none;background:transparent;color:var(--mut);font-family:inherit;font-size:13px;font-weight:800;padding:7px 15px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
   .segt button.on{background:var(--accent);color:#04191a}
+  /* o lancamento avulso tem dois sentidos: o que sai nao pode usar a cor
+     do que entra, senao o Pix se confunde com o freela */
+  .segt.lanc{margin-bottom:11px}
+  .segt.lanc button.on.sai{background:var(--red);color:#1c0a0a}
   .subtabs .add{margin-left:auto}
   /* sugestão de próximo aporte */
   .sugg{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,color-mix(in srgb,var(--dono) 14%,transparent),color-mix(in srgb,var(--dono) 3%,transparent));border:1px solid color-mix(in srgb,var(--dono) 32%,transparent);border-radius:14px;padding:12px 13px;margin-bottom:14px}
@@ -809,13 +813,18 @@
   <div id="listaCx"></div>
 
   <div id="patBaixo">
-  <h2>Entrada avulsa</h2>
+  <h2>Lançamento avulso</h2>
+  <div class="segt lanc">
+    <button type="button" id="eTipoIn" class="on">Entrou</button>
+    <button type="button" id="eTipoOut">Saiu</button>
+  </div>
+  <input type="hidden" id="eTipo" value="in">
   <div class="campos">
-    <div style="min-width:140px"><label class="lb">De onde veio</label><input id="eDesc" placeholder="Freela, extra, presente…"></div>
+    <div style="min-width:140px"><label class="lb" id="eDescLb">De onde veio</label><input id="eDesc" placeholder="Freela, extra, presente…"></div>
     <div style="max-width:130px"><label class="lb">Valor</label><input class="r" id="eVal" inputmode="decimal" placeholder="0,00"></div>
   </div>
   <div class="campos">
-    <div><label class="lb">Vai para</label>
+    <div><label class="lb" id="eDestLb">Vai para</label>
       <div class="cselwrap">
         <input type="hidden" id="eDest" value="cart">
         <button type="button" class="csel" id="eDestBtn"><span class="cseldot" id="eDestDot" style="background:#5c6469"></span><span id="eDestLbl">Investido</span><span class="cselcar">▾</span></button>
@@ -1217,7 +1226,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v86';
+var VERSAO = 'v87';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -1468,11 +1477,13 @@ function renderPatrimonio(){
   document.getElementById("eDestLbl").textContent=selN;
   document.getElementById("eDestDot").style.background=selC;
 
-  var le=D.entradas.length?"":'<div class="vazio">Nenhuma entrada avulsa registrada.</div>';
+  var le=D.entradas.length?"":'<div class="vazio">Nenhum lançamento avulso registrado.</div>';
   D.entradas.slice().reverse().forEach(function(e,i){
+    /* lancamento antigo nao tem sinal: era sempre entrada */
+    var saiu=(e.s===-1);
     le+='<div class="lc"><span class="ld">'+e.dt+'</span>' +
-        '<span class="lo">'+e.d+'<small>→ '+e.destN+'</small></span>' +
-        '<span class="lv" style="color:var(--green)">+R$ '+brl(e.v)+'</span>' +
+        '<span class="lo">'+e.d+'<small>'+(saiu?"← ":"→ ")+e.destN+'</small></span>' +
+        '<span class="lv" style="color:var('+(saiu?"--red":"--green")+')">'+(saiu?"−":"+")+'R$ '+brl(e.v)+'</span>' +
         '<button class="lx" data-de="'+(D.entradas.length-1-i)+'">×</button></div>';
   });
   document.getElementById("listaEntradas").innerHTML=le;
@@ -1630,10 +1641,10 @@ function ligarPatr(){
         {titulo:'Apagar "'+c.n+'"?', ok:"Apagar", perigo:true})) return;
     D.cx=D.cx.filter(function(x){ return x.id != c.id; }); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-de]"),function(b){ b.addEventListener("click",async function(){
-    var i=+this.getAttribute("data-de"), e=D.entradas[i];
-    if(!await appConfirm("R$ "+brl(e.v)+" sai de onde foi lancado.",
-        {titulo:"Remover a entrada?", ok:"Remover", perigo:true})) return;
-    if(e.dest==="cart") D.carteira-=e.v; else { var c=acharCx(e.dest); if(c) c.v-=e.v; }
+    var i=+this.getAttribute("data-de"), e=D.entradas[i], sg=(e.s===-1?-1:1);
+    if(!await appConfirm("R$ "+brl(e.v)+(sg<0?" volta pra ":" sai de ")+(e.destN||"onde foi lançado")+".",
+        {titulo:sg<0?"Remover a retirada?":"Remover a entrada?", ok:"Remover", perigo:true})) return;
+    if(e.dest==="cart") D.carteira-=sg*e.v; else { var c=acharCx(e.dest); if(c) c.v-=sg*e.v; }
     D.entradas.splice(i,1); salvar(); renderTudo(); }); });
 
   var bsm=document.getElementById("btSemMeta");
@@ -1716,22 +1727,47 @@ document.getElementById("btNovoNicho").addEventListener("click",function(){
   inp.addEventListener("blur",function(){ setTimeout(criar,120); });
 });
 
-document.getElementById("eAdd").addEventListener("click",function(){
+document.getElementById("eAdd").addEventListener("click",async function(){
   var v=num(document.getElementById("eVal").value);
   if(!v){ toast("Informe o valor.","err"); document.getElementById("eVal").focus(); return; }
+  var saiu=document.getElementById("eTipo").value==="out";
   var dest=document.getElementById("eDest").value;
-  var d=document.getElementById("eDesc").value.trim()||"Entrada";
-  var destN="—";
-  /* sem o "Investido" na tela, entrada so pode ir pra um cofre — senao o
+  var d=document.getElementById("eDesc").value.trim()||(saiu?"Retirada":"Entrada");
+  /* sem o "Investido" na tela, o lancamento so encosta num cofre — senao o
      dinheiro entraria num lugar que ninguem consegue ver nem corrigir */
   var c=acharCx(dest);
-  if(!c){ toast("Escolha um cofre de destino.","err"); return; }
-  c.v+=v; destN=c.n;
+  if(!c){ toast(saiu?"Escolha de qual cofre saiu.":"Escolha um cofre de destino.","err"); return; }
+  /* nao barro a retirada maior que o saldo: pode ser saldo desatualizado.
+     mas aviso, porque cofre negativo quase sempre e erro de digitacao */
+  if(saiu && v>c.v && !await appConfirm(
+      '"'+c.n+'" tem R$ '+brl(c.v)+' e ficaria em −R$ '+brl(v-c.v)+'.',
+      {titulo:"Retirar mais do que há?", ok:"Retirar assim mesmo", perigo:true})) return;
+  c.v += (saiu ? -v : v);
   var h=new Date();
-  D.entradas.push({d:d, v:v, dest:dest, destN:destN, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
+  D.entradas.push({d:d, v:v, s:(saiu?-1:1), dest:dest, destN:c.n, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
   document.getElementById("eDesc").value=""; document.getElementById("eVal").value="";
-  salvar(); renderTudo(); animarNovo("listaEntradas","first"); toast("Entrada registrada.","ok");
+  salvar(); renderTudo(); animarNovo("listaEntradas","first");
+  toast(saiu?"Retirada registrada.":"Entrada registrada.","ok");
 });
+
+/* o par Entrou / Saiu do lancamento avulso */
+(function(){
+  var tp=document.getElementById("eTipo"),
+      bi=document.getElementById("eTipoIn"), bo=document.getElementById("eTipoOut"),
+      dl=document.getElementById("eDestLb"), cl=document.getElementById("eDescLb"),
+      ds=document.getElementById("eDesc");
+  function poe(t){
+    tp.value=t;
+    var saiu=(t==="out");
+    bi.classList.toggle("on",!saiu);
+    bo.classList.toggle("on",saiu); bo.classList.toggle("sai",saiu);
+    dl.textContent = saiu ? "Sai de" : "Vai para";
+    cl.textContent = saiu ? "Para onde foi" : "De onde veio";
+    ds.placeholder  = saiu ? "Pix, saque, compra…" : "Freela, extra, presente…";
+  }
+  bi.addEventListener("click",function(){ poe("in"); });
+  bo.addEventListener("click",function(){ poe("out"); });
+})();
 
 /* dropdown custom "Categoria" do lancar gasto (gCat) */
 (function(){
