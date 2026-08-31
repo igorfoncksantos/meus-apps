@@ -141,9 +141,12 @@
   function autocaps(){ caps = (target && valDe(target).length) ? 0 : 1; }
 
 
-  function _kbdAltura(){ try{ var a=kbd.offsetHeight; if(a>60) document.body.style.setProperty("padding-bottom", a+"px", "important"); }catch(x){} }
+  function _kbdAltura(){ try{ var a=kbd.offsetHeight; if(a>60){ document.body.style.setProperty("padding-bottom", a+"px", "important");
+    /* quem esta em position:fixed (folha, modal) ignora o padding do body:
+       precisa desta medida pra reservar o espaco e subir junto */
+    document.documentElement.style.setProperty("--kbh", a+"px"); } }catch(x){} }
   function _kbdAbre(){ document.body.classList.add('kbdopen'); _kbdAltura(); }
-  function _kbdFecha(){ document.body.classList.remove('kbdopen'); try{ document.body.style.removeProperty("padding-bottom"); }catch(x){} }
+  function _kbdFecha(){ document.body.classList.remove('kbdopen'); try{ document.body.style.removeProperty("padding-bottom"); document.documentElement.style.removeProperty("--kbh"); }catch(x){} }
   var _kbdRepT=null;
   function _kbdSolta(){ if(_kbdRepT){ clearTimeout(_kbdRepT); _kbdRepT=null; } }
   function _kbdApagando(){
