@@ -116,9 +116,13 @@
   // o teclado escreve o valor por script, e mudanca por script NAO dispara 'change'.
   // commit() reproduz a semantica nativa: 'change' so ao confirmar o campo.
   function commit(){ var t=target, sv=startVal; startVal=null;
-    if(t && sv!==null && t.value!==sv){ try{ t.dispatchEvent(new Event('change',{bubbles:true})); }catch(x){} } }
+    if(t && !solto(t) && sv!==null && t.value!==sv){ try{ t.dispatchEvent(new Event('change',{bubbles:true})); }catch(x){} } }
   function ins(ch){
     if(!target) return;
+    /* no campo solto quem escreve e o proprio navegador: assim o cursor fica
+       onde estava e o app recebe o 'input' de sempre */
+    if(ehTexto()){ try{ document.execCommand('insertText',false,ch); }catch(x){}
+      if(caps===1){ caps=0; render(); } return; }
     if(target.type==='number' && ch===',') ch='.';       // number não aceita vírgula
     var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ target.value=v+ch; }
@@ -127,13 +131,14 @@
   }
   function back(){
     if(!target) return;
+    if(ehTexto()){ try{ document.execCommand('delete'); }catch(x){} return; }
     var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ target.value=v.slice(0,-1); }
     else if(s!==e){ target.value=v.slice(0,s)+v.slice(e); try{target.setSelectionRange(s,s);}catch(x){} }
     else if(s>0){ target.value=v.slice(0,s-1)+v.slice(s); try{target.setSelectionRange(s-1,s-1);}catch(x){} }
     fire();
   }
-  function autocaps(){ caps = (target&&target.value.length) ? 0 : 1; }
+  function autocaps(){ caps = (target && valDe(target).length) ? 0 : 1; }
 
 
   function _kbdAltura(){ try{ var a=kbd.offsetHeight; if(a>60) document.body.style.setProperty("padding-bottom", a+"px", "important"); }catch(x){} }
@@ -144,7 +149,7 @@
   function _kbdApagando(){
     _kbdSolta(); var n=0;
     _kbdRepT=setTimeout(function passo(){
-      if(!target || target.value===""){ _kbdSolta(); return; }
+      if(!target || valDe(target)===""){ _kbdSolta(); return; }
       back(); n++;
       _kbdRepT=setTimeout(passo, n<8?55:(n<20?34:20));
     }, 420);
@@ -197,8 +202,13 @@
   function show(){ mount(); autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); }
   function hide(){ commit(); kbd.classList.remove('on'); _kbdFecha(); }
 
+  /* campo "solto": o texto que se edita direto na tela, sem <input> */
+  function solto(el){ return !!(el && el.isContentEditable); }
+  function ehTexto(){ return solto(target); }
+  function valDe(el){ return solto(el) ? (el.textContent||'') : (el.value||''); }
   function handle(el){
     if(!el || !el.tagName) return false;
+    if(solto(el)) return el.getAttribute('data-kb')!=='off';
     var tag=el.tagName;
     if(tag!=='INPUT' && tag!=='TEXTAREA') return false;
     if(el.getAttribute('data-kb')==='off') return false;
@@ -213,7 +223,7 @@
     if(target && target!==el) commit();
     // se o handler de 'change' re-renderizou a tela, o campo novo virou orfao
     if(el.isConnected===false){ kbd.classList.remove('on'); _kbdFecha(); target=null; return; }
-    target=el; startVal=el.value; form=el.closest?el.closest('form'):null;
+    target=el; startVal=solto(el)?null:el.value; form=(!solto(el)&&el.closest)?el.closest('form'):null;
     layer='abc';
     /* decide o tipo ANTES de apagar o inputmode — senao a informacao some
        e todo campo de numero abriria com o teclado de letras */
@@ -223,6 +233,40 @@
     show();
     setTimeout(function(){ try{ if(target && getComputedStyle(target).position!=='fixed') target.scrollIntoView({block:'center',behavior:'smooth'}); }catch(x){} }, 70);
   }
+  /* SELAR ANTES DO FOCO — e isto que impede o teclado do navegador.
+     Marcar no focusin e tarde: no celular quem chama o painel do sistema e o
+     proprio foco, e mudar o inputmode depois nao faz ele descer. Entao todo
+     campo ja nasce selado, e os que aparecem depois sao selados na hora. */
+  function selar(raiz){
+    if(!TOUCH) return;
+    var els;
+    try{ els=(raiz||document).querySelectorAll('input,textarea,[contenteditable="true"]'); }catch(x){ return; }
+    for(var i=0;i<els.length;i++){
+      var el=els[i];
+      if(!handle(el)) continue;
+      if(el.getAttribute('inputmode')==='none') continue;
+      if(!el.getAttribute('data-kb')) el.setAttribute('data-kb', (!solto(el) && isNum(el)) ? 'num' : 'text');
+      el.setAttribute('inputmode','none');
+      el.setAttribute('autocapitalize','off');
+      el.setAttribute('autocorrect','off');
+      el.setAttribute('spellcheck','false');
+    }
+  }
+  try{ window.__kbdSelar = selar; }catch(x){}
+  if(TOUCH){
+    selar(document);
+    /* os apps redesenham o tempo todo; campo novo nasce selado */
+    try{
+      var _sp=null;
+      new MutationObserver(function(){
+        if(_sp) return;
+        _sp=setTimeout(function(){ _sp=null; selar(document); },30);
+      }).observe(document.documentElement,{childList:true,subtree:true});
+    }catch(x){}
+    document.addEventListener('DOMContentLoaded',function(){ selar(document); });
+    window.addEventListener('load',function(){ selar(document); });
+  }
+
   // delegação: qualquer input que ganhe foco (inclui os criados depois)
   document.addEventListener('focusin', function(e){ if(handle(e.target)) attach(e.target); }, true);
   document.addEventListener('pointerdown', function(e){

@@ -1649,6 +1649,45 @@
     var im=(el.getAttribute("data-kb")||el.getAttribute("inputmode")||"").toLowerCase();
     return el.type==="number" || im==="decimal" || im==="numeric";
   }
+  /* SELAR ANTES DO FOCO — marcar no focusin e tarde: no celular quem chama o
+     painel do sistema e o proprio foco. Todo campo ja nasce selado. */
+  function adotavel(el){
+    if(!el || !el.tagName) return false;
+    if(el===campo || el===campoQt) return true;
+    if(el.isContentEditable) return (el.getAttribute("data-kb")||"")!=="off";
+    if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return false;
+    if((el.getAttribute("data-kb")||"")==="off") return false;
+    if(el.readOnly || el.disabled) return false;
+    var t=(el.type||"text").toLowerCase();
+    return ["file","date","month","week","time","datetime-local","checkbox","radio","range","color","button","submit","reset"].indexOf(t)<0;
+  }
+  function selar(raiz){
+    if(!TOUCH) return;
+    var els;
+    try{ els=(raiz||document).querySelectorAll('input,textarea,[contenteditable="true"]'); }catch(x){ return; }
+    for(var i=0;i<els.length;i++){
+      var el=els[i];
+      if(!adotavel(el)) continue;
+      if(el.getAttribute("inputmode")==="none") continue;
+      el.setAttribute("inputmode","none");
+      el.setAttribute("autocapitalize","off");
+      el.setAttribute("autocorrect","off");
+      el.setAttribute("spellcheck","false");
+    }
+  }
+  try{ window.__kbdSelar = selar; }catch(x){}
+  if(TOUCH){
+    selar(document);
+    try{
+      var _spF=null;
+      new MutationObserver(function(){
+        if(_spF) return;
+        _spF=setTimeout(function(){ _spF=null; selar(document); },30);
+      }).observe(document.documentElement,{childList:true,subtree:true});
+    }catch(x){}
+    window.addEventListener('load',function(){ selar(document); });
+  }
+
   document.addEventListener("focusin", function(e){
     var el=e.target;
     if(!el || !el.tagName) return;
