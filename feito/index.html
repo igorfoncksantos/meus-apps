@@ -523,7 +523,7 @@
   var K="afazeres-v3", KV="afazeres-v2";
   var PALETA=["#22C55E","#2FD9C9","#3B82F6","#A78BFA","#F472B6","#EF4444","#F97316","#FBBF24","#94A3B8","#FFFFFF"];
   var D={listas:[],atual:"",modelos:[],freq:{}};
-  var filtro="tudo";
+  var filtro="";   /* nunca e um chip valido: forca o ajustaFiltro() a escolher */
 
   function uid(){ return "x"+Date.now().toString(36)+Math.floor(Math.random()*9999).toString(36); }
   function grava(){ try{ localStorage.setItem(K,JSON.stringify(D)); }catch(e){} }
@@ -567,13 +567,13 @@
     D.listas.forEach(function(l){
       var pend=l.itens.filter(function(o){return !o.feito}).length;
       el.appendChild(chip(l.nome+(pend?" ("+pend+")":""),null,l.id===D.atual,function(){
-        D.atual=l.id; filtro="tudo"; grava(); pinta();
+        D.atual=l.id; filtro=""; grava(); pinta();   /* o ajuste escolhe o chip certo */
       }));
     });
     el.appendChild(chip("+ Lista",null,false,function(){
       fAsk("Nova lista","",function(n){ n=n.trim(); if(!n) return;
         var nl={id:uid(),nome:n,cats:[],itens:[]}; D.listas.push(nl); D.atual=nl.id;
-        filtro="tudo"; grava(); pinta();
+        filtro=""; grava(); pinta();
       },"text","como quer chamar?");
     },"novo"));
   }
@@ -582,9 +582,10 @@
     var l=L();
     var fl=document.getElementById("filtros"); fl.innerHTML="";
     if(l.cats.length){
-      fl.appendChild(chip("Tudo","#2FD9C9",filtro==="tudo",function(){ filtro="tudo"; pinta(); }));
       l.cats.forEach(function(c){ fl.appendChild(chip(c.nome,c.cor,filtro===c.id,function(){ filtro=c.id; pinta(); })); });
-      if(l.itens.some(function(o){return !o.cat})){
+      /* "Sem categoria" existe quando ha item solto — ou quando e o filtro
+         ativo, senao o chip aceso desapareceria da barra */
+      if(filtro==="_sem" || l.itens.some(function(o){return !o.cat})){
         fl.appendChild(chip("Sem categoria","#5b646a",filtro==="_sem",function(){ filtro="_sem"; pinta(); }));
       }
     }
@@ -630,6 +631,7 @@
 
   function pinta(){
     if(window.__TIMERS){ window.__TIMERS.forEach(clearInterval); } window.__TIMERS=[];
+    ajustaFiltro();
     pintaListas(); pintaChips(); pintaSugestoes();
     var l=L();
     var cont=document.getElementById("grupos"); cont.innerHTML="";
@@ -1082,7 +1084,7 @@
         if(!confirm("Apagar \""+c.nome+"\"?"+(n?" Os "+n+" itens ficam sem categoria.":""))) return;
         l.itens.forEach(function(o){ if(o.cat===c.id) o.cat=""; });
         l.cats=l.cats.filter(function(o){ return o.id!==c.id; });
-        if(filtro===c.id) filtro="tudo";
+        if(filtro===c.id) filtro="_sem";   /* os itens dela viram soltos */
         grava(); pintaCats();
       });
       row.appendChild(dot); row.appendChild(nm); row.appendChild(x); box.appendChild(row);
@@ -1167,6 +1169,24 @@
 
   // ---------- acoes
   function noFiltro(o){ return filtro==="tudo" || (filtro==="_sem"?!o.cat:o.cat===filtro); }
+
+  /* Sem o "Tudo", o filtro precisa apontar sempre pra um chip que existe — e,
+     de preferencia, pra um que tenha itens: abrir numa categoria vazia parece
+     lista sumida. */
+  function ajustaFiltro(){
+    var l=L(); if(!l) return;
+    var soltos=l.itens.some(function(o){ return !o.cat; });
+    var validos=(l.cats||[]).map(function(c){ return c.id; });
+    if(soltos || !validos.length) validos.push("_sem");
+    if(validos.indexOf(filtro)>=0) return;              /* ja esta num chip valido */
+    var comItens=null;
+    (l.cats||[]).forEach(function(c){
+      if(comItens) return;
+      if(l.itens.some(function(o){ return o.cat===c.id; })) comItens=c.id;
+    });
+    if(!comItens && soltos) comItens="_sem";
+    filtro = comItens || validos[0] || "_sem";
+  }
 
   /* ---------- REGISTRAR E LIMPAR ---------- */
   function registrarELimpar(){
@@ -1323,7 +1343,13 @@
 
   function regsDoFiltro(){
     var l=L();
-    return (l.regs||[]).filter(function(r){ return filtro==="tudo" ? true : r.cat===filtro; });
+    return (l.regs||[]).filter(function(r){
+      if(filtro==="tudo") return true;
+      /* rodadas guardadas quando existia o "Tudo" nao podem sumir: ficam com
+         as soltas, que e onde elas cabem */
+      if(filtro==="_sem") return r.cat==="_sem" || r.cat==="" || r.cat==="tudo";
+      return r.cat===filtro;
+    });
   }
   function totalReg(r){
     var t=0, tem=false;
@@ -1603,7 +1629,7 @@
     if(D.listas.length<2){ alert("É a única lista. Renomeie ou use Limpar tudo."); return; }
     var l=L(); if(!confirm("Apagar a lista \""+l.nome+"\" e os "+l.itens.length+" itens dela?")) return;
     D.listas=D.listas.filter(function(o){ return o.id!==l.id; });
-    D.atual=D.listas[0].id; filtro="tudo"; grava(); pinta(); fecha();
+    D.atual=D.listas[0].id; filtro=""; grava(); pinta(); fecha();
   });
 
   // ---------- modelos
@@ -1633,7 +1659,7 @@
                           carga:o.carga,crono:o.crono,nota:o.nota,
                           subs:(o.subs||[]).map(function(s){return {t:s.t,ok:false}})};
                 })};
-        D.listas.push(nl); D.atual=nl.id; filtro="tudo"; grava(); pinta(); fecha();
+        D.listas.push(nl); D.atual=nl.id; filtro=""; grava(); pinta(); fecha();
       });
       var x=document.createElement("button"); x.className="x"; x.textContent="✕";
       x.addEventListener("click",function(){
