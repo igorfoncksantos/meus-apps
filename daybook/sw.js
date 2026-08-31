@@ -1,7 +1,7 @@
-var C='meusapps-daybook-v19';
+var C='meusapps-daybook-v20';
 self.addEventListener('install',function(e){ });
 self.addEventListener('message',function(e){ if(e.data==='SKIP_WAITING'||(e.data&&e.data.type==='SKIP_WAITING')) self.skipWaiting(); });
-self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ if(k!==C) return caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
+self.addEventListener('activate',function(e){ e.waitUntil(caches.keys().then(function(ks){ var BASE=C.replace(/-v\d+$/,'')+'-v'; return Promise.all(ks.map(function(k){ if(k!==C && k.indexOf(BASE)===0) return caches.delete(k); })); }).then(function(){ return self.clients.claim(); })); });
 self.addEventListener('fetch',function(e){
   if(e.request.method!=='GET') return;
   e.respondWith(
