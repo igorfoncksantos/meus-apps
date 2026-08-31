@@ -773,6 +773,20 @@
   .cselopt .od{ width:11px; height:11px; border-radius:50%; flex:none; }
   .cselopt.sel{ color:var(--txt2); }
   #t3 .orclab{ font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--mut2); margin:2px 2px 8px; }
+  /* as tres sub-abas ocupam a largura toda: sao irmas, nenhuma manda mais */
+  #t3 .gsub{ display:flex; width:100%; margin:0 0 12px; }
+  #t3 .gsub button{ flex:1; padding:8px 6px; font-size:12.5px; }
+  /* no cartao da categoria, quem paga por ela */
+  #t3 .catpg{ font-size:11px; color:var(--mut2); margin-top:5px; }
+  #t3 .catpg b{ color:var(--txt2); font-weight:800; }
+  /* linha de orcamento: nome de um lado, teto do outro, nada no meio */
+  #t3 .box.orl{ padding:11px 13px; margin-bottom:8px; }
+  #t3 .orltop{ display:flex; align-items:center; gap:9px; }
+  #t3 .orltop .oico{ display:flex; align-items:center; flex:none; }
+  #t3 .orltop .onm{ flex:1; min-width:0; font-weight:800; font-size:13.5px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #t3 .orltop input{ max-width:116px; flex:none; }
+  #t3 .box.orl .cfder{ margin-top:7px; }
   #t3 .gcfgtoggle{ display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; margin:2px 0 12px;
     background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 15px; color:var(--txt2);
     font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer; }
@@ -920,8 +934,15 @@
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
 
-  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()" aria-expanded="false"><span>Ciclo, orçamentos e categorias</span><span class="gcfgchev">+</span></button>
+  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()" aria-expanded="false"><span>Ciclos, categorias e orçamentos</span><span class="gcfgchev">+</span></button>
   <div id="gCfg" style="display:none">
+    <div class="segt gsub">
+      <button id="gsCic" class="on" onclick="setCfgView('cic')">Ciclos</button>
+      <button id="gsCat" onclick="setCfgView('cat')">Categorias</button>
+      <button id="gsOrc" onclick="setCfgView('orc')">Orçamentos</button>
+    </div>
+
+    <div class="gpane" id="gPaneCic">
     <div class="orclab">Período do ciclo</div>
     <div class="cicbox">
       <div class="cicrow">
@@ -944,9 +965,18 @@
       <div class="cichint" id="cicHint">—</div>
     </div>
     <div id="gParcAtivos"></div>
-    <div class="orclab">Orçamento de cada categoria — toque no + pra editar</div>
+    </div>
+
+    <div class="gpane" id="gPaneCat" style="display:none">
+    <div class="orclab">O que cada categoria é — toque no + pra editar</div>
     <div id="gBoxes"></div>
     <div id="gNewCatWrap"><button class="bt n" id="gNovaCat" style="width:auto">+ Nova categoria</button></div>
+    </div>
+
+    <div class="gpane" id="gPaneOrc" style="display:none">
+    <div class="orclab">Quanto cada categoria pode gastar no ciclo</div>
+    <div id="gOrcs"></div>
+    </div>
   </div>
 
   <h2 id="gLancarH">Lançar gasto</h2>
@@ -1113,8 +1143,21 @@ function cofresDoCashbook(){
   });
   return saida;
 }
+var cfgView="cic";
+try{ cfgView=localStorage.getItem("stash-cfgview")||"cic"; }catch(e){}
+var CFG_ABAS=[["cic","gsCic","gPaneCic"],["cat","gsCat","gPaneCat"],["orc","gsOrc","gPaneOrc"]];
+function setCfgView(v){
+  cfgView=v; try{ localStorage.setItem("stash-cfgview",v); }catch(e){}
+  CFG_ABAS.forEach(function(p){
+    var liga=(p[0]===v), b=document.getElementById(p[1]), d=document.getElementById(p[2]);
+    if(b) b.className = liga?"on":"";
+    if(d) d.style.display = liga?"":"none";
+  });
+}
 function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElementById("gCfgToggle"); if(!c)return;
   var open=(c.style.display==="none"); c.style.display=open?"":"none";
+  /* ao abrir, volta na sub-aba onde ele estava da ultima vez */
+  if(open) setCfgView(cfgView);
   if(b){ b.className="gcfgtoggle"+(open?" on":""); b.setAttribute("aria-expanded",open?"true":"false");
          sinal(b.querySelector(".gcfgchev"), open); } }
 function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
@@ -1251,7 +1294,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v88';
+var VERSAO = 'v89';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -1525,6 +1568,11 @@ function renderPatrimonio(){
   ligarPatr(); ligarAgg();
 }
 
+/* percentual nao e dinheiro: 20% em vez de 20,00%, mas 12,5% quando ha meio */
+function pct(n){
+  n = Math.round((Number(n)||0)*10)/10;
+  return (n % 1 === 0) ? String(n) : String(n).replace(".", ",");
+}
 function acharCx(id){ return D.cx.filter(function(x){ return x.id == id; })[0]; }
 
 /* ===== Agregados (somas escolhidas a mao) ===== */
@@ -2674,8 +2722,8 @@ function avisoCofre(k){
   var c=acharCx(k.cofre); if(!c) return "";
   var total=somaPcCofre(k.cofre);
   if(Math.abs(total-100)<0.01) return "";
-  return '<div class="cfavi">As categorias ligadas a <b>'+esc(c.n)+'</b> somam <b>'+brl(total)+'%</b>' +
-    (total<100 ? (' &mdash; sobram '+brl(100-total)+'% do cofre sem or&ccedil;amento.')
+  return '<div class="cfavi">As categorias ligadas a <b>'+esc(c.n)+'</b> somam <b>'+pct(total)+'%</b>' +
+    (total<100 ? (' &mdash; sobram '+pct(100-total)+'% do cofre sem or&ccedil;amento.')
                : (' &mdash; passa '+brl(total-100)+'% do que o cofre tem.')) + '</div>';
 }
 
@@ -2782,7 +2830,7 @@ function mostrarNovaCat(){
         '<div class="cflbl">Cofre relacionado (opcional)</div>' +
         cofreGridHTML("ncCofre","") +
         '<input type="hidden" id="ncCofre" value="">' +
-        '<div class="cfpc" id="ncPcBox" style="display:none"><label>Quanto do cofre e desta categoria</label>' +
+        '<div class="cfpc" id="ncPcBox" style="display:none"><label>Quanto do cofre &eacute; desta categoria</label>' +
           '<input class="r" inputmode="decimal" id="ncCpc" placeholder="0"><span class="un">%</span></div>' +
         '<div class="cfavi" id="ncAvi" style="display:none"></div>' +
         '<div class="acoes"><button class="bt p" id="ncOk" style="width:auto">Adicionar</button>' +
@@ -2853,7 +2901,8 @@ function renderGastos(){
   document.getElementById("gCiclo").textContent=c.nome;
   cicPreencher(); cicLigar(); cicMesLigar(); cicMesLabel(); parcEncher(); parcRenderAtivos(); relRender();
   var bp=document.getElementById("relPdf"); if(bp && !bp._lig){ bp._lig=1; bp.addEventListener("click", relPdf); }
-  document.getElementById("gPeriodo").textContent=c.per+" · "+diasRest()+" dias restantes";
+  var dr=diasRest();
+  document.getElementById("gPeriodo").textContent=c.per+" · "+dr+(dr===1?" dia restante":" dias restantes");
 
   var cvs=cofresDoCashbook();
   var lbl=document.getElementById("gSaldoLbl");
@@ -2886,7 +2935,7 @@ function renderGastos(){
         '<svg width="96" height="96" viewBox="0 0 96 96">' +
           '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke-width="9"/>' +
           '<circle cx="48" cy="48" r="34" fill="none" stroke="'+(est?"#f87171":k.cor)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="'+off+'" transform="rotate(-90 48 48)"/>' +
-          '<text class="pcT" x="48" y="54" text-anchor="middle">'+(orc>0?Math.round(pc)+"%":"")+'</text>' +
+          '<text class="pcT" x="48" y="54" text-anchor="middle">'+(orc>0 ? Math.round(pc)+"%" : (gas>0 ? "\u2014" : "0%"))+'</text>' +
         '</svg>' +
         '<div class="rname" style="color:'+k.cor+'">'+catIcoHTML(k)+'<span class="rnm">'+esc(k.nome)+'</span></div>' +
         '<div class="rg" data-rgw="'+k.id+'">R$ '+brl(gas)+' <small class="rgorc" data-rgorc="'+k.id+'" title="Tocar pra editar o or&ccedil;amento">/ '+brl(orc)+'</small></div>' +
@@ -2922,23 +2971,33 @@ function renderGastos(){
   if(!hz && semOrc){ hz=document.createElement("div"); hz.id="gHeroZero"; hz.className="gp-hc";
     document.querySelector("#t3 .gp-hero").appendChild(hz); }
   if(hz){ hz.style.display = semOrc ? "" : "none";
-    hz.innerHTML = "Defina um teto em <b>Ciclo, orçamentos e categorias</b> pra começar a acompanhar."; }
+    hz.innerHTML = "Defina um teto em <b>Ciclos, categorias e orçamentos &rsaquo; Orçamentos</b> pra começar a acompanhar."; }
 
-  // --- cards editores de orçamento (compactos; o visual vem dos anéis) ---
-  var bh="";
+  // --- Categorias (o que ela e) e Orcamentos (quanto pode gastar) ---
+  var bh="", oh="";
   D.vale.cats.forEach(function(k){
     var orc=orcDaCat(k), dc=orcDoCofre(k), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
-    bh+='<div class="box'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
-        '<div class="bxhd"><div class="b2" style="color:'+k.cor+'">'+catIcoHTML(k)+' '+esc(k.nome)+'</div>' +
-        '<button class="cog" data-catcog="'+k.id+'" aria-expanded="false">+</button></div>' +
-        '<div style="display:flex;align-items:center;gap:9px;margin-top:8px">' +
-          '<label class="lb" style="margin:0">Or&ccedil;amento</label>' +
-          '<input class="r" style="max-width:120px;margin-left:auto" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="'+(dc===null?"0,00":brl(dc))+'"></div>' +
-        (dc===null ? '' :
-          ('<div class="cfder"><span class="cfo">'+brl(k.cpc||0)+'% de '+esc(acharCx(k.cofre).n)+' d&aacute; <b>R$ '+brl(dc)+'</b></span>' +
+    var cxk = k.cofre ? acharCx(k.cofre) : null;
+
+    /* --- aba Orcamentos: so o teto, um por linha, tudo a vista --- */
+    oh+='<div class="box orl'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
+        '<div class="orltop"><span class="oico" style="color:'+k.cor+'">'+catIcoHTML(k)+'</span>' +
+        '<span class="onm">'+esc(k.nome)+'</span>' +
+        '<input class="r" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="'+(dc===null?"0,00":brl(dc))+'"></div>' +
+        (dc===null || !cxk ? '' :
+          ('<div class="cfder"><span class="cfo">'+pct(k.cpc||0)+'% de '+esc(cxk.n)+(cxk.own?' ('+esc(cxk.own)+')':'')+' d&aacute; <b>R$ '+brl(dc)+'</b></span>' +
            (num(k.orc)>0
              ? '<span class="cfv2">usando o seu</span>'
              : '<span class="cfv2 auto">em uso</span>')+'</div>')) +
+        '</div>';
+
+    /* --- aba Categorias: identidade e de qual cofre ela sai --- */
+    bh+='<div class="box" style="border-left:3px solid '+k.cor+'">' +
+        '<div class="bxhd"><div class="b2" style="color:'+k.cor+'">'+catIcoHTML(k)+' '+esc(k.nome)+'</div>' +
+        '<button class="cog" data-catcog="'+k.id+'" aria-expanded="false">+</button></div>' +
+        '<div class="catpg">' + (cxk
+          ? ('sai do cofre <b>'+esc(cxk.n)+'</b>' + (cxk.own ? ' &middot; '+esc(cxk.own) : ''))
+          : 'nenhum cofre ligado') + '</div>' +
         '<div class="caed" data-caed="'+k.id+'" style="display:none">' +
           '<div class="caid">' +
             '<button type="button" class="caabre" data-abrir="ico_'+k.id+'" aria-expanded="false" title="Ícone">'+catIcoHTML(k)+'</button>' +
@@ -2954,7 +3013,7 @@ function renderGastos(){
           cofreGridHTML("cate_cof_"+k.id, k.cofre) +
           '<input type="hidden" id="cate_cof_'+k.id+'" data-catcof="'+k.id+'" value="'+esc(k.cofre||"")+'">' +
           (k.cofre
-            ? ('<div class="cfpc"><label>Quanto do cofre e desta categoria</label>' +
+            ? ('<div class="cfpc"><label>Quanto do cofre &eacute; desta categoria</label>' +
                '<input class="r" inputmode="decimal" data-catpc="'+k.id+'" value="'+(k.cpc||"")+'" placeholder="0"><span class="un">%</span></div>' +
                avisoCofre(k))
             : '') +
@@ -2962,6 +3021,7 @@ function renderGastos(){
         '</div>';
   });
   document.getElementById("gBoxes").innerHTML=bh;
+  document.getElementById("gOrcs").innerHTML=oh;
 
   // popular o select de categoria (preservando a seleção)
   /* seletor de categoria: mesmo dropdown do app, nao o do navegador */
