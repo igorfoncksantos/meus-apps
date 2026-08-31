@@ -421,7 +421,7 @@
   .obs-h .cadd{ margin-left:auto; background:none; border:1px dashed var(--note-line); color:var(--note-txt2); font-size:11px; font-weight:700; border-radius:7px; padding:5px 10px; cursor:pointer; }
   .obs-box{ background:rgba(253,230,138,0.06); border:1px solid #4a4326; border-left:4px solid #FDE68A; border-radius:9px; padding:12px 15px; }
   .obs-empty{ font-family:"Segoe Print","Bradley Hand ITC",cursive; font-size:15px; color:#9a9068; }
-  .oi{ font-family:"Segoe Print","Bradley Hand ITC",cursive; font-size:16px; color:#e9dba3; line-height:1.5; padding:5px 0; display:flex; gap:9px; align-items:flex-start; }
+  .oi{ cursor:pointer; border-radius:6px; margin:0 -6px; font-family:"Segoe Print","Bradley Hand ITC",cursive; font-size:16px; color:#e9dba3; line-height:1.5; padding:5px 6px; display:flex; gap:9px; align-items:flex-start; }
   .oi:before{ content:"•"; color:#FDE68A; }
   @keyframes noteIn{ from{ opacity:0; transform:translateY(-9px) scale(.97); } to{ opacity:1; transform:none; } }
   .oi.new{ animation:noteIn .42s cubic-bezier(.2,.9,.3,1); }
@@ -1013,7 +1013,7 @@ function render(){
 
   // obs
   const ob=document.getElementById('obsBox'); const obs=day().obs||[];
-  ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}">${escapeHtml(o)}<span class="del" onclick="delObs(${i})">✕</span></div>`).join('')
+  ob.innerHTML = obs.length ? obs.map((o,i)=>`<div class="oi${i===_obsAnim?' new':''}" onclick="abreObs(${i})" title="Tocar para editar">${escapeHtml(o)}<span class="del" onclick="event.stopPropagation();delObs(${i})">✕</span></div>`).join('')
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
   document.getElementById('footer').textContent = `Norte ${VERSAO} · ${fmtBR(cur)}/${cur.split('-')[0]} · salvo no aparelho.`;
@@ -1297,13 +1297,22 @@ function saveForm(){
 function escapeAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 /* ---- observações ---- */
-let _obsAnim=-1;
-function addObs(){ sheet(`<h3 style="color:var(--note-txt)">🖋️ Nova observação</h3>
-    <div class="field"><textarea id="obsInput" placeholder="Escreva sua nota..." style="min-height:100px;font-family:'Segoe Print','Bradley Hand ITC','Segoe Script',cursive;font-size:16.5px;line-height:1.5;color:var(--note-txt2);background:rgba(253,230,138,0.06);border-color:var(--note-line)"></textarea></div>
-    <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" style="background:var(--note-bg);color:var(--note-on)" onclick="saveObs()">Adicionar</button></div>`);
-  setTimeout(()=>{ const el=document.getElementById('obsInput'); if(el)el.focus(); },90); }
+let _obsAnim=-1, _obsEdit=-1;
+function addObs(){ abreObs(-1); }
+function abreObs(i){ _obsEdit = (typeof i === "number") ? i : -1;
+  const novo = _obsEdit < 0, atual = novo ? "" : ((day().obs||[])[_obsEdit]||"");
+  sheet(`<h3 style="color:var(--note-txt)">🖋️ ${novo?"Nova observação":"Editar observação"}</h3>
+    <div class="field"><textarea id="obsInput" placeholder="Escreva sua nota..." data-kb="text" style="min-height:100px;font-family:'Segoe Print','Bradley Hand ITC','Segoe Script',cursive;font-size:16.5px;line-height:1.5;color:var(--note-txt2);background:rgba(253,230,138,0.06);border-color:var(--note-line)"></textarea></div>
+    <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" style="background:var(--note-bg);color:var(--note-on)" onclick="saveObs()">${novo?"Adicionar":"Salvar"}</button></div>`);
+  setTimeout(()=>{ const el=document.getElementById('obsInput'); if(!el) return;
+    if(atual){ el.value = atual; }
+    el.focus(); try{ el.setSelectionRange(el.value.length, el.value.length); }catch(e){}
+  },90); }
 function saveObs(){ const el=document.getElementById('obsInput'); const v=el?el.value.trim():''; if(!v){ if(el)el.focus(); return; }
-  (day().obs=day().obs||[]).push(v); _obsAnim=day().obs.length-1; closeSheet();
+  const L=(day().obs=day().obs||[]);
+  if(_obsEdit>=0 && _obsEdit<L.length){ L[_obsEdit]=v; _obsAnim=_obsEdit; }
+  else { L.push(v); _obsAnim=L.length-1; }
+  _obsEdit=-1; closeSheet();
   if(navigator.vibrate)navigator.vibrate(14); render(); }
 function delObs(i){ day().obs.splice(i,1); render(); }
 
