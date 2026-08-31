@@ -56,7 +56,7 @@
               font-size:25px;font-weight:700;line-height:1;cursor:pointer}
   .add .mic{background:#15181b;color:#2FD9C9;border:1px solid #23555c;font-size:18px}
   .add .mic.rec{background:#2b1214;color:#f87171;border-color:#5c2a2f}
-  .add .sel{margin-top:9px}
+
 
   .sug{display:flex;gap:6px;overflow-x:auto;margin-top:9px;scrollbar-width:none}
   .sug::-webkit-scrollbar{display:none}
@@ -325,7 +325,7 @@
              transition:transform .14s cubic-bezier(.34,1.5,.6,1), box-shadow .14s; }
   .add button[type="submit"]:hover{ transform:translateY(-2px) scale(1.06); box-shadow:0 12px 26px rgba(47,217,201,.55); }
   .add button[type="submit"]:active{ transform:scale(.88); }
-  .add .sel{ margin-top:11px; }
+
 
   /* sugestoes: pilulas modernas */
   .sug{ gap:7px; margin-top:11px; }
@@ -427,7 +427,6 @@
     <button type="button" class="mic" id="btVoz" title="Ditar"><span data-ic="mic"></span></button>
     <button type="submit" aria-label="Adicionar">+</button>
   </div>
-  <div class="sel chips" id="seletor"></div>
   <div class="sug" id="sugestoes"></div>
 </form>
 
@@ -479,7 +478,7 @@
   var K="afazeres-v3", KV="afazeres-v2";
   var PALETA=["#22C55E","#2FD9C9","#3B82F6","#A78BFA","#F472B6","#EF4444","#F97316","#FBBF24","#94A3B8","#FFFFFF"];
   var D={listas:[],atual:"",modelos:[],freq:{}};
-  var filtro="tudo", catNova="";
+  var filtro="tudo";
 
   function uid(){ return "x"+Date.now().toString(36)+Math.floor(Math.random()*9999).toString(36); }
   function grava(){ try{ localStorage.setItem(K,JSON.stringify(D)); }catch(e){} }
@@ -523,13 +522,13 @@
     D.listas.forEach(function(l){
       var pend=l.itens.filter(function(o){return !o.feito}).length;
       el.appendChild(chip(l.nome+(pend?" ("+pend+")":""),null,l.id===D.atual,function(){
-        D.atual=l.id; filtro="tudo"; catNova=""; grava(); pinta();
+        D.atual=l.id; filtro="tudo"; grava(); pinta();
       }));
     });
     el.appendChild(chip("+ Lista",null,false,function(){
       fAsk("Nova lista","",function(n){ n=n.trim(); if(!n) return;
         var nl={id:uid(),nome:n,cats:[],itens:[]}; D.listas.push(nl); D.atual=nl.id;
-        filtro="tudo"; catNova=""; grava(); pinta();
+        filtro="tudo"; grava(); pinta();
       },"text","como quer chamar?");
     },"novo"));
   }
@@ -546,11 +545,6 @@
     }
     fl.appendChild(chip(l.cats.length?"⚙":"+ Categoria",null,false,abreCats,"novo"));
 
-    var se=document.getElementById("seletor"); se.innerHTML="";
-    if(l.cats.length){
-      se.appendChild(chip("—","#5b646a",catNova==="",function(){ catNova=""; pintaChips(); }));
-      l.cats.forEach(function(c){ se.appendChild(chip(c.nome,c.cor,catNova===c.id,function(){ catNova=c.id; pintaChips(); })); });
-    }
   }
 
   function pintaSugestoes(){
@@ -1032,7 +1026,7 @@
         if(!confirm("Apagar \""+c.nome+"\"?"+(n?" Os "+n+" itens ficam sem categoria.":""))) return;
         l.itens.forEach(function(o){ if(o.cat===c.id) o.cat=""; });
         l.cats=l.cats.filter(function(o){ return o.id!==c.id; });
-        if(catNova===c.id) catNova=""; if(filtro===c.id) filtro="tudo";
+        if(filtro===c.id) filtro="tudo";
         grava(); pintaCats();
       });
       row.appendChild(dot); row.appendChild(nm); row.appendChild(x); box.appendChild(row);
@@ -1047,7 +1041,8 @@
 
   // ---------- adicionar
   function addItem(texto,qtd){
-    var l=L(), c=catNova;
+    /* o item novo nasce na categoria que esta na tela; em "Tudo", sem categoria */
+    var l=L(), c="";
     if(filtro!=="tudo" && filtro!=="_sem" && cat(filtro)) c=filtro;
     l.itens.push({id:uid(),texto:texto,feito:false,cat:c,qtd:qtd||"",subs:[]});
     var k=texto.toLowerCase(); D.freq[k]=(D.freq[k]||0)+1;
