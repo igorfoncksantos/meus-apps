@@ -91,6 +91,55 @@
   .tag.d{color:#f0a3b4;border-color:#4a2028}
   .tag.d.perto{background:#2b1214;color:#f87171}
   .tag.add{border-style:dashed;color:#5b646a}
+  /* ---- registro das listas ---- */
+  .porta{margin:15px 0 2px;border:1px solid #2a2f34;background:#12161b;border-radius:12px;
+         padding:12px 13px;cursor:pointer}
+  .porta:active{border-color:#23555c}
+  .porta .cab{display:flex;align-items:baseline;gap:8px}
+  .porta .cab .t{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#5b646a}
+  .porta .cab .d{margin-left:auto;font-size:10.5px;color:#8a97a0}
+  .porta .res{margin-top:6px;font-size:14px;color:#f0f2f4;font-weight:600}
+  .porta .res em{font-style:normal;color:#FBBF24}
+  .porta .ver{margin-top:9px;font-size:11.5px;font-weight:700;color:#2FD9C9}
+
+  .reg{border:1px solid #262a2e;background:#121417;border-radius:11px;padding:11px 12px;margin-bottom:7px}
+  .reg .rh{display:flex;align-items:baseline;gap:8px;cursor:pointer}
+  .reg .rd{font-size:13px;font-weight:700;color:#f0f2f4}
+  .reg .rc{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+           padding:2px 7px;border-radius:20px;border:1px solid #2a2f34;color:#8a97a0}
+  .reg .rq{margin-left:auto;font-size:10.5px;color:#8a97a0}
+  .reg .rs{margin-top:5px;font-size:12px;color:#8a97a0}
+  .reg .rs em{font-style:normal;color:#FBBF24;font-weight:700}
+  .reg .rr{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .reg .mini{font-size:11px;font-weight:700;padding:7px 11px;border-radius:8px;font-family:inherit;
+             border:1px solid #23555c;color:#2FD9C9;background:#0d2b30;cursor:pointer}
+  .reg .mini.n{border-color:#2a2f34;color:#8a97a0;background:#15181b}
+  .reg .mini.pg{border-color:#5c2a2f;color:#f87171;background:#15181b}
+  .reg .mini.forte{background:#2FD9C9;color:#04191a;border-color:#2FD9C9}
+  .reg .corpo{margin-top:10px;border-top:1px solid #22272b;padding-top:9px}
+  .reg .dica{font-size:11px;color:#5b646a;margin-bottom:7px}
+  .ri{display:flex;align-items:flex-start;gap:9px;padding:6px 0}
+  .ri .rb{width:17px;height:17px;flex:none;border-radius:5px;border:2px solid #3a3f45;
+          margin-top:2px;position:relative}
+  .ri.ok .rb{background:#22c55e;border-color:#22c55e}
+  .ri.ok .rb::after{content:"\2713";position:absolute;top:-4px;left:2px;color:#05130b;font-size:12px;font-weight:800}
+  .ri .rn{flex:1;min-width:0;font-size:13.5px;color:#c7ced3;word-break:break-word}
+  .ri.nao .rn{color:#7d868c}
+  .ri .rex{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+  .ri .rex .tag{cursor:default}
+  .ri .rsub{margin-top:4px;font-size:11.5px;color:#6b7378;line-height:1.5}
+  .ri .rnota{margin-top:4px;font-size:11.5px;color:#6b7378;border-left:2px solid #2a2f34;padding-left:8px}
+  .escolhendo .ri{cursor:pointer}
+  .escolhendo .ri.fora{opacity:.4}
+  .escolhendo .ri.fora .rb{background:transparent;border-color:#3a3f45}
+  .escolhendo .ri.fora .rb::after{content:""}
+  .regvazio{font-size:12.5px;color:#5b646a;padding:6px 2px}
+
+  #toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);z-index:100001;background:#12161b;color:#eafcf6;
+    border:1px solid #1f5c4d;border-radius:12px;padding:9px 15px;font-size:13px;font-weight:700;
+    opacity:0;transition:opacity .3s;box-shadow:0 10px 30px rgba(0,0,0,.5);pointer-events:none;max-width:86vw}
+
   .nota{margin-top:7px;font-size:12.5px;color:#8a97a0;line-height:1.5;outline:none;
         border-left:2px solid #2a2f34;padding-left:9px}
   .nota:focus{border-left-color:#2FD9C9;color:#c7ced3}
@@ -283,7 +332,7 @@
   body.kbdopen{ padding-bottom:calc(372px + env(safe-area-inset-bottom)) !important; }
   #kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; display:none;
         background:linear-gradient(180deg,#0e1216,#070a0c); border-top:1px solid #20262b;
-        padding:8px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);
+        padding:4px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);
         -webkit-user-select:none; user-select:none; touch-action:manipulation; }
   #kbd.on{ display:block; animation:kbdup .2s cubic-bezier(.25,.9,.3,1); }
   @keyframes kbdup{ from{ transform:translateY(102%); } to{ transform:translateY(0); } }
@@ -292,6 +341,11 @@
   #kbd .acc b{ flex:0 0 auto; min-width:44px; height:44px; display:flex; align-items:center; justify-content:center;
         background:#151a1f; border:1px solid #262d34; border-radius:9px; color:#cfe9e5; font-size:19px; font-weight:600; cursor:pointer; }
   #kbd .acc b:active{ background:#0f2f34; }
+  #kbd .kbtop{ display:flex; justify-content:flex-end; padding:0 2px 5px; }
+  #kbd .kbx{ min-width:46px; height:28px; display:flex; align-items:center; justify-content:center;
+             border-radius:9px; background:rgba(248,113,113,.13); border:1px solid rgba(248,113,113,.36);
+             color:#f87171; font-size:14px; font-weight:800; line-height:1; }
+  #kbd .kbx:active{ background:rgba(248,113,113,.28); }
   #kbd .row{ display:flex; gap:6px; margin-bottom:7px; }
   #kbd .row:last-child{ margin-bottom:0; }
   #kbd .k{ flex:1 1 0; min-width:0; height:54px; display:flex; align-items:center; justify-content:center;
@@ -346,6 +400,8 @@ body{ padding-top:6px; }
 
 <div id="grupos"></div>
 <div class="vazio" id="vazio">Lista vazia.<br>Escreva ali em cima e toque no <b>+</b>.</div>
+
+<div id="porta"></div>
 
 <div class="acoes">
   <button id="btDesmarcar" class="rec2">Desmarcar tudo</button>
@@ -411,7 +467,7 @@ body{ padding-top:6px; }
     if(!D.listas.length){ D.listas=[{id:uid(),nome:"Minha lista",cats:[],itens:[]}]; }
     if(!L()) D.atual=D.listas[0].id;
     D.listas.forEach(function(l){
-      l.cats=l.cats||[]; l.itens=l.itens||[];
+      l.cats=l.cats||[]; l.itens=l.itens||[]; l.regs=l.regs||[];
       var ids=l.cats.map(function(c){return c.id});
       l.itens.forEach(function(o){
         if(ids.indexOf(o.cat)<0) o.cat="";
@@ -568,6 +624,7 @@ body{ padding-top:6px; }
 
     var c2=cat(filtro);
     document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
+    pintaPorta();
   }
 
   function editavel(el,ini,onOk){
@@ -743,6 +800,9 @@ body{ padding-top:6px; }
     "@media(prefers-reduced-motion:reduce){.fsh-i,.fsh-i::before,.fsh-ic{transition:none}}"+
     ".fsh-n{display:flex;flex-direction:column;line-height:1.25}"+
     ".fsh-n em{font-style:normal;font-size:12px;color:#5b646a;margin-top:1px}"+
+    ".fsh-p{padding:0 6px 6px;font-size:13px;color:#8a97a0;line-height:1.5}"+
+    ".fsh-p b{color:#c7ced3}"+
+    ".fsk-p.pg{background:#f87171;color:#2b0d0f;border-color:#f87171}"+
     ".fsh-f{padding:2px 6px 4px}"+
     ".fsh-f input{width:100%;box-sizing:border-box;background:#12161b;border:1px solid #2a2f34;border-radius:12px;"+
       "padding:13px 14px;color:#f0f2f4;font:inherit;font-size:16px;outline:none}"+
@@ -792,7 +852,7 @@ body{ padding-top:6px; }
       '<button type="button" class="fsk-p" id="fskO">Salvar</button></div>');
     var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
     /* marcar no foco e tarde: no celular o teclado do sistema ja subiu.
-       A data fica de fora — ali quem abre e o calendario, e ele e bem-vindo. */
+       A data fica de fora — ali quem abre e o calendario do proprio app. */
     if(window.__kbTouch && tipo!=="date") i.setAttribute("inputmode","none");
     /* quantidade, preco e segundos pedem o discador; o resto, as letras */
     if(tipo==="number") i.setAttribute("data-kb","numeric");
@@ -990,25 +1050,257 @@ body{ padding-top:6px; }
   // ---------- acoes
   function noFiltro(o){ return filtro==="tudo" || (filtro==="_sem"?!o.cat:o.cat===filtro); }
 
+  /* ===================== REGISTRO DAS LISTAS =====================
+     Uma rodada fechada vira um registro daquela categoria. Guardo a lista
+     INTEIRA, nao so o que foi marcado: saber que o azeite nao tinha na
+     prateleira vale tanto quanto saber o que entrou no carrinho. */
+  var MESES=["janeiro","fevereiro","março","abril","maio","junho",
+             "julho","agosto","setembro","outubro","novembro","dezembro"];
+  function doisD(n){ return (n<10?"0":"")+n; }
+  function hojeISO(){ var d=new Date(); return d.getFullYear()+"-"+doisD(d.getMonth()+1)+"-"+doisD(d.getDate()); }
+  function dataLonga(iso){ var p=String(iso||"").split("-");
+    return p.length===3 ? (+p[2])+" de "+MESES[(+p[1])-1] : (iso||""); }
+  function dataCurta(iso){ var p=String(iso||"").split("-");
+    return p.length===3 ? p[2]+"/"+p[1] : (iso||""); }
+  function real(v){ return (+v||0).toFixed(2).replace(".",","); }
+  function itens(n){ return n+(n===1?" item":" itens"); }
+
+  function nomeFiltro(){
+    if(filtro==="tudo") return "esta lista";
+    if(filtro==="_sem") return "Sem categoria";
+    var c=cat(filtro); return c?c.nome:"esta lista";
+  }
+
+  /* guarda a rodada ANTES da acao que a apaga. Rodada sem nada marcado nao e
+     rodada — e faxina; nesse caso nao guardo nada. */
+  function guardaRodada(){
+    var l=L(), alvo=l.itens.filter(noFiltro);
+    var temFeito=false;
+    alvo.forEach(function(o){ if(o.feito) temFeito=true; });
+    if(!temFeito) return null;
+    var c=(filtro!=="tudo"&&filtro!=="_sem") ? cat(filtro) : null;
+    var reg={ id:uid(), cat:filtro, nome:nomeFiltro(), cor:(c?c.cor:"#5b646a"), dt:hojeISO(),
+      itens: alvo.map(function(o){ return {
+        texto:o.texto||"", feito:!!o.feito, qtd:o.qtd||"", preco:o.preco||"",
+        carga:o.carga||"", nota:o.nota||"", prazo:o.prazo||"",
+        subs:(o.subs||[]).map(function(x){ return {t:x.t, ok:!!x.ok}; }) }; }) };
+    l.regs=l.regs||[]; l.regs.unshift(reg); grava();
+    return reg;
+  }
+
+  function regsDoFiltro(){
+    var l=L();
+    return (l.regs||[]).filter(function(r){ return filtro==="tudo" ? true : r.cat===filtro; });
+  }
+  function totalReg(r){
+    var t=0, tem=false;
+    r.itens.forEach(function(x){ if(x.preco){ tem=true; t+=(+x.preco||0)*(+x.qtd||1); } });
+    return tem ? t : null;
+  }
+  function resumoReg(r){
+    var n=r.itens.length, ok=0;
+    r.itens.forEach(function(x){ if(x.feito) ok++; });
+    var s = ok+" marcado"+(ok===1?"":"s");
+    if(n-ok>0) s += " · "+(n-ok)+((n-ok)===1?" faltou":" faltaram");
+    var t=totalReg(r);
+    if(t!==null) s += " · <em>R$ "+real(t)+"</em>";
+    return s;
+  }
+
+  /* ---- 1-B: a porta, com a ultima vez ja respondida ---- */
+  function pintaPorta(){
+    var el=document.getElementById("porta"); if(!el) return;
+    var rs=regsDoFiltro();
+    if(!rs.length){ el.innerHTML=""; return; }
+    var u=rs[0], n=u.itens.length, t=totalReg(u), resto=rs.length-1;
+    el.innerHTML='<div class="porta"><div class="cab">'+
+      '<span class="t">'+(filtro==="tudo" ? "Última vez nesta lista"
+        : "Última vez em "+esc1(nomeFiltro()))+'</span>'+
+      '<span class="d">'+dataCurta(u.dt)+'</span></div>'+
+      '<div class="res">'+itens(n)+(t!==null?' · <em>R$ '+real(t)+'</em>':'')+'</div>'+
+      '<div class="ver">'+(resto ? (resto===1 ? "Ver a anterior ›" : "Ver as "+resto+" anteriores ›")
+                                 : "Ver o registro ›")+'</div></div>';
+    el.querySelector(".porta").addEventListener("click",abreRegistro);
+  }
+
+  /* ---- 3-A: os itens como eram ---- */
+  function itemReg(x,ix,escolha){
+    var fora = escolha && !escolha.marc[ix];
+    var cls = "ri"+(escolha ? (fora?" fora ok":" ok") : (x.feito?" ok":" nao"));
+    var h='<div class="'+cls+'" data-ix="'+ix+'"><span class="rb"></span><div style="flex:1;min-width:0">'+
+      '<div class="rn">'+esc1(x.texto)+'</div>';
+    var tg="";
+    if(x.qtd)   tg+='<span class="tag q">'+esc1(x.qtd)+'×</span>';
+    if(x.preco) tg+='<span class="tag p">R$ '+real(x.preco)+'</span>';
+    if(x.carga) tg+='<span class="tag q">'+esc1(x.carga)+'</span>';
+    if(x.prazo) tg+='<span class="tag d">'+esc1(x.prazo)+'</span>';
+    if(!escolha && !x.feito) tg+='<span class="tag">faltou</span>';
+    if(tg) h+='<div class="rex">'+tg+'</div>';
+    if(x.subs && x.subs.length){
+      h+='<div class="rsub">'+x.subs.map(function(sb){
+        return (sb.ok?"✓ ":"○ ")+esc1(sb.t); }).join(" · ")+'</div>';
+    }
+    if(x.nota) h+='<div class="rnota">'+esc1(x.nota)+'</div>';
+    return h+'</div></div>';
+  }
+
+  var _aberto=null, _escolha=null;
+
+  function cartaoReg(r){
+    var aberto=(_aberto===r.id), escolha=(_escolha&&_escolha.id===r.id)?_escolha:null;
+    var h='<div class="reg'+(escolha?" escolhendo":"")+'" data-reg="'+r.id+'">'+
+      '<div class="rh" data-abre="'+r.id+'"><span class="rd">'+dataLonga(r.dt)+'</span>'+
+      (filtro==="tudo" && r.cat!=="tudo" ? '<span class="rc" style="color:'+r.cor+'">'+esc1(r.nome)+'</span>' : '')+
+      '<span class="rq">'+itens(r.itens.length)+'</span></div>'+
+      '<div class="rs">'+resumoReg(r)+'</div>';
+    if(aberto || escolha){
+      h+='<div class="corpo">';
+      if(escolha) h+='<div class="dica">Toque pra tirar o que você não quer trazer.</div>';
+      r.itens.forEach(function(x,ix){ h+=itemReg(x,ix,escolha); });
+      h+='</div>';
+    }
+    h+='<div class="rr">';
+    if(escolha){
+      var q=0; escolha.marc.forEach(function(m){ if(m) q++; });
+      h+='<button type="button" class="mini forte" data-traz="'+r.id+'"'+(q?"":" disabled")+'>Trazer '+itens(q)+'</button>'+
+         '<button type="button" class="mini n" data-cancela="1">Cancelar</button>';
+    } else {
+      h+='<button type="button" class="mini" data-usa="'+r.id+'">Usar de novo</button>'+
+         '<button type="button" class="mini n" data-escolhe="'+r.id+'">Escolher…</button>';
+      if(aberto) h+='<button type="button" class="mini pg" data-apaga="'+r.id+'">Apagar registro</button>';
+    }
+    return h+'</div></div>';
+  }
+
+  function achaReg(id){ var l=L(), r=null; (l.regs||[]).forEach(function(x){ if(x.id===id) r=x; }); return r; }
+
+  function abreRegistro(){
+    _aberto=null; _escolha=null;
+    desenhaRegistro();
+  }
+  function desenhaRegistro(){
+    var rs=regsDoFiltro();
+    var h='<div class="fsh-t">Registro de '+esc1(nomeFiltro())+'</div><div id="regLista">';
+    if(!rs.length) h+='<div class="regvazio">Nenhuma rodada guardada aqui ainda.</div>';
+    rs.forEach(function(r){ h+=cartaoReg(r); });
+    h+='</div>';
+    var sh=fOverlay(h);
+    ligaRegistro(sh);
+  }
+  /* redesenha so a lista, sem fechar e reabrir a folha (perderia a rolagem) */
+  function repintaRegistro(){
+    var el=document.getElementById("regLista"); if(!el){ desenhaRegistro(); return; }
+    var rs=regsDoFiltro(), h="";
+    if(!rs.length) h='<div class="regvazio">Nenhuma rodada guardada aqui ainda.</div>';
+    rs.forEach(function(r){ h+=cartaoReg(r); });
+    el.innerHTML=h;
+    ligaRegistro(el.parentNode);
+  }
+  function ligaRegistro(raiz){
+    var q=function(sel){ return raiz.querySelectorAll(sel); };
+    Array.prototype.forEach.call(q("[data-abre]"),function(b){ b.addEventListener("click",function(){
+      var id=this.getAttribute("data-abre");
+      _escolha=null; _aberto=(_aberto===id?null:id); repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-usa]"),function(b){ b.addEventListener("click",function(){
+      reutiliza(achaReg(this.getAttribute("data-usa")),null); }); });
+    Array.prototype.forEach.call(q("[data-escolhe]"),function(b){ b.addEventListener("click",function(){
+      var r=achaReg(this.getAttribute("data-escolhe")); if(!r) return;
+      _aberto=null;
+      _escolha={id:r.id, marc:r.itens.map(function(){ return true; })};
+      repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-cancela]"),function(b){ b.addEventListener("click",function(){
+      _escolha=null; repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-traz]"),function(b){ b.addEventListener("click",function(){
+      var r=achaReg(this.getAttribute("data-traz")); if(!r||!_escolha) return;
+      var quais=[]; _escolha.marc.forEach(function(m,i){ if(m) quais.push(i); });
+      reutiliza(r,quais); }); });
+    Array.prototype.forEach.call(q("[data-apaga]"),function(b){ b.addEventListener("click",function(){
+      var id=this.getAttribute("data-apaga"), r=achaReg(id); if(!r) return;
+      fConfirm("Apagar este registro?","A rodada de <b>"+esc1(dataLonga(r.dt))+"</b> sai do histórico. Os itens da sua lista não são tocados.","Apagar",function(){
+        var l=L(); l.regs=(l.regs||[]).filter(function(x){ return x.id!==id; }); grava();
+        _aberto=null; pintaPorta(); desenhaRegistro();
+      },true); }); });
+    /* modo escolha: tocar no item tira ou devolve */
+    if(_escolha) Array.prototype.forEach.call(q(".escolhendo .ri"),function(li){
+      li.addEventListener("click",function(){
+        var ix=+this.getAttribute("data-ix");
+        _escolha.marc[ix]=!_escolha.marc[ix]; repintaRegistro(); }); });
+  }
+
+  /* ---- 4-C: reutilizar; traz os dados junto, tudo desmarcado ---- */
+  function reutiliza(r,quais){
+    if(!r) return;
+    var l=L(), destino=(r.cat!=="tudo"&&r.cat!=="_sem"&&cat(r.cat)) ? r.cat : "";
+    var n=0;
+    r.itens.forEach(function(x,ix){
+      if(quais && quais.indexOf(ix)<0) return;
+      l.itens.push({ id:uid(), texto:x.texto, feito:false, cat:destino,
+        qtd:x.qtd||"", preco:x.preco||"", carga:x.carga||"", nota:x.nota||"", prazo:x.prazo||"",
+        subs:(x.subs||[]).map(function(sb){ return {t:sb.t, ok:false}; }) });
+      n++;
+    });
+    if(!n) return;
+    grava(); _escolha=null; _aberto=null; fClose();
+    pinta();
+    toast(itens(n)+" de volta na lista.");
+  }
+
+  /* ---- aviso curto; o app so tinha o flash da tela ---- */
+  function toast(msg){
+    var t=document.getElementById("toast");
+    if(!t){ t=document.createElement("div"); t.id="toast"; document.body.appendChild(t); }
+    t.textContent=msg; t.style.opacity="1";
+    clearTimeout(t._h); t._h=setTimeout(function(){ t.style.opacity="0"; },2600);
+  }
+
+  /* ---- pergunta do app, no lugar da do navegador ---- */
+  function fConfirm(titulo,texto,rotulo,cb,perigo){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div>'+
+      (texto?'<div class="fsh-p">'+texto+'</div>':'')+
+      '<div class="fsh-a"><button type="button" class="fsk-g" id="fcC">Cancelar</button>'+
+      '<button type="button" class="fsk-p'+(perigo?" pg":"")+'" id="fcO">'+rotulo+'</button></div>');
+    sh.querySelector("#fcC").addEventListener("click",fClose);
+    sh.querySelector("#fcO").addEventListener("click",function(){ fClose(); setTimeout(cb,40); });
+  }
+
   document.getElementById("btDesmarcar").addEventListener("click",function(){
     var l=L(), n=l.itens.filter(function(o){ return o.feito && noFiltro(o); }).length;
     if(!n) return;
+    /* aqui nao pergunto: e a acao mais usada da lista que se repete. Guardo a
+       rodada e aviso — o registro aparece logo abaixo, entao da pra conferir. */
+    var reg=guardaRodada();
     l.itens.forEach(function(o){ if(noFiltro(o)){ o.feito=false; (o.subs||[]).forEach(function(s){ s.ok=false; }); } });
     grava(); pinta();
+    if(reg) toast("Rodada guardada no registro.");
   });
   document.getElementById("btLimpaFeitas").addEventListener("click",function(){
     var l=L(), alvo=l.itens.filter(function(o){ return o.feito && noFiltro(o); });
     if(!alvo.length) return;
-    if(confirm("Remover "+alvo.length+" concluída(s)?")){
-      l.itens=l.itens.filter(function(o){ return !(o.feito && noFiltro(o)); }); grava(); pinta(); fecha();
-    }
+    fecha();
+    fConfirm("Remover "+alvo.length+" concluída"+(alvo.length===1?"":"s")+"?",
+      "Antes de remover, guardo esta rodada no registro de <b>"+esc1(nomeFiltro())+"</b> com a data de hoje.",
+      "Remover", function(){
+        var reg=guardaRodada();
+        var l2=L();
+        l2.itens=l2.itens.filter(function(o){ return !(o.feito && noFiltro(o)); }); grava(); pinta();
+        if(reg) toast("Rodada guardada no registro.");
+      });
   });
   document.getElementById("btLimpaTudo").addEventListener("click",function(){
-    var l=L(), alvo=l.itens.filter(noFiltro);
+    var l=L(), alvo=l.itens.filter(noFiltro), temFeito=false;
+    alvo.forEach(function(o){ if(o.feito) temFeito=true; });
     if(!alvo.length) return;
-    if(confirm("Apagar "+alvo.length+" itens?")){
-      l.itens=l.itens.filter(function(o){ return !noFiltro(o); }); grava(); pinta(); fecha();
-    }
+    fecha();
+    fConfirm("Apagar "+itens(alvo.length)+"?",
+      temFeito
+        ? "Antes de apagar, guardo esta rodada no registro de <b>"+esc1(nomeFiltro())+"</b> com a data de hoje."
+        : "Nada foi marcado nesta rodada, então não há o que guardar no registro.",
+      "Apagar", function(){
+        var reg=guardaRodada();
+        var l2=L();
+        l2.itens=l2.itens.filter(function(o){ return !noFiltro(o); }); grava(); pinta();
+        if(reg) toast("Rodada guardada no registro.");
+      }, true);
   });
 
   // ---------- menu
@@ -1149,7 +1441,7 @@ body{ padding-top:6px; }
   var SYM=[['~','`','|','=','+','{','}','[',']','\\'],
            ['<','>','^','°','€','R$','.',',','ç','º'],
            ['sym','ª','½','…','_','!','?','¿','back']];
-  var BOT=['layer','comma','space','dot','enter','hide'];
+  var BOT=['layer','comma','space','dot','enter'];
   var NUMPAD=[['1','2','3'],['4','5','6'],['7','8','9'],['comma','0','back']];
   function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -1172,7 +1464,7 @@ body{ padding-top:6px; }
     if(numerico){   // teclado SO com numeros (estilo discador)
       kbd.classList.add('num');
       NUMPAD.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
-      h+='<div class="row">'+['enter','hide'].map(keyHTML).join('')+'</div>';
+      h+='<div class="row">'+['enter'].map(keyHTML).join('')+'</div>';
     } else {
       kbd.classList.remove('num');
       var rows = layer==='abc'?ABC:(layer==='num'?NUM:SYM);
@@ -1180,7 +1472,9 @@ body{ padding-top:6px; }
       rows.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
       h+='<div class="row">'+BOT.map(keyHTML).join('')+'</div>';
     }
-    kbd.innerHTML=h; if(document.body.classList.contains("kbdopen")) _kbdAltura();
+    /* o X fica FORA do que muda de camada: a posicao dele nunca se mexe */
+    kbd.innerHTML='<div class="kbtop"><div class="kbx" data-k="hide">\u2715</div></div>'+h;
+    if(document.body.classList.contains("kbdopen")) _kbdAltura();
   }
   function fire(){ target.dispatchEvent(new Event('input',{bubbles:true})); }
   /* onde se escreve direto no texto (o nome do item, a nota, o subitem)
@@ -1279,10 +1573,10 @@ body{ padding-top:6px; }
   function focusCampo(){ target=campo; numerico=false; show(); }
   function focusQt(){ target=campoQt; numerico=true; show(); }
 
-  /* As perguntas da folha (Quantidade, Preco, Nota...) criam o campo na hora,
-     entao nao da pra ligar um por um: escuta o foco e adota qualquer campo
-     que aparecer dentro dela. O de data fica de fora — ali o calendario do
-     sistema ainda e melhor que nada. */
+  /* REGRA: no Feito nao sobe teclado de navegador, em lugar nenhum.
+     Como os campos costumam nascer na hora (as perguntas da folha, o registro,
+     o que vier depois), nao da pra ligar um por um: escuto o foco e adoto
+     QUALQUER campo que apareca. As excecoes sao nomeadas abaixo, e sao poucas. */
   function ehNumero(el){
     var im=(el.getAttribute("data-kb")||el.getAttribute("inputmode")||"").toLowerCase();
     return el.type==="number" || im==="decimal" || im==="numeric";
@@ -1294,9 +1588,10 @@ body{ padding-top:6px; }
     var solto = !!el.isContentEditable;   /* nome do item, nota, subitem, categoria */
     if(!solto){
       if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return;
-      /* a data segue com o calendario do sistema — por enquanto ele e melhor que nada */
-      if(el.type==="date" || el.type==="month" || el.type==="file") return;
-      if(!el.closest(".fov")) return;   /* campo de formulario: so dentro da folha */
+      if((el.getAttribute("data-kb")||"")==="off") return;  /* saida explicita, campo a campo */
+      if(el.type==="file") return;                          /* nao e digitacao */
+      if(el.type==="date" || el.type==="month") return;     /* tem o calendario do app, mais abaixo */
+      /* e so. Qualquer outro campo, esteja onde estiver, usa o teclado do app. */
     }
     numerico = !solto && ehNumero(el);
     if(TOUCH) el.setAttribute("inputmode","none");

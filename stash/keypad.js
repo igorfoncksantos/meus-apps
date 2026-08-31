@@ -21,7 +21,7 @@
     + 'body.kbdopen{ padding-bottom:calc(372px + env(safe-area-inset-bottom)) !important; }'
     + '#kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; display:none;'
     + '  background:linear-gradient(180deg,#0e1216,#070a0c); border-top:1px solid #20262b;'
-    + '  padding:8px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);'
+    + '  padding:4px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);'
     + '  -webkit-user-select:none; user-select:none; touch-action:manipulation;'
     + '  font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }'
     + '#kbd.on{ display:block; animation:kbdup .2s cubic-bezier(.25,.9,.3,1); }'
@@ -31,6 +31,11 @@
     + '#kbd .acc b{ flex:0 0 auto; min-width:44px; height:44px; display:flex; align-items:center; justify-content:center;'
     + '  background:#151a1f; border:1px solid #262d34; border-radius:9px; color:#cfe9e5; font-size:19px; font-weight:600; cursor:pointer; }'
     + '#kbd .acc b:active{ background:'+accSoft+'; }'
+    + '#kbd .kbtop{ display:flex; justify-content:flex-end; padding:0 2px 5px; }'
+    + '#kbd .kbx{ min-width:46px; height:28px; display:flex; align-items:center; justify-content:center;'
+    + '  border-radius:9px; background:rgba(248,113,113,.13); border:1px solid rgba(248,113,113,.36);'
+    + '  color:#f87171; font-size:14px; font-weight:800; line-height:1; }'
+    + '#kbd .kbx:active{ background:rgba(248,113,113,.28); }'
     + '#kbd .row{ display:flex; gap:6px; margin-bottom:7px; }'
     + '#kbd .row:last-child{ margin-bottom:0; }'
     + '#kbd .k{ flex:1 1 0; min-width:0; height:54px; display:flex; align-items:center; justify-content:center;'
@@ -64,7 +69,7 @@
   var SYM=[['~','`','|','=','+','{','}','[',']','\\'],
            ['<','>','^','°','€','R$','.',',','ç','º'],
            ['sym','ª','½','…','_','!','?','¿','back']];
-  var BOT=['layer','comma','space','dot','enter','hide'];
+  var BOT=['layer','comma','space','dot','enter'];
   var NUMPAD=[['1','2','3'],['4','5','6'],['7','8','9'],['comma','0','back']];
   function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -95,7 +100,7 @@
     if(isNum(target)){
       kbd.classList.add('num');
       NUMPAD.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
-      h+='<div class="row">'+['enter','hide'].map(keyHTML).join('')+'</div>';
+      h+='<div class="row">'+['enter'].map(keyHTML).join('')+'</div>';
     } else {
       kbd.classList.remove('num');
       var rows = layer==='abc'?ABC:(layer==='num'?NUM:SYM);
@@ -103,7 +108,9 @@
       rows.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
       h+='<div class="row">'+BOT.map(keyHTML).join('')+'</div>';
     }
-    kbd.innerHTML=h; if(document.body.classList.contains("kbdopen")) _kbdAltura();
+    /* o X fica FORA do que muda de camada: a posicao dele nunca se mexe */
+    kbd.innerHTML='<div class="kbtop"><div class="kbx" data-k="hide">\u2715</div></div>'+h;
+    if(document.body.classList.contains("kbdopen")) _kbdAltura();
   }
   function fire(){ if(target) target.dispatchEvent(new Event('input',{bubbles:true})); }
   // o teclado escreve o valor por script, e mudanca por script NAO dispara 'change'.
