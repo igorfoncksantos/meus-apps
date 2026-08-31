@@ -47,15 +47,18 @@
   #filtros{margin-bottom:14px}
 
   .add{margin-bottom:16px}
-  .add .linha{display:flex;gap:8px}
+  .add .linha{display:flex;gap:6px}
   .add input{flex:1;min-width:0;background:#121417;border:1px solid #2a2f34;border-radius:11px;
              padding:14px 15px;color:#f0f2f4;font-size:16px;font-family:inherit;outline:none}
   .add input:focus{border-color:#2FD9C9}
-  .add .qt{flex:0 0 62px;text-align:center;padding:14px 6px}
+  .add .qt{flex:0 0 54px;text-align:center;padding:14px 4px}
   .add button{flex-shrink:0;width:50px;background:#2FD9C9;color:#04181c;border:none;border-radius:11px;
               font-size:25px;font-weight:700;line-height:1;cursor:pointer}
-  .add .mic{background:#15181b;color:#2FD9C9;border:1px solid #23555c;font-size:18px}
+  .add .mic{background:#15181b;color:#2FD9C9;border:1px solid #23555c;font-size:18px;width:44px}
   .add .mic.rec{background:#2b1214;color:#f87171;border-color:#5c2a2f}
+  /* o da quantidade e menor: e um numero, nao uma frase */
+  .add .micq{width:38px;font-size:15px}
+  .add .micq span{transform:scale(.85);display:block}
 
 
   .sug{display:flex;gap:6px;overflow-x:auto;margin-top:9px;scrollbar-width:none}
@@ -338,21 +341,24 @@
 
   /* ===== DIGITACAO MODERNA v3 (2026-08-20) ===== */
   .add{ margin-bottom:18px; }
-  .add .linha{ align-items:center; gap:8px; padding:7px 7px 7px 8px; border-radius:20px;
+  .add .linha{ align-items:center; gap:5px; padding:7px 6px 7px 7px; border-radius:20px;
                background:linear-gradient(180deg,#12161b,#0d1013); border:1px solid #262d34; }
   .add .linha:focus-within{ border-color:#2FD9C9; box-shadow:0 0 0 3px rgba(47,217,201,.18),0 12px 30px rgba(0,0,0,.5); }
-  .add #campo{ font-size:16.5px; font-weight:600; padding:15px 8px 15px 42px; caret-color:#2FD9C9; letter-spacing:.2px;
+  .add #campo{ font-size:16.5px; font-weight:600; padding:15px 4px 15px 38px; caret-color:#2FD9C9; letter-spacing:.2px;
     background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232FD9C9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E") no-repeat 13px center;
     background-size:19px 19px; }
   .add #campo::placeholder{ color:#606b73; font-weight:500; }
   .add .linha:focus-within #campo{ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237df0e4' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E"); }
-  .add .qt{ flex:0 0 56px; background:#0b0e11; border:1px solid #262d34; border-radius:12px; padding:12px 4px;
+  .add .qt{ flex:0 0 48px; background:#0b0e11; border:1px solid #262d34; border-radius:12px; padding:12px 3px;
             font-size:13px; color:#c7ced3; }
   .add .qt::placeholder{ color:#5f6a72; }
   .add .mic{ width:44px; height:44px; flex:0 0 44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
              font-size:17px; background:#12161b; border:1px solid #2a343b; color:#8ee9df;
              transition:transform .12s, background .15s, border-color .15s; }
   .add .mic:active{ transform:scale(.9); }
+  /* o da quantidade e menor: ele dita um numero, nao uma frase */
+  .add .micq{ width:36px; height:36px; flex:0 0 36px; font-size:14px; }
+  .add .micq span{ transform:scale(.82); display:block; }
   .add .mic.rec{ background:#2b1214; border-color:#5c2a2f; color:#f87171; animation:micpulse 1s ease-in-out infinite; }
   @keyframes micpulse{ 0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.45)} 50%{box-shadow:0 0 0 7px rgba(248,113,113,0)} }
   .add button[type="submit"]{ width:48px; height:48px; flex:0 0 48px; border-radius:50%; font-size:27px;
@@ -432,8 +438,9 @@ body{ padding-top:6px; }
 <form class="add" id="form" autocomplete="off">
   <div class="linha">
     <input id="campo" placeholder="O que precisa ser feito?" enterkeyhint="done">
+    <button type="button" class="mic" id="btVoz" title="Ditar o item" aria-label="Ditar o item"><span data-ic="mic"></span></button>
     <input id="campoQt" class="qt" placeholder="qtd" inputmode="decimal">
-    <button type="button" class="mic" id="btVoz" title="Ditar"><span data-ic="mic"></span></button>
+    <button type="button" class="mic micq" id="btVozQt" title="Ditar a quantidade" aria-label="Ditar a quantidade"><span data-ic="mic"></span></button>
     <button type="submit" aria-label="Adicionar">+</button>
   </div>
   <div class="sug" id="sugestoes"></div>
@@ -1079,22 +1086,56 @@ body{ padding-top:6px; }
   });
 
   // ---------- voz
-  var Rec=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null;
-  var btVoz=document.getElementById("btVoz");
-  if(!Rec){ btVoz.style.display="none"; }
-  else{
-    btVoz.addEventListener("click",function(){
-      if(rec){ rec.stop(); return; }
+  var Rec=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, recBt=null;
+  var btVoz=document.getElementById("btVoz"), btVozQt=document.getElementById("btVozQt");
+
+  /* a API quase sempre devolve o algarismo, mas as vezes vem por extenso */
+  var NUM={zero:"0",um:"1",uma:"1",dois:"2",duas:"2",tres:"3","três":"3",quatro:"4",cinco:"5",
+           seis:"6",sete:"7",oito:"8",nove:"9",dez:"10",onze:"11",doze:"12",treze:"13",
+           quatorze:"14",catorze:"14",quinze:"15",dezesseis:"16",dezessete:"17",dezoito:"18",
+           dezenove:"19",vinte:"20","meia":"0,5",meio:"0,5"};
+  function soNumero(t){
+    var limpo=String(t).toLowerCase().trim();
+    if(NUM[limpo]) return NUM[limpo];
+    /* "2 quilos", "1,5 kg", "3 unidades" -> fica so o numero.
+       Sem regex de proposito: barra invertida em texto gerado ja se perdeu
+       uma vez e o erro passa despercebido. */
+    var out="", achou=false;
+    for(var i=0;i<limpo.length;i++){
+      var c=limpo.charAt(i);
+      if(c>="0" && c<="9"){ out+=c; achou=true; }
+      else if((c==="," || c===".") && achou && out.indexOf(",")<0){ out+=","; }
+      else if(achou){ break; }
+    }
+    if(out.charAt(out.length-1)===",") out=out.slice(0,-1);
+    if(out) return out;
+    /* nada de algarismo: tenta a primeira palavra por extenso */
+    var p=limpo.split(" ")[0];
+    return NUM[p] || "";
+  }
+
+  function ditar(bt, alvo, numerico){
+    bt.addEventListener("click",function(){
+      if(rec){ rec.stop(); return; }        /* tocar de novo (ou no outro) encerra */
       rec=new Rec(); rec.lang="pt-BR"; rec.interimResults=false; rec.continuous=false;
-      btVoz.classList.add("rec");
+      recBt=bt; bt.classList.add("rec");
       rec.onresult=function(ev){
-        var t=ev.results[0][0].transcript.trim();
-        if(t) document.getElementById("campo").value=t;
+        var t=String(ev.results[0][0].transcript||"").trim();
+        if(!t) return;
+        var campoAlvo=document.getElementById(alvo);
+        var v=numerico ? soNumero(t) : t;
+        if(v) campoAlvo.value=v;
       };
-      rec.onend=function(){ btVoz.classList.remove("rec"); rec=null; };
-      rec.onerror=function(){ btVoz.classList.remove("rec"); rec=null; };
+      rec.onend=function(){ if(recBt) recBt.classList.remove("rec"); recBt=null; rec=null; };
+      rec.onerror=function(){ if(recBt) recBt.classList.remove("rec"); recBt=null; rec=null; };
       rec.start();
     });
+  }
+
+  if(!Rec){ btVoz.style.display="none"; btVozQt.style.display="none"; }
+  else{
+    ditar(btVoz,   "campo",   false);
+    ditar(btVozQt, "campoQt", true);
   }
 
   // ---------- acoes
