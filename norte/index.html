@@ -580,31 +580,29 @@
   .wc-card .wcbtn:active{ transform:scale(.95); }
 
   /* ===== conta / login / sincronização ===== */
-  /* metade do dia: aparece no centro, some sozinha e nao rouba o toque —
-     so o proprio cartao e clicavel, pra quem quiser dispensar antes */
-  .cheer{ position:fixed; inset:0; z-index:80; display:flex; align-items:center;
-    justify-content:center; padding:24px; pointer-events:none; }
-  .cheer .cbox{ pointer-events:auto; cursor:pointer; text-align:center; max-width:300px;
+  /* metade do dia: desce do topo, some sozinha e nao rouba o toque —
+     so o proprio cartao e clicavel, pra quem quiser dispensar antes.
+     Deitado de proposito: em pe cobriria a data e a barra de progresso. */
+  .cheer{ position:fixed; left:0; right:0; top:0; z-index:80; display:flex;
+    align-items:flex-start; justify-content:center; pointer-events:none;
+    padding:calc(12px + env(safe-area-inset-top)) 14px 0; }
+  .cheer .cbox{ pointer-events:auto; cursor:pointer; display:flex; align-items:center; gap:12px;
+    width:100%; max-width:360px; text-align:left;
     background:var(--panel); border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
-    border-radius:18px; padding:20px 22px;
-    box-shadow:0 18px 50px rgba(0,0,0,.5), 0 0 44px color-mix(in srgb,var(--accent) 16%,transparent);
-    animation:cheerIn .34s cubic-bezier(.34,1.56,.64,1); }
+    border-radius:15px; padding:12px 15px;
+    box-shadow:0 14px 38px rgba(0,0,0,.5), 0 0 38px color-mix(in srgb,var(--accent) 14%,transparent);
+    animation:cheerIn .36s cubic-bezier(.34,1.4,.64,1); }
   .cheer.sai .cbox{ animation:cheerOut .26s ease forwards; }
-  .cheer .cmk{ width:46px; height:46px; margin:0 auto 12px; border-radius:50%;
+  .cheer .cmk{ width:36px; height:36px; flex:none; border-radius:50%;
     background:color-mix(in srgb,var(--accent) 18%,transparent);
     display:flex; align-items:center; justify-content:center; }
-  .cheer .cmk svg{ width:24px; height:24px; stroke:var(--accent); }
-  .cheer h4{ margin:0 0 5px; font-size:17px; font-weight:800; color:var(--txt2); letter-spacing:-.2px; }
-  .cheer p{ margin:0; font-size:12.5px; color:var(--mut); line-height:1.45; }
-  /* a barrinha conta os 3 segundos: sumir sozinho deixa de ser surpresa */
-  .cheer .cbar{ height:3px; margin-top:14px; border-radius:2px; background:var(--line); overflow:hidden; }
-  .cheer .cbar i{ display:block; height:100%; background:var(--accent); animation:cheerBar 3s linear forwards; }
-  @keyframes cheerIn{ from{ opacity:0; transform:translateY(14px) scale(.92); } to{ opacity:1; transform:none; } }
-  @keyframes cheerOut{ to{ opacity:0; transform:translateY(-8px) scale(.97); } }
-  @keyframes cheerBar{ from{ width:100%; } to{ width:0; } }
-  @media (prefers-reduced-motion:reduce){
-    .cheer .cbox{ animation:none; } .cheer .cbar i{ animation-timing-function:linear; }
-  }
+  .cheer .cmk svg{ width:19px; height:19px; stroke:var(--accent); }
+  .cheer .ctx{ min-width:0; }
+  .cheer h4{ margin:0 0 2px; font-size:14.5px; font-weight:800; color:var(--txt2); letter-spacing:-.2px; }
+  .cheer p{ margin:0; font-size:11.5px; color:var(--mut); line-height:1.35; }
+  @keyframes cheerIn{ from{ opacity:0; transform:translateY(-18px); } to{ opacity:1; transform:none; } }
+  @keyframes cheerOut{ to{ opacity:0; transform:translateY(-14px); } }
+  @media (prefers-reduced-motion:reduce){ .cheer .cbox{ animation:none; } }
   .authov{ position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:22px;
            background:rgba(0,0,0,.74); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
   .authov.hidden{ display:none !important; }
@@ -780,7 +778,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v46';
+const VERSAO = 'v47';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -923,8 +921,7 @@ function cheer50(){
   const el=document.createElement('div'); el.id='__cheer'; el.className='cheer';
   el.innerHTML='<div class="cbox">' +
     '<div class="cmk"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
-    '<h4>'+par[0]+'</h4><p>'+par[1]+'</p>' +
-    '<div class="cbar"><i></i></div></div>';
+    '<div class="ctx"><h4>'+par[0]+'</h4><p>'+par[1]+'</p></div></div>';
   document.body.appendChild(el);
   const fim=function(){ if(!el.parentNode) return; el.classList.add('sai');
     setTimeout(function(){ if(el.parentNode) el.remove(); },280); };
