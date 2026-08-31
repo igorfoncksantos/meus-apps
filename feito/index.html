@@ -92,6 +92,25 @@
   .tag.d.perto{background:#2b1214;color:#f87171}
   .tag.add{border-style:dashed;color:#5b646a}
   /* ---- registro das listas ---- */
+  /* o botao fica em cima da lista, alinhado a direita: e uma acao sobre o que
+     esta embaixo, nao um item do fluxo de escrever */
+  .transfbar{display:flex;justify-content:flex-end;margin:2px 0 7px}
+  .transfbt{display:flex;align-items:center;gap:6px;font-family:inherit;
+            font-size:11.5px;font-weight:700;color:#8a97a0;cursor:pointer;
+            background:#12161b;border:1px solid #2a2f34;border-radius:18px;padding:7px 13px}
+  .transfbt:active{border-color:#23555c;color:#2FD9C9}
+  .transfbt b{font-size:13px;line-height:1;font-weight:700}
+  /* marcado = o que vai mudar de categoria */
+  .transferindo li{border-color:#23555c;background:#0d2126}
+  .transferindo li.done{background:#0d2126}
+  .transferindo li .box,.transferindo li .cor{opacity:.5}
+  .destinos{display:flex;flex-wrap:wrap;gap:7px;padding:2px 6px 4px}
+  .dest{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;
+        padding:10px 14px;border-radius:22px;border:1px solid #2a2f34;background:#15181b;
+        color:#e8ebed;cursor:pointer;font-family:inherit}
+  .dest i{width:9px;height:9px;border-radius:50%;display:block}
+  .dest.aqui{border-color:#23555c;color:#2FD9C9}
+  .dest.nova{border-style:dashed;color:#2FD9C9;border-color:#23555c}
   .porta{margin:15px 0 2px;border:1px solid #2a2f34;background:#12161b;border-radius:12px;
          padding:12px 13px;cursor:pointer}
   .porta:active{border-color:#23555c}
@@ -430,6 +449,7 @@
   <div class="sug" id="sugestoes"></div>
 </form>
 
+<div class="transfbar" id="transfbar" style="display:none"><button type="button" class="transfbt" id="btTransferir"><b>⇄</b> Transferir</button></div>
 <div id="grupos"></div>
 <div class="vazio" id="vazio">Lista vazia.<br>Escreva ali em cima e toque no <b>+</b>.</div>
 
@@ -652,6 +672,9 @@
     var c2=cat(filtro);
     document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
     pintaPorta();
+    /* o botao so existe quando ha lista embaixo dele */
+    var tb=document.getElementById("transfbar");
+    if(tb) tb.style.display = itensAVista().length ? "" : "none";
   }
 
   function editavel(el,ini,onOk){
@@ -794,6 +817,8 @@
       "padding:18px 14px calc(18px + var(--kbh,0px));transition:padding-bottom .18s ease;"+
       "background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:fFade .18s ease}"+
     ".fov.out{animation:fFade .16s ease reverse forwards}"+
+    /* na folha de transferir o fundo fica limpo: a lista marcada e a informacao */
+    ".fov.limpo{background:rgba(4,6,10,.42);-webkit-backdrop-filter:none;backdrop-filter:none}"+
     "@keyframes fFade{from{opacity:0}to{opacity:1}}"+
     "@keyframes fUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}"+
     ".fsheet{width:100%;max-width:440px;background:#15181b;border:1px solid #2a2f34;"+
@@ -1081,6 +1106,75 @@
   // ---------- acoes
   function noFiltro(o){ return filtro==="tudo" || (filtro==="_sem"?!o.cat:o.cat===filtro); }
 
+  /* ---------- TRANSFERIR: a lista da tela muda de categoria de uma vez ---------- */
+  function itensAVista(){ return L().itens.filter(noFiltro); }
+  function marcaTransferindo(liga){
+    var g=document.getElementById("grupos");
+    if(g) g.classList.toggle("transferindo", !!liga);
+  }
+  /* COPIA, nao move: a lista original fica onde estava, intacta. E a copia vai
+     exatamente como esta — o que estava marcado continua marcado, com as
+     quantidades, precos, cargas, notas e subitens do jeito que estao. */
+  function transfereTudo(destino){
+    var l=L(), alvo=itensAVista(), n=alvo.length;
+    alvo.forEach(function(o){
+      l.itens.push({
+        id:uid(), texto:o.texto, feito:!!o.feito, cat:destino,
+        qtd:o.qtd||"", preco:o.preco||"", carga:o.carga||"",
+        nota:o.nota||"", prazo:o.prazo||"", freq:o.freq||"",
+        hist:(o.hist||[]).slice(),
+        subs:(o.subs||[]).map(function(sb){ return {t:sb.t, ok:!!sb.ok}; })
+      });
+    });
+    grava(); marcaTransferindo(false);
+    /* vou pra categoria de destino: sem isso a copia acontece fora da tela e
+       parece que nada aconteceu */
+    filtro = destino || "_sem";
+    pinta();
+    var c=destino?cat(destino):null;
+    toast(itens(n)+" copiados para "+(c?c.nome:"Sem categoria")+".");
+  }
+  function abreTransferir(){
+    var alvo=itensAVista();
+    if(!alvo.length) return;
+    marcaTransferindo(true);
+    var l=L(), atual=(filtro!=="tudo"&&filtro!=="_sem")?filtro:(filtro==="_sem"?"":null);
+    var h='<div class="fsh-t">Transferir '+itens(alvo.length)+' para</div><div class="destinos">';
+    (l.cats||[]).forEach(function(c){
+      h+='<button type="button" class="dest'+(atual===c.id?" aqui":"")+'" data-dest="'+c.id+'">' +
+         '<i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</button>';
+    });
+    h+='<button type="button" class="dest'+(atual===""?" aqui":"")+'" data-dest="">' +
+       '<i style="background:#5b646a"></i>Sem categoria</button>';
+    h+='<button type="button" class="dest nova" data-nova="1">+ Nova categoria</button>';
+    h+='</div><div class="fsh-a"><button type="button" class="fsk-g" id="trC">Cancelar</button></div>';
+    var sh=fOverlay(h);
+    var ovT=document.getElementById("fSheetOv"); if(ovT) ovT.classList.add("limpo");
+    sh.querySelector("#trC").addEventListener("click",function(){ marcaTransferindo(false); fClose(); });
+    /* fechar por fora (clique no fundo ou Esc) tambem tem que desmarcar */
+    var ov=document.getElementById("fSheetOv");
+    if(ov) ov.addEventListener("click",function(e){ if(e.target===ov) marcaTransferindo(false); });
+    Array.prototype.forEach.call(sh.querySelectorAll("[data-dest]"),function(b){
+      b.addEventListener("click",function(){
+        var d=this.getAttribute("data-dest"); fClose();
+        setTimeout(function(){ transfereTudo(d); },40);
+      });
+    });
+    var nv=sh.querySelector("[data-nova]");
+    if(nv) nv.addEventListener("click",function(){
+      fClose();
+      setTimeout(function(){
+        fAsk("Nova categoria","",function(n){
+          n=String(n||"").trim();
+          if(!n){ marcaTransferindo(false); return; }
+          var l2=L(), novo={id:uid(),nome:n,cor:PALETA[l2.cats.length%PALETA.length]};
+          l2.cats.push(novo); grava();
+          transfereTudo(novo.id);
+        },"text","ex: Mercado");
+      },40);
+    });
+  }
+
   /* ===================== REGISTRO DAS LISTAS =====================
      Uma rodada fechada vira um registro daquela categoria. Guardo a lista
      INTEIRA, nao so o que foi marcado: saber que o azeite nao tinha na
@@ -1325,6 +1419,7 @@
     sh.querySelector("#fcO").addEventListener("click",function(){ fClose(); setTimeout(cb,40); });
   }
 
+  document.getElementById("btTransferir").addEventListener("click",abreTransferir);
   document.getElementById("btDesmarcar").addEventListener("click",function(){
     var l=L(), n=l.itens.filter(function(o){ return o.feito && noFiltro(o); }).length;
     if(!n) return;
