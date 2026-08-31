@@ -580,6 +580,31 @@
   .wc-card .wcbtn:active{ transform:scale(.95); }
 
   /* ===== conta / login / sincronização ===== */
+  /* metade do dia: aparece no centro, some sozinha e nao rouba o toque —
+     so o proprio cartao e clicavel, pra quem quiser dispensar antes */
+  .cheer{ position:fixed; inset:0; z-index:80; display:flex; align-items:center;
+    justify-content:center; padding:24px; pointer-events:none; }
+  .cheer .cbox{ pointer-events:auto; cursor:pointer; text-align:center; max-width:300px;
+    background:var(--panel); border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));
+    border-radius:18px; padding:20px 22px;
+    box-shadow:0 18px 50px rgba(0,0,0,.5), 0 0 44px color-mix(in srgb,var(--accent) 16%,transparent);
+    animation:cheerIn .34s cubic-bezier(.34,1.56,.64,1); }
+  .cheer.sai .cbox{ animation:cheerOut .26s ease forwards; }
+  .cheer .cmk{ width:46px; height:46px; margin:0 auto 12px; border-radius:50%;
+    background:color-mix(in srgb,var(--accent) 18%,transparent);
+    display:flex; align-items:center; justify-content:center; }
+  .cheer .cmk svg{ width:24px; height:24px; stroke:var(--accent); }
+  .cheer h4{ margin:0 0 5px; font-size:17px; font-weight:800; color:var(--txt2); letter-spacing:-.2px; }
+  .cheer p{ margin:0; font-size:12.5px; color:var(--mut); line-height:1.45; }
+  /* a barrinha conta os 3 segundos: sumir sozinho deixa de ser surpresa */
+  .cheer .cbar{ height:3px; margin-top:14px; border-radius:2px; background:var(--line); overflow:hidden; }
+  .cheer .cbar i{ display:block; height:100%; background:var(--accent); animation:cheerBar 3s linear forwards; }
+  @keyframes cheerIn{ from{ opacity:0; transform:translateY(14px) scale(.92); } to{ opacity:1; transform:none; } }
+  @keyframes cheerOut{ to{ opacity:0; transform:translateY(-8px) scale(.97); } }
+  @keyframes cheerBar{ from{ width:100%; } to{ width:0; } }
+  @media (prefers-reduced-motion:reduce){
+    .cheer .cbox{ animation:none; } .cheer .cbar i{ animation-timing-function:linear; }
+  }
   .authov{ position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:22px;
            background:rgba(0,0,0,.74); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
   .authov.hidden{ display:none !important; }
@@ -755,7 +780,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v44';
+const VERSAO = 'v46';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -879,6 +904,43 @@ function stats(){
   return {pct:n?Math.round(sum/n*100):0, doneN, n, blocked, adia};
 }
 
+/* ============= metade do dia ============= */
+/* a frase troca de um dia pro outro, mas nao dentro do mesmo dia: repetir a
+   mesma sempre vira papel de parede, e sortear a cada render seria inquieto */
+const CHEER=[
+  ['Passou da metade.','Falta menos do que já foi.'],
+  ['Metade do dia feita.','Bom ritmo — segue.'],
+  ['Mais da metade resolvida.','O que falta cabe no resto do dia.'],
+  ['Virou a metade.','A parte cheia da barra já é a maior.'],
+  ['50% do dia.','Boa. O resto vem no embalo.']
+];
+let _lastPct=null;
+function jaComemorou(){ try{ return localStorage.getItem('norte-meta50')===cur; }catch(e){ return false; } }
+function cheer50(){
+  if(document.getElementById('__cheer')) return;
+  let h=0; for(let i=0;i<cur.length;i++) h=(h*31+cur.charCodeAt(i))>>>0;
+  const par=CHEER[h%CHEER.length];
+  const el=document.createElement('div'); el.id='__cheer'; el.className='cheer';
+  el.innerHTML='<div class="cbox">' +
+    '<div class="cmk"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>' +
+    '<h4>'+par[0]+'</h4><p>'+par[1]+'</p>' +
+    '<div class="cbar"><i></i></div></div>';
+  document.body.appendChild(el);
+  const fim=function(){ if(!el.parentNode) return; el.classList.add('sai');
+    setTimeout(function(){ if(el.parentNode) el.remove(); },280); };
+  el._h=setTimeout(fim,3000);
+  el.querySelector('.cbox').addEventListener('click',function(){ clearTimeout(el._h); fim(); });
+  try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
+}
+function checaMetade(pct){
+  if(cur!==todayISO()){ _lastPct=null; return; }   /* dia antigo nao comemora */
+  if(_lastPct!==null && _lastPct<50 && pct>=50 && !jaComemorou()){
+    try{ localStorage.setItem('norte-meta50',cur); }catch(e){}
+    cheer50();
+  }
+  _lastPct=pct;
+}
+
 /* ============= ordenação dentro da categoria ============= */
 function sortKey(t){
   // prioridade manda mais que status
@@ -903,6 +965,7 @@ function render(){
   document.getElementById('count').textContent =
     `${s.doneN} de ${s.n} · ${s.pct}% do dia` + (s.blocked?` · ${s.blocked} bloqueada${s.blocked>1?'s':''}`:'') + (s.adia?` · ${s.adia} adiada${s.adia>1?'s':''}`:'');
   document.getElementById('fill').style.width = s.pct+'%';
+  checaMetade(s.pct);
 
   // legend (só aparece se houver categorias)
   const lg=document.getElementById('legend');
