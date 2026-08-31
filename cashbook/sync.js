@@ -358,11 +358,15 @@
   function injectBtn(){ if(document.getElementById('syncBtn'))return; var b=document.createElement('button'); b.id='syncBtn'; b.title='Configurações'; b.onclick=window.openSync; b.innerHTML=IC.cfg; document.body.appendChild(b); updateBtn(); }
 
   /* ---------- boot ---------- */
-  async function boot(){ injectCSS(); init(); injectBtn();
+  /* modo sem interface: a copia do Feito que vive dentro de outro app so
+     precisa empurrar e puxar — o botao de conta e o cadeado sao do app de
+     fora, e duplicar os dois viraria um app dentro do app */
+  var SEMUI = !!(window.__SYNC_CFG && window.__SYNC_CFG.headless);
+  async function boot(){ injectCSS(); init(); if(!SEMUI) injectBtn();
     if(sb){ try{ var g=await sb.auth.getSession(); session=(g&&g.data&&g.data.session)||null; }catch(e){}
       sb.auth.onAuthStateChange(function(ev,ses){ if(ev==='PASSWORD_RECOVERY'){ session=ses||session; showRecovery(); return; } if(ses){ session=ses; if(ev==='SIGNED_IN')onSignedIn(); } }); }
     if(session){ onSignedIn(); }
-    maybeLock();
+    if(!SEMUI) maybeLock();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
 })();

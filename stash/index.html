@@ -720,7 +720,20 @@
   @media (prefers-reduced-motion:reduce){.lc.new,.cx.new{animation:none}}
 
   /* ============ PAINEL DE ANÉIS (aba Cashbook) ============ */
-  #t3 .gpcyc{ text-align:center; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.7px; color:var(--mut2); margin:2px 0 10px; }
+  /* o tempo do ciclo como BARRA, logo acima da barra do dinheiro: as duas
+     juntas dizem se o mes esta caro — se o tempo corre na frente, sobra grana;
+     se o dinheiro corre na frente, falta. */
+  #t3 .gpcyc{ margin:2px 0 11px; }
+  #t3 .cycl{ display:flex; align-items:baseline; gap:8px; margin-bottom:6px; }
+  #t3 .cycl .nome{ font-size:14.5px; font-weight:700; color:var(--txt2); letter-spacing:-.2px; }
+  #t3 .cycl .per{ font-size:10.5px; color:var(--mut); white-space:nowrap; }
+  #t3 .cycl .falta{ margin-left:auto; font-size:11.5px; font-weight:700; color:var(--amber); white-space:nowrap; }
+  #t3 .cycl .falta.fim{ color:var(--red); }
+  #t3 .cyct{ height:5px; border-radius:3px; background:var(--line); position:relative; }
+  #t3 .cyct i{ display:block; height:100%; width:0; background:var(--mut2); border-radius:3px;
+               opacity:.55; transition:width .3s ease; }
+  #t3 .cyct u{ position:absolute; top:-3px; left:0; width:2px; height:11px;
+               background:var(--amber); border-radius:1px; transition:left .3s ease; }
   #t3 .gpcyc b{ color:var(--txt2); }
   #t3 .gp-hero{ background:linear-gradient(160deg,#0c1712,#0a0d0f); border:1px solid #1f5c37; border-radius:16px; padding:16px 18px; text-align:center; margin-bottom:14px; }
   #t3 .gp-hero .gp-hl{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:var(--mut); }
@@ -919,13 +932,20 @@
 
 <!-- =============== 3. GASTOS =============== -->
 <section class="tela" id="t3">
-  <div class="gpcyc">Ciclo <b id="gCiclo">—</b> · <span id="gPeriodo">—</span></div>
+  <div class="gpcyc">
+    <div class="cycl">
+      <span class="nome" id="gCiclo">—</span>
+      <span class="per" id="gPeriodo">—</span>
+      <span class="falta" id="gFalta">—</span>
+    </div>
+    <div class="cyct"><i id="gCycFill"></i><u id="gCycAgulha"></u></div>
+  </div>
 
   <div class="gp-hero" id="gHero">
     <div class="gp-hl">Resta no total</div>
     <div class="gp-hv" id="gHeroRes">R$ 0,00</div>
     <div class="gp-hb"><i id="gHeroFill"></i></div>
-    <div class="gp-hc"><span id="gHeroPct">0%</span> do ciclo gasto &middot; <b id="gHeroDia">R$ 0,00</b>/dia &middot; <span id="gHeroDias">—</span></div>
+    <div class="gp-hc"><span id="gHeroPct">0%</span> do ciclo gasto &middot; <b id="gHeroDia">R$ 0,00</b>/dia</div>
   </div>
 
   <div class="gp-rings" id="gRings"></div>
@@ -1276,7 +1296,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v105';
+var VERSAO = 'v106';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -2890,7 +2910,18 @@ function renderGastos(){
   cicPreencher(); cicLigar(); cicMesLigar(); cicMesLabel(); parcEncher(); parcRenderAtivos(); relRender();
   var bp=document.getElementById("relPdf"); if(bp && !bp._lig){ bp._lig=1; bp.addEventListener("click", relPdf); }
   var dr=diasRest();
-  document.getElementById("gPeriodo").textContent=c.per+" · "+dr+(dr===1?" dia restante":" dias restantes");
+  document.getElementById("gPeriodo").textContent=c.per;
+  /* quanto do ciclo ja passou: a barra e o tempo, nao o dinheiro */
+  var ag=new Date(), hj=new Date(ag.getFullYear(),ag.getMonth(),ag.getDate());
+  var total=Math.max(1, Math.round((c.fim-c.ini)/86400000)+1);
+  var passou=Math.round((hj-c.ini)/86400000);
+  var pc=Math.max(0, Math.min(100, passou/total*100));
+  document.getElementById("gCycFill").style.width=pc+"%";
+  document.getElementById("gCycAgulha").style.left=pc+"%";
+  var fl=document.getElementById("gFalta");
+  fl.textContent = hj>c.fim ? "ciclo encerrado"
+                 : (dr===1 ? "último dia" : "faltam "+dr+" dias");
+  fl.className = "falta" + ((hj>c.fim || dr<=2) ? " fim" : "");
 
   var d=diasRest();
   // gasto por categoria
