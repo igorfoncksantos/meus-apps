@@ -605,6 +605,7 @@ body{ padding-top:6px; }
   function pinta(){
     if(window.__TIMERS){ window.__TIMERS.forEach(clearInterval); } window.__TIMERS=[];
     ajustaFiltro();
+    lembraFiltro();
     pintaListas(); pintaChips(); pintaSugestoes();
     var l=L();
     var cont=document.getElementById("grupos"); cont.innerHTML="";
@@ -1146,12 +1147,22 @@ body{ padding-top:6px; }
   /* Sem o "Tudo", o filtro precisa apontar sempre pra um chip que existe — e,
      de preferencia, pra um que tenha itens: abrir numa categoria vazia parece
      lista sumida. */
+  /* onde voce estava, por lista e por aparelho. Fica fora do que o Feito
+     sincroniza (so "afazeres-v3" sobe) porque e vista, nao dado. */
+  var KF="feito-filtro";
+  function lidosFiltros(){ try{ return JSON.parse(localStorage.getItem(KF)||"{}")||{}; }catch(e){ return {}; } }
+  function lembraFiltro(){
+    try{ var m=lidosFiltros(); m[D.atual]=filtro; localStorage.setItem(KF,JSON.stringify(m)); }catch(e){}
+  }
   function ajustaFiltro(){
     var l=L(); if(!l) return;
     var soltos=l.itens.some(function(o){ return !o.cat; });
     var validos=(l.cats||[]).map(function(c){ return c.id; });
     if(soltos || !validos.length) validos.push("_sem");
     if(validos.indexOf(filtro)>=0) return;              /* ja esta num chip valido */
+    /* 1o: a categoria onde ele parou da ultima vez nesta lista */
+    var salvo=lidosFiltros()[D.atual];
+    if(salvo && validos.indexOf(salvo)>=0){ filtro=salvo; return; }
     var comItens=null;
     (l.cats||[]).forEach(function(c){
       if(comItens) return;
