@@ -59,7 +59,55 @@
         }
       } else { await pushRemote(); }
     }catch(e){} }
-  function applyAdopt(data,stamp,force){ if(force || !_initDone){ setBlob(data); _set(LK.synced,stamp); reload(); }
+  /* Antes de adotar o que veio da nuvem, guardo o que havia AQUI. Baixar da
+     nuvem era uma porta de uma mao so: um toque errado e o aparelho perdia os
+     dados sem volta. Agora da pra desfazer por 10 minutos. */
+  var KSOC='sync-socorro-'+APP_ID;
+  function guardaSocorro(){
+    try{
+      var atual=getBlob();
+      if(!Object.keys(atual).length) return;
+      _set(KSOC, JSON.stringify({em:Date.now(), dados:atual}));
+    }catch(e){}
+  }
+  function temSocorro(){
+    try{
+      var s=JSON.parse(localStorage.getItem(KSOC)||'null');
+      if(!s || !s.dados) return null;
+      if(Date.now()-(s.em||0) > 600000){ localStorage.removeItem(KSOC); return null; }
+      return s;
+    }catch(e){ return null; }
+  }
+  async function desfazerNuvem(){
+    var s=temSocorro(); if(!s) return;
+    setBlob(s.dados);                 /* volta o que era neste aparelho */
+    localStorage.removeItem(KSOC);
+    _set(LK.synced,'');               /* forca o envio, pra a nuvem concordar */
+    try{ await pushRemote(); }catch(e){}
+    reload();
+  }
+  function barraDesfazer(){
+    if(!temSocorro() || document.getElementById('syncUndo')) return;
+    var w=document.createElement('div'); w.id='syncUndo';
+    w.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:100003;'+
+      'background:#1b1108;border:1px solid #5c3413;border-radius:14px;padding:12px 14px;'+
+      'box-shadow:0 14px 40px rgba(0,0,0,.55);font-family:inherit;display:flex;align-items:center;gap:10px';
+    var t=document.createElement('div');
+    t.style.cssText='flex:1;min-width:0;font-size:12.5px;line-height:1.4;color:#F0B45E';
+    t.innerHTML='Os dados deste aparelho foram trocados pelos da nuvem.';
+    var b=document.createElement('button');
+    b.style.cssText='flex:none;border:none;border-radius:10px;padding:9px 14px;font-family:inherit;'+
+      'font-size:12.5px;font-weight:800;background:#F97316;color:#1b1108;cursor:pointer';
+    b.textContent='Desfazer';
+    b.onclick=function(){ b.disabled=true; b.textContent='Voltando…'; desfazerNuvem(); };
+    var x=document.createElement('button');
+    x.style.cssText='flex:none;border:none;background:transparent;color:#8a97a0;font-size:17px;cursor:pointer;padding:0 2px';
+    x.textContent='×';
+    x.onclick=function(){ try{ localStorage.removeItem(KSOC); }catch(e){} w.remove(); };
+    w.appendChild(t); w.appendChild(b); w.appendChild(x);
+    document.body.appendChild(w);
+  }
+  function applyAdopt(data,stamp,force){ if(force || !_initDone){ guardaSocorro(); setBlob(data); _set(LK.synced,stamp); reload(); }
     else { _pending={data:data,stamp:stamp}; showUpdateBar(); } }
   function showUpdateBar(){ if(document.getElementById('syncUpd'))return; var b=document.createElement('button'); b.id='syncUpd';
     b.style.cssText='position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:100002;background:'+ACCENT+';color:#04231f;border:none;border-radius:16px;padding:12px 18px;font-size:13.5px;font-weight:800;cursor:pointer;box-shadow:0 12px 34px rgba(0,0,0,.5);font-family:"Segoe UI",Arial,sans-serif';
@@ -367,6 +415,8 @@
       sb.auth.onAuthStateChange(function(ev,ses){ if(ev==='PASSWORD_RECOVERY'){ session=ses||session; showRecovery(); return; } if(ses){ session=ses; if(ev==='SIGNED_IN')onSignedIn(); } }); }
     if(session){ onSignedIn(); }
     if(!SEMUI) maybeLock();
+    /* se a troca acabou de acontecer, ofereco desfazer */
+    setTimeout(barraDesfazer, 900);
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
