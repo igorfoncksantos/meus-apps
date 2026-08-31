@@ -261,27 +261,6 @@
   .cx .met .pz{color:var(--amber)}
   .cx .met .atr{color:var(--red)}
 
-.cxcar{display:flex;gap:11px;overflow-x:auto;padding:3px 1px 11px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.cxcar::-webkit-scrollbar{display:none}
-.cxc{flex:0 0 200px;background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--line);
-  border-radius:16px;padding:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .1s;
-  -webkit-tap-highlight-color:transparent}
-.cxc:active{transform:scale(.985)}
-.cxc.on{border-color:var(--dono);box-shadow:0 6px 22px color-mix(in srgb,var(--dono) 20%,transparent)}
-.cxc .ctop{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.cxc .cdt{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
-.cxc .cnm{font-size:12.5px;font-weight:800;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.cxc .cvl{font-size:21px;font-weight:800;color:var(--txt2);margin-bottom:12px;font-variant-numeric:tabular-nums;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cxc .cbar{height:6px;background:rgba(128,128,128,.22);border-radius:4px;overflow:hidden;margin-bottom:7px}
-.cxc .cbar i{display:block;height:100%;border-radius:4px}
-.cxc .cft{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;font-weight:700;color:var(--mut2);font-variant-numeric:tabular-nums}
-.cxc .cft b{color:var(--mut)}
-.cxdet{margin-top:2px}
-.cxadd{flex:0 0 200px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);
-  border-radius:16px;color:var(--mut2);font-size:12.5px;font-weight:800;cursor:pointer;background:transparent;
-  font-family:inherit;transition:border-color .15s,color .15s}
-.cxadd:hover{border-color:var(--dono);color:var(--dono)}
   /* cartao de pessoa (substitui o nicho que abria e fechava) */
   .pcards{display:flex;gap:9px;overflow-x:auto;padding:2px 1px 4px;margin-bottom:11px;scrollbar-width:none}
   .pcards::-webkit-scrollbar{display:none}
@@ -346,6 +325,26 @@
   .fop.perigo{color:var(--red)} .fop.perigo .fic{color:var(--red)}
   .fop.cancel{justify-content:center;color:var(--mut);font-weight:700;margin-top:5px}
   .folha .fcorpo{padding:2px 2px 6px}
+  /* ===== os cofres em lista: a linha E a barra =====
+     O preenchimento e a meta. Sem barra separada e sem "%": um elemento a
+     menos por cofre, e os doze cabem na tela. */
+  .cxlista{margin-top:4px}
+  .cxl{position:relative;display:flex;align-items:center;gap:10px;padding:12px 10px;
+    border-radius:9px;margin-bottom:3px;overflow:hidden;cursor:pointer;
+    background:color-mix(in srgb,var(--txt) 3%,transparent)}
+  .cxl:active{transform:scale(.995)}
+  .cxl > i{position:absolute;left:0;top:0;bottom:0;opacity:.18;border-radius:9px}
+  .cxl > *{position:relative}
+  .cxd{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .cxn{flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cxv{font-weight:800;font-size:13.5px;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+  .cxnova{display:block;width:100%;margin-top:7px;padding:11px;border-radius:9px;cursor:pointer;
+    background:transparent;border:1px dashed color-mix(in srgb,var(--dono) 45%,var(--line));
+    color:var(--dono);font-family:inherit;font-size:12.5px;font-weight:800}
+  /* a folha tem campos dentro: com o teclado aberto ela sobe junto, senao o
+     teclado (que e fixo e fica por cima) esconde o que se escreve */
+  body.kbdopen .folha .fcx{bottom:var(--kbh,0px);max-height:calc(82vh - var(--kbh,0px))}
+
 
   /* aba de aportes */
   .apowns{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
@@ -1277,15 +1276,11 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v109';
-var _cxSel = {};
+var VERSAO = 'v110';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
 var _aggAberto = {};
-var _cxScr = {};
-function _cxGuardaRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k) _cxScr[k]=c.scrollLeft; }); }
-function _cxDevolveRolagem(){ Array.prototype.forEach.call(document.querySelectorAll(".cxcar"),function(c){ var k=c.getAttribute("data-car"); if(k && _cxScr[k]) c.scrollLeft=_cxScr[k]; }); }
 function renderPatrimonio(){
   sincronizarCores();
   var tc=totalCx(), tt=total();
@@ -1307,19 +1302,14 @@ function renderPatrimonio(){
   }
 
   function attr(s){ return String(s==null?"":s).replace(/"/g,"&quot;"); }
-  function cardMini(x, sel){
-    var barra = "", rodape = '<span>sem meta</span><span>&mdash;</span>';
-    if(x.m > 0){
-      var q = Math.min(100, x.v / x.m * 100);
-      barra = '<i style="width:' + q + '%;background:' + x.c + '"></i>';
-      rodape = '<span><b>' + q.toFixed(0) + '%</b> da meta</span><span>de R$ ' + brl(x.m) + '</span>';
-    }
-    return '<div class="cxc' + (sel ? " on" : "") + '" data-cxsel="' + x.id + '">' +
-      '<div class="ctop"><span class="cdt" style="background:' + x.c + '"></span><span class="cnm">' + esc(x.n) + '</span></div>' +
-      '<div class="cvl">R$ ' + brl(x.v) + '</div>' +
-      '<div class="cbar">' + barra + '</div>' +
-      '<div class="cft">' + rodape + '</div>' +
-    '</div>';
+  /* a linha inteira e o cofre: o preenchimento ao fundo e a meta */
+  function linhaCx(x){
+    var pc = x.m>0 ? Math.min(100,(x.v||0)/x.m*100) : 0;
+    return '<div class="cxl" data-cxab="'+x.id+'">' +
+      (pc>0 ? '<i style="width:'+pc+'%;background:'+x.c+'"></i>' : "") +
+      '<span class="cxd" style="background:'+x.c+'"></span>' +
+      '<span class="cxn">'+esc(x.n)+'</span>' +
+      '<span class="cxv">'+brl(x.v)+'</span></div>';
   }
   function cardCx(x){
     var met="";
@@ -1344,10 +1334,10 @@ function renderPatrimonio(){
       opts+='<div class="cselopt'+(o===x.own?" sel":"")+'" data-ownop="'+x.id+'" data-ownval="'+encodeURIComponent(o)+'">' +
             '<span class="cseldot" style="background:'+(D.ownerColors[o]||"#5c6469")+'"></span>'+esc(o)+'</div>';
     });
-    /* o cartao do carrossel ja diz nome e valor — aqui nao se repete:
-       o painel abre direto nos campos, com o saldo (o que ele mais mexe) na frente. */
+    /* o titulo da folha ja diz o nome: o rotulo aqui e so "Saldo", e o campo
+       que ele mais mexe abre na frente. */
     return '<div class="cx" style="border-left-color:'+x.c+'" data-cx="'+x.id+'">' +
-         '<div class="gr"><div><label class="lb">Saldo de '+esc(x.n)+'</label>' +
+         '<div class="gr"><div><label class="lb">Saldo</label>' +
            '<input class="r saldo" inputmode="decimal" data-v="'+x.id+'" value="'+brl(x.v)+'"></div></div>' + met +
            '<div class="gr"><div><label class="lb">Nome</label><input data-n="'+x.id+'" value="'+attr(x.n)+'"></div></div>' +
            '<div class="gr">' +
@@ -1365,6 +1355,10 @@ function renderPatrimonio(){
          '</div>';
   }
 
+
+  /* a folha do cofre desenha o mesmo painel; guardo a referencia porque
+     cardCx vive no fechamento de renderPatrimonio */
+  _cardCx = cardCx;
 
   /* o cartao de pessoa: anel = quanto das metas DAQUELA pessoa ja andou */
   function cardPessoa(ow, on){
@@ -1494,12 +1488,11 @@ function renderPatrimonio(){
 
     var itens=D.cx.filter(function(x){ return x.own===ow; });
     if(itens.length){
-      if(!_cxSel[ow] || !itens.filter(function(y){ return String(y.id)===String(_cxSel[ow]); }).length) _cxSel[ow]=String(itens[0].id);
-      h+= '<div class="cxcar" data-car="'+attr(ow)+'">';
-      itens.forEach(function(x){ h+=cardMini(x, String(x.id)===String(_cxSel[ow])); });
-      h+= '<button class="cxadd" data-gadd="'+attr(ow)+'">+ cofre</button></div>';
-      var escolhido = itens.filter(function(y){ return String(y.id)===String(_cxSel[ow]); })[0];
-      h+= '<div class="cxdet">' + (escolhido ? cardCx(escolhido) : "") + '</div>';
+      /* do maior saldo para o menor: a ordem passa a dizer onde o dinheiro esta */
+      var ord = itens.slice().sort(function(a,b){ return (b.v||0)-(a.v||0); });
+      h+= '<div class="cxlista">';
+      ord.forEach(function(x){ h+=linhaCx(x); });
+      h+= '<button class="cxnova" data-gadd="'+attr(ow)+'">+ cofre</button></div>';
     } else {
       h+= '<span class="gadd" data-gadd="'+attr(ow)+'">+ cofre</span>';
     }
@@ -1509,10 +1502,7 @@ function renderPatrimonio(){
   if(patView==="cx" && patOwn) t1.style.setProperty("--dono", D.ownerColors[patOwn]||"#2FD9C9");
   else t1.style.removeProperty("--dono");
 
-  _cxGuardaRolagem();
   document.getElementById("listaCx").innerHTML=h;
-  _cxDevolveRolagem();
-  requestAnimationFrame(_cxDevolveRolagem);
 
   var eD=document.getElementById("eDest"), sv=eD.value||"cart";
   function _eopt(val,name,cor){ return '<div class="cselopt'+(val==sv?" sel":"")+'" data-eopt="'+val+'"><span class="od" style="background:'+cor+'"></span>'+esc(name)+'</div>'; }
@@ -1677,8 +1667,15 @@ function ligarAgg(){
     D.agg.splice(ai,1); salvar(); renderPatrimonio(); }); });
 }
 
-function ligarPatr(){
-  var q=function(s){ return document.querySelectorAll(s); };
+function ligarPatr(raiz){
+  raiz = raiz || document;
+  /* a folha se liga sozinha quando abre. Se a varredura do documento a
+     pegasse de novo a cada render, os campos dela ficariam com dois
+     handlers — e "Apagar cofre" perguntaria duas vezes. */
+  var _fo = document.getElementById("folha");
+  var q=function(s){ var l=raiz.querySelectorAll(s);
+    if(raiz!==document || !_fo) return l;
+    return Array.prototype.filter.call(l,function(e){ return !_fo.contains(e); }); };
   Array.prototype.forEach.call(q("[data-v]"),function(i){ i.addEventListener("change",function(){
     var c=acharCx(this.getAttribute("data-v")); if(c){ c.v=num(this.value); } salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-n]"),function(i){ i.addEventListener("change",function(){
@@ -1715,19 +1712,13 @@ function ligarPatr(){
     var ex = D.cx.slice().sort(function(a,b){ return (b.v||0)-(a.v||0); })[0];
     if(!ex) return;
     if(ex.own){ patOwn=ex.own; try{ localStorage.setItem("stash-patown",ex.own); }catch(e){} }
-    _cxSel[ex.own]=String(ex.id);
     setPatView("cx");
+    abrirFolhaCofre(ex.id);
   });
 
   /* ---- nichos ---- */
-  Array.prototype.forEach.call(q("[data-cxsel]"),function(c){ c.addEventListener("click",function(e){
-    if(e.target.closest("[data-gadd]")) return;
-    var id=this.getAttribute("data-cxsel"), alvo=null;
-    D.cx.forEach(function(x){ if(String(x.id)===String(id)) alvo=x; });
-    if(!alvo) return;
-    _cxSel[alvo.own] = id;
-    renderPatrimonio();
-  }); });
+  Array.prototype.forEach.call(q("[data-cxab]"),function(c){ c.addEventListener("click",function(){
+    abrirFolhaCofre(this.getAttribute("data-cxab")); }); });
   Array.prototype.forEach.call(q("[data-pown]"),function(c){ c.addEventListener("click",function(e){
     if(e.target.closest("[data-psheet]")) return;
     setPatOwn(this.getAttribute("data-pown")); }); });
@@ -1878,14 +1869,22 @@ document.getElementById("aTot").addEventListener("input",function(){
   D.ap.tot=this.value; salvar(); renderAporte(); });
 
 /* ---------- folha de op&ccedil;&otilde;es (sobe pela base, n&atilde;o empurra a tela) ---------- */
-var _shOwn=null;
+var _shOwn=null, _shCx=null, _cardCx=null;
+function abrirFolhaCofre(id){
+  var x=acharCx(id); if(!x || !_cardCx) return;
+  _shCx=String(id); _shOwn=null;
+  folhaHTML('<div class="ftit">'+esc(x.n)+'</div><div class="fcorpo">'+_cardCx(x)+'</div>');
+  var f=document.getElementById("folha"); f.classList.add("on"); f.setAttribute("aria-hidden","false");
+  /* so o que esta DENTRO da folha, senao os handlers da pagina dobram */
+  ligarPatr(document.getElementById("folhaCx"));
+}
 function folhaHTML(inner){ document.getElementById("folhaCx").innerHTML='<div class="puxa"></div>'+inner; }
 function abrirFolhaDono(ow){ _shOwn=ow; folhaMenu();
   var f=document.getElementById("folha"); f.classList.add("on"); f.setAttribute("aria-hidden","false");
   sinal(document.querySelector('[data-psheet="'+String(ow).replace(/"/g,"&quot;")+'"]'), true); }
 function fecharFolha(){ var f=document.getElementById("folha"); f.classList.remove("on"); f.setAttribute("aria-hidden","true");
   Array.prototype.forEach.call(document.querySelectorAll("[data-psheet]"),function(b){ sinal(b,false); });
-  _shOwn=null; }
+  _shOwn=null; _shCx=null; }
 function folhaMenu(){
   folhaHTML('<div class="ftit">'+esc(_shOwn)+'</div>' +
     '<button class="fop" onclick="folhaRenomear()"><span class="fic">&#9998;</span>Renomear dono</button>' +
@@ -1908,7 +1907,6 @@ function folhaSalvaNome(){
   D.cx.forEach(function(x){ if(x.own===old) x.own=nn; });
   if(D.ownerColors[old]!==undefined){ if(!D.ownerColors[nn]) D.ownerColors[nn]=D.ownerColors[old]; delete D.ownerColors[old]; }
   if(D.collapsed[old]!==undefined){ D.collapsed[nn]=D.collapsed[old]; delete D.collapsed[old]; }
-  if(_cxSel[old]!==undefined){ _cxSel[nn]=_cxSel[old]; delete _cxSel[old]; }
   if(patOwn===old) setPatOwn(nn);
   fecharFolha(); salvar(); renderTudo(); toast("Dono renomeado.","ok");
 }
@@ -1934,7 +1932,7 @@ async function folhaApagar(){
   else { if(!await appConfirm("Nao ha cofre nenhum nele.",
       {titulo:'Apagar "'+ow+'"?', ok:"Apagar", perigo:true})) return; }
   var oi=D.owners.indexOf(ow); if(oi>=0) D.owners.splice(oi,1);
-  delete D.ownerColors[ow]; delete D.collapsed[ow]; delete _cxSel[ow];
+  delete D.ownerColors[ow]; delete D.collapsed[ow];
   fecharFolha();
   patOwn=donoValido("");
   try{ localStorage.setItem("stash-patown",patOwn); }catch(e){}
