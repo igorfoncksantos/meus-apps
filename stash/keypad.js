@@ -237,10 +237,37 @@
      Marcar no focusin e tarde: no celular quem chama o painel do sistema e o
      proprio foco, e mudar o inputmode depois nao faz ele descer. Entao todo
      campo ja nasce selado, e os que aparecem depois sao selados na hora. */
+  /* querySelectorAll nao entra em shadow root; junto todos e trato cada um */
+  function raizes(){
+    var out=[document];
+    try{
+      var todos=document.querySelectorAll('*');
+      for(var i=0;i<todos.length;i++){
+        var sr=todos[i].shadowRoot;
+        if(!sr) continue;
+        out.push(sr);
+        if(!sr.__kbdObs && TOUCH){
+          sr.__kbdObs=1;
+          try{
+            var sp=null;
+            new MutationObserver(function(){
+              if(sp) return;
+              sp=setTimeout(function(){ sp=null; selar(); },30);
+            }).observe(sr,{childList:true,subtree:true});
+          }catch(x){}
+        }
+      }
+    }catch(x){}
+    return out;
+  }
   function selar(raiz){
     if(!TOUCH) return;
+    var rs = raiz ? [raiz] : raizes();
+    for(var r=0;r<rs.length;r++) selarEm(rs[r]);
+  }
+  function selarEm(raiz){
     var els;
-    try{ els=(raiz||document).querySelectorAll('input,textarea,[contenteditable="true"]'); }catch(x){ return; }
+    try{ els=raiz.querySelectorAll('input,textarea,[contenteditable="true"]'); }catch(x){ return; }
     for(var i=0;i<els.length;i++){
       var el=els[i];
       if(!handle(el)) continue;
@@ -254,25 +281,32 @@
   }
   try{ window.__kbdSelar = selar; }catch(x){}
   if(TOUCH){
-    selar(document);
+    selar();
     /* os apps redesenham o tempo todo; campo novo nasce selado */
     try{
       var _sp=null;
       new MutationObserver(function(){
         if(_sp) return;
-        _sp=setTimeout(function(){ _sp=null; selar(document); },30);
+        _sp=setTimeout(function(){ _sp=null; selar(); },30);
       }).observe(document.documentElement,{childList:true,subtree:true});
     }catch(x){}
-    document.addEventListener('DOMContentLoaded',function(){ selar(document); });
-    window.addEventListener('load',function(){ selar(document); });
+    document.addEventListener('DOMContentLoaded',function(){ selar(); });
+    window.addEventListener('load',function(){ selar(); });
   }
 
   // delegação: qualquer input que ganhe foco (inclui os criados depois)
-  document.addEventListener('focusin', function(e){ if(handle(e.target)) attach(e.target); }, true);
+  /* dentro de shadow root o e.target vira o HOST; o caminho composto devolve
+     o campo de verdade */
+  function alvoReal(e){
+    try{ var p=e.composedPath&&e.composedPath(); if(p&&p.length) return p[0]; }catch(x){}
+    return e.target;
+  }
+  document.addEventListener('focusin', function(e){ var el=alvoReal(e); if(handle(el)) attach(el); }, true);
   document.addEventListener('pointerdown', function(e){
     if(!kbd.classList.contains('on')) return;
-    if(kbd.contains(e.target)) return;
-    if(handle(e.target)) return;             // vai focar outro campo -> focusin cuida
+    var el=alvoReal(e);
+    if(kbd.contains(el) || kbd.contains(e.target)) return;
+    if(handle(el)) return;                   // vai focar outro campo -> focusin cuida
     hide();
   }, true);
 })();
