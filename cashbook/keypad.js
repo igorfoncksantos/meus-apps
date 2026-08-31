@@ -212,7 +212,10 @@
     var tag=el.tagName;
     if(tag!=='INPUT' && tag!=='TEXTAREA') return false;
     if(el.getAttribute('data-kb')==='off') return false;
-    if(el.readOnly || el.disabled) return false;
+    if(el.disabled) return false;
+    /* readonly posto por MIM nao desqualifica: e justamente o que segura o
+       painel do sistema. Readonly do app, sim, continua fora. */
+    if(el.readOnly && el.getAttribute('data-kbro')!=='1') return false;
     if(tag==='INPUT'){
       var bad=['checkbox','radio','range','color','file','button','submit','reset','date','time','datetime-local','month','week'];
       if(bad.indexOf((el.type||'text').toLowerCase())>=0) return false;
@@ -274,6 +277,10 @@
       if(el.getAttribute('inputmode')==='none') continue;
       if(!el.getAttribute('data-kb')) el.setAttribute('data-kb', (!solto(el) && isNum(el)) ? 'num' : 'text');
       el.setAttribute('inputmode','none');
+      /* o cinto que funciona onde o inputmode e ignorado (Android/Gboard) */
+      if(el.tagName!=='DIV' && !el.isContentEditable && !el.readOnly){
+        el.setAttribute('data-kbro','1'); el.readOnly=true;
+      }
       el.setAttribute('autocapitalize','off');
       el.setAttribute('autocorrect','off');
       el.setAttribute('spellcheck','false');

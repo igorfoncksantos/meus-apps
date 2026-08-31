@@ -880,7 +880,10 @@
     var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
     /* marcar no foco e tarde: no celular o teclado do sistema ja subiu.
        A data fica de fora — ali quem abre e o calendario do proprio app. */
-    if(window.__kbTouch && tipo!=="date") i.setAttribute("inputmode","none");
+    if(window.__kbTouch && tipo!=="date"){
+      i.setAttribute("inputmode","none");
+      i.setAttribute("data-kbro","1"); i.readOnly=true;   /* segura o Gboard */
+    }
     /* quantidade, preco e segundos pedem o discador; o resto, as letras */
     if(tipo==="number") i.setAttribute("data-kb","numeric");
     else if(/quantidade|pre\u00e7o|segundos/i.test(titulo)) i.setAttribute("data-kb","decimal");
@@ -1657,7 +1660,8 @@
     if(el.isContentEditable) return (el.getAttribute("data-kb")||"")!=="off";
     if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return false;
     if((el.getAttribute("data-kb")||"")==="off") return false;
-    if(el.readOnly || el.disabled) return false;
+    if(el.disabled) return false;
+    if(el.readOnly && el.getAttribute("data-kbro")!=="1") return false;
     var t=(el.type||"text").toLowerCase();
     return ["file","date","month","week","time","datetime-local","checkbox","radio","range","color","button","submit","reset"].indexOf(t)<0;
   }
@@ -1670,6 +1674,11 @@
       if(!adotavel(el)) continue;
       if(el.getAttribute("inputmode")==="none") continue;
       el.setAttribute("inputmode","none");
+      /* o cinto que funciona onde o inputmode e ignorado (Android/Gboard):
+         readonly barra o painel do sistema e nao atrapalha o script */
+      if(!el.isContentEditable && !el.readOnly){
+        el.setAttribute("data-kbro","1"); el.readOnly=true;
+      }
       el.setAttribute("autocapitalize","off");
       el.setAttribute("autocorrect","off");
       el.setAttribute("spellcheck","false");
@@ -1696,6 +1705,7 @@
     if(!solto){
       if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return;
       if((el.getAttribute("data-kb")||"")==="off") return;  /* saida explicita, campo a campo */
+      if(el.readOnly && el.getAttribute("data-kbro")!=="1") return;
       if(el.type==="file") return;                          /* nao e digitacao */
       if(el.type==="date" || el.type==="month") return;     /* tem o calendario do app, mais abaixo */
       /* e so. Qualquer outro campo, esteja onde estiver, usa o teclado do app. */
