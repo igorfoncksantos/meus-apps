@@ -1056,6 +1056,7 @@
   </div>
 </nav>
 
+<script src="icons.js"></script>
 <script>
 /* ================== DADOS ================== */
 var PADRAO = {
@@ -1275,7 +1276,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v104';
+var VERSAO = 'v105';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -2783,7 +2784,10 @@ function ligaCofreGrid(){
   });
 }
 var PICK_ICONS=["cart","cutlery","coffee","cup","pizza","bag","shirt","home","bed","tv","car","bus","plane","fuel","gift","heart","pill","dumbbell","baby","paw","book","graduation","gamepad","music","film","camera","phone","wifi","globe","ticket","scissors","wrench","bolt","droplet","leaf","coins","money","wallet","creditcard","bank","receipt","tag","star","clock","sun","folder","list","trending","barchart","gear"];
-function svgOr(n){ return (window.svgIc ? window.svgIc(n) : ""); }
+/* Nunca devolver vazio: se o desenhador ainda nao existe, deixo um marcador
+   que o paintIcons preenche depois. Foi assim que os 50 icones da escolha de
+   categoria ficaram em branco — montados antes do icons.js carregar. */
+function svgOr(n){ return window.svgIc ? window.svgIc(n) : ('<span data-ic="'+n+'"></span>'); }
 function catIcoHTML(k){ var e=k?(k.emoji||""):""; if(String(e).charAt(0)==="#") return '<span class="csvg" data-ic="'+e.slice(1)+'" style="color:'+(k.cor||"#fff")+'">'+svgOr(e.slice(1))+'</span>'; return e; }
 function catIcoTxt(k){ var e=k?(k.emoji||""):""; return String(e).charAt(0)==="#"?"":e; }
 function iconGridHTML(hid,cur){ var html=PICK_ICONS.map(function(n){ var sel=(cur==="#"+n)?" sel":""; /* o data-ic e a rede: se o icons.js ainda nao carregou, o svgOr
@@ -3347,7 +3351,6 @@ window.addEventListener("message",function(e){
 });
 </script>
 <script src="sync.js"></script>
-<script src="icons.js"></script>
 <script src="keypad.js"></script>
 <style>
 #__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}

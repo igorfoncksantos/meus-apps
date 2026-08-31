@@ -373,7 +373,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Cashbook">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <script>
+  <script src="icons.js"></script>
+<script>
   (function(){
     if(!('serviceWorker' in navigator) || location.protocol==='file:') return;
     var refreshing=false;
@@ -1179,7 +1180,10 @@ function montarCategorias(){ montarRings(); montarOrcrow(); montarDropdown(); }
 var editId = null;
 /* ---- ícone da categoria: emoji OU token "#nome" (SVG) ---- */
 var PICK_ICONS = ["cart","cutlery","coffee","cup","pizza","bag","shirt","home","bed","tv","car","bus","plane","fuel","gift","heart","pill","dumbbell","baby","paw","book","graduation","gamepad","music","film","camera","phone","wifi","globe","ticket","scissors","wrench","bolt","droplet","leaf","coins","money","wallet","creditcard","bank","receipt","tag","star","clock","sun","folder","list","trending","barchart","gear"];
-function svgOr(n){ return (window.svgIc ? window.svgIc(n) : ""); }
+/* Nunca devolver vazio: se o desenhador ainda nao existe, deixo um marcador
+   que o paintIcons preenche depois. Foi assim que os 50 icones da escolha de
+   categoria ficaram em branco — montados antes do icons.js carregar. */
+function svgOr(n){ return window.svgIc ? window.svgIc(n) : ('<span data-ic="'+n+'"></span>'); }
 function catIcoHTML(cat){ var e = cat ? (cat.emoji||"") : ""; if(String(e).charAt(0)==="#") return '<span class="csvg" data-ic="'+e.slice(1)+'" style="color:'+(cat.cor||"#fff")+'">'+svgOr(e.slice(1))+'</span>'; return e; }
 function catIcoTxt(cat){ var e = cat ? (cat.emoji||"") : ""; return String(e).charAt(0)==="#" ? "" : e; }
 function montarIconPicker(){
@@ -1269,7 +1273,6 @@ window.addEventListener("message",function(e){
 <script>window.__SYNC_CFG={app:'cashbook',keys:['gastos-*','vale-*'],accent:'#3ddb84',name:'Cashbook'};</script>
 <script src="supabase.js"></script>
 <script src="sync.js"></script>
-<script src="icons.js"></script>
 <script src="keypad.js"></script>
 <style>
 #__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}
