@@ -120,6 +120,23 @@
   .porta .res{margin-top:6px;font-size:14px;color:#f0f2f4;font-weight:600}
   .porta .res em{font-style:normal;color:#FBBF24}
   .porta .ver{margin-top:9px;font-size:11.5px;font-weight:700;color:#2FD9C9}
+  .cnf{border:1px solid #2a2f34;background:#12161b;border-radius:12px;padding:13px 14px;margin:0 6px 4px}
+  .cnfl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5b646a}
+  .cnfl b{color:#8a97a0}
+  .cnfn{margin-top:5px;font-size:21px;font-weight:800;color:#f0f2f4}
+  .cnfs{margin-top:3px;font-size:12.5px;color:#8a97a0}
+  .cnfs em{font-style:normal;color:#FBBF24;font-weight:700}
+  .cnfi{margin-top:8px;font-size:12px;color:#6b7378;line-height:1.45}
+  .cnfw{margin:6px 6px 0;font-size:12px;color:#F0B45E;background:#1b1108;
+        border:1px solid #5c3413;border-radius:10px;padding:9px 11px;line-height:1.45}
+  .regbar{display:flex;margin:14px 0 2px}
+  .regbt{flex:1;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+         color:#F97316;background:#1b1108;border:1px solid #5c3413;border-radius:12px;padding:13px}
+  .regbt:active{background:#241408;border-color:#F97316}
+  .porta.vazia{border-style:dashed;cursor:default}
+  .porta .res2{margin-top:6px;font-size:13px;color:#8a97a0;font-weight:700}
+  .porta .dica2{margin-top:5px;font-size:11.5px;color:#5b646a;line-height:1.5}
+  .porta .dica2 b{color:#8a97a0}
 
   .reg{border:1px solid #262a2e;background:#121417;border-radius:11px;padding:11px 12px;margin-bottom:7px}
   .reg .rh{display:flex;align-items:baseline;gap:8px;cursor:pointer}
@@ -453,6 +470,7 @@
 <div id="grupos"></div>
 <div class="vazio" id="vazio">Lista vazia.<br>Escreva ali em cima e toque no <b>+</b>.</div>
 
+<div class="regbar" id="regbar" style="display:none"><button type="button" class="regbt" id="btRegistrar">Registrar e limpar</button></div>
 <div id="porta"></div>
 
 <div class="acoes">
@@ -673,8 +691,11 @@
     document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
     pintaPorta();
     /* o botao so existe quando ha lista embaixo dele */
+    var tem=itensAVista().length;
     var tb=document.getElementById("transfbar");
-    if(tb) tb.style.display = itensAVista().length ? "" : "none";
+    if(tb) tb.style.display = tem ? "" : "none";
+    var rb=document.getElementById("regbar");
+    if(rb) rb.style.display = tem ? "" : "none";
   }
 
   function editavel(el,ini,onOk){
@@ -1106,6 +1127,44 @@
   // ---------- acoes
   function noFiltro(o){ return filtro==="tudo" || (filtro==="_sem"?!o.cat:o.cat===filtro); }
 
+  /* ---------- REGISTRAR E LIMPAR ---------- */
+  function registrarELimpar(){
+    var alvo=L().itens.filter(noFiltro);
+    if(!alvo.length) return;
+    var marcados=0, tot=0, temPreco=false;
+    alvo.forEach(function(o){
+      if(o.feito) marcados++;
+      if(o.preco){ temPreco=true; tot+=(+o.preco||0)*(+o.qtd||1); }
+    });
+    var nomes=alvo.slice(0,3).map(function(o){ return esc1(o.texto); }).join(", ");
+    if(alvo.length>3) nomes += " e mais "+(alvo.length-3);
+
+    /* 1 de 2 — a conferencia: o que exatamente vai ser guardado */
+    var corpo='<div class="cnf"><div class="cnfl">Vai pro registro '+ondeVai()+'</div>'+
+      '<div class="cnfn">'+itens(alvo.length)+'</div>'+
+      '<div class="cnfs">'+marcados+' marcado'+(marcados===1?"":"s")+
+        (alvo.length-marcados>0 ? ' · '+(alvo.length-marcados)+' sem marcar' : '')+
+        (temPreco ? ' · <em>R$ '+real(tot)+'</em>' : '')+'</div>'+
+      '<div class="cnfi">'+nomes+'</div></div>';
+    if(!marcados) corpo+='<div class="cnfw">Nada foi marcado — não há rodada pra guardar. A lista só vai ser limpa.</div>';
+
+    fConfirm("Conferir a rodada", corpo, "Continuar", function(){
+      /* 2 de 2 — a consequencia, curta e final */
+      fConfirm("Limpar a lista agora?",
+        marcados
+          ? ("A rodada fica guardada no registro; os "+alvo.length+" itens saem da tela. Você traz de volta pelo <b>Usar de novo</b>.")
+          : ("Os "+alvo.length+" itens saem da tela e <b>não ficam guardados</b>, porque nenhum foi marcado."),
+        marcados ? "Registrar e limpar" : "Limpar mesmo assim",
+        function(){
+          var reg=guardaRodada();
+          var l=L();
+          l.itens=l.itens.filter(function(o){ return !noFiltro(o); });
+          grava(); pinta();
+          toast(reg ? "Rodada guardada no registro." : "Lista limpa.");
+        }, !marcados);
+    }, false);
+  }
+
   /* ---------- TRANSFERIR: a lista da tela muda de categoria de uma vez ---------- */
   function itensAVista(){ return L().itens.filter(noFiltro); }
   function marcaTransferindo(liga){
@@ -1190,6 +1249,14 @@
   function real(v){ return (+v||0).toFixed(2).replace(".",","); }
   function itens(n){ return n+(n===1?" item":" itens"); }
 
+  /* "de esta lista" nao existe: de + esta = desta */
+  /* "de esta lista" nao existe; a juncao certa e "desta lista" */
+  function ondeVai(){
+    return filtro==="tudo" ? "<b>desta lista</b>" : ("de <b>"+esc1(nomeFiltro())+"</b>");
+  }
+  function tituloRegistro(){
+    return filtro==="tudo" ? "Registro desta lista" : ("Registro de "+esc1(nomeFiltro()));
+  }
   function nomeFiltro(){
     if(filtro==="tudo") return "esta lista";
     if(filtro==="_sem") return "Sem categoria";
@@ -1236,7 +1303,17 @@
   function pintaPorta(){
     var el=document.getElementById("porta"); if(!el) return;
     var rs=regsDoFiltro();
-    if(!rs.length){ el.innerHTML=""; return; }
+    if(!rs.length){
+      /* sem lista embaixo nao ha o que registrar; com lista, o cartao explica
+         o que ele e — foi por esconde-lo que ninguem achou o recurso */
+      if(!itensAVista().length){ el.innerHTML=""; return; }
+      el.innerHTML='<div class="porta vazia"><div class="cab">'+
+        '<span class="t">'+tituloRegistro()+'</span></div>'+
+        '<div class="res2">Nenhuma rodada guardada ainda.</div>'+
+        '<div class="dica2">Toque em <b>Registrar e limpar</b>, aqui em cima, quando terminar: '+
+        'a rodada fica guardada aqui com o que foi marcado, os preços e a data — e volta pelo <b>Usar de novo</b>.</div></div>';
+      return;
+    }
     var u=rs[0], n=u.itens.length, t=totalReg(u), resto=rs.length-1;
     el.innerHTML='<div class="porta"><div class="cab">'+
       '<span class="t">'+(filtro==="tudo" ? "Última vez nesta lista"
@@ -1245,7 +1322,8 @@
       '<div class="res">'+itens(n)+(t!==null?' · <em>R$ '+real(t)+'</em>':'')+'</div>'+
       '<div class="ver">'+(resto ? (resto===1 ? "Ver a anterior ›" : "Ver as "+resto+" anteriores ›")
                                  : "Ver o registro ›")+'</div></div>';
-    el.querySelector(".porta").addEventListener("click",abreRegistro);
+    var p=el.querySelector(".porta");
+    if(p && !p.classList.contains("vazia")) p.addEventListener("click",abreRegistro);
   }
 
   /* ---- 3-A: os itens como eram ---- */
@@ -1320,7 +1398,7 @@
   }
   function desenhaRegistro(){
     var rs=regsDoFiltro();
-    var h='<div class="fsh-t">Registro de '+esc1(nomeFiltro())+'</div><div id="regLista">';
+    var h='<div class="fsh-t">'+tituloRegistro()+'</div><div id="regLista">';
     if(!rs.length) h+='<div class="regvazio">Nenhuma rodada guardada aqui ainda.</div>';
     rs.forEach(function(r){ h+=cartaoReg(r); });
     h+='</div>';
@@ -1420,6 +1498,7 @@
   }
 
   document.getElementById("btTransferir").addEventListener("click",abreTransferir);
+  document.getElementById("btRegistrar").addEventListener("click",registrarELimpar);
   document.getElementById("btDesmarcar").addEventListener("click",function(){
     var l=L(), n=l.itens.filter(function(o){ return o.feito && noFiltro(o); }).length;
     if(!n) return;
@@ -1435,7 +1514,7 @@
     if(!alvo.length) return;
     fecha();
     fConfirm("Remover "+alvo.length+" concluída"+(alvo.length===1?"":"s")+"?",
-      "Antes de remover, guardo esta rodada no registro de <b>"+esc1(nomeFiltro())+"</b> com a data de hoje.",
+      "Antes de remover, guardo esta rodada no registro "+ondeVai()+" com a data de hoje.",
       "Remover", function(){
         var reg=guardaRodada();
         var l2=L();
@@ -1450,7 +1529,7 @@
     fecha();
     fConfirm("Apagar "+itens(alvo.length)+"?",
       temFeito
-        ? "Antes de apagar, guardo esta rodada no registro de <b>"+esc1(nomeFiltro())+"</b> com a data de hoje."
+        ? "Antes de apagar, guardo esta rodada no registro "+ondeVai()+" com a data de hoje."
         : "Nada foi marcado nesta rodada, então não há o que guardar no registro.",
       "Apagar", function(){
         var reg=guardaRodada();
