@@ -1296,7 +1296,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v107';
+var VERSAO = 'v108';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -2698,37 +2698,10 @@ function normalizarCat(){
 /* O orcamento da categoria. O campo manual SEMPRE existe e manda quando
    preenchido; vazio, cai no que o cofre daria. Mesma logica do "Total a
    distribuir" no aporte — um numero so, com uma reserva clara. */
-function orcDaCat(k){
-  var manual=num(k.orc);
-  if(manual>0) return manual;
-  var d=orcDoCofre(k);
-  return d===null ? 0 : d;
-}
-/* so o valor que o cofre daria — pra mostrar do lado, sem virar o orcamento */
-function orcDoCofre(k){
-  if(!k.cofre) return null;
-  var c=acharCx(k.cofre); if(!c) return null;
-  return (c.v||0)*(k.cpc||0)/100;
-}
-/* quanto das categorias ligadas ao mesmo cofre ja foi comprometido */
-function somaPcCofre(cofreId, ignoraCatId){
-  var t=0;
-  D.vale.cats.forEach(function(k){
-    if(k.cofre!==cofreId) return;
-    if(ignoraCatId && k.id==ignoraCatId) return;
-    t+=k.cpc||0;
-  });
-  return Math.round(t*100)/100;
-}
-/* quanto do cofre as categorias ja comprometeram — puro aviso, nao trava nada */
-function avisoCofre(k){
-  var c=acharCx(k.cofre); if(!c) return "";
-  var total=somaPcCofre(k.cofre);
-  if(Math.abs(total-100)<0.01) return "";
-  return '<div class="cfavi">As categorias ligadas a <b>'+esc(c.n)+'</b> somam <b>'+pct(total)+'%</b>' +
-    (total<100 ? (' &mdash; sobram '+pct(100-total)+'% do cofre sem or&ccedil;amento.')
-               : (' &mdash; passa '+brl(total-100)+'% do que o cofre tem.')) + '</div>';
-}
+/* O teto e o que VOCE digitou. O saldo do cofre nao entra aqui: cofre diz de
+   onde o dinheiro sai, orcamento diz quanto voce se permite gastar. Se o
+   saldo mandasse, o teto mudaria sozinho — que e o oposto de um teto. */
+function orcDaCat(k){ return num(k.orc); }
 
 /* as pastilhas de cofre — mesmo desenho da grade de icones que ja existe */
 function cofreGridHTML(campoId, sel){
@@ -2838,8 +2811,7 @@ function mostrarNovaCat(){
         '<div class="cflbl">Cofre relacionado (opcional)</div>' +
         cofreGridHTML("ncCofre","") +
         '<input type="hidden" id="ncCofre" value="">' +
-        '<div class="cfpc" id="ncPcBox" style="display:none"><label>Quanto do cofre &eacute; desta categoria</label>' +
-          '<input class="r" inputmode="decimal" id="ncCpc" placeholder="0"><span class="un">%</span></div>' +
+
         '<div class="cfavi" id="ncAvi" style="display:none"></div>' +
         '<div class="acoes"><button class="bt p" id="ncOk" style="width:auto">Adicionar</button>' +
         '<button class="bt n" id="ncCancel" style="width:auto">Cancelar</button></div>' +
@@ -2869,14 +2841,13 @@ function mostrarNovaCat(){
   /* o campo de % so faz sentido depois de escolher um cofre */
   function ncAtualiza(){
     var cid=document.getElementById("ncCofre").value;
-    document.getElementById("ncPcBox").style.display = cid ? "" : "none";
+
     var avi=document.getElementById("ncAvi");
     if(!cid){ avi.style.display="none"; return; }
-    var usado=somaPcCofre(cid), c=acharCx(cid);
-    var livre=Math.round((100-usado)*100)/100;
+    var c=acharCx(cid);
     avi.style.display="";
-    avi.innerHTML = usado>0
-      ? ("Outras categorias j&aacute; usam <b>"+brl(usado)+"%</b> de "+esc(c.n)+". Livre: <b>"+brl(livre)+"%</b>.")
+    avi.innerHTML = true
+      ? ("O gasto desta categoria sai de <b>"+esc(c.n)+"</b> no fim do ciclo. O or&ccedil;amento voc&ecirc; escolhe na aba <b>Or&ccedil;amentos</b>.")
       : ("Nenhuma categoria usa "+esc(c.n)+" ainda. Livre: <b>100%</b>.");
   }
   document.getElementById("ncCofre").addEventListener("change",ncAtualiza);
@@ -2888,7 +2859,7 @@ function mostrarNovaCat(){
     D.vale.cats.push({id:"c"+Date.now().toString(36),nome:nm,
       emoji:(document.getElementById("ncEmoji").value||"#cart"),
       cor:document.getElementById("ncCor").value, orc:"",
-      cofre:cof, cpc:(cof?num(document.getElementById("ncCpc").value):0)});
+      cofre:cof, cpc:0});
     salvar(); resetNovaCat(); renderGastos(); toast("Categoria criada.","ok");
   });
 }
@@ -2966,7 +2937,6 @@ function renderGastos(){
   document.getElementById("gHeroFill").style.width=(semOrc?0:pcT)+"%";
   document.getElementById("gHeroPct").textContent=(tO>0?Math.round(pcT):0)+"%";
   document.getElementById("gHeroDia").textContent="R$ "+brl(tR>0?tR/d:0);
-  document.getElementById("gHeroDias").textContent=d+(d===1?" dia restante":" dias restantes");
   /* sem categoria com teto, "R$ 0,00" mentiria: o que falta e configurar */
   var hc=document.querySelector("#t3 .gp-hero .gp-hc");
   if(hc) hc.style.display = semOrc ? "none" : "";
@@ -2979,19 +2949,19 @@ function renderGastos(){
   // --- Categorias (o que ela e) e Orcamentos (quanto pode gastar) ---
   var bh="", oh="";
   D.vale.cats.forEach(function(k){
-    var orc=orcDaCat(k), dc=orcDoCofre(k), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
+    var orc=orcDaCat(k), gas=gasto[k.id]||0, est=(orc>0&&(orc-gas)<0);
     var cxk = k.cofre ? acharCx(k.cofre) : null;
 
     /* --- aba Orcamentos: so o teto, um por linha, tudo a vista --- */
     oh+='<div class="box orl'+(est?' est':'')+'" style="border-left:3px solid '+k.cor+'">' +
         '<div class="orltop"><span class="oico" style="color:'+k.cor+'">'+catIcoHTML(k)+'</span>' +
         '<span class="onm">'+esc(k.nome)+'</span>' +
-        '<input class="r" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="'+(dc===null?"0,00":brl(dc))+'"></div>' +
-        (dc===null || !cxk ? '' :
-          ('<div class="cfder"><span class="cfo">'+pct(k.cpc||0)+'% de '+esc(cxk.n)+(cxk.own?' ('+esc(cxk.own)+')':'')+' d&aacute; <b>R$ '+brl(dc)+'</b></span>' +
-           (num(k.orc)>0
-             ? '<span class="cfv2">usando o seu</span>'
-             : '<span class="cfv2 auto">em uso</span>')+'</div>')) +
+        '<input class="r" inputmode="decimal" data-orc="'+k.id+'" value="'+esc(k.orc||"")+'" placeholder="0,00"></div>' +
+        /* o cofre so aparece como lembrete de onde o gasto vai sair no fim do
+           ciclo — ele nao decide o teto */
+        (!cxk ? '' :
+          ('<div class="cfder"><span class="cfo">sai de <b>'+esc(cxk.n)+'</b>'+
+            (cxk.own?' ('+esc(cxk.own)+')':'')+' no fim do ciclo</span></div>')) +
         '</div>';
 
     /* --- aba Categorias: identidade e de qual cofre ela sai --- */
@@ -3015,11 +2985,7 @@ function renderGastos(){
           '<div class="cflbl">Cofre relacionado (opcional)</div>' +
           cofreGridHTML("cate_cof_"+k.id, k.cofre) +
           '<input type="hidden" id="cate_cof_'+k.id+'" data-catcof="'+k.id+'" value="'+esc(k.cofre||"")+'">' +
-          (k.cofre
-            ? ('<div class="cfpc"><label>Quanto do cofre &eacute; desta categoria</label>' +
-               '<input class="r" inputmode="decimal" data-catpc="'+k.id+'" value="'+(k.cpc||"")+'" placeholder="0"><span class="un">%</span></div>' +
-               avisoCofre(k))
-            : '') +
+
           '<div class="acoes"><button class="bt d" data-catdel="'+k.id+'">Apagar categoria</button></div></div>' +
         '</div>';
   });
@@ -3068,12 +3034,8 @@ function renderGastos(){
     /* recusou: redesenha pra pastilha voltar pro cofre que valia */
     if(!await confirmaLigacao(k.nome, novo, antigo)){ renderGastos(); abreCatEd(k.id); return; }
     k.cofre=novo;
-    if(!k.cofre) k.cpc=0;
-    else if(!k.cpc){ var livre=100-somaPcCofre(k.cofre,k.id); k.cpc=Math.max(0,Math.round(livre*100)/100); }
+
     salvar(); renderGastos(); abreCatEd(k.id); }); });
-  Array.prototype.forEach.call(q("[data-catpc]"),function(i){ i.addEventListener("change",function(){
-    var k=acharCat(this.getAttribute("data-catpc")); if(!k) return;
-    k.cpc=num(this.value); salvar(); renderGastos(); abreCatEd(k.id); }); });
   /* abre a parede de icone / de cor da categoria que ja existe */
   Array.prototype.forEach.call(q("[data-abrir]"),function(b){ b.addEventListener("click",function(){
     var cx=document.getElementById("cx_"+this.getAttribute("data-abrir")); if(!cx) return;
