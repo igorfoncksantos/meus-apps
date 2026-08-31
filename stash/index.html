@@ -774,7 +774,7 @@
   .cselopt.sel{ color:var(--txt2); }
   #t3 .orclab{ font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--mut2); margin:2px 2px 8px; }
   /* as tres sub-abas ocupam a largura toda: sao irmas, nenhuma manda mais */
-  #t3 .gsub{ display:flex; width:100%; margin:0 0 12px; }
+  #t3 .gsub{ display:flex; width:100%; margin:2px 0 12px; }
   #t3 .gsub button{ flex:1; padding:8px 6px; font-size:12.5px; }
   /* no cartao da categoria, quem paga por ela */
   #t3 .catpg{ font-size:11px; color:var(--mut2); margin-top:5px; }
@@ -787,11 +787,6 @@
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   #t3 .orltop input{ max-width:116px; flex:none; }
   #t3 .box.orl .cfder{ margin-top:7px; }
-  #t3 .gcfgtoggle{ display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; margin:2px 0 12px;
-    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 15px; color:var(--txt2);
-    font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer; }
-  #t3 .gcfgtoggle .gcfgchev{ color:var(--mut); transition:transform .2s,color .2s; font-size:11px; }
-  #t3 .gcfgtoggle.on .gcfgchev{ color:var(--accent); }
   .cbfab{ position:fixed; right:16px; bottom:calc(86px + env(safe-area-inset-bottom)); z-index:25;
     display:flex; align-items:center; gap:8px; height:52px; padding:0 20px; border:none; border-radius:26px; cursor:pointer;
     background:var(--accent); color:#04231f; font-family:inherit; font-size:15px; font-weight:800;
@@ -934,8 +929,7 @@
     <div class="cm" id="gSaldoMsg">—</div>
   </div>
 
-  <button class="gcfgtoggle" id="gCfgToggle" onclick="toggleGCfg()" aria-expanded="false"><span>Ciclos, categorias e orçamentos</span><span class="gcfgchev">+</span></button>
-  <div id="gCfg" style="display:none">
+  <div id="gCfg">
     <div class="segt gsub">
       <button id="gsCic" class="on" onclick="setCfgView('cic')">Ciclos</button>
       <button id="gsCat" onclick="setCfgView('cat')">Categorias</button>
@@ -1154,12 +1148,6 @@ function setCfgView(v){
     if(d) d.style.display = liga?"":"none";
   });
 }
-function toggleGCfg(){ var c=document.getElementById("gCfg"), b=document.getElementById("gCfgToggle"); if(!c)return;
-  var open=(c.style.display==="none"); c.style.display=open?"":"none";
-  /* ao abrir, volta na sub-aba onde ele estava da ultima vez */
-  if(open) setCfgView(cfgView);
-  if(b){ b.className="gcfgtoggle"+(open?" on":""); b.setAttribute("aria-expanded",open?"true":"false");
-         sinal(b.querySelector(".gcfgchev"), open); } }
 function cbQuickAdd(){ var h=document.getElementById("gLancarH"); if(h) h.scrollIntoView({behavior:"smooth",block:"start"});
   var v=document.getElementById("gVal"); if(v) setTimeout(function(){ try{ v.focus(); }catch(e){} },280); }
 /* Pergunta do app, no lugar da do navegador. Devolve uma promessa: quem
@@ -1294,7 +1282,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v89';
+var VERSAO = 'v88';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -2629,7 +2617,8 @@ function cicPreencher(){
   n.value=v.ciclo||""; d.value=v.dia||20;
   m.value=v.anoIni+"-"+("0"+(v.mesIni+1)).slice(-2);
   var c=cicloInfo();
-  h.textContent="Período: "+c.per+" · "+diasRest()+" dias restantes";
+  var dh=diasRest();
+  h.textContent="Período: "+c.per+" · "+dh+(dh===1?" dia restante":" dias restantes");
 }
 function cicSalvar(){
   var v=D.vale;
@@ -2971,7 +2960,7 @@ function renderGastos(){
   if(!hz && semOrc){ hz=document.createElement("div"); hz.id="gHeroZero"; hz.className="gp-hc";
     document.querySelector("#t3 .gp-hero").appendChild(hz); }
   if(hz){ hz.style.display = semOrc ? "" : "none";
-    hz.innerHTML = "Defina um teto em <b>Ciclos, categorias e orçamentos &rsaquo; Orçamentos</b> pra começar a acompanhar."; }
+    hz.innerHTML = "Defina um teto na aba <b>Orçamentos</b>, logo abaixo."; }
 
   // --- Categorias (o que ela e) e Orcamentos (quanto pode gastar) ---
   var bh="", oh="";
@@ -3022,6 +3011,7 @@ function renderGastos(){
   });
   document.getElementById("gBoxes").innerHTML=bh;
   document.getElementById("gOrcs").innerHTML=oh;
+  setCfgView(cfgView);   /* sem o botao de abrir, e aqui que a sub-aba se firma */
 
   // popular o select de categoria (preservando a seleção)
   /* seletor de categoria: mesmo dropdown do app, nao o do navegador */
