@@ -577,7 +577,7 @@ var CATS;
 try { var _rc = localStorage.getItem("gastos-cats"); CATS = _rc ? JSON.parse(_rc) : JSON.parse(JSON.stringify(CATEGORIAS)); }
 catch(e){ CATS = JSON.parse(JSON.stringify(CATEGORIAS)); }
 if(!CATS || !CATS.length) CATS = JSON.parse(JSON.stringify(CATEGORIAS));
-var PALCAT = ["#f0883e","#3ddb84","#a78bfa","#22D3EE","#F472B6","#EF4444","#FBBF24","#60A5FA","#34D399","#FB923C","#C084FC","#94A3B8"];
+var PALCAT = ["#f0883e","#3ddb84","#a78bfa","#22D3EE","#F472B6","#EF4444","#FBBF24","#60A5FA","#34D399","#FB923C","#C084FC","#94A3B8","#c08552","#b4478f"];
 function saveCats(){ try { localStorage.setItem("gastos-cats", JSON.stringify(CATS)); } catch(e){} if(typeof marcarSujo === "function") marcarSujo(); }
 function catById(id){ for(var i=0;i<CATS.length;i++){ if(CATS[i].id === id) return CATS[i]; } return null; }
 function novoId(){ return "c" + (new Date().getTime().toString(36)) + Math.floor(Math.random()*1000); }
@@ -1184,7 +1184,7 @@ function catIcoHTML(cat){ var e = cat ? (cat.emoji||"") : ""; if(String(e).charA
 function catIcoTxt(cat){ var e = cat ? (cat.emoji||"") : ""; return String(e).charAt(0)==="#" ? "" : e; }
 function montarIconPicker(){
   var box=document.getElementById("cmIcons"); if(!box) return;
-  box.innerHTML = PICK_ICONS.map(function(n){ return '<button type="button" data-ic-pick="'+n+'">'+svgOr(n)+'</button>'; }).join("");
+  box.innerHTML = PICK_ICONS.map(function(n){ return '<button type="button" data-ic-pick="'+n+'" data-ic="'+n+'">'+svgOr(n)+'</button>'; }).join("");
   Array.prototype.forEach.call(box.querySelectorAll("[data-ic-pick]"), function(b){ b.addEventListener("click", function(){ setCmIcon("#"+this.getAttribute("data-ic-pick")); }); });
 }
 function setCmIcon(val){

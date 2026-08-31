@@ -1081,7 +1081,8 @@ function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,
 /* paleta de cores (swatches) — reusada em cofres, nichos e categorias */
 var PALETA=["#2FD9C9","#22C55E","#3ddb84","#6ea8f0","#38bdf8","#818cf8","#A78BFA","#c084fc",
             "#e878a8","#f472b6","#f87171","#fb7185","#f0883e","#f7931a","#FBBF24","#fcd34d",
-            "#a3e635","#2dd4bf","#94a3b8","#e6eaee"];
+            "#a3e635","#2dd4bf","#94a3b8","#e6eaee",
+            "#c08552","#b4478f"];   /* caramelo e magenta profundo: nao havia marrom, e os rosas eram todos claros */
 function swHTML(sel){ return '<div class="swz" data-for="'+sel+'">'+PALETA.map(function(c){
   return '<b data-c="'+c+'" style="background:'+c+'" title="'+c+'"></b>'; }).join("")+'</div>'; }
 document.addEventListener("click",function(e){
@@ -1274,7 +1275,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v103';
+var VERSAO = 'v104';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -2785,7 +2786,9 @@ var PICK_ICONS=["cart","cutlery","coffee","cup","pizza","bag","shirt","home","be
 function svgOr(n){ return (window.svgIc ? window.svgIc(n) : ""); }
 function catIcoHTML(k){ var e=k?(k.emoji||""):""; if(String(e).charAt(0)==="#") return '<span class="csvg" data-ic="'+e.slice(1)+'" style="color:'+(k.cor||"#fff")+'">'+svgOr(e.slice(1))+'</span>'; return e; }
 function catIcoTxt(k){ var e=k?(k.emoji||""):""; return String(e).charAt(0)==="#"?"":e; }
-function iconGridHTML(hid,cur){ var html=PICK_ICONS.map(function(n){ var sel=(cur==="#"+n)?" sel":""; return '<button type="button" class="ib'+sel+'" data-ib="'+n+'">'+svgOr(n)+'</button>'; }).join(""); return '<div class="cmicons" data-icofor="'+hid+'">'+html+'</div>'; }
+function iconGridHTML(hid,cur){ var html=PICK_ICONS.map(function(n){ var sel=(cur==="#"+n)?" sel":""; /* o data-ic e a rede: se o icons.js ainda nao carregou, o svgOr
+       devolve vazio e quem preenche depois e o paintIcons */
+    return '<button type="button" class="ib'+sel+'" data-ib="'+n+'" data-ic="'+n+'">'+svgOr(n)+'</button>'; }).join(""); return '<div class="cmicons" data-icofor="'+hid+'">'+html+'</div>'; }
 document.addEventListener("click",function(ev){ var b=ev.target.closest&&ev.target.closest("button.ib"); if(!b)return;
   var grid=b.parentNode, hid=grid.getAttribute("data-icofor"), hin=hid?document.getElementById(hid):null, tok="#"+b.getAttribute("data-ib");
   var sib=grid.querySelectorAll("button.ib"); for(var i=0;i<sib.length;i++)sib[i].className="ib"; b.className="ib sel";
