@@ -133,6 +133,12 @@
   .escolhendo .ri.fora{opacity:.4}
   .escolhendo .ri.fora .rb{background:transparent;border-color:#3a3f45}
   .escolhendo .ri.fora .rb::after{content:""}
+  .reg .destinos{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .reg .dest{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+             padding:7px 11px;border-radius:20px;border:1px solid #2a2f34;background:#15181b;
+             color:#c7ced3;cursor:pointer;font-family:inherit}
+  .reg .dest i{width:8px;height:8px;border-radius:50%;display:block}
+  .reg .dest.aqui{border-color:#23555c;color:#2FD9C9}
   .regvazio{font-size:12.5px;color:#5b646a;padding:6px 2px}
 
   #toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));
@@ -1171,7 +1177,7 @@
     return h+'</div></div>';
   }
 
-  var _aberto=null, _escolha=null;
+  var _aberto=null, _escolha=null, _movendo=null;
 
   function cartaoReg(r){
     var aberto=(_aberto===r.id), escolha=(_escolha&&_escolha.id===r.id)?_escolha:null;
@@ -1186,6 +1192,18 @@
       r.itens.forEach(function(x,ix){ h+=itemReg(x,ix,escolha); });
       h+='</div>';
     }
+    if(_movendo===r.id){
+      var atual=(r.cat==="tudo"||r.cat==="_sem")?r.cat:(cat(r.cat)?r.cat:"_sem");
+      h+='<div class="dica" style="margin-top:10px">Para qual categoria vai esta rodada?</div><div class="destinos">';
+      (L().cats||[]).forEach(function(c){
+        h+='<button type="button" class="dest'+(atual===c.id?" aqui":"")+'" data-dest="'+c.id+'" data-rmov="'+r.id+'">' +
+           '<i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</button>';
+      });
+      h+='<button type="button" class="dest'+(atual==="_sem"?" aqui":"")+'" data-dest="_sem" data-rmov="'+r.id+'">' +
+         '<i style="background:#5b646a"></i>Sem categoria</button>';
+      h+='<button type="button" class="dest" data-cancela="1">Cancelar</button>';
+      return h+'</div></div>';
+    }
     h+='<div class="rr">';
     if(escolha){
       var q=0; escolha.marc.forEach(function(m){ if(m) q++; });
@@ -1194,7 +1212,10 @@
     } else {
       h+='<button type="button" class="mini" data-usa="'+r.id+'">Usar de novo</button>'+
          '<button type="button" class="mini n" data-escolhe="'+r.id+'">Escolher…</button>';
-      if(aberto) h+='<button type="button" class="mini pg" data-apaga="'+r.id+'">Apagar registro</button>';
+      if(aberto){
+        h+='<button type="button" class="mini n" data-move="'+r.id+'">Mover para…</button>';
+        h+='<button type="button" class="mini pg" data-apaga="'+r.id+'">Apagar registro</button>';
+      }
     }
     return h+'</div></div>';
   }
@@ -1202,7 +1223,7 @@
   function achaReg(id){ var l=L(), r=null; (l.regs||[]).forEach(function(x){ if(x.id===id) r=x; }); return r; }
 
   function abreRegistro(){
-    _aberto=null; _escolha=null;
+    _aberto=null; _escolha=null; _movendo=null;
     desenhaRegistro();
   }
   function desenhaRegistro(){
@@ -1236,7 +1257,23 @@
       _escolha={id:r.id, marc:r.itens.map(function(){ return true; })};
       repintaRegistro(); }); });
     Array.prototype.forEach.call(q("[data-cancela]"),function(b){ b.addEventListener("click",function(){
-      _escolha=null; repintaRegistro(); }); });
+      _escolha=null; _movendo=null; repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-move]"),function(b){ b.addEventListener("click",function(){
+      _escolha=null; _movendo=this.getAttribute("data-move"); repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-dest]"),function(b){ b.addEventListener("click",function(){
+      var r=achaReg(this.getAttribute("data-rmov")); if(!r) return;
+      var d=this.getAttribute("data-dest"), c=(d==="_sem")?null:cat(d);
+      r.cat = c ? c.id : "_sem";
+      r.nome = c ? c.nome : "Sem categoria";
+      r.cor = c ? c.cor : "#5b646a";
+      grava(); _movendo=null; _aberto=null;
+      pintaPorta();
+      /* se a rodada saiu da categoria que esta na tela, ela some daqui — e a
+         folha tem que dizer isso, em vez de simplesmente esvaziar */
+      var aindaAqui = (filtro==="tudo" || r.cat===filtro);
+      desenhaRegistro();
+      toast(aindaAqui ? ("Rodada movida para "+r.nome+".")
+                      : ("Rodada movida para "+r.nome+" — está no registro de lá.")); }); });
     Array.prototype.forEach.call(q("[data-traz]"),function(b){ b.addEventListener("click",function(){
       var r=achaReg(this.getAttribute("data-traz")); if(!r||!_escolha) return;
       var quais=[]; _escolha.marc.forEach(function(m,i){ if(m) quais.push(i); });
@@ -1593,8 +1630,17 @@
     if(k==='hide'){ hide(); try{target.blur();}catch(x){} return; }
   });
 
-  function show(){ if(!TOUCH) return; autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); }
-  function hide(){ kbd.classList.remove('on'); _kbdFecha(); }
+  /* quando o Feito roda dentro de outro app (a aba do Stash), o teclado fica
+     preso ao quadro e nao alcanca a base da tela. Aviso o app de fora, que
+     abre o quadro em tela cheia enquanto se digita. */
+  function avisaPai(ligado){
+    try{ if(window.parent && window.parent!==window) window.parent.postMessage({feitoKbd:!!ligado},'*'); }catch(x){}
+  }
+  function show(){ if(!TOUCH) return; autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); avisaPai(true); }
+  function hide(){ kbd.classList.remove('on'); _kbdFecha(); avisaPai(false); }
+  /* rede: se esta pagina sair do ar sem fechar o teclado, o app de fora nao
+     pode ficar sem a barra de abas */
+  window.addEventListener('pagehide',function(){ avisaPai(false); });
   /* o resto do app precisa poder fechar o teclado (a folha, ao sair) */
   try{ window.__kbdHide = hide; }catch(x){}
   function focusCampo(){ target=campo; numerico=false; show(); }

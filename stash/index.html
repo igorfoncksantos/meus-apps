@@ -698,6 +698,13 @@
   /* aba Feito (app integrado) */
   #t4{margin:0 -14px}
   #feitoFrame{width:100%;height:calc(100vh - 150px);border:0;border-radius:16px;background:var(--panel);display:block}
+  /* o teclado do Feito vive DENTRO deste quadro: "fixed" ali se prende ao
+     quadro, nao a tela. Enquanto se digita, o quadro vira a tela inteira —
+     so assim o teclado alcanca a base e passa por cima da barra de abas. */
+  body.kbdframe{overflow:hidden}
+  body.kbdframe #feitoFrame{position:fixed;inset:0;width:100%;height:100%;
+    border-radius:0;z-index:60}
+  body.kbdframe nav,body.kbdframe .cbfab,body.kbdframe #syncBtn{display:none}
 
   /* entrada de itens novos */
   @keyframes rowIn{from{opacity:0;transform:translateY(-9px) scale(.985)}to{opacity:1;transform:none}}
@@ -1219,6 +1226,7 @@ Array.prototype.forEach.call(document.querySelectorAll("nav button"),function(b)
     document.getElementById("t"+t).className="tela on";
     document.getElementById("tituloTela").textContent=TIT[t];
     if(t==="4"){ var fr=document.getElementById("feitoFrame"); if(!fr.getAttribute("src")) fr.setAttribute("src","feito.html"); }
+    else document.body.classList.remove("kbdframe");   /* saiu da aba: a barra volta */
     window.scrollTo(0,0);
   });
 });
@@ -1266,7 +1274,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v92';
+var VERSAO = 'v93';
 var _cxSel = {};
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
@@ -3328,6 +3336,13 @@ renderTudo();
 
 <script>window.__SYNC_CFG={app:'stash',keys:['financas-app-v2'],accent:'#2FD9C9',name:'Stash'};</script>
 <script src="supabase.js"></script>
+<script>
+/* o quadro do Feito avisa quando o teclado dele abre e fecha */
+window.addEventListener("message",function(e){
+  if(!e || !e.data || typeof e.data.feitoKbd==="undefined") return;
+  document.body.classList.toggle("kbdframe", !!e.data.feitoKbd);
+});
+</script>
 <script src="sync.js"></script>
 <script src="icons.js"></script>
 <script src="keypad.js"></script>
