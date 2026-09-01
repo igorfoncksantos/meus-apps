@@ -312,11 +312,39 @@
   .secttl{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#c7ced3; margin:2px 0 12px; }
   /* tarefa cuja categoria foi apagada: aparece, em vez de sumir contando */
   .orfa-aviso{ font-size:12px; color:var(--mut); margin:-2px 0 9px 2px; line-height:1.45; }
+  /* ===== subtarefa com quantidade (layout A) =====
+     O rotulo precisa de min-width:0 pra encolher: sem isso o contador
+     empurra um nome longo pra fora do cartao. */
+  .sub .slab{ flex:1; min-width:0; }
+  .sub .conta{ display:flex; align-items:center; gap:5px; flex-shrink:0; margin-left:auto; }
+  /* o quadradinho e o ✕ tambem ficam alinhados com a PRIMEIRA linha do nome */
+  .sub .sbox, .sub .conta, .sub .subdel{ margin-top:1px; }
+  .sub .qb{ width:22px; height:22px; flex-shrink:0; border-radius:6px;
+            border:1px solid var(--line2); background:var(--panel2); color:var(--accent);
+            font-size:13px; font-weight:800; line-height:1; cursor:pointer;
+            font-family:inherit; padding:0; }
+  .sub .qb:active{ transform:scale(.86); }
+  .sub .qb[disabled]{ opacity:.32; cursor:default; }
+  .sub .qn{ font-size:11.5px; font-weight:700; color:var(--txt);
+            font-variant-numeric:tabular-nums; text-align:center; min-width:36px; }
+  /* concluida: o numero acompanha a linha, nao vira verde. Verde sobre fundo
+     claro dava 2,28:1 — o estado ja e dito pelo quadradinho. */
+  .sub.sdone .qn{ color:var(--mut); }
+  /* o contador vem antes do ✕, entao o ✕ perde o margin-left:auto */
+  .sub .conta + .subdel{ margin-left:0; }
   /* area de toque: o dedo precisa de 44px, o olho nao precisa ver isso */
-  .box,.sub .sbox,.gbtn,.cat .cadd,.legend .ci,.sub .subdel{ position:relative; }
+  .box,.sub .sbox,.gbtn,.sub .qb,.cat .cadd,.legend .ci,.sub .subdel{ position:relative; }
   .box::before,.sub .sbox::before,.gbtn::after,.cat .cadd::after,.legend .ci::after,.sub .subdel::after{
     content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
     width:44px; height:44px; }
+  /* os dois botoes do contador ficam a 5px um do outro, e a linha tem 22px de
+     altura com 6px de vao: 44px invadiria a subtarefa vizinha. 34px e o maior
+     que cabe sem encostar no que esta em volta. */
+  .sub .qb::after{ content:''; position:absolute; left:50%; top:50%;
+                   transform:translate(-50%,-50%); width:27px; height:28px; }
+  /* onde ha contador, o ✕ tambem se encolhe pra propria celula: com os 44px
+     de sempre ele cobria o botao "+" inteiro */
+  .sub .conta ~ .subdel::after{ width:27px; height:28px; }
   /* o quadradinho de concluir cresce pra dentro do cartao, nunca pra fora */
   .box::before{ width:44px; height:42px; }
   .cat .cadd::after{ width:100%; min-width:44px; height:44px; }
@@ -377,7 +405,7 @@
   .cflag{ display:inline-block; font-size:9px; font-weight:700; letter-spacing:.3px; text-transform:uppercase; color:var(--mut2); margin:0 5px 0 0; }
 
   .subs{ margin-top:9px; display:flex; flex-direction:column; gap:6px; }
-  .sub{ display:flex; align-items:center; gap:9px; font-size:12px; color:#b7c0c6; cursor:pointer; }
+  .sub{ display:flex; align-items:flex-start; gap:9px; font-size:12px; color:#b7c0c6; cursor:pointer; }
   .sub .sbox{ width:18px; height:18px; border-radius:5px; border:2px solid #3a3f45; flex-shrink:0; transition:transform .12s; }
   .sub:active .sbox{ transform:scale(.82); }
   .sub.sdone .sbox{ background:var(--green); border-color:var(--green); position:relative; }
@@ -394,7 +422,7 @@
   .tbar .tfill{ height:100%; background:var(--green); border-radius:20px; transition:width .3s; }
   .tbar .tcount{ font-size:10px; color:var(--mut2); font-weight:700; }
 
-  .tag{ flex-shrink:0; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+  .tag{ float:right; margin-left:10px; flex-shrink:0; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
         padding:4px 9px; border-radius:20px; border:1px solid transparent; line-height:14px; margin-top:2px; cursor:pointer; }
   .tag.pend{ background:#2e2410; color:var(--amber); border:1px solid #5a4620; }
   .tag.done{ background:#0f2b1a; color:#7ee2b8; border:1px solid #1f5c37; }
@@ -842,7 +870,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v61';
+const VERSAO = 'v62';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -956,7 +984,9 @@ function frac(t){
   if(isBlocked(t)||t.status==='canc'||t.status==='adiado') return null; // fora do denominador
   if(t.goals){ let d=0,tot=0; for(const k in t.goals){ d+=t.goals[k][0]; tot+=t.goals[k][1]; } return tot?d/tot:0; }
   if(t.cota){ return t.cota[1]? t.cota[0]/t.cota[1] : 0; }
-  if(t.subs&&t.subs.length){ const d=t.subs.filter(s=>s.done).length; return d/t.subs.length; }
+  /* fracao: uma subtarefa em 3/10 vale 0,3, nao zero — a mesma regra
+     ponderada do Assistente */
+  if(t.subs&&t.subs.length){ let s=0; t.subs.forEach(x=>{ s+=qtdFrac(x); }); return s/t.subs.length; }
   return t.status==='done'?1:0;
 }
 function stats(){
@@ -1126,7 +1156,15 @@ function itemEl(t,c){
     if(t.subs&&t.subs.length){
       const d=t.subs.filter(s=>s.done).length;
       inner+=tbar(d,t.subs.length);
-      inner+=`<div class="subs">`+t.subs.map((s,i)=>`<div class="sub ${s.done?'sdone':''}${(t.id+'|'+i)===_subAnim?' new':''}" onclick="subTog('${t.id}',${i})"><span class="sbox"></span>${escapeHtml(s.label)}<span class="subdel" onclick="event.stopPropagation();subDel('${t.id}',${i})">✕</span></div>`).join('')+`</div>`;
+      inner+=`<div class="subs">`+t.subs.map((s,i)=>{
+        const q = temQtd(s)
+          ? `<span class="conta" onclick="event.stopPropagation()">` +
+            `<button type="button" class="qb" onclick="subQtd('${t.id}',${i},-1)" ${(s.q||0)<=0?'disabled':''} aria-label="Menos um">−</button>` +
+            `<span class="qn">${s.q||0}/${s.qm}</span>` +
+            `<button type="button" class="qb" onclick="subQtd('${t.id}',${i},1)" ${(s.q||0)>=s.qm?'disabled':''} aria-label="Mais um">+</button></span>`
+          : '';
+        return `<div class="sub ${s.done?'sdone':''}${(t.id+'|'+i)===_subAnim?' new':''}" onclick="subTog('${t.id}',${i})"><span class="sbox"></span><span class="slab">${escapeHtml(s.label)}</span>${q}<span class="subdel" onclick="event.stopPropagation();subDel('${t.id}',${i})">✕</span></div>`;
+      }).join('')+`</div>`;
     }
     inner+=`<div class="subadd" onclick="addSub('${t.id}')">+ subtarefa</div>`;
   }
@@ -1135,8 +1173,10 @@ function itemEl(t,c){
   if(isBlocked(t) && t.status!=='sched'){ tag='Agendada'; tagCls='sched'; }   // bloqueada (recorrência) aparece como agendada
   else { tag = {pend:'Pendente',done:'Feito',canc:'Cancelado',sched:(t.sched?('Agendada · '+t.sched):'Agendada'),adiado:'Adiado'}[t.status]; tagCls=t.status; }
   const boxClick = isBlocked(t) ? `openActions('${t.id}')` : `toggleDone('${t.id}')`;
-  el.innerHTML=`<div class="box" onclick="${boxClick}"></div><div class="txt">${inner}</div>
-     <span class="tag ${tagCls}" onclick="openActions('${t.id}')">${tag}</span>`;
+  /* a etiqueta vai DENTRO do texto, flutuando: assim o titulo corre ao lado
+     dela e as subtarefas usam a largura inteira do cartao embaixo dela */
+  el.innerHTML=`<div class="box" onclick="${boxClick}"></div><div class="txt">
+     <span class="tag ${tagCls}" onclick="openActions('${t.id}')">${tag}</span>${inner}</div>`;
   return el;
 }
 function tbar(d,tot){ const pc=tot?Math.round(d/tot*100):0; return `<div class="tbar"><div class="ttrack"><div class="tfill" style="width:${pc}%"></div></div><span class="tcount">${d}/${tot} · ${pc}%</span></div>`; }
@@ -1155,14 +1195,37 @@ function toggleDone(id){ const t=findTask(id);
 let _subTid=null, _subAnim='';
 function addSub(id){ _subTid=id; sheet(`<h3>➕ Nova subtarefa</h3>
     <div class="field"><input id="subInput" placeholder="ex.: Garrafa 1"></div>
+    <div class="field"><input id="subQtd" type="number" inputmode="numeric" min="1" placeholder="quantidade (opcional) — ex.: 10"></div>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" onclick="saveSub()">Adicionar</button></div>`);
   setTimeout(()=>{ const el=document.getElementById('subInput'); if(el){ el.focus(); el.addEventListener('keydown',e=>{ if(e.key==='Enter')saveSub(); }); } },90); }
 function saveSub(){ const el=document.getElementById('subInput'); const v=el?el.value.trim():''; if(!v){ if(el)el.focus(); return; }
-  const t=findTask(_subTid); if(!t)return; if(!t.subs)t.subs=[]; t.subs.push({label:v,done:false});
+  const qe=document.getElementById('subQtd'); const qm=qe?Math.floor(Number(qe.value)||0):0;
+  const t=findTask(_subTid); if(!t)return; if(!t.subs)t.subs=[];
+  const nova={label:v,done:false}; if(qm>0){ nova.qm=qm; nova.q=0; } t.subs.push(nova);
   _subAnim=_subTid+'|'+(t.subs.length-1); if(t.status==='done')t.status='pend'; closeSheet();
   if(navigator.vibrate)navigator.vibrate(12); render(); }
+/* ===== quantidade na subtarefa =====
+   s.q = quanto ja foi, s.qm = o alvo. Sem qm, a subtarefa e a de sempre.
+   Nao ha teto fixo: o limite e o alvo que o usuario digitou. */
+function temQtd(s){ return !!(s && s.qm > 0); }
+function qtdFrac(s){ if(!temQtd(s)) return s && s.done ? 1 : 0;
+  return Math.max(0, Math.min(1, (s.q||0) / s.qm)); }
+function subQtd(id,i,d){
+  const t=findTask(id); if(!t||!t.subs||!t.subs[i]) return;
+  const s=t.subs[i]; if(!temQtd(s)) return;
+  s.q = Math.max(0, Math.min(s.qm, (s.q||0) + d));
+  s.done = (s.q >= s.qm);
+  const all = t.subs.every(x=>x.done);
+  if(all){ t.status="done"; flashFx(); } else if(t.status==="done"){ t.status="pend"; }
+  if(navigator.vibrate) navigator.vibrate(8);
+  render();
+}
 function subDel(id,i){ const t=findTask(id); t.subs.splice(i,1); if(!t.subs.length)delete t.subs; render(); }
-function subTog(id,i){ const t=findTask(id); t.subs[i].done=!t.subs[i].done;
+function subTog(id,i){ const t=findTask(id); const s=t.subs[i]; s.done=!s.done;
+  /* com quantidade, marcar enche ate o alvo e desmarcar zera — o mesmo que
+     "concluir tarefa" ja faz com as metas. Sem isso o quadradinho diria
+     "feito" com o numero dizendo 3/10. */
+  if(temQtd(s)) s.q = s.done ? s.qm : 0;
   const all=t.subs.every(s=>s.done); if(all){ t.status='done'; flashFx(); } else if(t.status==='done'){ t.status='pend'; }
   render();
 }
@@ -1216,7 +1279,7 @@ function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
   formCat=t.cat||(CATS[0]&&CATS[0].id)||null; formPrio=t.prio||null;
   formRecur = t.rec ? JSON.parse(JSON.stringify(t.rec)) : {type:'none',days:[],dom:20,date:''};
-  const subRows = (t.subs||[]).map(s=>subRowHtml(s.label)).join('');
+  const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
   sheet(`<h3>${editing?'Editar tarefa':'Nova tarefa'}</h3>
     <div class="field"><label>Categoria</label><div class="catrow" id="catrow"></div></div>
     <div class="field"><label>O que fazer</label><div class="linhamic"><input id="fTitle" value="${escapeAttr(t.title||'')}" placeholder="ex.: Editar 1 reel">${micHTML("fTitle")}</div></div>
@@ -1336,8 +1399,9 @@ function quickAddCat(){ const row=document.getElementById('catrow'); if(!row)ret
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); commit(); } else if(e.key==='Escape'){ done=true; refreshCatrow(); } });
   inp.addEventListener('blur',()=>commit());
 }
-function subRowHtml(val){ return `<div class="subrow" style="display:flex;gap:8px;margin-bottom:6px">
-    <input class="subin" value="${escapeAttr(val||'')}" placeholder="ex.: Garrafa 1" style="flex:1">
+function subRowHtml(val,qm){ return `<div class="subrow" style="display:flex;gap:8px;margin-bottom:6px">
+    <input class="subin" value="${escapeAttr(val||'')}" placeholder="ex.: Garrafa 1" style="flex:1;min-width:0">
+    <input class="subqm" type="number" inputmode="numeric" min="1" value="${qm>0?qm:''}" placeholder="qtd" title="Quantidade (opcional)" style="width:62px;flex-shrink:0;text-align:center">
     <button type="button" onclick="this.parentNode.remove()" style="width:40px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);color:var(--canc);border-radius:9px;font-size:15px;cursor:pointer">✕</button></div>`; }
 function addSubRow(){ const c=document.getElementById('subRows'); c.insertAdjacentHTML('beforeend', subRowHtml(''));
   const rows=c.querySelectorAll('.subrow'); const last=rows[rows.length-1]; last.classList.add('new');
@@ -1348,11 +1412,19 @@ function saveForm(){
   const meta=document.getElementById('fMeta').value.trim();
   const fr=(formRecur&&formRecur.type&&formRecur.type!=='none')?JSON.parse(JSON.stringify(formRecur)):null;
   const recur=fr?recLabel(fr):null;
-  const subs=[...document.querySelectorAll('#subRows .subin')].map(i=>i.value.trim()).filter(Boolean).map(l=>({label:l,done:false}));
+  const subs=[...document.querySelectorAll('#subRows .subrow')].map(r=>{
+    const l=(r.querySelector('.subin')||{}).value; if(!l||!l.trim()) return null;
+    const qm=Math.floor(Number((r.querySelector('.subqm')||{}).value)||0);
+    const o={label:l.trim(),done:false}; if(qm>0){ o.qm=qm; o.q=0; } return o;
+  }).filter(Boolean);
   if(editing){ const t=findTask(editing); t.title=title; t.meta=meta; t.cat=formCat; t.prio=formPrio; t.recur=recur;
     if(fr)t.rec=fr; else delete t.rec;
     if(subs.length){ // preserva o done das que continuam
-      t.subs=subs.map(ns=>{ const old=(t.subs||[]).find(o=>o.label===ns.label); return {label:ns.label,done:old?old.done:false}; }); }
+      t.subs=subs.map(ns=>{ const old=(t.subs||[]).find(o=>o.label===ns.label);
+        const o={label:ns.label,done:old?old.done:false};
+        /* o alvo vem do formulario; o quanto ja foi contado sobrevive a edicao */
+        if(ns.qm>0){ o.qm=ns.qm; o.q=Math.min(ns.qm, (old&&old.q)||0); o.done=(o.q>=o.qm); }
+        return o; }); }
     else delete t.subs;
     syncRecurring(t); }
   else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr; day().tasks.push(t); syncRecurring(t); }
