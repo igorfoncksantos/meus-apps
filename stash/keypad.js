@@ -37,6 +37,20 @@
     + '  color:#f87171; font-size:14px; font-weight:800; line-height:1; }'
     + '#kbd .kbx:active{ background:rgba(248,113,113,.28); }'
     + '#kbd .row{ display:flex; gap:6px; margin-bottom:7px; }'
+    /* a segunda fila e recuada meia tecla, como em qualquer teclado de celular */
+    + '#kbd .row.r2{ padding:0 5%; }'
+    /* o pontinho: diz que a tecla esconde acento no toque longo. E a mesma
+       pista que o Gboard da — sem ela, ninguem descobre o ç. */
+    + '#kbd .k.tem::after{ content:""; position:absolute; top:6px; right:8px; width:5px; height:5px;'
+    +   ' border-radius:50%; background:'+ACCENT+'; opacity:.8; }'
+    /* o balao que abre no toque longo */
+    + '#kbd .pop{ position:absolute; z-index:5; display:flex; gap:5px; padding:6px;'
+    +   ' background:#20262c; border:1px solid '+ACCENT+'; border-radius:12px;'
+    +   ' box-shadow:0 10px 26px rgba(0,0,0,.6); }'
+    + '#kbd .pop b{ min-width:46px; height:50px; display:flex; align-items:center;'
+    +   ' justify-content:center; font-size:23px; font-weight:500; color:#f0f2f4;'
+    +   ' background:#2a3138; border-radius:9px; }'
+    + '#kbd .pop b:active,#kbd .pop b.sel{ background:'+ACCENT+'; color:'+accInk+'; }'
     + '#kbd .row:last-child{ margin-bottom:0; }'
     + '#kbd .k{ flex:1 1 0; min-width:0; height:54px; display:flex; align-items:center; justify-content:center;'
     + '  background:#20262c; border-radius:9px; color:#eef2f4; font-size:20px; font-weight:600; cursor:pointer;'
@@ -59,9 +73,14 @@
   if(document.body) mount(); else document.addEventListener('DOMContentLoaded',mount);
 
   var target=null, form=null, caps=1, layer='abc', startVal=null;
-  var ACC=['á','à','â','ã','é','ê','í','ó','ô','õ','ú','ç'];
+  /* o que cada letra esconde no toque longo. Ordem importa: o primeiro e o
+     mais usado, porque e o que fica embaixo do dedo quando o balao abre. */
+  var ACENTOS={ a:['á','ã','â','à'], e:['é','ê'], i:['í'], o:['ó','õ','ô'],
+                u:['ú','ü'], c:['ç'], n:['ñ'] };
+  /* 10 · 9 · 9 — o molde do Gboard em portugues. A segunda fila tem NOVE:
+     com dez, a tecla cai de 36px pra 32px e as filas param de alinhar. */
   var ABC=[['q','w','e','r','t','y','u','i','o','p'],
-           ['a','s','d','f','g','h','j','k','l','ç'],
+           ['a','s','d','f','g','h','j','k','l'],
            ['shift','z','x','c','v','b','n','m','back']];
   var NUM=[['1','2','3','4','5','6','7','8','9','0'],
            ['@','#','$','%','&','-','_','/','(',')'],
@@ -91,7 +110,10 @@
     else if(k==='space'){ cls+=' wide'; txt='espaço'; ins=' '; }
     else if(k==='comma'){ txt=','; ins=','; }
     else if(k==='dot'){ txt='.'; ins='.'; }
-    else { txt=(caps && /^[a-zà-ÿ]$/i.test(k)) ? k.toUpperCase() : k; ins=txt; }
+    else {
+      txt=(caps && /^[a-zà-ÿ]$/i.test(k)) ? k.toUpperCase() : k; ins=txt;
+      if(ACENTOS[k]) cls+=' tem';        /* o pontinho do toque longo */
+    }
     return '<div class="'+cls+'" data-k="'+esc2(k)+'"'+(ins!==null?' data-ins="'+esc2(ins)+'"':'')+'>'+esc2(txt)+'</div>';
   }
   function render(){
@@ -104,8 +126,12 @@
     } else {
       kbd.classList.remove('num');
       var rows = layer==='abc'?ABC:(layer==='num'?NUM:SYM);
-      h='<div class="acc">'+ACC.map(function(a){return '<b data-ins="'+a+'">'+a+'</b>';}).join('')+'</div>';
-      rows.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
+      /* a fila de acentos saiu: 59px a menos de teclado, e os acentos passaram
+         pro toque longo da propria letra */
+      rows.forEach(function(r,i){
+        var rec = (layer==='abc' && i===1) ? ' r2' : '';   /* so a 2a fila do abc recua */
+        h+='<div class="row'+rec+'">'+r.map(keyHTML).join('')+'</div>';
+      });
       h+='<div class="row">'+BOT.map(keyHTML).join('')+'</div>';
     }
     /* o X fica FORA do que muda de camada: a posicao dele nunca se mexe */
@@ -211,8 +237,84 @@ function _kbdFecha(){
     }
     if(k==='hide'){ hide(); try{target.blur();}catch(x){} return; }
   }
+  /* ===== toque longo: os acentos =====
+     Segurar a letra abre o balao com as variantes; soltar em cima de uma
+     escreve ela. E o gesto do Gboard, que e onde ela aprendeu.
+     O toque curto continua escrevendo a letra normal — quem nunca segurar
+     nao percebe diferenca nenhuma. */
+  var _pop=null, _popT=null, _popTecla=null, _popEscolha=null, _longo=false;
+  function fechaPop(){ if(_pop&&_pop.parentNode) _pop.parentNode.removeChild(_pop);
+    _pop=null; _popTecla=null; _popEscolha=null; }
+  function abrePop(tecla, letra){
+    fechaPop();
+    var lista=ACENTOS[letra]; if(!lista) return;
+    var p=document.createElement('div'); p.className='pop';
+    p.innerHTML=lista.map(function(a){ var A=caps?a.toUpperCase():a;
+      return '<b data-ins="'+A+'">'+A+'</b>'; }).join('');
+    kbd.appendChild(p);
+    var rk=tecla.getBoundingClientRect(), rb=kbd.getBoundingClientRect();
+    var lg=p.offsetWidth;
+    /* nasce em cima da tecla e se ajeita pra nao sair pela borda */
+    var x=rk.left-rb.left+(rk.width-lg)/2;
+    x=Math.max(6, Math.min(x, rb.width-lg-6));
+    p.style.left=x+'px';
+    p.style.top=(rk.top-rb.top-p.offsetHeight-6)+'px';
+    _pop=p; _popTecla=tecla;
+    if(navigator.vibrate) navigator.vibrate(12);
+  }
+  function marcaSob(x,y){
+    if(!_pop) return;
+    var alvo=null;
+    [].forEach.call(_pop.children,function(b){
+      var r=b.getBoundingClientRect();
+      var dentro = x>=r.left-6 && x<=r.right+6 && y>=r.top-14 && y<=r.bottom+14;
+      b.classList.toggle('sel', dentro); if(dentro) alvo=b;
+    });
+    _popEscolha=alvo;
+  }
+
   var _ktouch=0;
-  kbd.addEventListener('touchstart', function(e){ _ktouch=Date.now(); onKey(e); }, {passive:false});
+  kbd.addEventListener('touchstart', function(e){
+    _ktouch=Date.now(); _longo=false;
+    var t=e.target.closest && e.target.closest('[data-k]');
+    var k=t && t.getAttribute('data-k');
+    if(k && ACENTOS[k]){
+      /* segura pra ver se vira toque longo; a letra so e escrita ao soltar */
+      if(e.cancelable) e.preventDefault();
+      _kbdBrilho(t);
+      clearTimeout(_popT);
+      _popT=setTimeout(function(){ _longo=true; abrePop(t,k); }, 300);
+      return;
+    }
+    onKey(e);
+  }, {passive:false});
+  kbd.addEventListener('touchmove', function(e){
+    if(!_pop) return;
+    if(e.cancelable) e.preventDefault();
+    var p=e.touches[0]; if(p) marcaSob(p.clientX,p.clientY);
+  }, {passive:false});
+  kbd.addEventListener('touchend', function(e){
+    clearTimeout(_popT);
+    if(_pop){
+      var p=e.changedTouches&&e.changedTouches[0];
+      if(p) marcaSob(p.clientX,p.clientY);
+      var esc=_popEscolha;
+      /* soltou sem sair da tecla: vale a variante mais usada, a primeira */
+      if(!esc) esc=_pop.children[0];
+      var ch=esc&&esc.getAttribute('data-ins');
+      fechaPop();
+      if(ch){ if(e.cancelable) e.preventDefault(); ins(ch); }
+      return;
+    }
+    if(_longo) return;
+    var t=e.target.closest && e.target.closest('[data-k]');
+    var k=t && t.getAttribute('data-k');
+    if(k && ACENTOS[k]){                 /* toque curto na letra com acento */
+      if(e.cancelable) e.preventDefault();
+      ins(caps ? k.toUpperCase() : k);
+    }
+  }, {passive:false});
+  kbd.addEventListener('touchcancel', function(){ clearTimeout(_popT); fechaPop(); });
   kbd.addEventListener('mousedown',  function(e){ if(Date.now()-_ktouch<700) return; onKey(e); });
 
   function show(){ mount(); autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); }
