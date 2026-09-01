@@ -145,8 +145,21 @@
     /* quem esta em position:fixed (folha, modal) ignora o padding do body:
        precisa desta medida pra reservar o espaco e subir junto */
     document.documentElement.style.setProperty("--kbh", a+"px"); } }catch(x){} }
-  function _kbdAbre(){ document.body.classList.add('kbdopen'); _kbdAltura(); }
-  function _kbdFecha(){ document.body.classList.remove('kbdopen'); try{ document.body.style.removeProperty("padding-bottom"); document.documentElement.style.removeProperty("--kbh"); }catch(x){} }
+  function _kbdAbre(){ if(_kbdGeo){ clearTimeout(_kbdGeo); _kbdGeo=null; } document.body.classList.add('kbdopen'); _kbdAltura(); }
+  var _kbdGeo=null;
+function _kbdFecha(){
+  /* A geometria sai DEPOIS do toque. Fechar na hora move a tela entre o dedo
+     encostar e o clique, e o toque acaba caindo em outro lugar — no Norte isso
+     fechava a folha de edicao inteira. O teclado some na hora; so o
+     reposicionamento espera. */
+  if(_kbdGeo) clearTimeout(_kbdGeo);
+  _kbdGeo = setTimeout(function(){
+    document.body.classList.remove('kbdopen');
+    try{ document.body.style.removeProperty("padding-bottom");
+         document.documentElement.style.removeProperty("--kbh"); }catch(x){}
+    _kbdGeo = null;
+  }, 300);
+}
   var _kbdRepT=null;
   function _kbdSolta(){ if(_kbdRepT){ clearTimeout(_kbdRepT); _kbdRepT=null; } }
   function _kbdApagando(){

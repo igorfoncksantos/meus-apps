@@ -542,6 +542,9 @@
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
   /* com o teclado aberto a folha sobe junto: e o overlay que reserva a altura,
      porque position:fixed nao enxerga o padding do body */
+  /* desliza em vez de saltar: junto com os 300ms do teclado, o toque termina
+     onde começou */
+  .overlay{ transition:bottom .2s ease; }
   body.kbdopen .overlay{ bottom:var(--kbh,0px); }
   body.kbdopen .sheet{ max-height:calc(90vh - var(--kbh,0px)); }
   .sheet{ width:100%; max-width:560px; background:#101317; border:1px solid var(--line); border-bottom:none;
@@ -838,7 +841,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v57';
+const VERSAO = 'v58';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1426,6 +1429,10 @@ function abreObs(i){ _obsEdit = (typeof i === "number") ? i : -1;
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" style="background:var(--note-bg);color:var(--note-on)" onclick="saveObs()">${novo?"Adicionar":"Salvar"}</button></div>`);
   setTimeout(()=>{ const el=document.getElementById('obsInput'); if(!el) return;
     if(atual){ el.value = atual; }
+    /* Editar abre a folha pra LER: o teclado subindo sozinho cobre metade da
+       tela antes de você decidir o que quer. Pra alterar, toca no texto.
+       Nota NOVA continua focando — ali o único motivo de estar aqui é escrever. */
+    if(!novo) return;
     el.focus(); try{ el.setSelectionRange(el.value.length, el.value.length); }catch(e){}
   },90); }
 function saveObs(){ const el=document.getElementById('obsInput'); const v=el?el.value.trim():''; if(!v){ if(el)el.focus(); return; }
