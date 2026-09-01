@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3ECE3">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Prospecta">
+<title>Prospecta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* A Antena veste a identidade da Klix — marfim, espresso e caramelo — porque
+     ela e a ferramenta da Klix e implementa o Playbook, que ja tem essa cara.
+     Tudo em token: um tema escuro depois e so redefinir o :root. */
+  :root{
+    --bg:#F3ECE3; --panel:#FBF6EE; --panel2:#EDE1D2; --line:#E4D8CA; --line2:#D8C8B4;
+    --txt:#1E1B18; --txt2:#3A332C; --mut:#6b5f52; --mut2:#a89b8c;
+    --accent:#BC8B63; --onacc:#FFFFFF; --accbg:#F6EDE3; --accline:#E6D2BC;
+    --caixa:#D8C8B4;                       /* a borda do quadradinho */
+    --ok:#4F7A55; --okbg:#EAF0EA; --okline:#CBDBCC;
+    --alerta:#B4762A; --alertabg:#FCF3E6;
+    --nao:#9C4B36; --naobg:#F7EAE6; --naoline:#E8CDC5;
+    --navbg:rgba(251,246,238,.94); --sombra:rgba(30,27,24,.16); --veu:rgba(30,27,24,.42);
+    --r:14px;
+  }
+
+  /* ===== TEMA 2 · MIRI =====
+     Os mesmos valores do tema Miri do Norte. A Antena e muito mais da Miri
+     do que do Igor, entao ela pode trabalhar na paleta que ja usa. */
+  :root[data-theme="miri"]{
+    --bg:#F3EFE5; --panel:#FBF7EE; --panel2:#E7DECF; --line:#E3D9C7; --line2:#D9CDB8;
+    --txt:#46423A; --txt2:#2f2b23; --mut:#7E7768; --mut2:#8C8676;
+    --accent:#c06a52; --onacc:#FBF7EE; --accbg:#F6EDE6; --accline:#E0C8BC;
+    --caixa:#C7B7A2;
+    --ok:#4a7a3d; --okbg:#e3efd9; --okline:#cfe0b8;
+    --alerta:#8a6a1e; --alertabg:#f7efdc;
+    --nao:#b0503a; --naobg:#f3ddd6; --naoline:#e6c3b6;
+    --navbg:rgba(251,247,238,.94); --sombra:rgba(70,60,40,.14); --veu:rgba(70,60,40,.38);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);min-height:100%}
+  body{font-family:"Montserrat",system-ui,-apple-system,Arial,sans-serif;color:var(--txt);
+       font-size:14px;line-height:1.5;padding:14px 14px calc(96px + env(safe-area-inset-bottom));
+       max-width:680px;margin:0 auto}
+
+  /* ---------- cabecalho ---------- */
+  header{display:flex;align-items:center;gap:11px;padding-bottom:12px;
+         border-bottom:1px solid var(--line);margin-bottom:14px}
+  header img{height:26px;width:auto;display:block}
+  header .div{width:1px;height:20px;background:var(--line2)}
+  header .n{font-family:"DM Serif Display",Georgia,serif;font-size:19px;line-height:1;color:var(--txt)}
+  header .tm{margin-left:auto;width:32px;height:32px;flex-shrink:0;display:flex;
+             align-items:center;justify-content:center;border-radius:10px;
+             border:1px solid var(--line);background:transparent;color:var(--mut);
+             font-size:14px;line-height:1;cursor:pointer;font-family:inherit;padding:0}
+  header .tm:active{border-color:var(--accent);color:var(--accent)}
+  header .s{margin-left:10px;font-size:9.5px;font-weight:800;letter-spacing:.12em;
+            text-transform:uppercase;color:var(--mut2)}
+
+
+  h2{font-family:"DM Serif Display",Georgia,serif;font-size:19px;font-weight:400;margin-bottom:3px}
+  .sub{font-size:12px;color:var(--mut);margin-bottom:14px}
+  h3{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;
+     color:var(--accent);margin:20px 0 8px}
+
+  /* ---------- a meta do dia ---------- */
+  .meta{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+        padding:13px 15px;margin-bottom:16px}
+  .meta .l{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+  .meta .l b{font-family:"DM Serif Display",Georgia,serif;font-size:22px;font-weight:400}
+  .meta .l span{font-size:11.5px;color:var(--mut)}
+  .mrow{display:flex;align-items:center;gap:9px;margin-top:7px}
+  .mrow .nm{width:88px;flex-shrink:0;font-size:10.5px;font-weight:800;text-transform:uppercase;
+            letter-spacing:.06em;color:var(--txt2)}
+  .trilho{flex:1;height:7px;background:var(--panel2);border-radius:20px;overflow:hidden}
+  /* display:block e obrigatorio: era <span>, e elemento em linha ignora largura
+     e altura — a barra ficava 0x0 num trilho de 194x7 */
+  .ench{display:block;height:100%;background:var(--accent);border-radius:20px;transition:width .35s ease}
+  .ench.cheio{background:var(--ok)}
+  .mrow .qt{font-size:11px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums;
+            min-width:30px;text-align:right}
+  .rot{margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+       font-size:11.5px;color:var(--mut);line-height:1.6}
+  .rot b{color:var(--txt2)}
+
+  /* ---------- cartao de prospecto ---------- */
+  .p{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+     border-radius:12px;padding:11px 13px;margin-bottom:9px;cursor:pointer}
+  .p.vence{border-left-color:var(--alerta);background:var(--alertabg)}
+  .p.frio{opacity:.62}
+  .ph{display:flex;align-items:flex-start;gap:9px}
+  .pn{flex:1;min-width:0;font-size:14.5px;font-weight:700;color:var(--txt);line-height:1.3}
+  .pm{font-size:11px;color:var(--mut);margin-top:2px}
+  .et{flex-shrink:0;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+      padding:3px 8px;border-radius:20px;background:var(--panel2);color:var(--mut);
+      border:1px solid var(--line2);line-height:1.35}
+  .et.e3{background:var(--okbg);color:var(--ok);border-color:var(--okline)}
+  .et.e4{background:var(--accbg);color:var(--accent);border-color:var(--accline)}
+  .pnx{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);
+       font-size:11.5px;color:var(--txt2);display:flex;align-items:center;gap:7px}
+  .pnx .d{font-weight:800;color:var(--alerta);font-variant-numeric:tabular-nums}
+  .pnx .d.ok{color:var(--mut2)}
+
+  /* ---------- vazio ---------- */
+  .vazio{text-align:center;padding:26px 16px;color:var(--mut)}
+  .vazio .t{font-family:"DM Serif Display",Georgia,serif;font-size:17px;color:var(--txt);margin-bottom:5px}
+  .vazio .d{font-size:12.5px;line-height:1.6}
+
+  /* ---------- guia ---------- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+        padding:13px 15px;margin-bottom:10px}
+  .card .q{font-size:13.5px;font-weight:700;color:var(--txt);margin-bottom:5px}
+  .card .a{font-size:13px;color:var(--txt2);line-height:1.6}
+  .card .a em{font-style:italic;color:var(--accent)}
+  .passo{display:flex;gap:11px;margin-bottom:11px}
+  .passo .n{flex-shrink:0;width:21px;height:21px;border-radius:50%;background:var(--accent);
+            color:var(--onacc);font-size:11px;font-weight:800;display:flex;align-items:center;
+            justify-content:center;margin-top:1px}
+  .passo .c b{display:block;font-size:12.5px;color:var(--txt)}
+  .passo .c span{font-size:12px;color:var(--mut)}
+
+  /* ---------- botoes ---------- */
+  .bt{font-family:inherit;font-size:13.5px;font-weight:700;border-radius:11px;padding:12px 15px;
+      border:1px solid var(--line2);background:var(--panel);color:var(--txt);cursor:pointer}
+  .bt.pri{background:var(--accent);border-color:var(--accent);color:var(--onacc)}
+  .bt.pri:active,.bt:active{transform:scale(.98)}
+  .bt.larga{width:100%}
+  .acoes{display:flex;gap:8px;margin-top:14px}
+  .acoes .bt{flex:1}
+
+  .fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;
+       width:56px;height:56px;border-radius:50%;border:none;background:var(--accent);
+       color:var(--onacc);font-size:27px;line-height:1;cursor:pointer;
+       box-shadow:0 8px 22px var(--sombra)}
+  .fab:active{transform:scale(.92)}
+
+  /* ---------- navegacao ---------- */
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:70;padding:0 12px calc(10px + env(safe-area-inset-bottom));
+      pointer-events:none}
+  nav .barra{pointer-events:auto;display:flex;background:var(--navbg);
+             -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+             border:1px solid var(--line);border-radius:18px;padding:5px;
+             box-shadow:0 8px 26px var(--sombra)}
+  nav button{flex:1;min-height:52px;border:none;background:transparent;font-family:inherit;
+             font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+             color:var(--mut);cursor:pointer;border-radius:14px;
+             display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+             touch-action:manipulation}
+  nav button *{pointer-events:none}
+  nav button.on{background:var(--accbg);color:var(--accent)}
+  nav .ic{font-size:15px;line-height:1}
+
+  .tela{display:none}
+  .tela.on{display:block}
+
+  /* ---------- folha ---------- */
+  .fundo{position:fixed;inset:0;z-index:200;background:var(--veu);
+         -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+         display:flex;align-items:flex-end;justify-content:center}
+  .folha{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);
+         border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));
+         max-height:92vh;overflow-y:auto;animation:sobe .24s cubic-bezier(.2,.9,.3,1)}
+  @keyframes sobe{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+  .folha h3{margin-top:0}
+  .campo{margin-bottom:10px}
+  .campo label{display:block;font-size:10px;font-weight:800;text-transform:uppercase;
+               letter-spacing:.08em;color:var(--mut);margin-bottom:4px}
+  .campo input,.campo textarea,.campo select{width:100%;font-family:inherit;font-size:16px;
+        padding:11px 13px;border:1px solid var(--line2);border-radius:11px;
+        background:var(--bg);color:var(--txt);outline:none}
+  .campo input:focus,.campo textarea:focus{border-color:var(--accent)}
+  .campo textarea{min-height:78px;resize:vertical;line-height:1.5}
+
+  /* ---------- scorecard ---------- */
+  .sc{border:1px solid var(--line2);border-radius:12px;overflow:hidden;margin-bottom:10px}
+  .sc .li{display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer;
+          border-bottom:1px solid var(--line);font-size:13px;color:var(--txt2)}
+  .sc .li:last-child{border-bottom:none}
+  .sc .li .cx{flex-shrink:0;width:21px;height:21px;border-radius:6px;border:2px solid var(--caixa);
+              background:var(--bg);position:relative}
+  .sc .li.sim .cx{background:var(--ok);border-color:var(--ok)}
+  .sc .li.sim .cx::after{content:"✓";position:absolute;top:-3px;left:3px;color:#fff;
+                         font-size:13px;font-weight:800}
+  .sc .li.sim{color:var(--txt);font-weight:600}
+  .placar{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:11px;
+          font-size:13px;font-weight:700;margin-bottom:12px}
+  .placar.vai{background:var(--okbg);color:var(--ok);border:1px solid var(--okline)}
+  .placar.nao{background:var(--naobg);color:var(--nao);border:1px solid var(--naoline)}
+  .placar .num{font-family:"DM Serif Display",Georgia,serif;font-size:24px;line-height:1}
+  .placar .d{font-size:11.5px;font-weight:500;line-height:1.45}
+
+  /* ---------- mensagem pronta ---------- */
+  .msg{background:var(--bg);border:1px dashed var(--line2);border-radius:11px;
+       padding:13px 14px;font-size:13.5px;line-height:1.65;color:var(--txt);white-space:pre-wrap}
+  .modelos{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;
+           scrollbar-width:none}
+  .modelos::-webkit-scrollbar{display:none}
+  .modelos button{flex-shrink:0;font-family:inherit;font-size:11.5px;font-weight:700;
+                  padding:8px 13px;border-radius:20px;border:1px solid var(--line2);
+                  background:var(--bg);color:var(--mut);cursor:pointer;white-space:nowrap}
+  .modelos button.on{background:var(--accent);border-color:var(--accent);color:var(--onacc)}
+
+  /* ---------- linha do tempo dos toques ---------- */
+  .toques{margin-top:4px}
+  .tq{display:flex;gap:10px;font-size:12.5px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .tq:last-child{border-bottom:none}
+  .tq .dt{flex-shrink:0;width:52px;color:var(--mut2);font-weight:700;font-variant-numeric:tabular-nums}
+  .tq .oq{flex:1;color:var(--txt2)}
+
+  .aviso{font-size:11.5px;color:var(--mut);line-height:1.6;margin-top:10px;
+         padding:10px 12px;background:var(--accbg);border-radius:10px;border:1px solid var(--accline)}
+  .aviso b{color:var(--accent)}
+
+  footer{text-align:center;font-size:10.5px;color:var(--mut2);margin-top:26px;padding-top:14px;
+         border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="klix.png" alt="Klix Mídia">
+  <span class="div"></span>
+  <span class="n">Prospecta</span>
+  <button class="tm" type="button" onclick="trocaTema()" aria-label="Trocar tema">◐</button>
+  <span class="s">Prospecção</span>
+</header>
+
+<!-- ============ HOJE ============ -->
+<section class="tela on" id="t1">
+  <h2>Hoje</h2>
+  <div class="sub" id="hojeData"></div>
+
+  <div class="meta">
+    <div class="l"><b id="metaPc">0%</b><span id="metaTxt">da meta do dia</span></div>
+    <div class="mrow"><span class="nm">Abordagens</span>
+      <span class="trilho"><span class="ench" id="fA" style="width:0%"></span></span>
+      <span class="qt" id="qA">0/3</span></div>
+    <div class="mrow"><span class="nm">Follow-ups</span>
+      <span class="trilho"><span class="ench" id="fF" style="width:0%"></span></span>
+      <span class="qt" id="qF">0/3</span></div>
+    <div class="rot" id="rotina"></div>
+  </div>
+
+  <h3>Vence hoje</h3>
+  <div id="vence"></div>
+
+  <h3>A abordar</h3>
+  <div id="abordar"></div>
+</section>
+
+<!-- ============ FUNIL ============ -->
+<section class="tela" id="t2">
+  <h2>Funil</h2>
+  <div class="sub">As cinco etapas do Playbook. Toque num prospecto pra registrar o toque.</div>
+  <div id="funil"></div>
+</section>
+
+<!-- ============ GUIA ============ -->
+<section class="tela" id="t3">
+  <h2>Guia</h2>
+  <div class="sub">O Playbook à mão, pra quando travar.</div>
+
+  <h3>A fórmula da mensagem</h3>
+  <div class="card">
+    <div class="passo"><span class="n">1</span><span class="c"><b>Gancho</b><span>Algo específico DELES — não sobre você.</span></span></div>
+    <div class="passo"><span class="n">2</span><span class="c"><b>Valor</b><span>Elogio + a oportunidade que você viu.</span></span></div>
+    <div class="passo" style="margin-bottom:0"><span class="n">3</span><span class="c"><b>Convite</b><span>Baixo compromisso: “posso mandar 2 ideias?”</span></span></div>
+  </div>
+
+  <h3>As objeções que vão aparecer</h3>
+  <div id="objecoes"></div>
+
+  <h3>Onde não gastar energia</h3>
+  <div class="card"><div class="a">Quem pede “de graça pra divulgar”, quem só quer o mais barato, e quem
+    não tem quem decida acessível. Diga não com educação e siga — foco é ouro.</div></div>
+
+  <h3>A regra do handoff</h3>
+  <div class="card"><div class="a">Quando vira <b>“que vídeo, quanto tempo, quanto custa”</b>, marque a call
+    técnica com o Igor. Você abre e fecha o relacionamento; ele responde pela produção e pelo preço.
+    <b>Você nunca precisa cravar orçamento no improviso.</b></div></div>
+
+  <footer id="rodape"></footer>
+</section>
+
+<button class="fab" onclick="novoProspecto()" aria-label="Novo prospecto">+</button>
+
+<nav><div class="barra">
+  <button class="on" data-t="1" onclick="aba('1')"><span class="ic">◎</span>Hoje</button>
+  <button data-t="2" onclick="aba('2')"><span class="ic">≡</span>Funil</button>
+  <button data-t="3" onclick="aba('3')"><span class="ic">✦</span>Guia</button>
+</div></nav>
+
+<script>
+/* ===================== o dado =====================
+   Guardado no aparelho, como nos outros apps. Um prospecto e:
+   {id, nome, nicho, canal, gatilho, score[5], etapa, toques[], prox{data,oq}, nota} */
+var VERSAO = "Prospecta v1";   /* mesma versao do sw.js — mexeu num, mexe no outro */
+/* a chave mudou de nome com o app; traz o que ja existia em vez de comecar
+   do zero em silencio */
+(function(){
+  try{
+    if(!localStorage.getItem("prospecta-v1") && localStorage.getItem("antena-v1"))
+      localStorage.setItem("prospecta-v1", localStorage.getItem("antena-v1"));
+    if(!localStorage.getItem("prospecta-tema") && localStorage.getItem("antena-tema"))
+      localStorage.setItem("prospecta-tema", localStorage.getItem("antena-tema"));
+  }catch(e){}
+})();
+var CHAVE = "prospecta-v1";
+var D = { pros:[], dias:{} };   /* dias: {AAAA-MM-DD:{ab:0,fu:0}} — a meta diaria */
+
+var ETAPAS = ["A abordar","Abordado","Em conversa","Proposta (c/ Igor)","Fechado / Revisitar"];
+
+/* as 5 perguntas do scorecard, do Playbook. 3+ = aborda. */
+var SCORE = [
+  "Já investe em conteúdo ou anúncio?",
+  "O vídeo atual é fraco ou não existe?",
+  "Tem produto ou espaço bonito de filmar?",
+  "Dá pra falar com quem decide?",
+  "Está num momento-gatilho?"
+];
+
+/* os 4 toques do follow-up: quantos dias depois, e o que fazer */
+var TOQUES = [
+  { n:1, dias:0,  oq:"A mensagem inicial." },
+  { n:2, dias:3,  oq:"Sem resposta? Mande algo útil — referência, reel, ideia. Nunca só “e aí, viu?”." },
+  { n:3, dias:10, oq:"“Se quiser, marco 15 min pra te mostrar.” Última tentativa ativa." },
+  { n:4, dias:45, oq:"Revisita: volte com um gatilho novo." }
+];
+
+var MODELOS = [
+  { k:"escola", nome:"Escola",
+    txt:"Oi {nome}! Acompanho o {negocio} e vi que {gancho} 👀. Trabalho com vídeo pra educação infantil (fiz o audiovisual da Unique) e tive 2 ideias de reels que ajudariam. Posso te mandar, sem compromisso?" },
+  { k:"local", nome:"Loja / restaurante",
+    txt:"Oi {nome}, o {negocio} tem uma cara linda 😍 mas quase não tem vídeo no feed — e é o que mais entrega alcance hoje. Faço isso pra negócios locais. Te mando um exemplo do que dá pra fazer com o espaço de vocês?" },
+  { k:"gatilho", nome:"Gatilho",
+    txt:"Vi que {gancho}! Momento perfeito pra um vídeo que apresente isso direito. Tenho uma ideia de como mostrar em 20s que prende. Topa ver?" },
+  { k:"indicacao", nome:"Indicação",
+    txt:"Oi {nome}! A Klix tá com agenda aberta pra {nicho}. Você conhece algum negócio precisando de vídeo bom pro Instagram? Se lembrar de alguém, me apresenta? 🙏" }
+];
+
+var OBJECOES = [
+  { q:"“Tá caro.”",
+    a:"Não brigue por preço: <em>“Vídeo bom é o que faz o cliente escolher vocês antes do concorrente. Monto uma opção que caiba no que faz sentido agora?”</em> — e chama o Igor pro escopo." },
+  { q:"“Já tenho quem faça.”",
+    a:"<em>“Que ótimo que já investem! Guarda a Klix como segunda opção — posso te mandar um exemplo só pra referência?”</em> Planta a semente." },
+  { q:"“Vou pensar / agora não.”",
+    a:"<em>“Sem pressa! Posso te chamar mais pra frente?”</em> Combine a revisita. “Agora não” raramente é “nunca”." },
+  { q:"“Quanto custa?”",
+    a:"Sinal quente = handoff: <em>“Pra passar certinho, te chamo numa call com o Igor e mandamos uma proposta sob medida.”</em>" }
+];
+
+/* ===================== utilidades ===================== */
+function hojeISO(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function maisDias(iso,n){ var p=iso.split("-"); var d=new Date(+p[0],+p[1]-1,+p[2]); d.setDate(d.getDate()+n);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function curto(iso){ if(!iso) return ""; var p=iso.split("-"); return p[2]+"/"+p[1]; }
+function diasAte(iso){ if(!iso) return null;
+  var a=new Date(hojeISO()), b=new Date(iso); return Math.round((b-a)/86400000); }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function escAttr(s){ return esc(s).replace(/"/g,"&quot;"); }
+function uid(){ return "p"+Date.now().toString(36)+Math.floor(Math.random()*9999).toString(36); }
+
+function ler(){ try{ var b=JSON.parse(localStorage.getItem(CHAVE)||"null"); if(b&&b.pros) D=b; }catch(e){}
+  if(!D.pros) D.pros=[]; if(!D.dias) D.dias={}; }
+function grava(){ try{ localStorage.setItem(CHAVE,JSON.stringify(D)); }catch(e){} }
+function acha(id){ for(var i=0;i<D.pros.length;i++) if(D.pros[i].id===id) return D.pros[i]; return null; }
+function diaHoje(){ var h=hojeISO(); if(!D.dias[h]) D.dias[h]={ab:0,fu:0}; return D.dias[h]; }
+
+/* ===================== a meta do dia ===================== */
+function pintaMeta(){
+  var d=diaHoje(), ab=Math.min(d.ab,3), fu=Math.min(d.fu,3);
+  var pc=Math.round((ab+fu)/6*100);
+  document.getElementById("metaPc").textContent=pc+"%";
+  document.getElementById("metaTxt").textContent = pc>=100 ? "meta do dia cumprida" : "da meta do dia";
+  var fA=document.getElementById("fA"), fF=document.getElementById("fF");
+  fA.style.width=(ab/3*100)+"%"; fA.className="ench"+(ab>=3?" cheio":"");
+  fF.style.width=(fu/3*100)+"%"; fF.className="ench"+(fu>=3?" cheio":"");
+  document.getElementById("qA").textContent=d.ab+"/3";
+  document.getElementById("qF").textContent=d.fu+"/3";
+  document.getElementById("rotina").innerHTML = pc>=100
+    ? "Meta batida. <b>Constante, nunca em surto</b> — um pouco todo dia vence a maratona de uma vez por mês."
+    : "<b>20 min:</b> 5 pra achar 3 perfis que batem no scorecard · 10 pra escrever as mensagens sob medida · 5 pros follow-ups.";
+}
+
+/* ===================== as listas ===================== */
+function cartao(p){
+  var dias = p.prox && p.prox.data ? diasAte(p.prox.data) : null;
+  var venceHoje = dias!==null && dias<=0;
+  var cls = "p" + (venceHoje?" vence":"") + (p.etapa===4?" frio":"");
+  var et = p.etapa===2 ? "et e3" : (p.etapa===3 ? "et e4" : "et");
+  var linha2 = [p.nicho, p.canal, p.gatilho].filter(Boolean).join(" · ");
+  var h = '<div class="'+cls+'" onclick="abre(\''+p.id+'\')">'
+        + '<div class="ph"><div class="pn">'+esc(p.nome)
+        + (linha2?'<div class="pm">'+esc(linha2)+'</div>':'')
+        + '</div><span class="'+et+'">'+esc(ETAPAS[p.etapa].replace(" (c/ Igor)",""))+'</span></div>';
+  if(p.prox && p.prox.data){
+    var quando = dias===0 ? "hoje" : (dias<0 ? "atrasado "+(-dias)+"d" : "em "+dias+"d · "+curto(p.prox.data));
+    h += '<div class="pnx"><span class="d'+(venceHoje?'':' ok')+'">'+esc(quando)+'</span>'
+       + '<span>'+esc(p.prox.oq||"")+'</span></div>';
+  }
+  return h+'</div>';
+}
+
+function vazio(t,d){ return '<div class="vazio"><div class="t">'+t+'</div><div class="d">'+d+'</div></div>'; }
+
+function pinta(){
+  pintaMeta();
+  var hj=hojeISO();
+  document.getElementById("hojeData").textContent = new Date().toLocaleDateString("pt-BR",
+    {weekday:"long",day:"numeric",month:"long"});
+
+  /* vence hoje: quem tem proximo passo com data <= hoje */
+  var v = D.pros.filter(function(p){ return p.prox && p.prox.data && diasAte(p.prox.data)<=0; })
+                .sort(function(a,b){ return a.prox.data < b.prox.data ? -1 : 1; });
+  document.getElementById("vence").innerHTML = v.length ? v.map(cartao).join("")
+    : vazio("Nada vencendo","Sem follow-up pra hoje. Bom momento pra abrir três conversas novas.");
+
+  /* a abordar: etapa 0 */
+  var a = D.pros.filter(function(p){ return p.etapa===0; });
+  document.getElementById("abordar").innerHTML = a.length ? a.map(cartao).join("")
+    : vazio("Fila vazia","Toque no + e passe um nome pelo scorecard.");
+
+  /* funil */
+  var f="";
+  for(var e=0;e<ETAPAS.length;e++){
+    var lista = D.pros.filter(function(p){ return p.etapa===e; });
+    f += '<h3>'+esc(ETAPAS[e])+' <span style="color:var(--mut2);font-weight:700">'+lista.length+'</span></h3>';
+    f += lista.length ? lista.map(cartao).join("")
+       : '<div style="font-size:12px;color:var(--mut2);padding:2px 2px 8px">—</div>';
+  }
+  document.getElementById("funil").innerHTML=f;
+
+  document.getElementById("objecoes").innerHTML = OBJECOES.map(function(o){
+    return '<div class="card"><div class="q">'+o.q+'</div><div class="a">'+o.a+'</div></div>'; }).join("");
+
+  document.getElementById("rodape").textContent =
+    VERSAO + " · Klix Mídia · " + D.pros.length + " prospecto" + (D.pros.length===1?"":"s") + " · salvo no aparelho.";
+  grava();
+}
+
+function aba(n){
+  ["1","2","3"].forEach(function(k){
+    document.getElementById("t"+k).classList.toggle("on",k===n);
+    var b=document.querySelector('nav button[data-t="'+k+'"]'); if(b) b.classList.toggle("on",k===n);
+  });
+  window.scrollTo(0,0);
+}
+
+/* ===================== folha ===================== */
+var _folha=null;
+function folha(html){
+  fecha();
+  _folha=document.createElement("div"); _folha.className="fundo"; _folha.id="folha";
+  _folha.innerHTML='<div class="folha" onclick="event.stopPropagation()">'+html+'</div>';
+  _folha.onclick=fecha;
+  document.body.appendChild(_folha);
+}
+function fecha(){ if(_folha&&_folha.parentNode) _folha.parentNode.removeChild(_folha); _folha=null; }
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") fecha(); });
+
+/* ===================== novo prospecto ===================== */
+var _sc=[false,false,false,false,false];
+function novoProspecto(){
+  _sc=[false,false,false,false,false];
+  folha(
+    '<h3>Vale a pena?</h3>'
+   +'<div class="sub" style="margin-bottom:12px">O scorecard do Playbook. Três ou mais e você aborda.</div>'
+   +'<div class="sc" id="scBox"></div>'
+   +'<div id="placar"></div>'
+   +'<div class="campo"><label>Empresa</label><input id="cNome" placeholder="ex.: Escola Sol"></div>'
+   +'<div class="campo"><label>Quem decide — o nome de quem você vai falar</label><input id="cContato" placeholder="ex.: Carla"></div>'
+   +'<div class="campo"><label>Nicho</label><input id="cNicho" placeholder="ex.: Infantil"></div>'
+   +'<div class="campo"><label>Canal</label><select id="cCanal">'
+   +'<option>Indicação</option><option>Instagram DM</option><option>Presencial</option><option>LinkedIn / e-mail</option></select></div>'
+   +'<div class="campo"><label>Gatilho — o motivo de abordar agora</label><input id="cGat" placeholder="ex.: época de matrículas"></div>'
+   +'<div class="acoes"><button class="bt" onclick="fecha()">Cancelar</button>'
+   +'<button class="bt pri" onclick="salvaProspecto()">Guardar</button></div>');
+  pintaScore();
+}
+function pintaScore(){
+  document.getElementById("scBox").innerHTML = SCORE.map(function(q,i){
+    return '<div class="li'+(_sc[i]?" sim":"")+'" onclick="marcaScore('+i+')"><span class="cx"></span>'+q+'</div>';
+  }).join("");
+  var n=_sc.filter(Boolean).length;
+  document.getElementById("placar").innerHTML =
+    '<div class="placar '+(n>=3?"vai":"nao")+'"><span class="num">'+n+'</span><span class="d">'
+    + (n>=3 ? "<b>Vale a pena.</b> Três sinais ou mais — pode abordar."
+            : "<b>Ainda não.</b> Com menos de três, o esforço rende mais em outro nome.")
+    + '</span></div>';
+}
+function marcaScore(i){ _sc[i]=!_sc[i]; pintaScore(); }
+
+function salvaProspecto(){
+  var nome=(document.getElementById("cNome").value||"").trim();
+  if(!nome){ document.getElementById("cNome").focus(); return; }
+  D.pros.push({ id:uid(), nome:nome,
+    contato:(document.getElementById("cContato").value||"").trim(),
+    nicho:(document.getElementById("cNicho").value||"").trim(),
+    canal:document.getElementById("cCanal").value,
+    gatilho:(document.getElementById("cGat").value||"").trim(),
+    score:_sc.slice(), etapa:0, toques:[], prox:null, nota:"" });
+  fecha(); pinta();
+}
+
+/* ===================== abrir um prospecto ===================== */
+var _atual=null, _modelo="escola";
+function abre(id){
+  var p=acha(id); if(!p) return; _atual=id;
+  _modelo = p.nicho && /escola|infantil|educa/i.test(p.nicho) ? "escola"
+          : (p.canal==="Indicação" ? "indicacao" : (p.gatilho ? "gatilho" : "local"));
+  var n=(p.score||[]).filter(Boolean).length;
+  var toques = (p.toques||[]).length
+    ? '<div class="toques">'+p.toques.map(function(t){
+        return '<div class="tq"><span class="dt">'+curto(t.data)+'</span><span class="oq">'+esc(t.oq)+'</span></div>'; }).join("")+'</div>'
+    : '<div style="font-size:12.5px;color:var(--mut2);padding:4px 0">Nenhum toque ainda.</div>';
+
+  folha(
+    '<h3>'+esc(ETAPAS[p.etapa])+'</h3>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin-bottom:2px">'+esc(p.nome)+'</div>'
+   +'<div class="sub">'+[esc(p.nicho),esc(p.canal),esc(p.gatilho)].filter(Boolean).join(" · ")+' · scorecard '+n+'/5</div>'
+
+   +'<h3>Mensagem pronta</h3>'
+   +'<div class="modelos" id="mods"></div>'
+   +'<div class="msg" id="msgTxt"></div>'
+   +'<div class="acoes"><button class="bt" onclick="copiaMsg()">Copiar</button>'
+   +'<button class="bt pri" onclick="registraToque()">Registrar toque</button></div>'
+   +'<div class="aviso">Cada toque entrega algo. <b>“Viu minha mensagem?” irrita</b> — “lembrei de vocês e fiz essa referência” encanta.</div>'
+
+   +'<h3>Toques</h3>'+toques
+
+   +'<h3>Etapa</h3>'
+   +'<div class="campo"><select id="cEtapa" onchange="mudaEtapa()">'
+   + ETAPAS.map(function(e,i){ return '<option value="'+i+'"'+(i===p.etapa?" selected":"")+'>'+esc(e)+'</option>'; }).join("")
+   +'</select></div>'
+   +(p.etapa>=3?'<div class="aviso">Chegou no orçamento: <b>marque a call com o Igor</b>. Você não crava preço no improviso.</div>':'')
+
+   +'<h3>Anotação</h3>'
+   +'<div class="campo"><textarea id="cNota" placeholder="o que foi dito, o que prometeu…">'+esc(p.nota||"")+'</textarea></div>'
+   +'<div class="acoes"><button class="bt" onclick="apaga()" style="color:var(--nao)">Apagar</button>'
+   +'<button class="bt pri" onclick="salvaNota()">Salvar</button></div>');
+  pintaModelos();
+}
+function pintaModelos(){
+  document.getElementById("mods").innerHTML = MODELOS.map(function(m){
+    return '<button class="'+(m.k===_modelo?"on":"")+'" onclick="trocaModelo(\''+m.k+'\')">'+m.nome+'</button>'; }).join("");
+  document.getElementById("msgTxt").textContent = montaMsg();
+}
+function trocaModelo(k){ _modelo=k; pintaModelos(); }
+function montaMsg(){
+  var p=acha(_atual); if(!p) return "";
+  var m=MODELOS.filter(function(x){ return x.k===_modelo; })[0]; if(!m) return "";
+  return m.txt.replace(/\{nome\}/g, p.contato || "")
+              .replace(/\{negocio\}/g, p.nome)
+              .replace(/\{nicho\}/g, p.nicho || "negócios locais")
+              .replace(/\{gancho\}/g, p.gatilho || "…")
+              .replace(/ +/g," ").replace(/Oi ,/,"Oi,");
+}
+function copiaMsg(){
+  var t=montaMsg();
+  try{ navigator.clipboard.writeText(t); }catch(e){}
+  var b=event.target; var o=b.textContent; b.textContent="Copiado ✓";
+  setTimeout(function(){ b.textContent=o; },1400);
+}
+
+/* ===================== registrar um toque ===================== */
+function registraToque(){
+  var p=acha(_atual); if(!p) return;
+  var n=(p.toques||[]).length;
+  var t = TOQUES[Math.min(n,TOQUES.length-1)];
+  if(!p.toques) p.toques=[];
+  p.toques.push({ n:t.n, data:hojeISO(), oq:"Toque "+t.n+" — "+(n===0?"abordagem":"follow-up") });
+
+  /* conta na meta do dia: o primeiro toque e abordagem, os outros sao follow-up */
+  var d=diaHoje(); if(n===0) d.ab++; else d.fu++;
+
+  /* agenda o proximo */
+  var prox = TOQUES[Math.min(n+1,TOQUES.length-1)];
+  if(n+1 < TOQUES.length){
+    p.prox = { data: maisDias(hojeISO(), prox.dias - t.dias), oq: prox.oq };
+  } else {
+    p.prox = null;
+  }
+  if(p.etapa===0) p.etapa=1;
+  fecha(); pinta();
+}
+function mudaEtapa(){
+  var p=acha(_atual); if(!p) return;
+  p.etapa = +document.getElementById("cEtapa").value;
+  if(p.etapa===4) p.prox=null;
+  grava(); abre(_atual); pinta();
+}
+function salvaNota(){
+  var p=acha(_atual); if(!p) return;
+  p.nota=(document.getElementById("cNota").value||"").trim();
+  fecha(); pinta();
+}
+function apaga(){
+  var p=acha(_atual); if(!p) return;
+  if(!confirm("Apagar “"+p.nome+"”? O histórico de toques vai junto.")) return;
+  D.pros = D.pros.filter(function(x){ return x.id!==_atual; });
+  fecha(); pinta();
+}
+
+
+/* ===== os temas =====
+   Dois: o da Klix (de casa) e o da Miri. Guardado por aparelho, como o resto. */
+var TEMAS = ["", "miri"], TNOME = { "":"Klix", miri:"Miri" };
+function temaAtual(){ try{ return localStorage.getItem("prospecta-tema")||""; }catch(e){ return ""; } }
+function aplicaTema(t){
+  if(t) document.documentElement.setAttribute("data-theme",t);
+  else document.documentElement.removeAttribute("data-theme");
+  var cor = t==="miri" ? "#F3EFE5" : "#F3ECE3";
+  var m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content",cor);
+  var b=document.querySelector("header .tm"); if(b) b.title = "Tema: "+TNOME[t]+" — tocar troca";
+}
+function trocaTema(){
+  var t = TEMAS[(TEMAS.indexOf(temaAtual())+1) % TEMAS.length];
+  try{ localStorage.setItem("prospecta-tema",t); }catch(e){}
+  aplicaTema(t);
+}
+aplicaTema(temaAtual());
+/* ===================== começa ===================== */
+ler();
+pinta();
+</script>
+<script>
+/* o operador e o banner de atualizacao — o mesmo dos outros apps: ele avisa,
+   voce decide. Nada recarrega sozinho no meio de um cadastro. */
+(function(){
+  if(!("serviceWorker" in navigator) || location.protocol.indexOf("http")!==0) return;
+  var recarregando=false;
+  navigator.serviceWorker.addEventListener("controllerchange",function(){
+    if(recarregando) return; recarregando=true; location.reload(); });
+  function banner(reg){
+    if(document.getElementById("__att")) return;
+    var b=document.createElement("div"); b.id="__att";
+    b.style.cssText="position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));"+
+      "transform:translate(-50%,14px);z-index:100000;display:flex;align-items:center;gap:11px;"+
+      "max-width:calc(100% - 24px);background:#FBF6EE;color:#1E1B18;border:1px solid #D8C8B4;"+
+      "border-radius:16px;padding:10px 10px 10px 15px;box-shadow:0 14px 34px rgba(30,27,24,.2);"+
+      "font-family:Montserrat,system-ui,Arial,sans-serif;font-size:13px;font-weight:700;"+
+      "opacity:0;transition:opacity .28s ease,transform .28s cubic-bezier(.34,1.4,.5,1)";
+    b.innerHTML='<span>Nova versão disponível</span><button id="__attb" style="border:none;'+
+      'cursor:pointer;font:inherit;font-weight:800;color:#fff;background:#BC8B63;'+
+      'border-radius:11px;padding:9px 15px">Atualizar</button>';
+    document.body.appendChild(b);
+    requestAnimationFrame(function(){ b.style.opacity="1"; b.style.transform="translate(-50%,0)"; });
+    document.getElementById("__attb").onclick=function(){
+      this.textContent="Atualizando…"; this.disabled=true;
+      if(reg.waiting){ reg.waiting.postMessage("SKIP_WAITING"); } else { location.reload(); } };
+  }
+  function vigia(reg){
+    if(reg.waiting && navigator.serviceWorker.controller) banner(reg);
+    reg.addEventListener("updatefound",function(){ var nv=reg.installing; if(!nv) return;
+      nv.addEventListener("statechange",function(){
+        if(nv.state==="installed" && navigator.serviceWorker.controller) banner(reg); }); });
+    setInterval(function(){ reg.update().catch(function(){}); }, 60000);
+    function confere(){ reg.update().catch(function(){}); }
+    document.addEventListener("visibilitychange",function(){ if(!document.hidden) confere(); });
+    window.addEventListener("focus", confere);
+    window.addEventListener("pageshow", confere);
+  }
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js").then(vigia).catch(function(){}); });
+})();
+</script>
+</body>
+</html>
