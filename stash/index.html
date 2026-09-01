@@ -1276,7 +1276,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v115';
+var VERSAO = 'v116';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -3377,7 +3377,12 @@ applyPriv();
 document.getElementById("eyeBtn").addEventListener("click", togglePriv);
 function applyTheme(t){ if(t){ document.documentElement.setAttribute("data-theme",t); } else { document.documentElement.removeAttribute("data-theme"); }
   try{ localStorage.setItem("stash-theme",t||""); }catch(e){}
-  var mc={"":"#0b0d10",editorial:"#F4F0E6",cockpit:"#060f12"}[t||""]; var m=document.querySelector('meta[name="theme-color"]'); if(m&&mc)m.setAttribute("content",mc); }
+  var mc={"":"#0b0d10",editorial:"#F4F0E6",cockpit:"#060f12"}[t||""]; var m=document.querySelector('meta[name="theme-color"]'); if(m&&mc)m.setAttribute("content",mc);
+  /* a aba Feito vive num iframe: documento proprio, entao o data-theme daqui
+     nao alcanca ela. Aviso por mensagem. */
+  try{ var fr=document.getElementById("feitoFrame");
+       if(fr && fr.contentWindow) fr.contentWindow.postMessage({tema:t||""},"*"); }catch(e){}
+}
 var THEMES=["","editorial","cockpit"], THNAME={"":"Padrão",editorial:"Cofre Editorial",cockpit:"Cockpit Data"};
 function cycleTheme(){ var cur=localStorage.getItem("stash-theme")||""; var t=THEMES[(THEMES.indexOf(cur)+1)%THEMES.length]; applyTheme(t); try{ toast("Tema: "+THNAME[t],"ok"); }catch(e){} }
 applyTheme(localStorage.getItem("stash-theme")||"");
