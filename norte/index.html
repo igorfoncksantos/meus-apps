@@ -842,7 +842,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v59';
+const VERSAO = 'v60';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1385,16 +1385,12 @@ function ditarPara(bt, alvoId){
   _rec.onerror=function(){ if(_recBt) _recBt.classList.remove("rec"); _recBt=null; _rec=null; };
   _rec.start();
 }
-/* delegacao: os campos nascem quando a folha abre, entao o botao nao existe
-   na hora de ligar um ouvinte direto */
-document.addEventListener("click", function(e){
-  var b = e.target.closest ? e.target.closest("[data-mic]") : null;
-  if(!b) return;
-  e.preventDefault(); e.stopPropagation();
-  ditarPara(b, b.getAttribute("data-mic"));
-});
+/* onclick direto, e nao delegacao: a folha do Norte e montada com
+   onclick="event.stopPropagation()", entao clique de dentro dela NUNCA chega
+   ao document. Era por isso que o microfone nao respondia — nem na nota, nem
+   na tarefa, que usam a mesma folha. */
 function micHTML(alvoId){
-  return _temVoz() ? ('<button type="button" class="micbt" data-mic="'+alvoId+'" title="Ditar" aria-label="Ditar">'+svgIc("mic")+'</button>') : "";
+  return _temVoz() ? ('<button type="button" class="micbt" data-mic="'+alvoId+'" onclick="ditarPara(this,\''+alvoId+'\')" title="Ditar" aria-label="Ditar">'+svgIc("mic")+'</button>') : "";
 }
 /* ---- observações ---- */
 /* A nota era uma string. Virou {t,dt,fix} pra carregar data e o "fica pro dia
