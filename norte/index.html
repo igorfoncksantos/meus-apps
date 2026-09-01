@@ -542,11 +542,12 @@
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
   /* com o teclado aberto a folha sobe junto: e o overlay que reserva a altura,
      porque position:fixed nao enxerga o padding do body */
-  /* desliza em vez de saltar: junto com os 300ms do teclado, o toque termina
-     onde começou */
-  .overlay{ transition:bottom .2s ease; }
-  body.kbdopen .overlay{ bottom:var(--kbh,0px); }
-  body.kbdopen .sheet{ max-height:calc(90vh - var(--kbh,0px)); }
+  /* O overlay NUNCA encolhe: encolher abria um buraco de 342px embaixo, sem
+     cobertura nenhuma, e o toque atravessava pra página de trás no instante em
+     que o teclado sumia. Quem sobe é a FOLHA, por margem — o escurecido segue
+     cobrindo a tela inteira. A transição faz deslizar em vez de saltar. */
+  .sheet{ transition:margin-bottom .2s ease; }
+  body.kbdopen .sheet{ margin-bottom:var(--kbh,0px); max-height:calc(90vh - var(--kbh,0px)); }
   .sheet{ width:100%; max-width:560px; background:#101317; border:1px solid var(--line); border-bottom:none;
           border-radius:18px 18px 0 0; padding:18px 16px calc(20px + env(safe-area-inset-bottom)); max-height:90vh; overflow:auto;
           animation:up .22s cubic-bezier(.2,.9,.3,1); }
@@ -841,7 +842,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v58';
+const VERSAO = 'v59';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
