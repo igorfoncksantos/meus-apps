@@ -25,7 +25,7 @@
   function reload(){ location.reload(); }
 
   /* ---------- init ---------- */
-  function init(){ try{ if(window.supabase && SUPA_URL.indexOf('http')===0){ sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,autoRefreshToken:true}}); } }catch(e){ sb=null; } }
+  function init(){ try{ if(window.supabase && SUPA_URL.indexOf('http')===0){ var _auth={persistSession:true,autoRefreshToken:true}; if(CFG.authKey) _auth.storageKey=CFG.authKey; sb=window.supabase.createClient(SUPA_URL,SUPA_KEY,{auth:_auth}); } }catch(e){ sb=null; } }
   async function sha(s){ try{ var b=new TextEncoder().encode(s); var h=await crypto.subtle.digest('SHA-256',b); return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0');}).join(''); }catch(e){ return 'x'+s.length; } }
 
   /* ---------- motor de sync ---------- */

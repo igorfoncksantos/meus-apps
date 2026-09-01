@@ -16,31 +16,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* A Antena veste a identidade da Klix — marfim, espresso e caramelo — porque
-     ela e a ferramenta da Klix e implementa o Playbook, que ja tem essa cara.
-     Tudo em token: um tema escuro depois e so redefinir o :root. */
+  /* Prospecta veste a identidade da Klix — marfim, espresso e caramelo.
+     Tudo em token; o tema 2 so redefine o :root. */
   :root{
     --bg:#F3ECE3; --panel:#FBF6EE; --panel2:#EDE1D2; --line:#E4D8CA; --line2:#D8C8B4;
     --txt:#1E1B18; --txt2:#3A332C; --mut:#6b5f52; --mut2:#a89b8c;
     --accent:#BC8B63; --onacc:#FFFFFF; --accbg:#F6EDE3; --accline:#E6D2BC;
-    --caixa:#D8C8B4;                       /* a borda do quadradinho */
+    --caixa:#D8C8B4;
     --ok:#4F7A55; --okbg:#EAF0EA; --okline:#CBDBCC;
-    --alerta:#B4762A; --alertabg:#FCF3E6;
+    --alerta:#B4762A; --alertabg:#FCF3E6; --alertaline:#EBD6AE;
     --nao:#9C4B36; --naobg:#F7EAE6; --naoline:#E8CDC5;
     --navbg:rgba(251,246,238,.94); --sombra:rgba(30,27,24,.16); --veu:rgba(30,27,24,.42);
     --r:14px;
   }
-
-  /* ===== TEMA 2 · MIRI =====
-     Os mesmos valores do tema Miri do Norte. A Antena e muito mais da Miri
-     do que do Igor, entao ela pode trabalhar na paleta que ja usa. */
+  /* ===== TEMA 2 · MIRI — os mesmos valores do tema Miri do Norte ===== */
   :root[data-theme="miri"]{
     --bg:#F3EFE5; --panel:#FBF7EE; --panel2:#E7DECF; --line:#E3D9C7; --line2:#D9CDB8;
     --txt:#46423A; --txt2:#2f2b23; --mut:#7E7768; --mut2:#8C8676;
     --accent:#c06a52; --onacc:#FBF7EE; --accbg:#F6EDE6; --accline:#E0C8BC;
     --caixa:#C7B7A2;
     --ok:#4a7a3d; --okbg:#e3efd9; --okline:#cfe0b8;
-    --alerta:#8a6a1e; --alertabg:#f7efdc;
+    --alerta:#8a6a1e; --alertabg:#f7efdc; --alertaline:#e5d3a6;
     --nao:#b0503a; --naobg:#f3ddd6; --naoline:#e6c3b6;
     --navbg:rgba(251,247,238,.94); --sombra:rgba(70,60,40,.14); --veu:rgba(70,60,40,.38);
   }
@@ -50,7 +46,6 @@
        font-size:14px;line-height:1.5;padding:14px 14px calc(96px + env(safe-area-inset-bottom));
        max-width:680px;margin:0 auto}
 
-  /* ---------- cabecalho ---------- */
   header{display:flex;align-items:center;gap:11px;padding-bottom:12px;
          border-bottom:1px solid var(--line);margin-bottom:14px}
   header img{height:26px;width:auto;display:block}
@@ -64,15 +59,29 @@
   header .s{margin-left:10px;font-size:9.5px;font-weight:800;letter-spacing:.12em;
             text-transform:uppercase;color:var(--mut2)}
 
-
   h2{font-family:"DM Serif Display",Georgia,serif;font-size:19px;font-weight:400;margin-bottom:3px}
   .sub{font-size:12px;color:var(--mut);margin-bottom:14px}
   h3{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;
-     color:var(--accent);margin:20px 0 8px}
+     color:var(--accent);margin:20px 0 8px;display:flex;align-items:baseline;gap:7px}
+  h3 span{color:var(--mut2);font-weight:700;letter-spacing:0}
 
-  /* ---------- a meta do dia ---------- */
+  /* ---------- painel: os indicadores ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+  .kpi.larga{grid-column:1/-1}
+  .kpi .v{font-family:"DM Serif Display",Georgia,serif;font-size:25px;line-height:1.05;color:var(--txt)}
+  .kpi .r{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+          color:var(--mut);margin-top:4px;line-height:1.35}
+  .kpi.quente .v{color:var(--nao)}
+  .kpi.atraso .v{color:var(--alerta)}
+  .kpi.fecha .v{color:var(--ok)}
+  .kpi.pipe{background:var(--accbg);border-color:var(--accline)}
+  .kpi.pipe .v{color:var(--accent);font-size:27px}
+  .kpi.pipe .n{font-size:11px;color:var(--mut);margin-top:6px;line-height:1.5}
+
+  /* ---------- meta do dia ---------- */
   .meta{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
-        padding:13px 15px;margin-bottom:16px}
+        padding:13px 15px;margin-top:10px}
   .meta .l{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
   .meta .l b{font-family:"DM Serif Display",Georgia,serif;font-size:22px;font-weight:400}
   .meta .l span{font-size:11.5px;color:var(--mut)}
@@ -90,30 +99,61 @@
        font-size:11.5px;color:var(--mut);line-height:1.6}
   .rot b{color:var(--txt2)}
 
-  /* ---------- cartao de prospecto ---------- */
-  .p{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+  /* ---------- funil por etapa ---------- */
+  .fun{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+  .fl{display:flex;align-items:center;gap:9px;padding:5px 0;cursor:pointer}
+  .fl .fn{width:104px;flex-shrink:0;font-size:11px;font-weight:700;color:var(--txt2);line-height:1.3}
+  .fl .fb{flex:1;height:8px;background:var(--panel2);border-radius:20px;overflow:hidden}
+  .fl .ff{display:block;height:100%;background:var(--accent);border-radius:20px;transition:width .3s}
+  .fl.perdido .ff{background:var(--mut2)}
+  .fl.fechado .ff{background:var(--ok)}
+  .fl .fq{width:22px;text-align:right;font-size:11px;font-weight:800;color:var(--txt);
+          font-variant-numeric:tabular-nums}
+  .fl.zero .fn,.fl.zero .fq{color:var(--mut2);font-weight:600}
+
+  /* ---------- cartao do lead ---------- */
+  .p{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line2);
      border-radius:12px;padding:11px 13px;margin-bottom:9px;cursor:pointer}
-  .p.vence{border-left-color:var(--alerta);background:var(--alertabg)}
-  .p.frio{opacity:.62}
+  .p.quente{border-left-color:var(--nao)}
+  .p.morno{border-left-color:var(--alerta)}
+  .p.frio{border-left-color:var(--mut2)}
+  .p.atrasado{background:var(--alertabg);border-color:var(--alertaline)}
+  .p.encerrado{opacity:.6}
   .ph{display:flex;align-items:flex-start;gap:9px}
-  .pn{flex:1;min-width:0;font-size:14.5px;font-weight:700;color:var(--txt);line-height:1.3}
+  .pn{flex:1;min-width:0}
+  .pn b{display:block;font-size:14.5px;font-weight:700;color:var(--txt);line-height:1.3}
   .pm{font-size:11px;color:var(--mut);margin-top:2px}
   .et{flex-shrink:0;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
       padding:3px 8px;border-radius:20px;background:var(--panel2);color:var(--mut);
       border:1px solid var(--line2);line-height:1.35}
-  .et.e3{background:var(--okbg);color:var(--ok);border-color:var(--okline)}
-  .et.e4{background:var(--accbg);color:var(--accent);border-color:var(--accline)}
+  .et.ok{background:var(--okbg);color:var(--ok);border-color:var(--okline)}
+  .et.quase{background:var(--accbg);color:var(--accent);border-color:var(--accline)}
+  .et.perdeu{background:var(--naobg);color:var(--nao);border-color:var(--naoline)}
   .pnx{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);
-       font-size:11.5px;color:var(--txt2);display:flex;align-items:center;gap:7px}
-  .pnx .d{font-weight:800;color:var(--alerta);font-variant-numeric:tabular-nums}
-  .pnx .d.ok{color:var(--mut2)}
+       font-size:11.5px;color:var(--txt2);display:flex;align-items:flex-start;gap:8px}
+  .pnx .d{flex-shrink:0;font-weight:800;font-variant-numeric:tabular-nums;color:var(--mut2)}
+  .pnx .d.atr{color:var(--alerta)}
+  .pnx .d.sem{color:var(--nao)}
+  .pnx .oq{flex:1;min-width:0}
+  .pvl{margin-left:auto;flex-shrink:0;font-size:11px;font-weight:800;color:var(--accent);
+       font-variant-numeric:tabular-nums;padding-left:8px}
 
-  /* ---------- vazio ---------- */
+  /* ---------- filtros ---------- */
+  .busca{width:100%;font-family:inherit;font-size:16px;padding:11px 13px;border-radius:11px;
+         border:1px solid var(--line2);background:var(--panel);color:var(--txt);outline:none;
+         margin-bottom:9px}
+  .busca:focus{border-color:var(--accent)}
+  .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:5px;margin-bottom:10px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex-shrink:0;font-family:inherit;font-size:11.5px;font-weight:700;
+                padding:8px 13px;border-radius:20px;border:1px solid var(--line2);
+                background:var(--panel);color:var(--mut);cursor:pointer;white-space:nowrap}
+  .chips button.on{background:var(--accent);border-color:var(--accent);color:var(--onacc)}
+
   .vazio{text-align:center;padding:26px 16px;color:var(--mut)}
   .vazio .t{font-family:"DM Serif Display",Georgia,serif;font-size:17px;color:var(--txt);margin-bottom:5px}
   .vazio .d{font-size:12.5px;line-height:1.6}
 
-  /* ---------- guia ---------- */
   .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
         padding:13px 15px;margin-bottom:10px}
   .card .q{font-size:13.5px;font-weight:700;color:var(--txt);margin-bottom:5px}
@@ -126,12 +166,10 @@
   .passo .c b{display:block;font-size:12.5px;color:var(--txt)}
   .passo .c span{font-size:12px;color:var(--mut)}
 
-  /* ---------- botoes ---------- */
   .bt{font-family:inherit;font-size:13.5px;font-weight:700;border-radius:11px;padding:12px 15px;
       border:1px solid var(--line2);background:var(--panel);color:var(--txt);cursor:pointer}
   .bt.pri{background:var(--accent);border-color:var(--accent);color:var(--onacc)}
-  .bt.pri:active,.bt:active{transform:scale(.98)}
-  .bt.larga{width:100%}
+  .bt:active{transform:scale(.98)}
   .acoes{display:flex;gap:8px;margin-top:14px}
   .acoes .bt{flex:1}
 
@@ -140,16 +178,16 @@
        color:var(--onacc);font-size:27px;line-height:1;cursor:pointer;
        box-shadow:0 8px 22px var(--sombra)}
   .fab:active{transform:scale(.92)}
+  .fab.some{display:none}
 
-  /* ---------- navegacao ---------- */
-  nav{position:fixed;left:0;right:0;bottom:0;z-index:70;padding:0 12px calc(10px + env(safe-area-inset-bottom));
-      pointer-events:none}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:70;
+      padding:0 12px calc(10px + env(safe-area-inset-bottom));pointer-events:none}
   nav .barra{pointer-events:auto;display:flex;background:var(--navbg);
              -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
              border:1px solid var(--line);border-radius:18px;padding:5px;
              box-shadow:0 8px 26px var(--sombra)}
   nav button{flex:1;min-height:52px;border:none;background:transparent;font-family:inherit;
-             font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+             font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
              color:var(--mut);cursor:pointer;border-radius:14px;
              display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
              touch-action:manipulation}
@@ -168,7 +206,8 @@
          border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));
          max-height:92vh;overflow-y:auto;animation:sobe .24s cubic-bezier(.2,.9,.3,1)}
   @keyframes sobe{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
-  .folha h3{margin-top:0}
+  .folha h3{margin-top:20px}
+  .folha h3:first-child{margin-top:0}
   .campo{margin-bottom:10px}
   .campo label{display:block;font-size:10px;font-weight:800;text-transform:uppercase;
                letter-spacing:.08em;color:var(--mut);margin-bottom:4px}
@@ -176,7 +215,9 @@
         padding:11px 13px;border:1px solid var(--line2);border-radius:11px;
         background:var(--bg);color:var(--txt);outline:none}
   .campo input:focus,.campo textarea:focus{border-color:var(--accent)}
-  .campo textarea{min-height:78px;resize:vertical;line-height:1.5}
+  .campo textarea{min-height:66px;resize:vertical;line-height:1.5}
+  .dupla{display:flex;gap:8px}
+  .dupla .campo{flex:1;min-width:0}
 
   /* ---------- scorecard ---------- */
   .sc{border:1px solid var(--line2);border-radius:12px;overflow:hidden;margin-bottom:10px}
@@ -191,24 +232,21 @@
   .sc .li.sim{color:var(--txt);font-weight:600}
   .placar{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:11px;
           font-size:13px;font-weight:700;margin-bottom:12px}
-  .placar.vai{background:var(--okbg);color:var(--ok);border:1px solid var(--okline)}
-  .placar.nao{background:var(--naobg);color:var(--nao);border:1px solid var(--naoline)}
+  .placar.q{background:var(--naobg);color:var(--nao);border:1px solid var(--naoline)}
+  .placar.m{background:var(--alertabg);color:var(--alerta);border:1px solid var(--alertaline)}
+  .placar.f{background:var(--panel2);color:var(--mut);border:1px solid var(--line2)}
   .placar .num{font-family:"DM Serif Display",Georgia,serif;font-size:24px;line-height:1}
   .placar .d{font-size:11.5px;font-weight:500;line-height:1.45}
 
-  /* ---------- mensagem pronta ---------- */
   .msg{background:var(--bg);border:1px dashed var(--line2);border-radius:11px;
        padding:13px 14px;font-size:13.5px;line-height:1.65;color:var(--txt);white-space:pre-wrap}
-  .modelos{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;
-           scrollbar-width:none}
+  .modelos{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
   .modelos::-webkit-scrollbar{display:none}
   .modelos button{flex-shrink:0;font-family:inherit;font-size:11.5px;font-weight:700;
                   padding:8px 13px;border-radius:20px;border:1px solid var(--line2);
                   background:var(--bg);color:var(--mut);cursor:pointer;white-space:nowrap}
   .modelos button.on{background:var(--accent);border-color:var(--accent);color:var(--onacc)}
 
-  /* ---------- linha do tempo dos toques ---------- */
-  .toques{margin-top:4px}
   .tq{display:flex;gap:10px;font-size:12.5px;padding:7px 0;border-bottom:1px solid var(--line)}
   .tq:last-child{border-bottom:none}
   .tq .dt{flex-shrink:0;width:52px;color:var(--mut2);font-weight:700;font-variant-numeric:tabular-nums}
@@ -217,6 +255,22 @@
   .aviso{font-size:11.5px;color:var(--mut);line-height:1.6;margin-top:10px;
          padding:10px 12px;background:var(--accbg);border-radius:10px;border:1px solid var(--accline)}
   .aviso b{color:var(--accent)}
+
+  /* ---------- listas ---------- */
+  .lst{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+       padding:6px 14px;margin-bottom:12px}
+  .lit{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);
+       font-size:13.5px;color:var(--txt)}
+  .lit:last-child{border-bottom:none}
+  .lit .x{margin-left:auto;color:var(--mut2);font-size:13px;padding:0 4px;cursor:pointer}
+  .lit .fx{margin-left:auto;font-size:10px;color:var(--mut2);font-weight:700;
+           text-transform:uppercase;letter-spacing:.05em}
+  .ladd{display:flex;gap:7px;padding:9px 0 4px}
+  .ladd input{flex:1;min-width:0;font-family:inherit;font-size:15px;padding:9px 11px;
+              border:1px solid var(--line2);border-radius:10px;background:var(--bg);
+              color:var(--txt);outline:none}
+  .ladd button{flex-shrink:0;width:42px;border:none;border-radius:10px;background:var(--accent);
+               color:var(--onacc);font-size:20px;font-weight:700;cursor:pointer;font-family:inherit}
 
   footer{text-align:center;font-size:10.5px;color:var(--mut2);margin-top:26px;padding-top:14px;
          border-top:1px solid var(--line)}
@@ -232,10 +286,11 @@
   <span class="s">Prospecção</span>
 </header>
 
-<!-- ============ HOJE ============ -->
+<!-- ============ PAINEL ============ -->
 <section class="tela on" id="t1">
-  <h2>Hoje</h2>
+  <h2>Painel</h2>
   <div class="sub" id="hojeData"></div>
+  <div class="kpis" id="kpis"></div>
 
   <div class="meta">
     <div class="l"><b id="metaPc">0%</b><span id="metaTxt">da meta do dia</span></div>
@@ -248,22 +303,32 @@
     <div class="rot" id="rotina"></div>
   </div>
 
-  <h3>Vence hoje</h3>
-  <div id="vence"></div>
+  <h3>Quantidade por etapa</h3>
+  <div class="fun" id="funil"></div>
 
-  <h3>A abordar</h3>
-  <div id="abordar"></div>
+  <h3>Precisa de ação <span id="qtdAcao"></span></h3>
+  <div id="acaoLista"></div>
 </section>
 
-<!-- ============ FUNIL ============ -->
+<!-- ============ CRM ============ -->
 <section class="tela" id="t2">
-  <h2>Funil</h2>
-  <div class="sub">As cinco etapas do Playbook. Toque num prospecto pra registrar o toque.</div>
-  <div id="funil"></div>
+  <h2>CRM Prospecção</h2>
+  <div class="sub">Cada cartão é uma empresa ou oportunidade. Toque pra abrir a ficha.</div>
+  <input class="busca" id="busca" placeholder="Buscar empresa, contato, segmento…" oninput="pinta()">
+  <div class="chips" id="filtros"></div>
+  <div id="lista"></div>
+</section>
+
+<!-- ============ LISTAS ============ -->
+<section class="tela" id="t3">
+  <h2>Listas</h2>
+  <div class="sub">As opções dos menus do CRM. Padronizar aqui é o que faz o Painel somar certo —
+    sem isso, “Contato feito” e “Já contatado” viram duas coisas diferentes.</div>
+  <div id="listas"></div>
 </section>
 
 <!-- ============ GUIA ============ -->
-<section class="tela" id="t3">
+<section class="tela" id="t4">
   <h2>Guia</h2>
   <div class="sub">O Playbook à mão, pra quando travar.</div>
 
@@ -277,6 +342,11 @@
   <h3>As objeções que vão aparecer</h3>
   <div id="objecoes"></div>
 
+  <h3>O ritmo</h3>
+  <div class="card"><div class="a"><b>3 abordagens + 3 follow-ups por dia</b>, em 20 minutos: 5 pra
+    achar os perfis, 10 pra escrever as mensagens sob medida, 5 pros follow-ups. Uma vez por semana,
+    15 min só pro <b>play da indicação</b> — é o canal que mais fecha.</div></div>
+
   <h3>Onde não gastar energia</h3>
   <div class="card"><div class="a">Quem pede “de graça pra divulgar”, quem só quer o mais barato, e quem
     não tem quem decida acessível. Diga não com educação e siga — foco é ouro.</div></div>
@@ -289,19 +359,18 @@
   <footer id="rodape"></footer>
 </section>
 
-<button class="fab" onclick="novoProspecto()" aria-label="Novo prospecto">+</button>
+<button class="fab" id="fab" onclick="novoLead()" aria-label="Novo lead">+</button>
 
 <nav><div class="barra">
-  <button class="on" data-t="1" onclick="aba('1')"><span class="ic">◎</span>Hoje</button>
-  <button data-t="2" onclick="aba('2')"><span class="ic">≡</span>Funil</button>
-  <button data-t="3" onclick="aba('3')"><span class="ic">✦</span>Guia</button>
+  <button class="on" data-t="1" onclick="aba('1')"><span class="ic">◫</span>Painel</button>
+  <button data-t="2" onclick="aba('2')"><span class="ic">≡</span>CRM</button>
+  <button data-t="3" onclick="aba('3')"><span class="ic">☰</span>Listas</button>
+  <button data-t="4" onclick="aba('4')"><span class="ic">✦</span>Guia</button>
 </div></nav>
 
 <script>
 /* ===================== o dado =====================
-   Guardado no aparelho, como nos outros apps. Um prospecto e:
-   {id, nome, nicho, canal, gatilho, score[5], etapa, toques[], prox{data,oq}, nota} */
-var VERSAO = "Prospecta v1";   /* mesma versao do sw.js — mexeu num, mexe no outro */
+   Um lead por linha, como na planilha da Miri. Guardado no aparelho. */
 /* a chave mudou de nome com o app; traz o que ja existia em vez de comecar
    do zero em silencio */
 (function(){
@@ -312,26 +381,41 @@ var VERSAO = "Prospecta v1";   /* mesma versao do sw.js — mexeu num, mexe no o
       localStorage.setItem("prospecta-tema", localStorage.getItem("antena-tema"));
   }catch(e){}
 })();
+var VERSAO = "Prospecta v2";   /* mesma versão do sw.js — mexeu num, mexe no outro */
 var CHAVE = "prospecta-v1";
-var D = { pros:[], dias:{} };   /* dias: {AAAA-MM-DD:{ab:0,fu:0}} — a meta diaria */
+var D = { pros:[], dias:{}, listas:null, prox:1 };
 
-var ETAPAS = ["A abordar","Abordado","Em conversa","Proposta (c/ Igor)","Fechado / Revisitar"];
+/* ===== as nove etapas da planilha =====
+   Fixas de propósito: o Painel conta em cima delas. Mexer aqui quebraria a
+   soma — por isso a aba Listas mostra as etapas, mas não deixa editar. */
+var ETAPAS = ["Mapeado","Contato a fazer","Contato realizado","Em conversa","Reunião agendada",
+              "Proposta enviada","Negociação","Fechado","Perdido"];
+var FECHADO = 7, PERDIDO = 8;
 
-/* as 5 perguntas do scorecard, do Playbook. 3+ = aborda. */
+var TEMPS = [
+  { k:"quente", n:"Quente", d:"Já demonstrou interesse, pediu orçamento ou veio de indicação forte." },
+  { k:"morno",  n:"Morno",  d:"Pode ter interesse, mas ainda precisa conhecer a Klix." },
+  { k:"frio",   n:"Frio",   d:"Ainda não demonstrou interesse — prospecção do zero." }
+];
+
+/* as listas editáveis; as etapas e as temperaturas não entram porque o Painel
+   depende delas */
+var LISTAS_PADRAO = {
+  fontes:   ["Indicação","Evento/feira","Instagram","LinkedIn","Google","Rede pessoal","Parceria"],
+  servicos: ["Vídeo institucional","Conteúdo para redes sociais","Captação de evento",
+             "Edição de vídeo","Fotografia","Conteúdo para YouTube","Ainda não definido"],
+  resps:    ["Mirielle","Igor"],
+  segmentos:["Imobiliário","Alimentação","Tecnologia","Moda","Indústria","Saúde","Educação"]
+};
+var ROTULO = { fontes:"Fontes", servicos:"Serviços", resps:"Responsáveis", segmentos:"Segmentos" };
+
+/* o scorecard do Playbook — apoio pra decidir a temperatura, não obrigação */
 var SCORE = [
   "Já investe em conteúdo ou anúncio?",
   "O vídeo atual é fraco ou não existe?",
   "Tem produto ou espaço bonito de filmar?",
   "Dá pra falar com quem decide?",
   "Está num momento-gatilho?"
-];
-
-/* os 4 toques do follow-up: quantos dias depois, e o que fazer */
-var TOQUES = [
-  { n:1, dias:0,  oq:"A mensagem inicial." },
-  { n:2, dias:3,  oq:"Sem resposta? Mande algo útil — referência, reel, ideia. Nunca só “e aí, viu?”." },
-  { n:3, dias:10, oq:"“Se quiser, marco 15 min pra te mostrar.” Última tentativa ativa." },
-  { n:4, dias:45, oq:"Revisita: volte com um gatilho novo." }
 ];
 
 var MODELOS = [
@@ -358,22 +442,73 @@ var OBJECOES = [
 
 /* ===================== utilidades ===================== */
 function hojeISO(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function maisDias(iso,n){ var p=iso.split("-"); var d=new Date(+p[0],+p[1]-1,+p[2]); d.setDate(d.getDate()+n);
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function curto(iso){ if(!iso) return ""; var p=iso.split("-"); return p[2]+"/"+p[1]; }
-function diasAte(iso){ if(!iso) return null;
-  var a=new Date(hojeISO()), b=new Date(iso); return Math.round((b-a)/86400000); }
+function curto(iso){ if(!iso) return ""; var p=String(iso).split("-"); return p[2]+"/"+p[1]; }
+function diasAte(iso){ if(!iso) return null; var a=new Date(hojeISO()+"T00:00"), b=new Date(iso+"T00:00");
+  return Math.round((b-a)/86400000); }
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function escAttr(s){ return esc(s).replace(/"/g,"&quot;"); }
-function uid(){ return "p"+Date.now().toString(36)+Math.floor(Math.random()*9999).toString(36); }
+function escA(s){ return esc(s).replace(/"/g,"&quot;"); }
+function brl(v){ return "R$ " + (Number(v)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function brlCurto(v){ v=Number(v)||0; return v>=1000 ? "R$ "+(v/1000).toFixed(1).replace(".",",")+"k" : brl(v); }
 
-function ler(){ try{ var b=JSON.parse(localStorage.getItem(CHAVE)||"null"); if(b&&b.pros) D=b; }catch(e){}
-  if(!D.pros) D.pros=[]; if(!D.dias) D.dias={}; }
+function ler(){
+  try{ var b=JSON.parse(localStorage.getItem(CHAVE)||"null"); if(b) D=b; }catch(e){}
+  if(!D.pros) D.pros=[]; if(!D.dias) D.dias={};
+  if(!D.listas) D.listas=JSON.parse(JSON.stringify(LISTAS_PADRAO));
+  for(var k in LISTAS_PADRAO) if(!D.listas[k]) D.listas[k]=LISTAS_PADRAO[k].slice();
+  if(!D.prox) D.prox = D.pros.reduce(function(m,p){ return Math.max(m,(p.id||0)); },0) + 1;
+  /* leads da v1 (nome de trabalho Antena) entram no formato novo sem perder nada */
+  D.pros.forEach(function(p,i){
+    if(typeof p.id !== "number") p.id = i+1;
+    if(p.etapa > 8 || p.etapa == null) p.etapa = 0;
+    if(!p.temp) p.temp = (p.score||[]).filter(Boolean).length >= 4 ? "quente"
+                       : ((p.score||[]).filter(Boolean).length >= 3 ? "morno" : "frio");
+    if(p.gatilho === undefined) p.gatilho = "";
+    if(p.acao === undefined) p.acao = (p.prox && p.prox.oq) || "";
+    if(p.quando === undefined) p.quando = (p.prox && p.prox.data) || "";
+    if(p.valor === undefined) p.valor = 0;
+    if(p.prob === undefined) p.prob = 0;
+    if(!p.toques) p.toques = [];
+  });
+}
 function grava(){ try{ localStorage.setItem(CHAVE,JSON.stringify(D)); }catch(e){} }
-function acha(id){ for(var i=0;i<D.pros.length;i++) if(D.pros[i].id===id) return D.pros[i]; return null; }
+function acha(id){ for(var i=0;i<D.pros.length;i++) if(String(D.pros[i].id)===String(id)) return D.pros[i]; return null; }
 function diaHoje(){ var h=hojeISO(); if(!D.dias[h]) D.dias[h]={ab:0,fu:0}; return D.dias[h]; }
+function ativo(p){ return p.etapa!==FECHADO && p.etapa!==PERDIDO; }
+function ponderado(p){ return (Number(p.valor)||0) * (Number(p.prob)||0) / 100; }
 
-/* ===================== a meta do dia ===================== */
+/* o alerta da planilha: no prazo · hoje · atrasado · sem data */
+function alerta(p){
+  if(!ativo(p)) return { k:"fim", txt:"", cls:"" };
+  if(!p.quando) return { k:"sem", txt:"sem data", cls:"sem" };
+  var d = diasAte(p.quando);
+  if(d < 0)  return { k:"atr", txt:"atrasado "+(-d)+"d", cls:"atr" };
+  if(d === 0) return { k:"hoje", txt:"hoje", cls:"atr" };
+  return { k:"ok", txt:"em "+d+"d · "+curto(p.quando), cls:"" };
+}
+function precisaAcao(p){ var a=alerta(p); return a.k==="atr" || a.k==="hoje" || a.k==="sem"; }
+
+/* ===================== painel ===================== */
+function pintaKpis(){
+  var ps = D.pros;
+  var atras = ps.filter(function(p){ return alerta(p).k==="atr"; }).length;
+  var pipe = ps.filter(ativo).reduce(function(s,p){ return s + ponderado(p); },0);
+  var pot  = ps.filter(ativo).reduce(function(s,p){ return s + (Number(p.valor)||0); },0);
+  var k = [
+    { v:ps.length, r:"Leads cadastrados", c:"" },
+    { v:ps.filter(function(p){ return p.temp==="quente" && ativo(p); }).length, r:"Leads quentes", c:"quente" },
+    { v:atras, r:"Contatos atrasados", c:"atraso" },
+    { v:ps.filter(function(p){ return p.etapa>=5 && ativo(p); }).length, r:"Propostas enviadas", c:"" },
+    { v:ps.filter(function(p){ return p.etapa===FECHADO; }).length, r:"Fechados", c:"fecha" },
+    { v:ps.filter(function(p){ return p.etapa===PERDIDO; }).length, r:"Perdidos", c:"" }
+  ];
+  var h = k.map(function(x){
+    return '<div class="kpi '+x.c+'"><div class="v">'+x.v+'</div><div class="r">'+x.r+'</div></div>'; }).join("");
+  h += '<div class="kpi pipe larga"><div class="v">'+brl(pipe)+'</div>'
+     + '<div class="r">Pipeline ponderado</div>'
+     + '<div class="n">É projeção, não dinheiro em caixa: '+brl(pot)+' em jogo × a chance de cada um fechar.</div></div>';
+  document.getElementById("kpis").innerHTML = h;
+}
+
 function pintaMeta(){
   var d=diaHoje(), ab=Math.min(d.ab,3), fu=Math.min(d.fu,3);
   var pc=Math.round((ab+fu)/6*100);
@@ -389,67 +524,137 @@ function pintaMeta(){
     : "<b>20 min:</b> 5 pra achar 3 perfis que batem no scorecard · 10 pra escrever as mensagens sob medida · 5 pros follow-ups.";
 }
 
-/* ===================== as listas ===================== */
+function pintaFunil(){
+  var maior = 1;
+  ETAPAS.forEach(function(_,i){ var n=D.pros.filter(function(p){ return p.etapa===i; }).length; if(n>maior) maior=n; });
+  document.getElementById("funil").innerHTML = ETAPAS.map(function(e,i){
+    var n = D.pros.filter(function(p){ return p.etapa===i; }).length;
+    var cls = "fl" + (n===0?" zero":"") + (i===FECHADO?" fechado":"") + (i===PERDIDO?" perdido":"");
+    return '<div class="'+cls+'" onclick="verEtapa('+i+')"><span class="fn">'+esc(e)+'</span>'
+         + '<span class="fb"><span class="ff" style="width:'+(n/maior*100)+'%"></span></span>'
+         + '<span class="fq">'+n+'</span></div>';
+  }).join("");
+}
+function verEtapa(i){ fEtapa = (fEtapa===i ? -1 : i); fBusca=""; document.getElementById("busca").value="";
+  aba('2'); pinta(); }
+
+/* ===================== cartão ===================== */
 function cartao(p){
-  var dias = p.prox && p.prox.data ? diasAte(p.prox.data) : null;
-  var venceHoje = dias!==null && dias<=0;
-  var cls = "p" + (venceHoje?" vence":"") + (p.etapa===4?" frio":"");
-  var et = p.etapa===2 ? "et e3" : (p.etapa===3 ? "et e4" : "et");
-  var linha2 = [p.nicho, p.canal, p.gatilho].filter(Boolean).join(" · ");
+  var a = alerta(p);
+  var cls = "p " + (p.temp||"frio")
+          + (a.k==="atr"||a.k==="hoje" ? " atrasado" : "")
+          + (ativo(p) ? "" : " encerrado");
+  var etc = p.etapa===FECHADO ? "et ok" : (p.etapa===PERDIDO ? "et perdeu" : (p.etapa>=5 ? "et quase" : "et"));
+  var linha2 = [p.segmento, p.cidade, p.resp].filter(Boolean).join(" · ");
+  var pond = ponderado(p);
   var h = '<div class="'+cls+'" onclick="abre(\''+p.id+'\')">'
-        + '<div class="ph"><div class="pn">'+esc(p.nome)
+        + '<div class="ph"><div class="pn"><b>'+esc(p.nome)+'</b>'
         + (linha2?'<div class="pm">'+esc(linha2)+'</div>':'')
-        + '</div><span class="'+et+'">'+esc(ETAPAS[p.etapa].replace(" (c/ Igor)",""))+'</span></div>';
-  if(p.prox && p.prox.data){
-    var quando = dias===0 ? "hoje" : (dias<0 ? "atrasado "+(-dias)+"d" : "em "+dias+"d · "+curto(p.prox.data));
-    h += '<div class="pnx"><span class="d'+(venceHoje?'':' ok')+'">'+esc(quando)+'</span>'
-       + '<span>'+esc(p.prox.oq||"")+'</span></div>';
+        + '</div><span class="'+etc+'">'+esc(ETAPAS[p.etapa])+'</span></div>';
+  if(ativo(p) && (p.acao || a.txt)){
+    h += '<div class="pnx"><span class="d '+a.cls+'">'+esc(a.txt||"—")+'</span>'
+       + '<span class="oq">'+esc(p.acao||"sem próxima ação definida")+'</span>'
+       + (pond>0?'<span class="pvl">'+brlCurto(pond)+'</span>':'') + '</div>';
   }
   return h+'</div>';
 }
-
 function vazio(t,d){ return '<div class="vazio"><div class="t">'+t+'</div><div class="d">'+d+'</div></div>'; }
 
+/* ===================== filtros do CRM ===================== */
+var fEtapa = -1, fTemp = "", fResp = "", fAtras = false, fBusca = "";
+function pintaFiltros(){
+  var b = [];
+  b.push('<button class="'+(fAtras?"on":"")+'" onclick="fAtras=!fAtras;pinta()">Precisa de ação</button>');
+  TEMPS.forEach(function(t){
+    b.push('<button class="'+(fTemp===t.k?"on":"")+'" onclick="fTemp=(fTemp===\''+t.k+'\'?\'\':\''+t.k+'\');pinta()">'+t.n+'</button>'); });
+  (D.listas.resps||[]).forEach(function(r){
+    b.push('<button class="'+(fResp===r?"on":"")+'" onclick="fResp=(fResp===\''+escA(r)+'\'?\'\':\''+escA(r)+'\');pinta()">'+esc(r)+'</button>'); });
+  if(fEtapa>=0) b.unshift('<button class="on" onclick="fEtapa=-1;pinta()">'+esc(ETAPAS[fEtapa])+' ✕</button>');
+  document.getElementById("filtros").innerHTML = b.join("");
+}
+function filtrados(){
+  var q = (document.getElementById("busca").value||"").trim().toLowerCase();
+  return D.pros.filter(function(p){
+    if(fEtapa>=0 && p.etapa!==fEtapa) return false;
+    if(fTemp && p.temp!==fTemp) return false;
+    if(fResp && p.resp!==fResp) return false;
+    if(fAtras && !precisaAcao(p)) return false;
+    if(q){
+      var alvo = [p.nome,p.segmento,p.cidade,p.contato,p.servico,p.fonte,p.acao].join(" ").toLowerCase();
+      if(alvo.indexOf(q)<0) return false;
+    }
+    return true;
+  }).sort(function(a,b){
+    /* quem precisa de ação primeiro; depois por data; encerrados no fim */
+    var av=ativo(a)?0:1, bv=ativo(b)?0:1; if(av!==bv) return av-bv;
+    var ad=precisaAcao(a)?0:1, bd=precisaAcao(b)?0:1; if(ad!==bd) return ad-bd;
+    return (a.quando||"9999") < (b.quando||"9999") ? -1 : 1;
+  });
+}
+
+/* ===================== listas ===================== */
+function pintaListas(){
+  var h = '<h3>Etapas <span>fixas</span></h3><div class="lst">'
+    + ETAPAS.map(function(e){ return '<div class="lit">'+esc(e)+'<span class="fx">fixa</span></div>'; }).join("")
+    + '</div><div class="aviso">As etapas e as temperaturas <b>não são editáveis</b>: o Painel conta em cima delas. '
+    + 'Mudar um nome aqui faria a soma parar de bater.</div>';
+  h += '<h3>Temperatura <span>fixa</span></h3><div class="lst">'
+    + TEMPS.map(function(t){ return '<div class="lit">'+t.n+'<span class="fx">fixa</span></div>'; }).join("") + '</div>';
+  ["fontes","servicos","segmentos","resps"].forEach(function(k){
+    h += '<h3>'+ROTULO[k]+' <span>'+(D.listas[k]||[]).length+'</span></h3><div class="lst">'
+      + (D.listas[k]||[]).map(function(v,i){
+          return '<div class="lit">'+esc(v)+'<span class="x" onclick="tiraDaLista(\''+k+'\','+i+')">✕</span></div>'; }).join("")
+      + '<div class="ladd"><input id="add-'+k+'" placeholder="acrescentar…" '
+      + 'onkeydown="if(event.key===\'Enter\')poeNaLista(\''+k+'\')">'
+      + '<button onclick="poeNaLista(\''+k+'\')">+</button></div></div>';
+  });
+  document.getElementById("listas").innerHTML = h;
+}
+function poeNaLista(k){
+  var el=document.getElementById("add-"+k); var v=(el.value||"").trim();
+  if(!v) { el.focus(); return; }
+  if((D.listas[k]||[]).indexOf(v)>=0){ el.value=""; return; }
+  D.listas[k].push(v); el.value=""; pinta();
+}
+function tiraDaLista(k,i){
+  var v = D.listas[k][i];
+  var usando = D.pros.filter(function(p){
+    return p.fonte===v || p.servico===v || p.segmento===v || p.resp===v; }).length;
+  if(usando && !confirm("“"+v+"” está em "+usando+" lead"+(usando>1?"s":"")+". Tirar da lista mesmo assim? Os leads mantêm o que já está escrito."))
+    return;
+  D.listas[k].splice(i,1); pinta();
+}
+
+/* ===================== pintar tudo ===================== */
 function pinta(){
-  pintaMeta();
-  var hj=hojeISO();
+  pintaKpis(); pintaMeta(); pintaFunil(); pintaFiltros(); pintaListas();
   document.getElementById("hojeData").textContent = new Date().toLocaleDateString("pt-BR",
     {weekday:"long",day:"numeric",month:"long"});
 
-  /* vence hoje: quem tem proximo passo com data <= hoje */
-  var v = D.pros.filter(function(p){ return p.prox && p.prox.data && diasAte(p.prox.data)<=0; })
-                .sort(function(a,b){ return a.prox.data < b.prox.data ? -1 : 1; });
-  document.getElementById("vence").innerHTML = v.length ? v.map(cartao).join("")
-    : vazio("Nada vencendo","Sem follow-up pra hoje. Bom momento pra abrir três conversas novas.");
+  var precisa = D.pros.filter(precisaAcao)
+    .sort(function(a,b){ return (a.quando||"0000") < (b.quando||"0000") ? -1 : 1; });
+  document.getElementById("qtdAcao").textContent = precisa.length ? precisa.length : "";
+  document.getElementById("acaoLista").innerHTML = precisa.length ? precisa.map(cartao).join("")
+    : vazio("Tudo em dia","Nenhum contato atrasado, vencendo hoje ou sem data marcada.");
 
-  /* a abordar: etapa 0 */
-  var a = D.pros.filter(function(p){ return p.etapa===0; });
-  document.getElementById("abordar").innerHTML = a.length ? a.map(cartao).join("")
-    : vazio("Fila vazia","Toque no + e passe um nome pelo scorecard.");
-
-  /* funil */
-  var f="";
-  for(var e=0;e<ETAPAS.length;e++){
-    var lista = D.pros.filter(function(p){ return p.etapa===e; });
-    f += '<h3>'+esc(ETAPAS[e])+' <span style="color:var(--mut2);font-weight:700">'+lista.length+'</span></h3>';
-    f += lista.length ? lista.map(cartao).join("")
-       : '<div style="font-size:12px;color:var(--mut2);padding:2px 2px 8px">—</div>';
-  }
-  document.getElementById("funil").innerHTML=f;
+  var f = filtrados();
+  document.getElementById("lista").innerHTML = f.length ? f.map(cartao).join("")
+    : vazio(D.pros.length? "Nada com esse filtro" : "Nenhum lead ainda",
+            D.pros.length? "Toque num filtro ligado pra desligar." : "Toque no + pra cadastrar o primeiro.");
 
   document.getElementById("objecoes").innerHTML = OBJECOES.map(function(o){
     return '<div class="card"><div class="q">'+o.q+'</div><div class="a">'+o.a+'</div></div>'; }).join("");
-
   document.getElementById("rodape").textContent =
-    VERSAO + " · Klix Mídia · " + D.pros.length + " prospecto" + (D.pros.length===1?"":"s") + " · salvo no aparelho.";
+    VERSAO + " · Klix Mídia · " + D.pros.length + " lead" + (D.pros.length===1?"":"s") + " · salvo no aparelho.";
   grava();
 }
 
 function aba(n){
-  ["1","2","3"].forEach(function(k){
+  ["1","2","3","4"].forEach(function(k){
     document.getElementById("t"+k).classList.toggle("on",k===n);
     var b=document.querySelector('nav button[data-t="'+k+'"]'); if(b) b.classList.toggle("on",k===n);
   });
+  document.getElementById("fab").classList.toggle("some", n==="3" || n==="4");
   window.scrollTo(0,0);
 }
 
@@ -465,23 +670,54 @@ function folha(html){
 function fecha(){ if(_folha&&_folha.parentNode) _folha.parentNode.removeChild(_folha); _folha=null; }
 document.addEventListener("keydown",function(e){ if(e.key==="Escape") fecha(); });
 
-/* ===================== novo prospecto ===================== */
-var _sc=[false,false,false,false,false];
-function novoProspecto(){
-  _sc=[false,false,false,false,false];
+function opcoes(lista, atual, vazioTxt){
+  var h = '<option value="">'+(vazioTxt||"—")+'</option>';
+  (lista||[]).forEach(function(v){ h += '<option'+(v===atual?" selected":"")+'>'+esc(v)+'</option>'; });
+  if(atual && (lista||[]).indexOf(atual)<0) h += '<option selected>'+esc(atual)+'</option>';
+  return h;
+}
+
+/* ===================== novo lead ===================== */
+var _sc=[false,false,false,false,false], _temp="frio";
+function novoLead(){
+  _sc=[false,false,false,false,false]; _temp="frio";
   folha(
-    '<h3>Vale a pena?</h3>'
-   +'<div class="sub" style="margin-bottom:12px">O scorecard do Playbook. Três ou mais e você aborda.</div>'
-   +'<div class="sc" id="scBox"></div>'
-   +'<div id="placar"></div>'
-   +'<div class="campo"><label>Empresa</label><input id="cNome" placeholder="ex.: Escola Sol"></div>'
-   +'<div class="campo"><label>Quem decide — o nome de quem você vai falar</label><input id="cContato" placeholder="ex.: Carla"></div>'
-   +'<div class="campo"><label>Nicho</label><input id="cNicho" placeholder="ex.: Infantil"></div>'
-   +'<div class="campo"><label>Canal</label><select id="cCanal">'
-   +'<option>Indicação</option><option>Instagram DM</option><option>Presencial</option><option>LinkedIn / e-mail</option></select></div>'
-   +'<div class="campo"><label>Gatilho — o motivo de abordar agora</label><input id="cGat" placeholder="ex.: época de matrículas"></div>'
+    '<h3>Novo lead</h3>'
+   +'<div class="campo"><label>Empresa / lead</label><input id="cNome" placeholder="ex.: Escola Sol"></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Segmento</label><select id="cSeg">'+opcoes(D.listas.segmentos,"")+'</select></div>'
+   +'<div class="campo"><label>Cidade</label><input id="cCid" placeholder="ex.: Curitiba"></div></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Fonte</label><select id="cFonte">'+opcoes(D.listas.fontes,"")+'</select></div>'
+   +'<div class="campo"><label>Responsável</label><select id="cResp">'+opcoes(D.listas.resps,D.listas.resps[0])+'</select></div></div>'
+
+   +'<h3>Vale a pena?</h3>'
+   +'<div class="sub" style="margin-bottom:10px">O scorecard do Playbook. Ele não obriga nada — só sugere a temperatura.</div>'
+   +'<div class="sc" id="scBox"></div><div id="placar"></div>'
+   +'<div class="campo"><label>Temperatura</label><select id="cTemp">'
+   + TEMPS.map(function(t){ return '<option value="'+t.k+'">'+t.n+'</option>'; }).join("")+'</select></div>'
+
+   +'<h3>Pessoa de contato</h3>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Nome</label><input id="cCont" placeholder="ex.: Carla"></div>'
+   +'<div class="campo"><label>Cargo</label><input id="cCargo" placeholder="ex.: Marketing"></div></div>'
+   +'<div class="campo"><label>Telefone, WhatsApp ou e-mail</label><input id="cTel"></div>'
+   +'<div class="campo"><label>Instagram / site</label><input id="cWeb" placeholder="@ ou endereço"></div>'
+
+   +'<h3>Oportunidade</h3>'
+   +'<div class="campo"><label>Serviço potencial</label><select id="cServ">'+opcoes(D.listas.servicos,"Ainda não definido")+'</select></div>'
+   +'<div class="campo"><label>Gatilho — o motivo de abordar agora</label><input id="cGat" placeholder="ex.: estão na época de matrículas"></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Valor potencial (R$)</label><input id="cVal" type="number" inputmode="decimal" placeholder="4500"></div>'
+   +'<div class="campo"><label>Probabilidade (%)</label><input id="cProb" type="number" inputmode="numeric" min="0" max="100" placeholder="50"></div></div>'
+
+   +'<h3>Acompanhamento</h3>'
+   +'<div class="campo"><label>Próxima ação — concreta, não “falar com cliente”</label>'
+   +'<textarea id="cAcao" placeholder="ex.: enviar apresentação curta da Klix"></textarea></div>'
+   +'<div class="campo"><label>Data do próximo contato</label><input id="cQuando" type="date" value="'+hojeISO()+'"></div>'
+
    +'<div class="acoes"><button class="bt" onclick="fecha()">Cancelar</button>'
-   +'<button class="bt pri" onclick="salvaProspecto()">Guardar</button></div>');
+   +'<button class="bt pri" onclick="salvaLead()">Guardar</button></div>');
   pintaScore();
 }
 function pintaScore(){
@@ -489,62 +725,91 @@ function pintaScore(){
     return '<div class="li'+(_sc[i]?" sim":"")+'" onclick="marcaScore('+i+')"><span class="cx"></span>'+q+'</div>';
   }).join("");
   var n=_sc.filter(Boolean).length;
+  var sug = n>=4 ? "quente" : (n>=3 ? "morno" : "frio");
+  var cl  = n>=4 ? "q" : (n>=3 ? "m" : "f");
   document.getElementById("placar").innerHTML =
-    '<div class="placar '+(n>=3?"vai":"nao")+'"><span class="num">'+n+'</span><span class="d">'
-    + (n>=3 ? "<b>Vale a pena.</b> Três sinais ou mais — pode abordar."
+    '<div class="placar '+cl+'"><span class="num">'+n+'</span><span class="d">'
+    + (n>=3 ? "<b>Vale a pena.</b> Três sinais ou mais — sugere <b>"+sug+"</b>."
             : "<b>Ainda não.</b> Com menos de três, o esforço rende mais em outro nome.")
     + '</span></div>';
+  var sel=document.getElementById("cTemp"); if(sel) sel.value=sug;
 }
 function marcaScore(i){ _sc[i]=!_sc[i]; pintaScore(); }
+function v(id){ var e=document.getElementById(id); return e ? (e.value||"").trim() : ""; }
 
-function salvaProspecto(){
-  var nome=(document.getElementById("cNome").value||"").trim();
+function salvaLead(){
+  var nome=v("cNome");
   if(!nome){ document.getElementById("cNome").focus(); return; }
-  D.pros.push({ id:uid(), nome:nome,
-    contato:(document.getElementById("cContato").value||"").trim(),
-    nicho:(document.getElementById("cNicho").value||"").trim(),
-    canal:document.getElementById("cCanal").value,
-    gatilho:(document.getElementById("cGat").value||"").trim(),
-    score:_sc.slice(), etapa:0, toques:[], prox:null, nota:"" });
-  fecha(); pinta();
+  D.pros.push({ id:D.prox++, nome:nome,
+    segmento:v("cSeg"), cidade:v("cCid"), fonte:v("cFonte"), resp:v("cResp"),
+    temp:v("cTemp")||"frio", score:_sc.slice(),
+    contato:v("cCont"), cargo:v("cCargo"), tel:v("cTel"), web:v("cWeb"),
+    servico:v("cServ"), gatilho:v("cGat"),
+    valor:Number(v("cVal"))||0, prob:Number(v("cProb"))||0,
+    etapa:0, ultimo:"", acao:v("cAcao"), quando:v("cQuando"),
+    toques:[], nota:"" });
+  fecha(); aba('2'); pinta();
 }
 
-/* ===================== abrir um prospecto ===================== */
-var _atual=null, _modelo="escola";
+/* ===================== abrir um lead ===================== */
+var _atual=null, _modelo="local";
 function abre(id){
   var p=acha(id); if(!p) return; _atual=id;
-  _modelo = p.nicho && /escola|infantil|educa/i.test(p.nicho) ? "escola"
-          : (p.canal==="Indicação" ? "indicacao" : (p.gatilho ? "gatilho" : "local"));
-  var n=(p.score||[]).filter(Boolean).length;
+  _modelo = /escola|infantil|educa/i.test(p.segmento||"") ? "escola"
+          : (p.fonte==="Indicação" ? "indicacao" : (p.gatilho ? "gatilho" : "local"));
+  var a = alerta(p), pond = ponderado(p);
   var toques = (p.toques||[]).length
-    ? '<div class="toques">'+p.toques.map(function(t){
-        return '<div class="tq"><span class="dt">'+curto(t.data)+'</span><span class="oq">'+esc(t.oq)+'</span></div>'; }).join("")+'</div>'
-    : '<div style="font-size:12.5px;color:var(--mut2);padding:4px 0">Nenhum toque ainda.</div>';
+    ? (p.toques||[]).map(function(t){
+        return '<div class="tq"><span class="dt">'+curto(t.data)+'</span><span class="oq">'+esc(t.oq)+'</span></div>'; }).join("")
+    : '<div style="font-size:12.5px;color:var(--mut2);padding:4px 0">Nenhum toque registrado.</div>';
 
   folha(
-    '<h3>'+esc(ETAPAS[p.etapa])+'</h3>'
-   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin-bottom:2px">'+esc(p.nome)+'</div>'
-   +'<div class="sub">'+[esc(p.nicho),esc(p.canal),esc(p.gatilho)].filter(Boolean).join(" · ")+' · scorecard '+n+'/5</div>'
+    '<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">#'
+      + p.id + ' · ' + esc(ETAPAS[p.etapa]) + '</div>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:23px;margin:3px 0 2px">'+esc(p.nome)+'</div>'
+   +'<div class="sub">'+[esc(p.segmento),esc(p.cidade),esc(p.fonte),
+        (TEMPS.filter(function(t){return t.k===p.temp;})[0]||{n:""}).n].filter(Boolean).join(" · ")+'</div>'
+
+   +(a.k==="atr"||a.k==="hoje" ? '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)"><b>'+esc(a.txt)+'</b> — '+esc(p.acao||"defina a próxima ação")+'</div>' : '')
 
    +'<h3>Mensagem pronta</h3>'
-   +'<div class="modelos" id="mods"></div>'
-   +'<div class="msg" id="msgTxt"></div>'
-   +'<div class="acoes"><button class="bt" onclick="copiaMsg()">Copiar</button>'
+   +'<div class="modelos" id="mods"></div><div class="msg" id="msgTxt"></div>'
+   +'<div class="acoes"><button class="bt" onclick="copiaMsg(this)">Copiar</button>'
    +'<button class="bt pri" onclick="registraToque()">Registrar toque</button></div>'
    +'<div class="aviso">Cada toque entrega algo. <b>“Viu minha mensagem?” irrita</b> — “lembrei de vocês e fiz essa referência” encanta.</div>'
 
+   +'<h3>Acompanhamento</h3>'
+   +'<div class="campo"><label>Etapa</label><select id="eEtapa">'
+   + ETAPAS.map(function(e,i){ return '<option value="'+i+'"'+(i===p.etapa?" selected":"")+'>'+esc(e)+'</option>'; }).join("")+'</select></div>'
+   +(p.etapa>=5 && p.etapa<FECHADO ? '<div class="aviso">Chegou no orçamento: <b>marque a call com o Igor</b>. Você não crava preço no improviso.</div>' : '')
+   +'<div class="campo"><label>Próxima ação</label><textarea id="eAcao" placeholder="concreta: “cobrar retorno sobre a proposta”">'+esc(p.acao||"")+'</textarea></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Data do próximo contato</label><input id="eQuando" type="date" value="'+escA(p.quando||"")+'"></div>'
+   +'<div class="campo"><label>Último contato</label><input id="eUlt" type="date" value="'+escA(p.ultimo||"")+'"></div></div>'
+
+   +'<h3>Valores <span>'+(pond>0?brl(pond)+" ponderado":"")+'</span></h3>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Valor potencial (R$)</label><input id="eVal" type="number" inputmode="decimal" value="'+(p.valor||"")+'"></div>'
+   +'<div class="campo"><label>Probabilidade (%)</label><input id="eProb" type="number" inputmode="numeric" min="0" max="100" value="'+(p.prob||"")+'"></div></div>'
+
+   +'<h3>Ficha</h3>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Temperatura</label><select id="eTemp">'
+   + TEMPS.map(function(t){ return '<option value="'+t.k+'"'+(t.k===p.temp?" selected":"")+'>'+t.n+'</option>'; }).join("")+'</select></div>'
+   +'<div class="campo"><label>Responsável</label><select id="eResp">'+opcoes(D.listas.resps,p.resp)+'</select></div></div>'
+   +'<div class="campo"><label>Serviço potencial</label><select id="eServ">'+opcoes(D.listas.servicos,p.servico)+'</select></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Contato</label><input id="eCont" value="'+escA(p.contato||"")+'"></div>'
+   +'<div class="campo"><label>Cargo</label><input id="eCargo" value="'+escA(p.cargo||"")+'"></div></div>'
+   +'<div class="campo"><label>Telefone / e-mail</label><input id="eTel" value="'+escA(p.tel||"")+'"></div>'
+   +'<div class="campo"><label>Instagram / site</label><input id="eWeb" value="'+escA(p.web||"")+'"></div>'
+   +'<div class="campo"><label>Gatilho</label><input id="eGat" value="'+escA(p.gatilho||"")+'"></div>'
+   +'<div class="campo"><label>Anotação</label><textarea id="eNota" placeholder="o que foi dito, o que prometeu…">'+esc(p.nota||"")+'</textarea></div>'
+
    +'<h3>Toques</h3>'+toques
 
-   +'<h3>Etapa</h3>'
-   +'<div class="campo"><select id="cEtapa" onchange="mudaEtapa()">'
-   + ETAPAS.map(function(e,i){ return '<option value="'+i+'"'+(i===p.etapa?" selected":"")+'>'+esc(e)+'</option>'; }).join("")
-   +'</select></div>'
-   +(p.etapa>=3?'<div class="aviso">Chegou no orçamento: <b>marque a call com o Igor</b>. Você não crava preço no improviso.</div>':'')
-
-   +'<h3>Anotação</h3>'
-   +'<div class="campo"><textarea id="cNota" placeholder="o que foi dito, o que prometeu…">'+esc(p.nota||"")+'</textarea></div>'
    +'<div class="acoes"><button class="bt" onclick="apaga()" style="color:var(--nao)">Apagar</button>'
-   +'<button class="bt pri" onclick="salvaNota()">Salvar</button></div>');
+   +'<button class="bt pri" onclick="salvaFicha()">Salvar</button></div>');
   pintaModelos();
 }
 function pintaModelos(){
@@ -558,59 +823,46 @@ function montaMsg(){
   var m=MODELOS.filter(function(x){ return x.k===_modelo; })[0]; if(!m) return "";
   return m.txt.replace(/\{nome\}/g, p.contato || "")
               .replace(/\{negocio\}/g, p.nome)
-              .replace(/\{nicho\}/g, p.nicho || "negócios locais")
+              .replace(/\{nicho\}/g, p.segmento || "negócios locais")
               .replace(/\{gancho\}/g, p.gatilho || "…")
               .replace(/ +/g," ").replace(/Oi ,/,"Oi,");
 }
-function copiaMsg(){
-  var t=montaMsg();
-  try{ navigator.clipboard.writeText(t); }catch(e){}
-  var b=event.target; var o=b.textContent; b.textContent="Copiado ✓";
-  setTimeout(function(){ b.textContent=o; },1400);
+function copiaMsg(b){
+  try{ navigator.clipboard.writeText(montaMsg()); }catch(e){}
+  var o=b.textContent; b.textContent="Copiado ✓"; setTimeout(function(){ b.textContent=o; },1400);
 }
 
-/* ===================== registrar um toque ===================== */
+function salvaFicha(){
+  var p=acha(_atual); if(!p) return;
+  p.etapa = +v("eEtapa");
+  p.acao=v("eAcao"); p.quando=v("eQuando"); p.ultimo=v("eUlt");
+  p.valor=Number(v("eVal"))||0; p.prob=Number(v("eProb"))||0;
+  p.temp=v("eTemp"); p.resp=v("eResp"); p.servico=v("eServ");
+  p.contato=v("eCont"); p.cargo=v("eCargo"); p.tel=v("eTel"); p.web=v("eWeb");
+  p.gatilho=v("eGat"); p.nota=v("eNota");
+  if(!ativo(p)){ p.quando=""; }   /* fechado ou perdido não cobra mais */
+  fecha(); pinta();
+}
 function registraToque(){
   var p=acha(_atual); if(!p) return;
   var n=(p.toques||[]).length;
-  var t = TOQUES[Math.min(n,TOQUES.length-1)];
   if(!p.toques) p.toques=[];
-  p.toques.push({ n:t.n, data:hojeISO(), oq:"Toque "+t.n+" — "+(n===0?"abordagem":"follow-up") });
-
-  /* conta na meta do dia: o primeiro toque e abordagem, os outros sao follow-up */
+  p.toques.push({ data:hojeISO(), oq:(n===0?"Abordagem":"Follow-up "+n) });
+  p.ultimo = hojeISO();
   var d=diaHoje(); if(n===0) d.ab++; else d.fu++;
-
-  /* agenda o proximo */
-  var prox = TOQUES[Math.min(n+1,TOQUES.length-1)];
-  if(n+1 < TOQUES.length){
-    p.prox = { data: maisDias(hojeISO(), prox.dias - t.dias), oq: prox.oq };
-  } else {
-    p.prox = null;
-  }
-  if(p.etapa===0) p.etapa=1;
-  fecha(); pinta();
-}
-function mudaEtapa(){
-  var p=acha(_atual); if(!p) return;
-  p.etapa = +document.getElementById("cEtapa").value;
-  if(p.etapa===4) p.prox=null;
-  grava(); abre(_atual); pinta();
-}
-function salvaNota(){
-  var p=acha(_atual); if(!p) return;
-  p.nota=(document.getElementById("cNota").value||"").trim();
+  if(p.etapa===0 || p.etapa===1) p.etapa=2;   /* mapeado / a fazer -> contato realizado */
   fecha(); pinta();
 }
 function apaga(){
   var p=acha(_atual); if(!p) return;
-  if(!confirm("Apagar “"+p.nome+"”? O histórico de toques vai junto.")) return;
-  D.pros = D.pros.filter(function(x){ return x.id!==_atual; });
+  if(!confirm("Apagar “"+p.nome+"”?\n\nSe a empresa recusou, é melhor marcar como Perdido: o histórico fica e ela pode voltar mais pra frente."))
+    return;
+  D.pros = D.pros.filter(function(x){ return String(x.id)!==String(_atual); });
   fecha(); pinta();
 }
 
-
 /* ===== os temas =====
-   Dois: o da Klix (de casa) e o da Miri. Guardado por aparelho, como o resto. */
+   Dois: o da Klix (de casa) e o da Miri. Guardado por aparelho. */
 var TEMAS = ["", "miri"], TNOME = { "":"Klix", miri:"Miri" };
 function temaAtual(){ try{ return localStorage.getItem("prospecta-tema")||""; }catch(e){ return ""; } }
 function aplicaTema(t){
@@ -626,10 +878,12 @@ function trocaTema(){
   aplicaTema(t);
 }
 aplicaTema(temaAtual());
+
 /* ===================== começa ===================== */
 ler();
 pinta();
 </script>
+
 <script>
 /* o operador e o banner de atualizacao — o mesmo dos outros apps: ele avisa,
    voce decide. Nada recarrega sozinho no meio de um cadastro. */
@@ -671,5 +925,12 @@ pinta();
     navigator.serviceWorker.register("sw.js").then(vigia).catch(function(){}); });
 })();
 </script>
+
+<!-- sincronizacao entre aparelhos. authKey da ao Prospecta uma SESSAO PROPRIA:
+     sem isso o login dele seria o mesmo dos outros apps, e a conta compartilhada
+     com a Miri abriria o Stash do Igor no celular dela. -->
+<script>window.__SYNC_CFG={app:'prospecta',keys:['prospecta-v1'],accent:'#BC8B63',name:'Prospecta',authKey:'sb-prospecta-auth'};</script>
+<script src="supabase.js"></script>
+<script src="sync.js"></script>
 </body>
 </html>
