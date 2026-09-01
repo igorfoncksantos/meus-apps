@@ -226,8 +226,33 @@ function _kbdFecha(){
     }catch(x){}
   }
   try{ window.__kbdBrilho = _kbdBrilho; }catch(x){}
+  /* ===== folga de acerto =====
+     As teclas tem 6px de vao entre si e 7px entre as filas. Toque que cai no
+     vao acertava o nada. Agora vale a tecla mais proxima, ate 14px de
+     distancia — a mesma folga silenciosa que o teclado do sistema tem. */
+  function teclaPerto(x,y){
+    if(x==null||y==null) return null;
+    var ks=kbd.querySelectorAll(".k"), melhor=null, menor=1e9;
+    for(var i=0;i<ks.length;i++){
+      var r=ks[i].getBoundingClientRect();
+      if(!r.width) continue;
+      var dx = x<r.left ? r.left-x : (x>r.right ? x-r.right : 0);
+      var dy = y<r.top  ? r.top-y  : (y>r.bottom ? y-r.bottom : 0);
+      var d = Math.sqrt(dx*dx+dy*dy);
+      if(d<menor){ menor=d; melhor=ks[i]; }
+    }
+    return menor<=14 ? melhor : null;
+  }
+  function pontoDe(e){
+    if(e.touches && e.touches[0]) return [e.touches[0].clientX, e.touches[0].clientY];
+    if(e.changedTouches && e.changedTouches[0]) return [e.changedTouches[0].clientX, e.changedTouches[0].clientY];
+    if(e.clientX!=null) return [e.clientX, e.clientY];
+    return [null,null];
+  }
   function onKey(e){
-    var t=e.target.closest && e.target.closest('[data-k],[data-ins]'); if(!t) return; _kbdBrilho(t);
+    var t=e.target.closest && e.target.closest('[data-k],[data-ins]');
+    if(!t){ var p=pontoDe(e); t=teclaPerto(p[0],p[1]); }   /* caiu no vao: vale a mais proxima */
+    if(!t) return; _kbdBrilho(t);
     if(e.cancelable) e.preventDefault();      // não rouba o foco do campo, não vira scroll/zoom
     var k=t.getAttribute('data-k'), di=t.getAttribute('data-ins');
     var special=(k==='shift'||k==='back'||k==='layer'||k==='sym'||k==='enter'||k==='hide');
@@ -284,6 +309,7 @@ function _kbdFecha(){
   kbd.addEventListener('touchstart', function(e){
     _ktouch=Date.now(); _longo=false;
     var t=e.target.closest && e.target.closest('[data-k]');
+    if(!t){ var pp=pontoDe(e); t=teclaPerto(pp[0],pp[1]); }
     var k=t && t.getAttribute('data-k');
     if(k && ACENTOS[k]){
       /* segura pra ver se vira toque longo; a letra so e escrita ao soltar */
@@ -315,6 +341,7 @@ function _kbdFecha(){
     }
     if(_longo) return;
     var t=e.target.closest && e.target.closest('[data-k]');
+    if(!t){ var pe=pontoDe(e); t=teclaPerto(pe[0],pe[1]); }
     var k=t && t.getAttribute('data-k');
     if(k && ACENTOS[k]){                 /* toque curto na letra com acento */
       if(e.cancelable) e.preventDefault();
