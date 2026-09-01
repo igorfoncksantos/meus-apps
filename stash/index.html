@@ -1276,7 +1276,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v110';
+var VERSAO = 'v111';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -1823,7 +1823,8 @@ document.getElementById("eAdd").addEventListener("click",async function(){
     document.getElementById("gCatLbl").textContent=o.textContent.trim();
     var od=o.querySelector(".od"); document.getElementById("gCatDot").style.background=od?od.style.background:"#5c6469";
     Array.prototype.forEach.call(pop.querySelectorAll(".cselopt"),function(x){x.classList.remove("sel");}); o.classList.add("sel");
-    pop.classList.remove("on"); btn.classList.remove("open"); });
+    pop.classList.remove("on"); btn.classList.remove("open");
+    if(window.parcDica) parcDica(); });
   document.addEventListener("click",function(){ pop.classList.remove("on"); btn.classList.remove("open"); });
 })();
 
@@ -2491,7 +2492,11 @@ function parcLista(){ if(!D.vale.parc) D.vale.parc=[]; return D.vale.parc; }
 function parcMoeda(n){ return "R$ " + brl(n); }
 function parcEncher(){
   var box=document.getElementById("gParcChips"); if(!box || box._ok) return; box._ok=1;
-  var h='<button type="button" class="pchip on" data-p="1">À vista</button>';
+  /* uma fila, uma pergunta: como pagou? "Ja saiu" = o dinheiro nao passa pela
+     virada porque ja saiu da conta. O antigo "A vista" virou "1x" — ele queria
+     dizer "nao parcelado", que e outra coisa, e o nome colidia. */
+  var h='<button type="button" class="pchip vista" data-p="0">Já saiu</button>' +
+        '<button type="button" class="pchip on" data-p="1">1x</button>';
   for(var i=2;i<=12;i++) h+='<button type="button" class="pchip" data-p="'+i+'">'+i+'x</button>';
   box.innerHTML=h;
   box.addEventListener("click", function(e){
@@ -2511,10 +2516,36 @@ function parcSelecionar(n){
   if(alvo && alvo.scrollIntoView) { try{ alvo.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"}); }catch(e){} }
   parcDica();
 }
+/* Pago a vista sai de um cofre, e o cofre vem da categoria. Sem categoria
+   ligada a um cofre nao ha de onde tirar, entao a opcao some em vez de dar erro. */
+function parcCofreDaCat(){
+  var el=document.getElementById("gCat"); if(!el) return null;
+  var k=acharCat(el.value); if(!k || !k.cofre) return null;
+  return acharCx(k.cofre) || null;
+}
+function parcVistaDisponivel(){
+  var box=document.getElementById("gParcChips"); if(!box) return;
+  var b=box.querySelector('.pchip.vista'); if(!b) return;
+  var c=parcCofreDaCat(), pode=!!c;
+  b.disabled=!pode; b.classList.toggle("no", !pode);
+  var hid=document.getElementById("gParc");
+  if(!pode && hid && hid.value==="0") parcSelecionar("1");
+}
 function parcDica(){
   var el=document.getElementById("gParcHint"); if(!el) return;
   var sel=document.getElementById("gParc"), val=document.getElementById("gVal");
   var n=sel?parseInt(sel.value,10):1, v=val?num(val.value):0;
+  parcVistaDisponivel();
+  if(sel && sel.value==="0"){
+    var cv=parcCofreDaCat();
+    el.innerHTML = cv ? ('Sai de <b>'+esc(cv.n)+'</b> agora, e não sai de novo na virada.')
+                      : 'Ligue um cofre a esta categoria para poder pagar à vista.';
+    return;
+  }
+  if(!parcCofreDaCat() && sel && sel.value==="1"){
+    var bb=document.getElementById("gParcChips");
+    if(bb && bb.querySelector('.pchip.vista.no')){ el.innerHTML='"Já saiu" precisa de um cofre ligado à categoria.'; return; }
+  }
   if(!n || n<2 || !v){ el.innerHTML=""; return; }
   el.innerHTML = n + "x de <b>" + parcMoeda(v/n) + "</b> por ciclo, lançada sozinha na virada. " +
     "No fim do ciclo sai do cofre <b>a parcela</b>, nunca o total.";
@@ -2995,7 +3026,14 @@ function renderGastos(){
 
   var q=function(s){ return document.querySelectorAll(s); };
   Array.prototype.forEach.call(q("[data-g]"),function(b){ b.addEventListener("click",function(){
-    var i=+this.getAttribute("data-g");
+    var i=+this.getAttribute("data-g"), x=D.vale.l[i];
+    /* pago a vista ja tirou do cofre: apagar tem que devolver E limpar a saida,
+       senao o cofre fica menor pra sempre e sobra um lancamento orfao */
+    if(x && x.pag==="vista" && x.lid){
+      var cvo=acharCx(x.dest||"");
+      if(cvo) cvo.v = (cvo.v||0) + (x.v||0);
+      D.entradas = (D.entradas||[]).filter(function(e){ return e.lid !== x.lid; });
+    }
     D.vale.l.splice(i,1); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-orc]"),function(i){ i.addEventListener("change",function(){
     var k=acharCat(this.getAttribute("data-orc")); if(k){ k.orc=this.value; salvar(); renderGastos(); } }); });
@@ -3078,8 +3116,25 @@ document.getElementById("gAdd").addEventListener("click",function(){
   var loc=document.getElementById("gLoc").value.trim();
   var cat=document.getElementById("gCat").value, p=iso.split("-"), kc=acharCat(cat);
   var selP=document.getElementById("gParc");
-  var np = selP ? (parseInt(selP.value,10)||1) : 1;
+  var vista = !!(selP && selP.value === "0");
+  var np = vista ? 1 : (selP ? (parseInt(selP.value,10)||1) : 1);
   var nome = loc||(kc?kc.nome:"Gasto");
+  if(vista){
+    /* o dinheiro ja saiu da conta: some do cofre agora e aparece na lista de
+       entradas, do mesmo jeito que a virada faz. O lid liga as duas pontas,
+       pra apagar o lancamento desfazer as duas. */
+    var cv=parcCofreDaCat();
+    if(!cv){ toast("Ligue um cofre a esta categoria.","err"); return; }
+    var lid="l"+Date.now()+"-"+Math.round(Math.random()*9999);
+    cv.v = (cv.v||0) - v;
+    D.vale.l.push({d:nome, v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso, pag:"vista", lid:lid, dest:String(cv.id)});
+    D.entradas.push({d:"Cashbook · "+nome, v:v, s:-1, dest:cv.id, destN:cv.n,
+      dt:p[2]+"/"+p[1], lid:lid});
+    document.getElementById("gLoc").value=""; document.getElementById("gVal").value="";
+    salvar(); renderTudo(); animarNovo("listaGastos","first");
+    toast("Lançado. Saiu de "+cv.n+".","ok");
+    return;
+  }
   if(np > 1){
     var vp = Math.round((v/np)*100)/100;
     var pid = "p"+Date.now();
@@ -3100,8 +3155,12 @@ document.getElementById("gAdd").addEventListener("click",function(){
 function planoDoFechamento(){
   var porCat={}, cofres=[], idx={}, fora=[], totalSai=0, totalCiclo=0;
   (D.vale.l||[]).forEach(function(x){
+    /* o total do ciclo conta TUDO — pago a vista tambem e gasto do mes.
+       o que ele nao faz e sair do cofre de novo: isso ja aconteceu na compra. */
+    totalCiclo+=x.v;
+    if(x.pag==="vista") return;
     if(porCat[x.c]==null) porCat[x.c]=0;
-    porCat[x.c]+=x.v; totalCiclo+=x.v;
+    porCat[x.c]+=x.v;
   });
   D.vale.cats.forEach(function(k){
     var v=porCat[k.id]||0; if(!v) return;
@@ -3435,6 +3494,9 @@ window.addEventListener("message",function(e){
   cursor:pointer; white-space:nowrap; transition:background .14s, color .14s, border-color .14s, transform .1s;
   -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
 .pchip:active{ transform:scale(.93); }
+.pchip.no{ opacity:.34; cursor:default; }
+.pchip.no:active{ transform:none; }
+.pchip.vista.on{ background:var(--green); border-color:var(--green); box-shadow:0 4px 14px rgba(34,197,94,.28); }
 .pchip.on{ background:var(--accent); border-color:var(--accent); color:var(--onacc); box-shadow:0 4px 14px rgba(47,217,201,.28); }
 .parchint{ font-size:12px; color:var(--mut); margin:-2px 2px 10px; min-height:16px; }
 .parchint b{ color:var(--accent); }
