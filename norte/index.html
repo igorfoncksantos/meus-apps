@@ -440,6 +440,33 @@
   .oi.fixa{ background:rgba(253,230,138,.05); }
   [data-theme="light"] .oi .dt,[data-theme="miri"] .oi .dt{ color:#b0a674; }
   /* botao de ditar, igual ao do Feito */
+  /* o interruptor da nota fixada. "Fica todo dia" e um ESTADO, entao se veste
+     de estado — o botao nunca mostrava se estava ligado. */
+  .swfix{ display:flex; align-items:center; gap:11px; padding:11px 12px;
+    border:1px solid var(--line); border-radius:12px; margin-bottom:8px;
+    background:var(--panel2,#0f1216); cursor:pointer; }
+  .swfix .ic{ width:20px; color:var(--note-txt2,#9a9068); flex:0 0 auto; display:flex; }
+  .swfix .ic svg{ width:18px; height:18px; }
+  .swfix .tt{ flex:1; min-width:0; }
+  .swfix .t1{ font-size:13.5px; font-weight:700; color:var(--txt); }
+  .swfix .t2{ font-size:11.5px; color:var(--mut); margin-top:1px; line-height:1.35; }
+  .swfix .tog{ width:40px; height:23px; border-radius:20px; background:#2a2f34; position:relative; flex:0 0 auto; }
+  .swfix .tog i{ position:absolute; top:3px; left:3px; width:17px; height:17px; border-radius:50%;
+    background:#6b7278; transition:left .18s ease, background .18s ease; }
+  .swfix .tog.on{ background:var(--note-on,#FDE68A); }
+  .swfix .tog.on i{ left:20px; background:#2a2410; }
+  .swfix.on{ border-color:color-mix(in srgb, var(--note-on,#FDE68A) 40%, transparent);
+    background:color-mix(in srgb, var(--note-on,#FDE68A) 5%, transparent); }
+  .swfix.on .ic{ color:var(--note-on,#FDE68A); }
+  .swfix:active{ transform:scale(.995); }
+  /* virar tarefa e ACAO, nao estado: tracejada, pra se ler como outra natureza */
+  .linkacao{ display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:11px 12px; border-radius:12px; border:1px dashed var(--line);
+    background:transparent; color:var(--accent); font-size:13.5px; font-weight:700;
+    font-family:inherit; cursor:pointer; }
+  .linkacao svg{ width:17px; height:17px; flex:0 0 auto; }
+  .linkacao:active{ transform:scale(.99); }
+  .micbt svg{ width:19px; height:19px; }
   .micbt{ background:none; border:1px solid var(--note-line,#4a4326); color:var(--note-txt2,#e9dba3);
     border-radius:10px; width:38px; height:38px; font-size:15px; cursor:pointer; flex:0 0 auto;
     display:inline-flex; align-items:center; justify-content:center; }
@@ -803,7 +830,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v55';
+const VERSAO = 'v56';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1355,7 +1382,7 @@ document.addEventListener("click", function(e){
   ditarPara(b, b.getAttribute("data-mic"));
 });
 function micHTML(alvoId){
-  return _temVoz() ? ('<button type="button" class="micbt" data-mic="'+alvoId+'" title="Ditar" aria-label="Ditar">&#127908;</button>') : "";
+  return _temVoz() ? ('<button type="button" class="micbt" data-mic="'+alvoId+'" title="Ditar" aria-label="Ditar">'+svgIc("mic")+'</button>') : "";
 }
 /* ---- observações ---- */
 /* A nota era uma string. Virou {t,dt,fix} pra carregar data e o "fica pro dia
@@ -1382,9 +1409,12 @@ function abreObs(i){ _obsEdit = (typeof i === "number") ? i : -1;
   const atual = N.t;
   sheet(`<h3 style="color:var(--note-txt)">🖋️ ${novo?"Nova observação":"Editar observação"}</h3>
     <div class="field linhamic"><textarea id="obsInput" placeholder="Escreva sua nota..." data-kb="text" style="min-height:100px;font-family:'Nota',cursive;font-size:19px;line-height:1.5;color:var(--note-txt2);background:rgba(253,230,138,0.06);border-color:var(--note-line)"></textarea>${micHTML("obsInput")}</div>
-    ${novo?'':`<div class="field" style="display:flex;gap:9px">
-      <button type="button" class="btn-ghost" style="flex:1" onclick="fixaObs()">${N.fix?'📌 Não ficar mais':'📌 Fica todo dia'}</button>
-      <button type="button" class="btn-ghost" style="flex:1" onclick="obsViraTarefa()">➜ Virar tarefa</button></div>`}
+    ${novo?'':`<div class="swfix${N.fix?' on':''}" id="swFixa" onclick="fixaObs()">
+      <span class="ic">${svgIc('pin')}</span>
+      <span class="tt"><div class="t1">Fica todo dia</div>
+        <div class="t2">Acompanha os dias até você desligar</div></span>
+      <span class="tog${N.fix?' on':''}"><i></i></span></div>
+    <button type="button" class="linkacao" onclick="obsViraTarefa()">${svgIc('arrow')}Virar tarefa</button>`}
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" style="background:var(--note-bg);color:var(--note-on)" onclick="saveObs()">${novo?"Adicionar":"Salvar"}</button></div>`);
   setTimeout(()=>{ const el=document.getElementById('obsInput'); if(!el) return;
     if(atual){ el.value = atual; }
@@ -1406,9 +1436,14 @@ function delObs(i){ day().obs.splice(i,1); save(); render(); }
 function fixaObs(){
   const L=day().obs||[]; if(_obsEdit<0 || _obsEdit>=L.length) return;
   const N=notaDe(L[_obsEdit]);
-  L[_obsEdit]={ t:N.t, dt:N.dt||cur, fix:!N.fix };
-  closeSheet(); save(); render();
-  toast(L[_obsEdit].fix ? 'Essa nota passa a ficar todo dia.' : 'Essa nota fica só neste dia.');
+  const lig = !N.fix;
+  L[_obsEdit]={ t:N.t, dt:N.dt||cur, fix:lig };
+  save(); render();                       /* a lista atrás acompanha na hora */
+  /* interruptor não fecha a folha: ele vira em pé, como todo interruptor.
+     Só o estado muda aqui — o texto continua sendo commitado no Salvar. */
+  const row=document.getElementById('swFixa');
+  if(row){ row.classList.toggle('on', lig);
+    const t=row.querySelector('.tog'); if(t) t.classList.toggle('on', lig); }
 }
 /* Uma nota que virou tarefa cumpriu o papel dela: sai da lista de notas, em
    vez de a mesma coisa existir em dois lugares. */
@@ -1657,6 +1692,10 @@ function wcClose(){ document.getElementById('__welcome').classList.add('hidden')
 
 /* ================= ÍCONES SVG (minimalistas, traço) ================= */
 const ICONS={
+  /* mesmo tracado do Feito — o microfone e o mesmo desenho em todo app */
+  pin:'<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v6.5L5 17z"/>',
+  arrow:'<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/>',
+  mic:'<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
   bio:'<path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4"/><path d="M5 19.5C5.5 18 6 15 6 12c0-.7.12-1.37.34-2"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M21.8 16c.2-2 .13-5.35 0-6"/><path d="M9 6.8a6 6 0 0 1 9 5.2c0 .47 0 1.17-.02 2"/>',
   chevL:'<polyline points="15 18 9 12 15 6"/>',
   chevR:'<polyline points="9 18 15 12 9 6"/>',
