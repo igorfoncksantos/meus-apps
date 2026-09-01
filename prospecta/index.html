@@ -272,6 +272,49 @@
   .ladd button{flex-shrink:0;width:42px;border:none;border-radius:10px;background:var(--accent);
                color:var(--onacc);font-size:20px;font-weight:700;cursor:pointer;font-family:inherit}
 
+  /* a folha sobe quando o calendario do app abre */
+  body.kbdopen{ transition:padding-bottom .18s ease; }
+
+  /* ---------- modo privacidade ---------- */
+  /* o pipeline em reais na tela, num cafe ou num evento, e informacao
+     sensivel. O olho esconde os valores sem apagar nada. */
+  body.priv .oculto{ filter:blur(7px); opacity:.55; user-select:none; }
+  header .olho{ width:32px; height:32px; flex-shrink:0; display:flex; align-items:center;
+                justify-content:center; border-radius:10px; border:1px solid var(--line);
+                background:transparent; color:var(--mut); cursor:pointer; padding:0; }
+  header .olho.on{ border-color:var(--accent); color:var(--accent); }
+  header .olho svg{ width:16px; height:16px; }
+
+  /* ---------- ditar ---------- */
+  .comvoz{ position:relative; }
+  .comvoz textarea{ padding-right:46px; }
+  .mic{ position:absolute; right:8px; bottom:8px; width:32px; height:32px; border-radius:9px;
+        border:1px solid var(--line2); background:var(--bg); color:var(--accent);
+        cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .mic svg{ width:15px; height:15px; }
+  .mic.rec{ background:var(--naobg); border-color:var(--naoline); color:var(--nao);
+            animation:pulsa 1.1s ease-in-out infinite; }
+  @keyframes pulsa{ 50%{ transform:scale(1.12); } }
+
+  /* ---------- icones na navegacao ---------- */
+  nav .ic svg{ width:18px; height:18px; display:block; }
+
+  /* ---------- boas-vindas ---------- */
+  #bv{ position:fixed; inset:0; z-index:300; background:var(--bg); display:none;
+       align-items:center; justify-content:center; padding:26px 22px; }
+  #bv.on{ display:flex; }
+  #bv .cx{ max-width:420px; text-align:center; }
+  #bv img{ height:30px; margin-bottom:20px; }
+  #bv h1{ font-family:"DM Serif Display",Georgia,serif; font-weight:400; font-size:31px;
+          line-height:1.15; margin-bottom:10px; }
+  #bv p{ font-size:14.5px; color:var(--txt2); line-height:1.65; margin-bottom:20px; }
+  #bv p b{ color:var(--txt); font-weight:700; }
+  #bv .tres{ text-align:left; margin-bottom:22px; }
+  #bv .tres div{ display:flex; gap:11px; margin-bottom:12px; font-size:13.5px; color:var(--txt2); }
+  #bv .tres b{ display:block; color:var(--txt); font-size:13.5px; }
+  #bv .tres i{ flex-shrink:0; width:24px; height:24px; border-radius:50%; background:var(--accent);
+               color:var(--onacc); font-style:normal; font-size:12px; font-weight:800;
+               display:flex; align-items:center; justify-content:center; margin-top:1px; }
   footer{text-align:center;font-size:10.5px;color:var(--mut2);margin-top:26px;padding-top:14px;
          border-top:1px solid var(--line)}
 </style>
@@ -282,8 +325,11 @@
   <img src="klix.png" alt="Klix Mídia">
   <span class="div"></span>
   <span class="n">Prospecta</span>
-  <button class="tm" type="button" onclick="trocaTema()" aria-label="Trocar tema">◐</button>
-  <span class="s">Prospecção</span>
+  <button class="olho" id="olhoBt" type="button" onclick="trocaPriv()" style="margin-left:auto" aria-label="Ocultar valores"></button>
+  <button class="tm" type="button" onclick="trocaTema()" style="margin-left:6px;margin-right:44px" aria-label="Trocar tema">◐</button>
+  <!-- a palavra Prospecção saiu: o app ja se chama Prospecta, e ela batia no
+       botao de sincronizacao, que e fixo no canto. A margem de 44px guarda o
+       lugar dele. -->
 </header>
 
 <!-- ============ PAINEL ============ -->
@@ -362,12 +408,13 @@
 <button class="fab" id="fab" onclick="novoLead()" aria-label="Novo lead">+</button>
 
 <nav><div class="barra">
-  <button class="on" data-t="1" onclick="aba('1')"><span class="ic">◫</span>Painel</button>
-  <button data-t="2" onclick="aba('2')"><span class="ic">≡</span>CRM</button>
-  <button data-t="3" onclick="aba('3')"><span class="ic">☰</span>Listas</button>
-  <button data-t="4" onclick="aba('4')"><span class="ic">✦</span>Guia</button>
+  <button class="on" data-t="1" onclick="aba('1')"><span class="ic" data-ic="barchart"></span>Painel</button>
+  <button data-t="2" onclick="aba('2')"><span class="ic" data-ic="list"></span>CRM</button>
+  <button data-t="3" onclick="aba('3')"><span class="ic" data-ic="tag"></span>Listas</button>
+  <button data-t="4" onclick="aba('4')"><span class="ic" data-ic="book"></span>Guia</button>
 </div></nav>
 
+<script src="icons.js"></script>
 <script>
 /* ===================== o dado =====================
    Um lead por linha, como na planilha da Miri. Guardado no aparelho. */
@@ -381,7 +428,25 @@
       localStorage.setItem("prospecta-tema", localStorage.getItem("antena-tema"));
   }catch(e){}
 })();
-var VERSAO = "Prospecta v2";   /* mesma versão do sw.js — mexeu num, mexe no outro */
+/* ===== quem esta usando ESTE aparelho =====
+   A conta e a mesma pros dois, entao o dado e o mesmo — mas o aparelho
+   precisa saber de quem ele e. Chave separada de proposito: o sync leva
+   so prospecta-v1, entao isto nunca viaja pro outro celular. */
+var QUEM_CHAVE = "prospecta-quem";
+function quemSou(){ try{ return localStorage.getItem(QUEM_CHAVE)||""; }catch(e){ return ""; } }
+function defineQuem(n){ try{ localStorage.setItem(QUEM_CHAVE,n); }catch(e){} fecha(); pinta(); }
+function perguntaQuem(){
+  folha(
+    '<h3>Quem está usando este aparelho?</h3>'
+   +'<div class="sub" style="margin-bottom:14px">A conta é a mesma pros dois — vocês veem o mesmo CRM. '
+   +'Isto só diz de quem é <b>este celular</b>, pra o app saber contar a sua meta do dia e marcar '
+   +'quem falou com cada empresa. Dá pra trocar depois em Listas.</div>'
+   + (D.listas.resps||["Mirielle","Igor"]).map(function(r){
+       return '<button class="bt larga" style="width:100%;margin-bottom:8px" onclick="defineQuem(\''+escA(r)+'\')">'+esc(r)+'</button>'; }).join("")
+  );
+}
+
+var VERSAO = "Prospecta v4";   /* mesma versão do sw.js — mexeu num, mexe no outro */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
 
@@ -472,7 +537,19 @@ function ler(){
 }
 function grava(){ try{ localStorage.setItem(CHAVE,JSON.stringify(D)); }catch(e){} }
 function acha(id){ for(var i=0;i<D.pros.length;i++) if(String(D.pros[i].id)===String(id)) return D.pros[i]; return null; }
-function diaHoje(){ var h=hojeISO(); if(!D.dias[h]) D.dias[h]={ab:0,fu:0}; return D.dias[h]; }
+/* a meta e POR PESSOA: com conta compartilhada, um toque do Igor nao pode
+   encher a barra da Miri. O formato antigo {ab,fu} migra pra quem estiver
+   neste aparelho, em vez de sumir. */
+function diaHoje(quem){
+  var h=hojeISO(), q=quem||quemSou()||"—";
+  if(!D.dias[h]) D.dias[h]={};
+  var d=D.dias[h];
+  if(d.ab!==undefined || d.fu!==undefined){    /* formato antigo, de antes da conta compartilhada */
+    var velho={ab:d.ab||0,fu:d.fu||0}; delete d.ab; delete d.fu; d[q]=velho;
+  }
+  if(!d[q]) d[q]={ab:0,fu:0};
+  return d[q];
+}
 function ativo(p){ return p.etapa!==FECHADO && p.etapa!==PERDIDO; }
 function ponderado(p){ return (Number(p.valor)||0) * (Number(p.prob)||0) / 100; }
 
@@ -503,9 +580,9 @@ function pintaKpis(){
   ];
   var h = k.map(function(x){
     return '<div class="kpi '+x.c+'"><div class="v">'+x.v+'</div><div class="r">'+x.r+'</div></div>'; }).join("");
-  h += '<div class="kpi pipe larga"><div class="v">'+brl(pipe)+'</div>'
+  h += '<div class="kpi pipe larga"><div class="v oculto">'+brl(pipe)+'</div>'
      + '<div class="r">Pipeline ponderado</div>'
-     + '<div class="n">É projeção, não dinheiro em caixa: '+brl(pot)+' em jogo × a chance de cada um fechar.</div></div>';
+     + '<div class="n">É projeção, não dinheiro em caixa: <span class="oculto">'+brl(pot)+'</span> em jogo × a chance de cada um fechar.</div></div>';
   document.getElementById("kpis").innerHTML = h;
 }
 
@@ -513,7 +590,9 @@ function pintaMeta(){
   var d=diaHoje(), ab=Math.min(d.ab,3), fu=Math.min(d.fu,3);
   var pc=Math.round((ab+fu)/6*100);
   document.getElementById("metaPc").textContent=pc+"%";
-  document.getElementById("metaTxt").textContent = pc>=100 ? "meta do dia cumprida" : "da meta do dia";
+  var eu = quemSou();
+  document.getElementById("metaTxt").textContent = (pc>=100 ? "meta do dia cumprida" : "da meta do dia")
+    + (eu ? " · " + eu : "");
   var fA=document.getElementById("fA"), fF=document.getElementById("fF");
   fA.style.width=(ab/3*100)+"%"; fA.className="ench"+(ab>=3?" cheio":"");
   fF.style.width=(fu/3*100)+"%"; fF.className="ench"+(fu>=3?" cheio":"");
@@ -554,16 +633,18 @@ function cartao(p){
   if(ativo(p) && (p.acao || a.txt)){
     h += '<div class="pnx"><span class="d '+a.cls+'">'+esc(a.txt||"—")+'</span>'
        + '<span class="oq">'+esc(p.acao||"sem próxima ação definida")+'</span>'
-       + (pond>0?'<span class="pvl">'+brlCurto(pond)+'</span>':'') + '</div>';
+       + (pond>0?'<span class="pvl oculto">'+brlCurto(pond)+'</span>':'') + '</div>';
   }
   return h+'</div>';
 }
 function vazio(t,d){ return '<div class="vazio"><div class="t">'+t+'</div><div class="d">'+d+'</div></div>'; }
 
 /* ===================== filtros do CRM ===================== */
-var fEtapa = -1, fTemp = "", fResp = "", fAtras = false, fBusca = "";
+var fEtapa = -1, fTemp = "", fResp = "", fAtras = false, fBusca = "", fMeus = false;
 function pintaFiltros(){
   var b = [];
+  var eu = quemSou();
+  if(eu) b.push('<button class="'+(fMeus?"on":"")+'" onclick="fMeus=!fMeus;fResp=\'\';pinta()">Meus</button>');
   b.push('<button class="'+(fAtras?"on":"")+'" onclick="fAtras=!fAtras;pinta()">Precisa de ação</button>');
   TEMPS.forEach(function(t){
     b.push('<button class="'+(fTemp===t.k?"on":"")+'" onclick="fTemp=(fTemp===\''+t.k+'\'?\'\':\''+t.k+'\');pinta()">'+t.n+'</button>'); });
@@ -578,6 +659,7 @@ function filtrados(){
     if(fEtapa>=0 && p.etapa!==fEtapa) return false;
     if(fTemp && p.temp!==fTemp) return false;
     if(fResp && p.resp!==fResp) return false;
+    if(fMeus && p.resp!==quemSou()) return false;
     if(fAtras && !precisaAcao(p)) return false;
     if(q){
       var alvo = [p.nome,p.segmento,p.cidade,p.contato,p.servico,p.fonte,p.acao].join(" ").toLowerCase();
@@ -594,7 +676,13 @@ function filtrados(){
 
 /* ===================== listas ===================== */
 function pintaListas(){
-  var h = '<h3>Etapas <span>fixas</span></h3><div class="lst">'
+  var eu = quemSou();
+  var h = '<h3>Este aparelho</h3><div class="lst"><div class="lit">'
+    + (eu ? esc(eu) : '<span style="color:var(--nao)">ainda não definido</span>')
+    + '<span class="x" onclick="perguntaQuem()" style="font-size:11px;font-weight:700">trocar</span></div></div>'
+    + '<div class="aviso">A conta é a mesma pros dois: vocês veem o <b>mesmo CRM</b>. Isto diz só de quem é '
+    + 'este celular, pra contar a meta do dia certa e marcar quem falou com cada empresa.</div>';
+  h += '<h3>Etapas <span>fixas</span></h3><div class="lst">'
     + ETAPAS.map(function(e){ return '<div class="lit">'+esc(e)+'<span class="fx">fixa</span></div>'; }).join("")
     + '</div><div class="aviso">As etapas e as temperaturas <b>não são editáveis</b>: o Painel conta em cima delas. '
     + 'Mudar um nome aqui faria a soma parar de bater.</div>';
@@ -608,6 +696,12 @@ function pintaListas(){
       + 'onkeydown="if(event.key===\'Enter\')poeNaLista(\''+k+'\')">'
       + '<button onclick="poeNaLista(\''+k+'\')">+</button></div></div>';
   });
+  h += '<h3>Backup</h3><div class="lst">'
+     + '<div class="ladd" style="padding:11px 0"><button class="bt" style="flex:1" onclick="baixaBackup()">Baixar backup</button>'
+     + '<button class="bt" style="flex:1" onclick="document.getElementById(\'restaura\').click()">Restaurar</button></div>'
+     + '<input type="file" id="restaura" accept="application/json,.json" style="display:none" onchange="restauraBackup(this)">'
+     + '</div><div class="aviso">A sincronização cobre trocar de aparelho. O backup cobre o resto — '
+     + 'engano, faxina de navegador, ou querer o dado fora do app.</div>';
   document.getElementById("listas").innerHTML = h;
 }
 function poeNaLista(k){
@@ -644,6 +738,8 @@ function pinta(){
 
   document.getElementById("objecoes").innerHTML = OBJECOES.map(function(o){
     return '<div class="card"><div class="q">'+o.q+'</div><div class="a">'+o.a+'</div></div>'; }).join("");
+  if(window.paintIcons) window.paintIcons();
+  aplicaPriv();
   document.getElementById("rodape").textContent =
     VERSAO + " · Klix Mídia · " + D.pros.length + " lead" + (D.pros.length===1?"":"s") + " · salvo no aparelho.";
   grava();
@@ -689,7 +785,7 @@ function novoLead(){
    +'<div class="campo"><label>Cidade</label><input id="cCid" placeholder="ex.: Curitiba"></div></div>'
    +'<div class="dupla">'
    +'<div class="campo"><label>Fonte</label><select id="cFonte">'+opcoes(D.listas.fontes,"")+'</select></div>'
-   +'<div class="campo"><label>Responsável</label><select id="cResp">'+opcoes(D.listas.resps,D.listas.resps[0])+'</select></div></div>'
+   +'<div class="campo"><label>Responsável</label><select id="cResp">'+opcoes(D.listas.resps,quemSou()||D.listas.resps[0])+'</select></div></div>'
 
    +'<h3>Vale a pena?</h3>'
    +'<div class="sub" style="margin-bottom:10px">O scorecard do Playbook. Ele não obriga nada — só sugere a temperatura.</div>'
@@ -712,8 +808,8 @@ function novoLead(){
    +'<div class="campo"><label>Probabilidade (%)</label><input id="cProb" type="number" inputmode="numeric" min="0" max="100" placeholder="50"></div></div>'
 
    +'<h3>Acompanhamento</h3>'
-   +'<div class="campo"><label>Próxima ação — concreta, não “falar com cliente”</label>'
-   +'<textarea id="cAcao" placeholder="ex.: enviar apresentação curta da Klix"></textarea></div>'
+   +'<div class="campo comvoz"><label>Próxima ação — concreta, não “falar com cliente”</label>'
+   +'<textarea id="cAcao" placeholder="ex.: enviar apresentação curta da Klix"></textarea>'+micHTML("cAcao")+'</div>'
    +'<div class="campo"><label>Data do próximo contato</label><input id="cQuando" type="date" value="'+hojeISO()+'"></div>'
 
    +'<div class="acoes"><button class="bt" onclick="fecha()">Cancelar</button>'
@@ -760,7 +856,7 @@ function abre(id){
   var a = alerta(p), pond = ponderado(p);
   var toques = (p.toques||[]).length
     ? (p.toques||[]).map(function(t){
-        return '<div class="tq"><span class="dt">'+curto(t.data)+'</span><span class="oq">'+esc(t.oq)+'</span></div>'; }).join("")
+        return '<div class="tq"><span class="dt">'+curto(t.data)+'</span><span class="oq">'+esc(t.oq)+(t.quem?' · '+esc(t.quem):"")+'</span></div>'; }).join("")
     : '<div style="font-size:12.5px;color:var(--mut2);padding:4px 0">Nenhum toque registrado.</div>';
 
   folha(
@@ -782,7 +878,7 @@ function abre(id){
    +'<div class="campo"><label>Etapa</label><select id="eEtapa">'
    + ETAPAS.map(function(e,i){ return '<option value="'+i+'"'+(i===p.etapa?" selected":"")+'>'+esc(e)+'</option>'; }).join("")+'</select></div>'
    +(p.etapa>=5 && p.etapa<FECHADO ? '<div class="aviso">Chegou no orçamento: <b>marque a call com o Igor</b>. Você não crava preço no improviso.</div>' : '')
-   +'<div class="campo"><label>Próxima ação</label><textarea id="eAcao" placeholder="concreta: “cobrar retorno sobre a proposta”">'+esc(p.acao||"")+'</textarea></div>'
+   +'<div class="campo comvoz"><label>Próxima ação</label><textarea id="eAcao" placeholder="concreta: “cobrar retorno sobre a proposta”">'+esc(p.acao||"")+'</textarea>'+micHTML("eAcao")+'</div>'
    +'<div class="dupla">'
    +'<div class="campo"><label>Data do próximo contato</label><input id="eQuando" type="date" value="'+escA(p.quando||"")+'"></div>'
    +'<div class="campo"><label>Último contato</label><input id="eUlt" type="date" value="'+escA(p.ultimo||"")+'"></div></div>'
@@ -804,7 +900,7 @@ function abre(id){
    +'<div class="campo"><label>Telefone / e-mail</label><input id="eTel" value="'+escA(p.tel||"")+'"></div>'
    +'<div class="campo"><label>Instagram / site</label><input id="eWeb" value="'+escA(p.web||"")+'"></div>'
    +'<div class="campo"><label>Gatilho</label><input id="eGat" value="'+escA(p.gatilho||"")+'"></div>'
-   +'<div class="campo"><label>Anotação</label><textarea id="eNota" placeholder="o que foi dito, o que prometeu…">'+esc(p.nota||"")+'</textarea></div>'
+   +'<div class="campo comvoz"><label>Anotação</label><textarea id="eNota" placeholder="o que foi dito, o que prometeu…">'+esc(p.nota||"")+'</textarea>'+micHTML("eNota")+'</div>'
 
    +'<h3>Toques</h3>'+toques
 
@@ -847,7 +943,7 @@ function registraToque(){
   var p=acha(_atual); if(!p) return;
   var n=(p.toques||[]).length;
   if(!p.toques) p.toques=[];
-  p.toques.push({ data:hojeISO(), oq:(n===0?"Abordagem":"Follow-up "+n) });
+  p.toques.push({ data:hojeISO(), quem:quemSou(), oq:(n===0?"Abordagem":"Follow-up "+n) });
   p.ultimo = hojeISO();
   var d=diaHoje(); if(n===0) d.ab++; else d.fu++;
   if(p.etapa===0 || p.etapa===1) p.etapa=2;   /* mapeado / a fazer -> contato realizado */
@@ -861,6 +957,77 @@ function apaga(){
   fecha(); pinta();
 }
 
+
+/* ===== backup =====
+   O funil comercial inteiro mora aqui. A sincronizacao cobre trocar de
+   aparelho; o backup cobre o resto — engano, faxina de navegador, e o dia em
+   que alguem quer o dado fora do app. */
+function baixaBackup(){
+  var nome = "prospecta-" + hojeISO() + ".json";
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:"application/json"}));
+  a.download = nome; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 400);
+}
+function restauraBackup(inp){
+  var f = inp.files && inp.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(){
+    var novo=null;
+    try{ novo = JSON.parse(r.result); }catch(e){ alert("Não consegui ler esse arquivo."); return; }
+    if(!novo || !novo.pros){ alert("Esse arquivo não parece um backup do Prospecta."); return; }
+    if(!confirm("Restaurar " + (novo.pros.length) + " lead(s)?" + String.fromCharCode(10) + String.fromCharCode(10) +
+       "Isto SUBSTITUI o que está no app agora — os " + D.pros.length + " lead(s) atuais somem.")) return;
+    D = novo; ler(); pinta();
+    alert("Restaurado. " + D.pros.length + " lead(s).");
+  };
+  r.readAsText(f); inp.value = "";
+}
+
+/* ===== ditar =====
+   Ela sai de uma reuniao e dita a proxima acao sem digitar. Se ja havia
+   texto, a voz continua a frase em vez de apagar o que estava. */
+var _rec=null, _recBt=null;
+function temVoz(){ return !!(window.SpeechRecognition||window.webkitSpeechRecognition); }
+function maiuscula1(t){ var s=String(t||"").trim(); return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+function micHTML(alvo){
+  if(!temVoz()) return "";
+  return '<button type="button" class="mic" onclick="dita(this,\''+alvo+'\')" '
+       + 'title="Ditar" aria-label="Ditar"><span data-ic="mic"></span></button>';
+}
+function dita(bt, alvoId){
+  var Rec = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Rec) return;
+  if(_rec){ _rec.stop(); return; }          /* tocar de novo encerra */
+  _rec = new Rec(); _rec.lang="pt-BR"; _rec.interimResults=false; _rec.continuous=false;
+  _recBt = bt; bt.classList.add("rec");
+  _rec.onresult = function(ev){
+    var t = String((ev.results[0][0].transcript)||"").trim(); if(!t) return;
+    var campo = document.getElementById(alvoId); if(!campo) return;
+    campo.value = campo.value.trim() ? (campo.value.replace(/\s+$/,"")+" "+t) : maiuscula1(t);
+    try{ campo.focus(); campo.setSelectionRange(campo.value.length, campo.value.length); }catch(e){}
+  };
+  _rec.onend = function(){ if(_recBt) _recBt.classList.remove("rec"); _recBt=null; _rec=null; };
+  _rec.onerror = _rec.onend;
+  _rec.start();
+}
+
+/* ===== modo privacidade ===== */
+var PRIV=false;
+function aplicaPriv(){
+  document.body.classList.toggle("priv", PRIV);
+  var b=document.getElementById("olhoBt");
+  if(b){ b.classList.toggle("on",PRIV); b.title = PRIV?"Mostrar valores":"Ocultar valores";
+         b.innerHTML = window.svgIc ? window.svgIc(PRIV?"eyeoff":"eye") : "◉"; }
+}
+function trocaPriv(){ PRIV=!PRIV; try{ localStorage.setItem("prospecta-priv",PRIV?"1":"0"); }catch(e){} aplicaPriv(); }
+try{ PRIV = localStorage.getItem("prospecta-priv")==="1"; }catch(e){}
+
+function fechaBV(){
+  var b=document.getElementById("bv"); if(b) b.classList.remove("on");
+  try{ localStorage.setItem("prospecta-bv","1"); }catch(e){}
+  if(!quemSou()) setTimeout(perguntaQuem, 260);
+}
 /* ===== os temas =====
    Dois: o da Klix (de casa) e o da Miri. Guardado por aparelho. */
 var TEMAS = ["", "miri"], TNOME = { "":"Klix", miri:"Miri" };
@@ -882,6 +1049,20 @@ aplicaTema(temaAtual());
 /* ===================== começa ===================== */
 ler();
 pinta();
+/* na primeira vez o app nao sabe de quem e o aparelho — e sem isso a meta do
+   dia e o historico de toques ficam sem dono */
+/* na primeira vez as boas-vindas explicam o app; a pergunta de quem usa o
+   aparelho vem depois delas. Nas seguintes, so a pergunta se faltar. */
+/* a tela de boas-vindas vem depois deste script no documento, entao esperar o
+   DOM: sem isso o getElementById devolve null e a tela nunca aparece */
+function primeiraVez(){
+  var viuBV=false; try{ viuBV = localStorage.getItem("prospecta-bv")==="1"; }catch(e){}
+  var bv=document.getElementById("bv");
+  if(!viuBV && bv){ bv.classList.add("on"); }
+  else if(!quemSou()) setTimeout(perguntaQuem, 400);
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", primeiraVez);
+else primeiraVez();
 </script>
 
 <script>
@@ -930,7 +1111,198 @@ pinta();
      sem isso o login dele seria o mesmo dos outros apps, e a conta compartilhada
      com a Miri abriria o Stash do Igor no celular dela. -->
 <script>window.__SYNC_CFG={app:'prospecta',keys:['prospecta-v1'],accent:'#BC8B63',name:'Prospecta',authKey:'sb-prospecta-auth'};</script>
+<script>
+/* ===== calendario do app (troca o do sistema nos campos de data e mes) ===== */
+(function(){
+  var CFG2 = window.__SYNC_CFG || {};
+  var AC = CFG2.accent || '#2FD9C9';
+  function hx2(h){ h=h.replace('#',''); if(h.length===3){h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];} return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+  var r2 = hx2(AC);
+  var suave = 'rgba('+r2[0]+','+r2[1]+','+r2[2]+',.16)';
+  var tinta = (r2[0]*.299+r2[1]*.587+r2[2]*.114) > 150 ? '#06131a' : '#04181c';
+  var TOQUE = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
+
+  var MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var MESC = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var SEM = ['D','S','T','Q','Q','S','S'];
+
+  var css = ''
+    + '#cal{position:fixed;left:0;right:0;bottom:0;z-index:2000001;display:none;'
+    +   'background:linear-gradient(180deg,#0e1216,#070a0c);border-top:1px solid #20262b;'
+    +   'padding:12px 12px calc(12px + env(safe-area-inset-bottom));'
+    +   'box-shadow:0 -14px 36px rgba(0,0,0,.6);-webkit-user-select:none;user-select:none;'
+    +   'font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}'
+    + '#cal.on{display:block}'
+    + '#cal .cw{max-width:400px;margin:0 auto}'
+    + '#cal .ch{display:flex;align-items:center;gap:8px;margin-bottom:10px}'
+    + '#cal .ct{flex:1;text-align:center;font-size:15px;font-weight:800;color:#f0f2f4;text-transform:capitalize}'
+    + '#cal .cn{width:40px;height:40px;flex:none;border:1px solid #262c32;background:#12171b;color:#9fb0b8;'
+    +   'border-radius:11px;font-size:17px;font-weight:800;cursor:pointer;display:grid;place-items:center;font-family:inherit}'
+    + '#cal .cn:active{transform:scale(.95)}'
+    + '#cal .cs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}'
+    + '#cal .cs span{text-align:center;font-size:10.5px;font-weight:800;color:#5f6a71;padding:3px 0}'
+    + '#cal .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
+    + '#cal .cg button{height:42px;border:0;background:#12171b;color:#e6eaee;border-radius:10px;'
+    +   'font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform .1s,background .12s}'
+    + '#cal .cg button:active{transform:scale(.93)}'
+    + '#cal .cg button.fora{background:transparent;color:#3a4248}'
+    + '#cal .cg button.hoje{box-shadow:inset 0 0 0 1px ' + suave + '}'
+    + '#cal .cg button.sel{background:' + AC + ';color:' + tinta + '}'
+    + '#cal .cm{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}'
+    + '#cal .cm button{height:48px;border:0;background:#12171b;color:#e6eaee;border-radius:11px;'
+    +   'font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;text-transform:capitalize}'
+    + '#cal .cm button.sel{background:' + AC + ';color:' + tinta + '}'
+    + '#cal .cb{display:flex;gap:8px;margin-top:11px}'
+    + '#cal .cb button{flex:1;height:44px;border:1px solid #262c32;background:#12171b;color:#cfd6db;'
+    +   'border-radius:12px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer}'
+    + '#cal .cb button.ok{background:' + AC + ';border-color:' + AC + ';color:' + tinta + '}';
+  var st2 = document.createElement('style'); st2.textContent = css; document.head.appendChild(st2);
+
+  var cal = document.createElement('div'); cal.id = 'cal';
+  var alvo = null, tipo = 'date', vendo = null, escolhido = null;
+
+  function doisD(n){ return (n<10?'0':'') + n; }
+  function leValor(el){
+    var v = (el.value || '').trim();
+    var m;
+    if (tipo === 'month') { m = v.match(/^(\d{4})-(\d{2})$/); return m ? new Date(+m[1], +m[2]-1, 1) : null; }
+    m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+  }
+  function grava(d){
+    if (!alvo) return;
+    alvo.value = d ? (tipo === 'month'
+      ? (d.getFullYear() + '-' + doisD(d.getMonth()+1))
+      : (d.getFullYear() + '-' + doisD(d.getMonth()+1) + '-' + doisD(d.getDate()))) : '';
+    alvo.dispatchEvent(new Event('input', {bubbles:true}));
+    alvo.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+
+  function pinta(){
+    var hoje = new Date();
+    var h = '<div class="cw">';
+    if (tipo === 'month') {
+      h += '<div class="ch"><button class="cn" data-cn="-1">&#8249;</button>'
+        +  '<div class="ct">' + vendo.getFullYear() + '</div>'
+        +  '<button class="cn" data-cn="1">&#8250;</button></div><div class="cm">';
+      for (var m = 0; m < 12; m++) {
+        var sel = escolhido && escolhido.getFullYear() === vendo.getFullYear() && escolhido.getMonth() === m;
+        h += '<button class="' + (sel?'sel':'') + '" data-cm="' + m + '">' + MESC[m] + '</button>';
+      }
+      h += '</div>';
+    } else {
+      h += '<div class="ch"><button class="cn" data-cn="-1">&#8249;</button>'
+        +  '<div class="ct">' + MES[vendo.getMonth()] + ' ' + vendo.getFullYear() + '</div>'
+        +  '<button class="cn" data-cn="1">&#8250;</button></div><div class="cs">';
+      for (var s = 0; s < 7; s++) h += '<span>' + SEM[s] + '</span>';
+      h += '</div><div class="cg">';
+      var pri = new Date(vendo.getFullYear(), vendo.getMonth(), 1);
+      var ini = pri.getDay();
+      var dias = new Date(vendo.getFullYear(), vendo.getMonth()+1, 0).getDate();
+      var antes = new Date(vendo.getFullYear(), vendo.getMonth(), 0).getDate();
+      for (var i = ini - 1; i >= 0; i--) h += '<button class="fora" data-cd="' + (-i-0) + '" disabled>' + (antes-i) + '</button>';
+      for (var d = 1; d <= dias; d++) {
+        var cls = [];
+        if (hoje.getFullYear()===vendo.getFullYear() && hoje.getMonth()===vendo.getMonth() && hoje.getDate()===d) cls.push('hoje');
+        if (escolhido && escolhido.getFullYear()===vendo.getFullYear() && escolhido.getMonth()===vendo.getMonth() && escolhido.getDate()===d) cls.push('sel');
+        h += '<button class="' + cls.join(' ') + '" data-cd="' + d + '">' + d + '</button>';
+      }
+      h += '</div>';
+    }
+    h += '<div class="cb"><button data-cx="limpa">Limpar</button>'
+      +  '<button data-cx="hoje">Hoje</button>'
+      +  '<button class="ok" data-cx="fecha">Pronto</button></div></div>';
+    cal.innerHTML = h;
+  }
+
+  function altura(){
+    try {
+      var a = cal.offsetHeight;
+      if (a > 60) {
+        document.body.style.setProperty('padding-bottom', a+'px', 'important');
+        document.documentElement.style.setProperty('--kbh', a+'px');
+      }
+    } catch(e){}
+  }
+  function abre(el){
+    if (!cal.parentNode) document.body.appendChild(cal);
+    alvo = el;
+    tipo = (el.type === 'month') ? 'month' : 'date';
+    escolhido = leValor(el);
+    vendo = escolhido ? new Date(escolhido.getTime()) : new Date();
+    pinta();
+    cal.classList.add('on');
+    document.body.classList.add('kbdopen');
+    altura();
+  }
+  function fecha(){
+    cal.classList.remove('on');
+    document.body.classList.remove('kbdopen');
+    try { document.body.style.removeProperty('padding-bottom'); } catch(e){}
+    try { document.documentElement.style.removeProperty('--kbh'); } catch(e){}
+    alvo = null;
+  }
+  try { window.__calFecha = fecha; } catch(e){}
+
+  cal.addEventListener('pointerdown', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    e.preventDefault();
+    if (b.hasAttribute('data-cn')) {
+      var p = +b.getAttribute('data-cn');
+      vendo = (tipo === 'month')
+        ? new Date(vendo.getFullYear() + p, 0, 1)
+        : new Date(vendo.getFullYear(), vendo.getMonth() + p, 1);
+      pinta(); return;
+    }
+    if (b.hasAttribute('data-cm')) {
+      escolhido = new Date(vendo.getFullYear(), +b.getAttribute('data-cm'), 1);
+      grava(escolhido); pinta(); fecha(); return;
+    }
+    if (b.hasAttribute('data-cd')) {
+      if (b.disabled) return;
+      escolhido = new Date(vendo.getFullYear(), vendo.getMonth(), +b.getAttribute('data-cd'));
+      grava(escolhido); pinta(); fecha(); return;
+    }
+    var x = b.getAttribute('data-cx');
+    if (x === 'limpa') { escolhido = null; grava(null); fecha(); }
+    else if (x === 'hoje') { escolhido = new Date(); vendo = new Date(); grava(escolhido); pinta(); fecha(); }
+    else if (x === 'fecha') { fecha(); }
+  });
+
+  function ehData(el){
+    if (!el || el.tagName !== 'INPUT') return false;
+    if (el.getAttribute('data-kb') === 'off') return false;
+    var t = (el.type || '').toLowerCase();
+    return t === 'date' || t === 'month';
+  }
+  document.addEventListener('focusin', function(e){
+    if (!TOQUE && !ehData(e.target)) return;
+    if (!ehData(e.target)) return;
+    /* o campo continua guardando a data no formato de sempre; so quem
+       desenha muda. O readOnly e o que impede o painel do sistema de subir. */
+    e.target.readOnly = true;
+    e.target.blur();
+    abre(e.target);
+  });
+  document.addEventListener('pointerdown', function(e){
+    if (!cal.classList.contains('on')) return;
+    if (cal.contains(e.target) || e.target === alvo) return;
+    fecha();
+  }, true);
+})();
+</script>
 <script src="supabase.js"></script>
 <script src="sync.js"></script>
+<div id="bv"><div class="cx">
+  <img src="klix.png" alt="Klix Mídia">
+  <h1>Prospecta</h1>
+  <p>É o <b>Playbook de Prospecção</b> virando rotina. Cada cartão é uma empresa;
+     o app cuida de lembrar você do que fazer e quando.</p>
+  <div class="tres">
+    <div><i>1</i><span><b>Cadastre com o scorecard</b>Cinco perguntas dizem se vale a pena abordar.</span></div>
+    <div><i>2</i><span><b>Escreva a próxima ação</b>Concreta — “enviar apresentação”, não “falar com cliente”.</span></div>
+    <div><i>3</i><span><b>Marque a data</b>É o que transforma a lista numa agenda comercial.</span></div>
+  </div>
+  <button class="bt pri" style="width:100%" onclick="fechaBV()">Começar</button>
+</div></div>
 </body>
 </html>
