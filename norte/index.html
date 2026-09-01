@@ -453,11 +453,19 @@
   .swfix .tog{ width:40px; height:23px; border-radius:20px; background:#2a2f34; position:relative; flex:0 0 auto; }
   .swfix .tog i{ position:absolute; top:3px; left:3px; width:17px; height:17px; border-radius:50%;
     background:#6b7278; transition:left .18s ease, background .18s ease; }
-  .swfix .tog.on{ background:var(--note-on,#FDE68A); }
-  .swfix .tog.on i{ left:20px; background:#2a2410; }
-  .swfix.on{ border-color:color-mix(in srgb, var(--note-on,#FDE68A) 40%, transparent);
-    background:color-mix(in srgb, var(--note-on,#FDE68A) 5%, transparent); }
-  .swfix.on .ic{ color:var(--note-on,#FDE68A); }
+  /* LIGADO: a linha inteira acende, nao so o botao. A diferenca sai de um
+     objeto de 40px e passa a ser a faixa, a borda, o pino solido e o titulo. */
+  .swfix .tog.on{ background:var(--note-txt);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--note-txt) 22%, transparent); }
+  .swfix .tog.on i{ left:20px; background:var(--bg); }
+  .swfix.on{ border-color:var(--note-txt);
+    background:color-mix(in srgb, var(--note-txt) 11%, transparent);
+    box-shadow:inset 3px 0 0 var(--note-txt); }
+  .swfix.on .t1{ color:var(--note-txt); }
+  /* o pino deixa de ser contorno e vira pastilha cheia */
+  .swfix.on .ic{ color:var(--bg); background:var(--note-txt);
+    width:26px; height:26px; border-radius:8px; align-items:center; justify-content:center; }
+  .swfix.on .ic svg{ width:15px; height:15px; }
   .swfix:active{ transform:scale(.995); }
   /* virar tarefa e ACAO, nao estado: tracejada, pra se ler como outra natureza */
   .linkacao{ display:flex; align-items:center; gap:10px; width:100%; text-align:left;
@@ -830,7 +838,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v56';
+const VERSAO = 'v57';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
