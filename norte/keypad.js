@@ -18,7 +18,9 @@
 
   /* ---- CSS ---- */
   var css = ''
-    + 'body.kbdopen{ padding-bottom:calc(372px + env(safe-area-inset-bottom)) !important; }'
+    /* a altura vem do --kbh, que o _kbdAltura mede: cravar o numero deixou 89px
+   de vao morto quando a fila de acentos saiu */
+    + 'body.kbdopen{ padding-bottom:calc(var(--kbh, 300px) + 16px + env(safe-area-inset-bottom)) !important; }'
     + '#kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; display:none;'
     + '  background:linear-gradient(180deg,#0e1216,#070a0c); border-top:1px solid #20262b;'
     + '  padding:4px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);'
@@ -39,9 +41,14 @@
     + '#kbd .row{ display:flex; gap:6px; margin-bottom:7px; }'
     /* a segunda fila e recuada meia tecla, como em qualquer teclado de celular */
     + '#kbd .row.r2{ padding:0 5%; }'
+    /* o rodape do teclado (8px + a faixa de gesto) e espaco morto: a ultima
+       fila passa a aceitar toque ate la embaixo */
+    + '#kbd .row:last-child .k::before{ content:""; position:absolute; left:0; right:0;'
+    +   ' top:0; bottom:-16px; }'
     /* o pontinho: diz que a tecla esconde acento no toque longo. E a mesma
        pista que o Gboard da — sem ela, ninguem descobre o ç. */
-    + '#kbd .k.tem::after{ content:""; position:absolute; top:6px; right:8px; width:5px; height:5px;'
+    + '#kbd .k.tem::before{ content:""; position:absolute; top:6px; right:8px; width:5px; height:5px;'
+    +   ' pointer-events:none; z-index:1;'
     +   ' border-radius:50%; background:'+ACCENT+'; opacity:.8; }'
     /* o balao que abre no toque longo */
     + '#kbd .pop{ position:absolute; z-index:5; display:flex; gap:5px; padding:6px;'
