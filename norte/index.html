@@ -870,7 +870,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v62';
+const VERSAO = 'v63';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1111,6 +1111,7 @@ function render(){
                             : `<div class="obs-empty">Sem observações hoje.</div>`;
   _obsAnim=-1; _subAnim='';
   document.getElementById('footer').textContent = `Norte ${VERSAO} · ${fmtBR(cur)}/${cur.split('-')[0]} · salvo no aparelho.`;
+  pintaBarras();   /* as barras dos cartoes nascem na largura de antes; aqui vao pra nova e a transicao roda */
   save();
 }
 
@@ -1145,17 +1146,19 @@ function itemEl(t,c){
         <div class="gtrack"><div class="gfill" style="width:${pc}%"></div></div></div>`;
     }).join('')+`</div>`;
     const gd=t.goals.posts[0]+t.goals.stories[0]+t.goals.ads[0], gt=t.goals.posts[1]+t.goals.stories[1]+t.goals.ads[1];
-    inner+=tbar(gd,gt);
+    inner+=tbar(gd,gt,null,'goals:'+t.id);
   }
   // Criativos / cota simples
   if(t.cota){
-    inner+=`<div class="tbar"><button class="gbtn" onclick="cota('${t.id}',-1)">−</button>${tbarInner(t.cota[0],t.cota[1])}<button class="gbtn" onclick="cota('${t.id}',1)">+</button></div>`;
+    inner+=`<div class="tbar"><button class="gbtn" onclick="cota('${t.id}',-1)">−</button>${tbarInner(t.cota[0],t.cota[1],'cota:'+t.id)}<button class="gbtn" onclick="cota('${t.id}',1)">+</button></div>`;
   }
   // subtarefas (não em METAS/cota)
   if(!t.goals && !t.cota){
     if(t.subs&&t.subs.length){
       const d=t.subs.filter(s=>s.done).length;
-      inner+=tbar(d,t.subs.length);
+      /* a barra anda com o microfeito: 3/10 numa subtarefa ja empurra ela */
+      let somaF=0; t.subs.forEach(s=>{ somaF+=qtdFrac(s); });
+      inner+=tbar(d,t.subs.length,somaF/t.subs.length,'sub:'+t.id);
       inner+=`<div class="subs">`+t.subs.map((s,i)=>{
         const q = temQtd(s)
           ? `<span class="conta" onclick="event.stopPropagation()">` +
@@ -1179,8 +1182,29 @@ function itemEl(t,c){
      <span class="tag ${tagCls}" onclick="openActions('${t.id}')">${tag}</span>${inner}</div>`;
   return el;
 }
-function tbar(d,tot){ const pc=tot?Math.round(d/tot*100):0; return `<div class="tbar"><div class="ttrack"><div class="tfill" style="width:${pc}%"></div></div><span class="tcount">${d}/${tot} · ${pc}%</span></div>`; }
-function tbarInner(d,tot){ const pc=tot?Math.round(d/tot*100):0; return `<div class="ttrack"><div class="tfill" style="width:${pc}%"></div></div><span class="tcount">${d}/${tot} · ${pc}%</span>`; }
+/* ===== a barra anda com o microfeito =====
+   pc vem da FRACAO quando ela e passada (3/10 numa subtarefa move a barra),
+   e a contagem d/tot continua sendo subtarefas FECHADAS.
+   _barAnt guarda a largura pintada de cada barra: ela nasce na largura de
+   antes e so no quadro seguinte vai pra nova, senao a transicao do CSS nao
+   tem de onde partir — o cartao e redesenhado inteiro a cada toque. */
+const _barAnt = {};
+function _bar(chave, pc, rotulo){
+  const de = (chave && _barAnt[chave] !== undefined) ? _barAnt[chave] : pc;
+  const k = chave ? ` data-bar="${chave}"` : '';
+  return `<div class="ttrack"><div class="tfill"${k} style="width:${de}%" data-w="${pc}"></div></div><span class="tcount">${rotulo}</span>`;
+}
+function pintaBarras(){
+  document.querySelectorAll('.tfill[data-w]').forEach(el=>{
+    const pc = +el.getAttribute('data-w');
+    const chave = el.getAttribute('data-bar');
+    requestAnimationFrame(()=>{ el.style.width = pc + '%'; });
+    if(chave) _barAnt[chave] = pc;
+  });
+}
+function tbar(d,tot,fr,chave){ const pc = (fr===undefined||fr===null) ? (tot?Math.round(d/tot*100):0) : Math.round(fr*100);
+  return `<div class="tbar">${_bar(chave,pc,`${d}/${tot} · ${pc}%`)}</div>`; }
+function tbarInner(d,tot,chave){ const pc=tot?Math.round(d/tot*100):0; return _bar(chave,pc,`${d}/${tot} · ${pc}%`); }
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ============= interações ============= */
