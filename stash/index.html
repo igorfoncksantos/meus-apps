@@ -1002,7 +1002,7 @@
       </div></div>
     <div style="max-width:130px"><label class="lb">Valor</label><input class="r" inputmode="decimal" id="gVal" placeholder="0,00"></div>
   </div>
-  <label class="lb" style="display:block;margin-top:2px">Parcelas</label>
+  <label class="lb" style="display:block;margin-top:2px">Como pagou</label>
   <div class="parcchips" id="gParcChips"></div>
   <input type="hidden" id="gParc" value="1">
   <div class="parchint" id="gParcHint"></div>
@@ -1276,7 +1276,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v111';
+var VERSAO = 'v112';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -2493,10 +2493,10 @@ function parcMoeda(n){ return "R$ " + brl(n); }
 function parcEncher(){
   var box=document.getElementById("gParcChips"); if(!box || box._ok) return; box._ok=1;
   /* uma fila, uma pergunta: como pagou? "Ja saiu" = o dinheiro nao passa pela
-     virada porque ja saiu da conta. O antigo "A vista" virou "1x" — ele queria
-     dizer "nao parcelado", que e outra coisa, e o nome colidia. */
+     virada porque ja saiu da conta. "A vista" continua sendo credito em 1x —
+     tambem vai pra fatura, so nao parcelado. Sao coisas diferentes de verdade. */
   var h='<button type="button" class="pchip vista" data-p="0">Já saiu</button>' +
-        '<button type="button" class="pchip on" data-p="1">1x</button>';
+        '<button type="button" class="pchip on" data-p="1">À vista</button>';
   for(var i=2;i<=12;i++) h+='<button type="button" class="pchip" data-p="'+i+'">'+i+'x</button>';
   box.innerHTML=h;
   box.addEventListener("click", function(e){
@@ -2509,8 +2509,14 @@ function parcSelecionar(n){
   var box=document.getElementById("gParcChips"), hid=document.getElementById("gParc");
   if(!box||!hid) return;
   hid.value = n;
+  /* montar o className do zero apagava as classes vista/no — e a "vista" e o que
+     identifica o chip do pago a vista. Reconstruo a partir do data-p, que nao muda. */
   Array.prototype.forEach.call(box.querySelectorAll(".pchip"), function(x){
-    if(x.getAttribute("data-p") === String(n)) x.className="pchip on"; else x.className="pchip";
+    var c="pchip";
+    if(x.getAttribute("data-p") === "0") c += " vista";
+    if(x.disabled) c += " no";
+    if(x.getAttribute("data-p") === String(n)) c += " on";
+    x.className = c;
   });
   var alvo=box.querySelector(".pchip.on");
   if(alvo && alvo.scrollIntoView) { try{ alvo.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"}); }catch(e){} }
