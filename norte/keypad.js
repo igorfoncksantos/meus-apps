@@ -216,7 +216,7 @@ function _kbdFecha(){
   kbd.addEventListener('mousedown',  function(e){ if(Date.now()-_ktouch<700) return; onKey(e); });
 
   function show(){ mount(); autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); }
-  function hide(){ commit(); kbd.classList.remove('on'); _kbdFecha(); }
+  function hide(){ commit(); retrava(target); kbd.classList.remove('on'); _kbdFecha(); }
 
   /* campo "solto": o texto que se edita direto na tela, sem <input> */
   function solto(el){ return !!(el && el.isContentEditable); }
@@ -238,6 +238,28 @@ function _kbdFecha(){
     }
     return true;
   }
+  /* ===== o cursor de texto =====
+     readonly segura o Gboard E apaga o cursor. Aqui ele so vale nos instantes
+     de risco; fora deles o campo fica editavel, com barrinha piscando e toque
+     escolhendo a letra. Trocar para false volta ao comportamento anterior. */
+  var SOLTA_CURSOR = true;
+  function destrava(el){
+    if(!SOLTA_CURSOR || !el) return;
+    try{ if(el.getAttribute("data-kbro")==="1" && el.readOnly) el.readOnly=false; }catch(x){}
+  }
+  function retrava(el){
+    if(!el) return;
+    try{ if(el.getAttribute("data-kbro")==="1" && !el.readOnly) el.readOnly=true; }catch(x){}
+  }
+  /* tocar num campo JA focado tambem chama o painel do sistema: retranca antes
+     do toque e solta logo depois, quando o cursor ja foi posicionado */
+  document.addEventListener("pointerdown", function(e){
+    if(!SOLTA_CURSOR) return;
+    var el = (typeof alvoReal === "function") ? alvoReal(e) : e.target;
+    if(!el || el !== target) return;
+    retrava(el);
+    setTimeout(function(){ destrava(el); }, 0);
+  }, true);
   function attach(el){
     if(target && target!==el) commit();
     // se o handler de 'change' re-renderizou a tela, o campo novo virou orfao
@@ -250,6 +272,7 @@ function _kbdFecha(){
     el.setAttribute('inputmode','none');    // suprime o teclado nativo
     el.setAttribute('autocapitalize','off'); el.setAttribute('autocorrect','off'); el.setAttribute('spellcheck','false');
     show();
+    setTimeout(function(){ destrava(el); }, 0);
     setTimeout(function(){ try{ if(target && getComputedStyle(target).position!=='fixed') target.scrollIntoView({block:'center',behavior:'smooth'}); }catch(x){} }, 70);
   }
   /* SELAR ANTES DO FOCO — e isto que impede o teclado do navegador.
