@@ -1276,7 +1276,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v112';
+var VERSAO = 'v113';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -2385,7 +2385,7 @@ function relCiclos(){
 }
 function relDados(i){
   var cs=relCiclos(), c=cs[i]||cs[0], porCat={}, total=0;
-  (c.l||[]).forEach(function(x){ if(porCat[x.c]==null) porCat[x.c]=0; porCat[x.c]+=x.v; total+=x.v; });
+  (c.l||[]).forEach(function(x){ if(x.est) return; if(porCat[x.c]==null) porCat[x.c]=0; porCat[x.c]+=x.v; total+=x.v; });
   return { c:c, porCat:porCat, total:total };
 }
 function relRender(){
@@ -2488,6 +2488,44 @@ function relPdf(){
   alvo.innerHTML=h;
   setTimeout(function(){ window.print(); },80);
 }
+/* A caixinha do estorno. Nao uso o appConfirm porque nele o ESCAPE resolve
+   como "nao" — e aqui "nao" apaga o lancamento. Sair sem responder tem que
+   ser inofensivo. Devolve "sim", "nao" ou null (desistiu). */
+var _estResolve=null;
+function perguntaEstorno(x, cofre){
+  return new Promise(function(resolve){
+    var w=document.getElementById("confw"), cx=document.getElementById("confCx");
+    if(!w||!cx){ resolve(window.confirm("Devolver o valor ao cofre?")?"sim":"nao"); return; }
+    _estResolve=resolve;
+    cx.innerHTML =
+      '<div class="mtit">Devolver ao cofre?</div>' +
+      '<div class="mval">R$ '+brl(x.v)+'</div>' +
+      '<div class="mtxt">' + esc(x.d) + ' saiu de <b>' + esc(cofre?cofre.n:"") + '</b> quando você lançou.</div>' +
+      '<div class="mnota">Devolvendo, o lançamento fica na lista marcado como estornado, em vez de sumir.</div>' +
+      '<div class="macoes">' +
+        '<button type="button" data-estnao>Não devolver</button>' +
+        '<button type="button" class="ok" data-estsim>Sim, devolver</button>' +
+      '</div>';
+    w.classList.add("on"); w.setAttribute("aria-hidden","false");
+    var b=cx.querySelector("[data-estsim]"); if(b) b.focus();
+  });
+}
+function _estFecha(v){
+  var w=document.getElementById("confw");
+  if(w){ w.classList.remove("on"); w.setAttribute("aria-hidden","true"); }
+  var r=_estResolve; _estResolve=null;
+  if(r) r(v);
+}
+document.addEventListener("click", function(e){
+  if(!_estResolve) return;
+  if(e.target.closest("[data-estsim]")) _estFecha("sim");
+  else if(e.target.closest("[data-estnao]")) _estFecha("nao");
+});
+document.addEventListener("keydown", function(e){
+  if(!_estResolve) return;
+  if(e.key === "Escape") _estFecha(null);      /* desistir nao apaga nada */
+  else if(e.key === "Enter") _estFecha("sim");
+});
 function parcLista(){ if(!D.vale.parc) D.vale.parc=[]; return D.vale.parc; }
 function parcMoeda(n){ return "R$ " + brl(n); }
 function parcEncher(){
@@ -2529,14 +2567,9 @@ function parcCofreDaCat(){
   var k=acharCat(el.value); if(!k || !k.cofre) return null;
   return acharCx(k.cofre) || null;
 }
-function parcVistaDisponivel(){
-  var box=document.getElementById("gParcChips"); if(!box) return;
-  var b=box.querySelector('.pchip.vista'); if(!b) return;
-  var c=parcCofreDaCat(), pode=!!c;
-  b.disabled=!pode; b.classList.toggle("no", !pode);
-  var hid=document.getElementById("gParc");
-  if(!pode && hid && hid.value==="0") parcSelecionar("1");
-}
+/* Sem cofre ligado o lancamento ainda pode ser pago a vista — o app so nao
+   sabe de onde o dinheiro saiu, e diz isso em vez de esconder a opcao. */
+function parcVistaDisponivel(){}
 function parcDica(){
   var el=document.getElementById("gParcHint"); if(!el) return;
   var sel=document.getElementById("gParc"), val=document.getElementById("gVal");
@@ -2545,12 +2578,8 @@ function parcDica(){
   if(sel && sel.value==="0"){
     var cv=parcCofreDaCat();
     el.innerHTML = cv ? ('Sai de <b>'+esc(cv.n)+'</b> agora, e não sai de novo na virada.')
-                      : 'Ligue um cofre a esta categoria para poder pagar à vista.';
+                      : 'Conta como gasto, mas <b>sem cofre relacionado</b> — nenhum saldo muda.';
     return;
-  }
-  if(!parcCofreDaCat() && sel && sel.value==="1"){
-    var bb=document.getElementById("gParcChips");
-    if(bb && bb.querySelector('.pchip.vista.no')){ el.innerHTML='"Já saiu" precisa de um cofre ligado à categoria.'; return; }
   }
   if(!n || n<2 || !v){ el.innerHTML=""; return; }
   el.innerHTML = n + "x de <b>" + parcMoeda(v/n) + "</b> por ciclo, lançada sozinha na virada. " +
@@ -2907,7 +2936,7 @@ function renderGastos(){
   var d=diasRest();
   // gasto por categoria
   var gasto={}; D.vale.cats.forEach(function(k){ gasto[k.id]=0; });
-  D.vale.l.forEach(function(x){ if(gasto[x.c]==null) gasto[x.c]=0; gasto[x.c]+=x.v; });
+  D.vale.l.forEach(function(x){ if(x.est) return; if(gasto[x.c]==null) gasto[x.c]=0; gasto[x.c]+=x.v; });
 
   // --- painel de anéis + hero ---
   var tO=0, tG=0, rh="";
@@ -3024,21 +3053,38 @@ function renderGastos(){
     if(ka===kb) return b.i-a.i; return ka<kb?1:-1; });
   ord.forEach(function(o){
     var x=o.x, k=acharCat(x.c)||{cor:"#5c6469",emoji:"",nome:"—"};
-    h+='<div class="lc" style="border-left-color:'+k.cor+'"><span class="ld">'+x.dt+'</span>' +
+    h+='<div class="lc'+(x.est?' est':'')+'" style="border-left-color:'+k.cor+'"><span class="ld">'+x.dt+'</span>' +
        '<span class="lo">'+esc(x.d)+'<small>'+catIcoHTML(k)+' '+esc(k.nome)+'</small></span>' +
-       '<span class="lv">R$ '+brl(x.v)+'</span><button class="lx" data-g="'+o.i+'">×</button></div>';
+       '<span class="lv">R$ '+brl(x.v)+'</span>' +
+       (x.est?'<span class="lest">Estornado</span>':'') +
+       '<button class="lx" data-g="'+o.i+'">×</button></div>';
   });
   document.getElementById("listaGastos").innerHTML=h;
 
   var q=function(s){ return document.querySelectorAll(s); };
-  Array.prototype.forEach.call(q("[data-g]"),function(b){ b.addEventListener("click",function(){
+  Array.prototype.forEach.call(q("[data-g]"),function(b){ b.addEventListener("click",async function(){
     var i=+this.getAttribute("data-g"), x=D.vale.l[i];
-    /* pago a vista ja tirou do cofre: apagar tem que devolver E limpar a saida,
-       senao o cofre fica menor pra sempre e sobra um lancamento orfao */
-    if(x && x.pag==="vista" && x.lid){
-      var cvo=acharCx(x.dest||"");
-      if(cvo) cvo.v = (cvo.v||0) + (x.v||0);
-      D.entradas = (D.entradas||[]).filter(function(e){ return e.lid !== x.lid; });
+    /* so faz sentido perguntar quando algum cofre foi debitado de verdade */
+    if(x && x.pag==="vista" && x.dest && !x.est){
+      var cvo=acharCx(x.dest);
+      var r=await perguntaEstorno(x, cvo);
+      if(r===null) return;                       /* desistiu: nada acontece */
+      if(r==="sim"){
+        if(cvo){
+          cvo.v = (cvo.v||0) + (x.v||0);
+          /* o histórico do Patrimônio guarda os DOIS movimentos: a saída
+             aconteceu, e a volta também. Apagar a primeira seria reescrever
+             o passado. */
+          var hj=new Date();
+          D.entradas.push({d:"Estorno · "+x.d, v:x.v, s:1, dest:cvo.id, destN:cvo.n,
+            dt:("0"+hj.getDate()).slice(-2)+"/"+("0"+(hj.getMonth()+1)).slice(-2)});
+        }
+        x.est=1;
+        salvar(); renderTudo();
+        toast(cvo ? ("Estornado. R$ "+brl(x.v)+" voltou para "+cvo.n+".") : "Estornado.","ok");
+        return;
+      }
+      /* "nao devolver": some do guia, e o dinheiro segue fora do cofre */
     }
     D.vale.l.splice(i,1); salvar(); renderTudo(); }); });
   Array.prototype.forEach.call(q("[data-orc]"),function(i){ i.addEventListener("change",function(){
@@ -3130,15 +3176,19 @@ document.getElementById("gAdd").addEventListener("click",function(){
        entradas, do mesmo jeito que a virada faz. O lid liga as duas pontas,
        pra apagar o lancamento desfazer as duas. */
     var cv=parcCofreDaCat();
-    if(!cv){ toast("Ligue um cofre a esta categoria.","err"); return; }
     var lid="l"+Date.now()+"-"+Math.round(Math.random()*9999);
-    cv.v = (cv.v||0) - v;
-    D.vale.l.push({d:nome, v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso, pag:"vista", lid:lid, dest:String(cv.id)});
-    D.entradas.push({d:"Cashbook · "+nome, v:v, s:-1, dest:cv.id, destN:cv.n,
-      dt:p[2]+"/"+p[1], lid:lid});
+    /* sem cofre ligado o gasto conta no guia, mas nao ha de onde debitar:
+       o app registra isso em vez de fingir que sabe */
+    if(cv){
+      cv.v = (cv.v||0) - v;
+      D.entradas.push({d:"Cashbook · "+nome, v:v, s:-1, dest:cv.id, destN:cv.n,
+        dt:p[2]+"/"+p[1], lid:lid});
+    }
+    D.vale.l.push({d:nome, v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso, pag:"vista", lid:lid,
+      dest: cv?String(cv.id):""});
     document.getElementById("gLoc").value=""; document.getElementById("gVal").value="";
     salvar(); renderTudo(); animarNovo("listaGastos","first");
-    toast("Lançado. Saiu de "+cv.n+".","ok");
+    toast(cv ? ("Lançado. Saiu de "+cv.n+".") : "Lançado. Sem cofre relacionado.","ok");
     return;
   }
   if(np > 1){
@@ -3163,6 +3213,7 @@ function planoDoFechamento(){
   (D.vale.l||[]).forEach(function(x){
     /* o total do ciclo conta TUDO — pago a vista tambem e gasto do mes.
        o que ele nao faz e sair do cofre de novo: isso ja aconteceu na compra. */
+    if(x.est) return;              /* estornado: o dinheiro voltou, nao foi gasto */
     totalCiclo+=x.v;
     if(x.pag==="vista") return;
     if(porCat[x.c]==null) porCat[x.c]=0;
@@ -3501,6 +3552,13 @@ window.addEventListener("message",function(e){
   -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
 .pchip:active{ transform:scale(.93); }
 .pchip.no{ opacity:.34; cursor:default; }
+/* estornado continua LEGIVEL — marca, nao risca */
+.lc.est{ opacity:.72; }
+.lc.est .lv{ color:var(--mut); }
+.lest{ font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--amber); border:1px solid color-mix(in srgb,var(--amber) 45%,transparent);
+  background:color-mix(in srgb,var(--amber) 12%,transparent);
+  border-radius:20px; padding:2px 7px; margin-left:7px; white-space:nowrap; }
 .pchip.no:active{ transform:none; }
 .pchip.vista.on{ background:var(--green); border-color:var(--green); box-shadow:0 4px 14px rgba(34,197,94,.28); }
 .pchip.on{ background:var(--accent); border-color:var(--accent); color:var(--onacc); box-shadow:0 4px 14px rgba(47,217,201,.28); }
