@@ -870,7 +870,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v74';
+const VERSAO = 'v75';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1284,7 +1284,9 @@ function openActions(id){ const t=findTask(id);
     [svgIc('trash'),'Apagar',`delTask('${id}')`,'del'],
   ];
   sheet(`<h3>${escapeHtml(t.title)}</h3><div class="act-list">`+
-    acts.map(a=>`<button class="${a[3]||''}" onclick="${a[2]};closeSheet()"><span class="ic">${a[0]}</span>${a[1]}</button>`).join('')+
+    /* fecha ANTES de agir: se a acao abrir outra folha (Editar, Agendar), um
+       closeSheet() depois mataria justamente a folha recem-aberta */
+    acts.map(a=>`<button class="${a[3]||''}" onclick="closeSheet();${a[2]}"><span class="ic">${a[0]}</span>${a[1]}</button>`).join('')+
     `</div><div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>`);
 }
 function setStatus(id,s){ const t=findTask(id); t.status=s; if(s==='done')flashFx(); render(); }
@@ -1704,10 +1706,13 @@ function closeMenu(){ document.getElementById('menu').classList.add('hidden'); }
 document.addEventListener('click',(e)=>{ closeMenu();
   const p=document.getElementById('calPop');
   if(p && !p.classList.contains('hidden') && !p.contains(e.target)) closeCal(); });
-function sheet(html){ let o=document.createElement('div'); o.className='overlay'; o.id='sheetOverlay';
+/* Uma folha por vez: duas com o mesmo id se atropelam — getElementById
+   devolve a primeira, entao closeSheet fechava a VELHA e deixava a nova. */
+function sheet(html){ closeSheet();
+  let o=document.createElement('div'); o.className='overlay'; o.id='sheetOverlay';
   o.innerHTML=`<div class="sheet" onclick="event.stopPropagation()">${html}</div>`;
   o.onclick=closeSheet; document.body.appendChild(o); }
-function closeSheet(){ const o=document.getElementById('sheetOverlay'); if(o)o.remove(); }
+function closeSheet(){ document.querySelectorAll('#sheetOverlay').forEach(function(o){ o.remove(); }); }
 
 /* ---- backup / restore / pdf ---- */
 function backup(){ closeMenu(); const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
