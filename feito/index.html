@@ -93,6 +93,8 @@
   header .s{font-size:10.5px;color:var(--mut2);margin-top:6px;line-height:1.5}
 
   .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  .rodape{ text-align:center; font-size:11px; color:var(--mut2); padding:18px 0 4px;
+           letter-spacing:.06em; font-variant-numeric:tabular-nums; }
 
   /* ===== a gaveta das listas (layout D) =====
      No celular ela desliza por cima; a partir de 900px de largura ela fica
@@ -636,6 +638,8 @@
   <button id="btMais" class="mais">•••</button>
 </div>
 
+<footer class="rodape">Feito <span id="verNum">&mdash;</span></footer>
+
 <div class="menu" id="menuCats">
   <div class="cx">
     <h3>Categorias desta lista</h3>
@@ -672,6 +676,11 @@
 <script>
 (function(){
   var K="afazeres-v3", KV="afazeres-v2";
+  /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
+  var VERSAO = "v55";
+  /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
+     sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
+  try{ window.__VER = VERSAO; }catch(e){}
   var PALETA=["#22C55E","#2FD9C9","#3B82F6","#A78BFA","#F472B6","#EF4444","#F97316","#FBBF24","#94A3B8","#FFFFFF"];
   var D={listas:[],atual:"",modelos:[],freq:{}};
   var filtro="";   /* nunca e um chip valido: forca o ajustaFiltro() a escolher */
@@ -2706,6 +2715,8 @@ function cicloTemaF(){
   try{ toast("Tema: "+TNOME_F[t]); }catch(e){}
 }
 aplicaTemaF(temaAtualF());
+/* a versao no rodape: sem ela nao da pra saber se o aparelho ja atualizou */
+try{ var _vn=document.getElementById("verNum"); if(_vn && window.__VER) _vn.textContent=window.__VER; }catch(e){}
 /* outra aba do mesmo app trocou */
 window.addEventListener("storage",function(e){ if(e.key==="stash-theme") aplicaTemaF(e.newValue||""); });
 /* o app de fora avisou a aba embutida */
