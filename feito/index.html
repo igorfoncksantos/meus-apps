@@ -100,6 +100,20 @@
   header .s{font-size:10.5px;color:var(--mut2);margin-top:6px;line-height:1.5}
 
   .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  /* a fila das listas DESTA categoria: abaixo das sub-abas, acima dos itens */
+  .fila{ display:flex; gap:7px; overflow-x:auto; padding:0 0 4px; margin-bottom:11px;
+         scrollbar-width:none; }
+  .fila::-webkit-scrollbar{ display:none; }
+  .fchip{ flex:0 0 auto; display:flex; align-items:center; gap:6px; padding:8px 13px;
+          border-radius:20px; border:1px solid var(--line); background:var(--panel);
+          color:var(--mut); font:inherit; font-size:12.5px; font-weight:700;
+          cursor:pointer; white-space:nowrap; }
+  .fchip:active{ transform:scale(.97); }
+  .fchip.on{ background:var(--acc-bg); border-color:var(--acc-bd); color:var(--acc-l); }
+  .fchip .n{ font-size:10.5px; font-weight:800; color:var(--mut2); }
+  .fchip.on .n{ color:var(--accent); }
+  /* o "+" nao e uma lista: borda tracejada pra nao se confundir com uma */
+  .fchip.nova{ border-style:dashed; color:var(--mut2); background:transparent; }
   /* ===== sub-abas: Categorias | Registros ===== */
   .sabas{ display:flex; gap:5px; padding:3px; margin-bottom:12px; border-radius:14px;
           background:var(--panel); border:1px solid var(--line); }
@@ -672,6 +686,8 @@
   <button type="button" class="saba" id="sabaReg" role="tab" aria-selected="false">Registros <span class="qt" id="sabaRegQt">0</span></button>
 </div>
 
+<div class="fila" id="filaListas"></div>
+
 <form class="add" id="form" autocomplete="off">
   <div class="linha">
     <input id="campo" placeholder="O que precisa ser feito?" enterkeyhint="done">
@@ -737,7 +753,7 @@
 (function(){
   var K="afazeres-v3", KV="afazeres-v2";
   /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
-  var VERSAO = "v64";
+  var VERSAO = "v65";
   /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
      sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
   try{ window.__VER = VERSAO; }catch(e){}
@@ -985,6 +1001,45 @@
     return pend ? (pend + " em aberto") : "tudo feito";
   }
 
+  /* ---------- categoria aberta (nivel 1) ---------- */
+  /* Guardada por aparelho, nao no dado sincronizado: e onde voce ESTA, nao
+     o que voce tem. */
+  var catAberta = "tarefas";
+  try{ var _ca = localStorage.getItem("feito-cat"); if(_ca && TIPOS[_ca]) catAberta = _ca; }catch(e){}
+  function listasDaCat(k){
+    return D.listas.filter(function(l){ return tipoDe(l) === (k || catAberta); });
+  }
+  /* a ultima lista aberta em cada categoria, pra voltar onde parou */
+  function lembraLista(){
+    try{ localStorage.setItem("feito-ult-" + catAberta, D.atual || ""); }catch(e){}
+  }
+  function abreCategoria(k){
+    catAberta = k;
+    try{ localStorage.setItem("feito-cat", k); }catch(e){}
+    var minhas = listasDaCat(k);
+    if(!minhas.length){
+      /* categoria vazia: perguntar o nome AGORA evita o estado "aberta sem
+         lista", que nao teria o que desenhar */
+      fAsk("Nome da lista", "", function(n){
+        n = n.trim(); if(!n){ return; }
+        criaLista(n, k);
+      }, "text", TIPOS[k].nome + " · como quer chamar?");
+      return;
+    }
+    var alvo = null;
+    try{
+      var ult = localStorage.getItem("feito-ult-" + k);
+      alvo = minhas.filter(function(l){ return l.id === ult; })[0] || null;
+    }catch(e){}
+    D.atual = (alvo || minhas[0]).id;
+    filtro = ""; grava(); pinta();
+  }
+  function criaLista(nome, k){
+    var nl = { id: uid(), nome: nome, tipo: k || catAberta, cats: [], itens: [] };
+    D.listas.push(nl); D.atual = nl.id; filtro = "";
+    lembraLista(); grava(); pinta();
+  }
+
   /* ---------- a gaveta ---------- */
   function gavAbre(){ document.body.classList.add("gav-on");
     var b=document.getElementById("hamb"); if(b) b.setAttribute("aria-expanded","true"); }
@@ -1001,37 +1056,63 @@
   function pintaListas(){
     gavLiga();
     var el=document.getElementById("listas"); el.innerHTML="";
-    D.listas.forEach(function(l){
-      var pend=l.itens.filter(function(o){return !o.feito}).length;
+    /* nivel 1: as sete categorias, sempre as mesmas. Ter tres listas de
+       treino nao faz "Treino" aparecer tres vezes. */
+    ORDEM_TIPOS.forEach(function(k){
+      var t = TIPOS[k], minhas = listasDaCat(k);
       var b=document.createElement("button"); b.type="button";
-      b.className="gav-i"+(l.id===D.atual?" on":"");
+      b.className="gav-i"+(k===catAberta?" on":"");
       var ic=document.createElement("span"); ic.className="ic";
-      ic.innerHTML=icTipo(TIPOS[tipoDe(l)].ic,17);            /* SVG nosso: pode ser marcacao */
+      ic.innerHTML=icTipo(t.ic,17);
       var nm=document.createElement("span"); nm.className="nm";
-      nm.textContent=l.nome;                                   /* nome e digitado: textContent */
+      nm.textContent=t.nome;
       var qt=document.createElement("span"); qt.className="qt";
-      qt.textContent=pend?String(pend):"";
+      /* quantas listas ha aqui dentro. Vazio fica vazio: um "0" so pesa. */
+      qt.textContent = minhas.length ? String(minhas.length) : "";
       b.appendChild(ic); b.appendChild(nm); b.appendChild(qt);
-      b.addEventListener("click", function(){
-        D.atual=l.id; filtro=""; gavFecha(); grava(); pinta();
-      });
+      b.addEventListener("click", function(){ gavFecha(); setTimeout(function(){ abreCategoria(k); },160); });
       el.appendChild(b);
     });
-    var nv=document.createElement("button"); nv.type="button"; nv.className="gav-i nv";
-    nv.innerHTML='<span class="ic"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg></span>';
-    var nn=document.createElement("span"); nn.className="nm"; nn.textContent="Nova lista";
-    nv.appendChild(nn);
-    nv.addEventListener("click", function(){ gavFecha(); setTimeout(escolherTipo,180); });
-    el.appendChild(nv);
 
     /* a barra do topo diz onde voce esta, pra a troca nao ser as cegas */
     var l=L();
     if(l){
-      var pend=l.itens.filter(function(o){return !o.feito}).length;
       var bi=document.getElementById("lbarIc"); if(bi) bi.innerHTML=icTipo(TIPOS[tipoDe(l)].ic,19);
-      var bn=document.getElementById("lbarNm"); if(bn) bn.textContent=l.nome;
+      var bn=document.getElementById("lbarNm"); if(bn) bn.textContent=TIPOS[tipoDe(l)].nome;
       var bq=document.getElementById("lbarQt"); if(bq) bq.textContent=fraseDaLista(l);
     }
+    pintaFila();
+  }
+
+  /* nivel 2: as listas DESTA categoria, como opcoes */
+  function pintaFila(){
+    var fl = document.getElementById("filaListas");
+    if(!fl) return;
+    fl.innerHTML = "";
+    var l = L();
+    var k = l ? tipoDe(l) : catAberta;
+    catAberta = k;
+    listasDaCat(k).forEach(function(x){
+      var pend = x.itens.filter(function(o){ return !o.feito; }).length;
+      var b = document.createElement("button"); b.type = "button";
+      b.className = "fchip" + (x.id === D.atual ? " on" : "");
+      var n = document.createElement("span"); n.textContent = x.nome;
+      b.appendChild(n);
+      if(pend){ var q = document.createElement("span"); q.className = "n"; q.textContent = String(pend); b.appendChild(q); }
+      b.addEventListener("click", function(){
+        D.atual = x.id; filtro = ""; lembraLista(); grava(); pinta();
+      });
+      fl.appendChild(b);
+    });
+    var nv = document.createElement("button"); nv.type = "button";
+    nv.className = "fchip nova"; nv.textContent = "+ lista";
+    nv.addEventListener("click", function(){
+      fAsk("Nome da lista", "", function(n){
+        n = n.trim(); if(!n) return;
+        criaLista(n, k);
+      }, "text", TIPOS[k].nome + " · como quer chamar?");
+    });
+    fl.appendChild(nv);
   }
 
   /* As categorias-etiqueta sairam da tela: a CATEGORIA agora e o TIPO da
@@ -1057,7 +1138,7 @@
   }
   function pintaAbas(){
     var a = abaAtual();
-    var daLista = ["bar","form","transfbar","grupos","vazio","sugestoes"];
+    var daLista = ["bar","form","transfbar","grupos","vazio","sugestoes","filaListas"];
     /* o BOTAO de registrar age sobre a lista que se esta vendo, entao fica com
        ela; o que vai pra aba Registros e o HISTORICO de rodadas */
     var daReg   = ["porta"];
