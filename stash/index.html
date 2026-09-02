@@ -1128,6 +1128,32 @@ D.owners.forEach(function(o,i){ if(!D.ownerColors[o]) D.ownerColors[o] = OWPAL[i
 var MES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 var PRIV = false;
 function brl(n){ if(PRIV) return "•••"; return (n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+/* ---------- o percentual da categoria ----------
+   REGRA: sempre sai numero com %. Nunca vazio, nunca traco.
+   Todo anel e todo total passam por aqui — se a conta voltar a ser copiada,
+   e aqui que ela tem que ser mudada. */
+function anelPct(gasto, orc){
+  gasto = +gasto || 0; orc = +orc || 0;
+  if(orc > 0){
+    var p = gasto / orc * 100;
+    return { pc: Math.min(100, p), txt: Math.round(p) + "%", est: gasto > orc };
+  }
+  /* sem orçamento nao ha de que tirar percentual: gastou = estourado */
+  if(gasto > 0) return { pc: 100, txt: "100%", est: true };
+  return { pc: 0, txt: "0%", est: false };
+}
+/* a regra conferindo a si mesma, uma vez, ao carregar */
+(function(){
+  var casos = [[0,0],[0,100],[50,100],[100,100],[150,100],[200,0]];
+  for(var i=0;i<casos.length;i++){
+    var t = anelPct(casos[i][0], casos[i][1]).txt;
+    if(!/^[0-9]+%$/.test(t)){
+      try{ console.error("anelPct devolveu \"" + t + "\" para gasto=" + casos[i][0] + " orc=" + casos[i][1]); }catch(e){}
+    }
+  }
+})();
+
 function applyPriv(){ document.body.classList.toggle("priv",PRIV); var b=document.getElementById("eyeBtn"); if(b){ b.classList.toggle("on",PRIV); b.title=PRIV?"Mostrar valores":"Ocultar valores"; } }
 function togglePriv(){ PRIV=!PRIV; try{ localStorage.setItem("apps-priv",PRIV?"1":"0"); }catch(e){} applyPriv(); renderTudo(); }
 function num(s){ if(s===0) return 0; if(!s) return 0; s=String(s).trim();
@@ -1285,7 +1311,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v123';
+var VERSAO = 'v124';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -2952,14 +2978,14 @@ function renderGastos(){
   // --- painel de anéis + hero ---
   var tO=0, tG=0, rh="";
   D.vale.cats.forEach(function(k){
-    var orc=orcDaCat(k), gas=gasto[k.id]||0, rest=orc-gas, pc=orc>0?Math.min(100,gas/orc*100):0, est=(orc>0&&rest<0);
+    var orc=orcDaCat(k), gas=gasto[k.id]||0, rest=orc-gas, _a=anelPct(gas,orc), pc=_a.pc, est=_a.est;
     tO+=orc; tG+=gas;
     var off=213.628*(1-pc/100);
     rh+='<div class="gp-ring'+(est?' est':'')+'">' +
         '<svg width="96" height="96" viewBox="0 0 96 96">' +
           '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke-width="9"/>' +
           '<circle cx="48" cy="48" r="34" fill="none" stroke="'+(est?"#f87171":k.cor)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="'+off+'" transform="rotate(-90 48 48)"/>' +
-          '<text class="pcT" x="48" y="54" text-anchor="middle">'+(orc>0 ? Math.round(pc)+"%" : (gas>0 ? "\u2014" : "0%"))+'</text>' +
+          '<text class="pcT" x="48" y="54" text-anchor="middle">'+_a.txt+'</text>' +
         '</svg>' +
         '<div class="rname" style="color:'+k.cor+'">'+catIcoHTML(k)+'<span class="rnm">'+esc(k.nome)+'</span></div>' +
         '<div class="rg" data-rgw="'+k.id+'">R$ '+brl(gas)+' <small class="rgorc" data-rgorc="'+k.id+'" title="Tocar pra editar o or&ccedil;amento">/ '+brl(orc)+'</small></div>' +
@@ -2978,14 +3004,14 @@ function renderGastos(){
   setTimeout(function(){ if(window.paintIcons) window.paintIcons(document.getElementById("t3")); },0);
   gRings.style.gridTemplateColumns="repeat("+Math.min(Math.max(D.vale.cats.length,1),3)+",1fr)";
   gRings.innerHTML=rh;
-  var tR=tO-tG, pcT=tO>0?Math.min(100,tG/tO*100):0;
+  var tR=tO-tG, _aT=anelPct(tG,tO), pcT=_aT.pc;
   var hero=document.getElementById("gHero"); if(hero) hero.className="gp-hero"+(tR<0?" neg":"");
   var semOrc = !(tO>0);
   var hv=document.getElementById("gHeroRes");
   hv.textContent = semOrc ? "sem orçamento" : ("R$ "+brl(tR));
   hv.classList.toggle("vazio", semOrc);
   document.getElementById("gHeroFill").style.width=(semOrc?0:pcT)+"%";
-  document.getElementById("gHeroPct").textContent=(tO>0?Math.round(pcT):0)+"%";
+  document.getElementById("gHeroPct").textContent=_aT.txt;
   document.getElementById("gHeroDia").textContent="R$ "+brl(tR>0?tR/d:0);
   /* sem categoria com teto, "R$ 0,00" mentiria: o que falta e configurar */
   var hc=document.querySelector("#t3 .gp-hero .gp-hc");

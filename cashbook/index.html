@@ -687,6 +687,32 @@ function diasRestantesCiclo(){ return diasRestantesDia(parseInt(st.dia,10) || di
 var PRIV = false;
 function brl(n){ if(PRIV) return "•••";
   return (n||0).toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+/* ---------- o percentual da categoria ----------
+   REGRA: sempre sai numero com %. Nunca vazio, nunca traco.
+   Todo anel e todo total passam por aqui — se a conta voltar a ser copiada,
+   e aqui que ela tem que ser mudada. */
+function anelPct(gasto, orc){
+  gasto = +gasto || 0; orc = +orc || 0;
+  if(orc > 0){
+    var p = gasto / orc * 100;
+    return { pc: Math.min(100, p), txt: Math.round(p) + "%", est: gasto > orc };
+  }
+  /* sem orçamento nao ha de que tirar percentual: gastou = estourado */
+  if(gasto > 0) return { pc: 100, txt: "100%", est: true };
+  return { pc: 0, txt: "0%", est: false };
+}
+/* a regra conferindo a si mesma, uma vez, ao carregar */
+(function(){
+  var casos = [[0,0],[0,100],[50,100],[100,100],[150,100],[200,0]];
+  for(var i=0;i<casos.length;i++){
+    var t = anelPct(casos[i][0], casos[i][1]).txt;
+    if(!/^[0-9]+%$/.test(t)){
+      try{ console.error("anelPct devolveu \"" + t + "\" para gasto=" + casos[i][0] + " orc=" + casos[i][1]); }catch(e){}
+    }
+  }
+})();
+
 function applyPriv(){
   document.body.classList.toggle("priv", PRIV);
   var b=document.getElementById("eyeBtn");
@@ -727,14 +753,14 @@ function renderHistNAO(){
 
 function bloco(id, orc, gasto, dias){
   var resta = orc - gasto;
-  var pc = orc > 0 ? Math.min(100, gasto / orc * 100) : 0;
-  var estourou = orc > 0 && resta < 0;
+  var a = anelPct(gasto, orc);
+  var pc = a.pc, estourou = a.est;
   var arc = document.getElementById("arc_"+id);
   if(arc){
     arc.style.strokeDashoffset = (213.628 * (1 - pc/100));
     arc.setAttribute("stroke", estourou ? "#f87171" : catCor(id));
   }
-  var pcEl = document.getElementById("pc_"+id); if(pcEl) pcEl.textContent = orc > 0 ? Math.round(pc) + "%" : "";
+  var pcEl = document.getElementById("pc_"+id); if(pcEl) pcEl.textContent = a.txt;
   var gEl = document.getElementById("g_"+id); if(gEl) gEl.innerHTML = "R$ " + brl(gasto) + ' <small>/ ' + brl(orc) + "</small>";
   var rEl = document.getElementById("r_"+id); if(rEl) rEl.textContent = "resta R$ " + brl(resta);
   var dEl = document.getElementById("d_"+id); if(dEl) dEl.textContent = "R$ " + brl(resta > 0 ? resta/dias : 0) + "/dia · " + dias + "d";
@@ -759,10 +785,10 @@ function render(){
   document.getElementById("cicloPer").textContent = perParts.join(" · ");
 
   var tR = tO - tG;
-  var pcT = tO > 0 ? Math.min(100, tG / tO * 100) : 0;
+  var aT = anelPct(tG, tO); var pcT = aT.pc;
   var _hr = document.getElementById("heroRes");  if(_hr) _hr.textContent = "R$ " + brl(tR);
   var _hf = document.getElementById("heroFill"); if(_hf) _hf.style.width = pcT + "%";
-  var _hp = document.getElementById("heroPct");  if(_hp) _hp.textContent = (tO > 0 ? Math.round(pcT) : 0) + "%";
+  var _hp = document.getElementById("heroPct");  if(_hp) _hp.textContent = aT.txt;
   var _hd = document.getElementById("heroDia");  if(_hd) _hd.textContent = "R$ " + brl(tR > 0 ? tR / dias : 0);
   var _hs = document.getElementById("heroDias"); if(_hs) _hs.textContent = "próxima virada em " + dias + (dias === 1 ? " dia" : " dias");
   var _he = document.getElementById("hero");     if(_he) _he.className = "hero" + (tR < 0 ? " neg" : "");
