@@ -194,13 +194,13 @@
     /* no campo solto quem escreve e o proprio navegador: assim o cursor fica
        onde estava e o app recebe o 'input' de sempre */
     if(ehTexto()){ try{ document.execCommand('insertText',false,ch); }catch(x){}
-      if(caps===1){ caps=0; render(); } return; }
+      reCaps(); return; }
     if(target.type==='number' && ch===',') ch='.';       // number não aceita vírgula
     var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ target.value=v+ch; }
     else { target.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{target.setSelectionRange(p,p);}catch(x){} }
     aVista(target);
-    fire(); if(caps===1){ caps=0; render(); }
+    fire(); reCaps();
   }
   function back(){
     if(!target) return;
@@ -210,9 +210,30 @@
     else if(s!==e){ target.value=v.slice(0,s)+v.slice(e); try{target.setSelectionRange(s,s);}catch(x){} }
     else if(s>0){ target.value=v.slice(0,s-1)+v.slice(s); try{target.setSelectionRange(s-1,s-1);}catch(x){} }
     aVista(target);
-    fire();
+    fire(); reCaps();
   }
-  function autocaps(){ caps = (target && valDe(target).length) ? 0 : 1; }
+  /* ---------- a maiuscula automatica ----------
+     Liga no comeco do campo, depois de . ! ? seguidos de espaco, e depois de
+     quebra de linha. O espaco e exigido pra "www.google" nao virar
+     "www.Google" nem "3.5" armar a maiuscula a toa.
+     A trava manual (shift 2x, caps===2) nao e tocada. */
+  function precisaMaiuscula(){
+    if(!target) return true;
+    var v = valDe(target);
+    var p = (target.selectionStart == null) ? v.length : target.selectionStart;
+    var antes = v.slice(0, p);
+    if(!antes.replace(/\s/g,"")) return true;       /* vazio ou so espacos */
+    if(/\n\s*$/.test(antes)) return true;           /* linha nova */
+    if(/[.!?\u2026]\s+$/.test(antes)) return true;  /* fim de frase */
+    return false;
+  }
+  function autocaps(){
+    if(caps === 2) return;                         /* trava manual */
+    caps = precisaMaiuscula() ? 1 : 0;
+  }
+  /* depois de escrever ou apagar a maiuscula se recalcula; so redesenha o
+     teclado quando o estado muda de verdade */
+  function reCaps(){ var a = caps; autocaps(); if(caps !== a) render(); }
 
 
   function _kbdAltura(){ try{ var a=kbd.offsetHeight; if(a>60){ document.body.style.setProperty("padding-bottom", a+"px", "important");

@@ -1940,12 +1940,12 @@ body{ padding-top:6px; }
      navegador, pelo execCommand, que preserva onde o cursor esta */
   function ehTexto(){ return target && target.isContentEditable; }
   function ins(ch){
-    if(ehTexto()){ document.execCommand("insertText", false, ch); if(caps===1){ caps=0; render(); } return; }
+    if(ehTexto()){ document.execCommand("insertText", false, ch); reCaps(); return; }
     var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ s=e=v.length; }
     target.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{target.setSelectionRange(p,p);}catch(x){}
     aVista(target);
-    fire(); if(caps===1){ caps=0; render(); }
+    fire(); reCaps();
   }
   function back(){
     if(ehTexto()){ document.execCommand("delete"); return; }
@@ -1954,14 +1954,31 @@ body{ padding-top:6px; }
     else if(s!==e){ target.value=v.slice(0,s)+v.slice(e); try{target.setSelectionRange(s,s);}catch(x){} }
     else if(s>0){ target.value=v.slice(0,s-1)+v.slice(s); try{target.setSelectionRange(s-1,s-1);}catch(x){} }
     aVista(target);
-    fire();
+    fire(); reCaps();
   }
   /* texto solto nao tem .value; ler ele quebrava o teclado calado,
      antes mesmo de ele aparecer */
-  function autocaps(){
-    var t = ehTexto() ? (target.textContent || "") : (target.value || "");
-    caps = t.length ? 0 : 1;
+  /* ---------- a maiuscula automatica ----------
+     Liga no comeco do campo, depois de . ! ? seguidos de espaco, e depois
+     de quebra de linha. O espaco e exigido pra "www.google" nao virar
+     "www.Google" nem "3.5" armar a maiuscula a toa. */
+  function precisaMaiuscula(){
+    if(!target) return true;
+    var v = ehTexto() ? (target.textContent || "") : (target.value || "");
+    var p = (ehTexto() || target.selectionStart == null) ? v.length : target.selectionStart;
+    var antes = v.slice(0, p);
+    if(!antes.replace(/\s/g,"")) return true;      /* vazio ou so espacos */
+    if(/\n\s*$/.test(antes)) return true;          /* linha nova */
+    if(/[.!?\u2026]\s+$/.test(antes)) return true; /* fim de frase */
+    return false;
   }
+  function autocaps(){
+    if(caps === 2) return;                        /* trava manual: nao mexer */
+    caps = precisaMaiuscula() ? 1 : 0;
+  }
+  /* depois de escrever ou apagar, a maiuscula se recalcula. So redesenha o
+     teclado quando o estado muda de verdade. */
+  function reCaps(){ var a = caps; autocaps(); if(caps !== a) render(); }
 
 
   function _kbdAltura(){
