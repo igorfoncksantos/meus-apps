@@ -66,6 +66,13 @@
   /* o botao de trocar tema mora no canto do cabecalho */
   header{ position:relative; }
   /* a esquerda do botao de sincronizacao, que e fixo no canto e viria por cima */
+  /* a porta de troca de categoria, no canto de cima a esquerda */
+  .hamb{ position:absolute; left:0; top:-2px; width:34px; height:34px; display:flex;
+         align-items:center; justify-content:center; background:transparent;
+         border:1px solid var(--line); border-radius:11px; color:var(--mut);
+         cursor:pointer; padding:0; }
+  .hamb:active{ border-color:var(--accent); color:var(--accent); transform:scale(.94); }
+  body.gav-on .hamb{ border-color:var(--acc-bd); color:var(--accent); background:var(--acc-bg); }
   .thm{ position:absolute; right:44px; top:-2px; width:34px; height:34px; display:flex;
         align-items:center; justify-content:center; background:transparent;
         border:1px solid var(--line); border-radius:11px; color:var(--mut);
@@ -101,7 +108,8 @@
          padding:10px 13px; border-radius:14px; border:1px solid var(--line);
          background:var(--panel); color:var(--txt); cursor:pointer; font:inherit;
          transition:border-color .14s ease, transform .12s ease; }
-  .lbar:active{ transform:scale(.985); border-color:var(--accent); }
+  /* deixou de ser botao: sem resposta ao toque, senao promete o que nao faz */
+  .lbar{ cursor:default; }
   .lbar .ic{ display:flex; color:var(--accent); flex:0 0 auto; }
   .lbar .nm{ font-weight:800; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .lbar .qt{ font-size:11.5px; color:var(--mut); font-weight:700; flex:0 0 auto; }
@@ -133,7 +141,9 @@
   /* em tela larga a gaveta e uma coluna fixa, sempre a vista */
   @media (min-width:900px){
     body{ padding-left:calc(258px + 16px); }
-    .lbar{ display:none; }
+    /* a gaveta ja e coluna fixa aqui: o ☰ abriria o que ja esta aberto.
+       O nome da categoria continua a vista — e ele que diz onde voce esta. */
+    .hamb{ display:none; }
     .gav-fundo{ display:none; }
     .gav{ transform:none; width:242px; border-radius:0; }
   }
@@ -588,6 +598,9 @@ body{ padding-top:6px; }
 
 <header>
   <div class="k">Feito</div>
+  <button class="hamb" id="hamb" type="button" title="Trocar de categoria" aria-label="Trocar de categoria" aria-haspopup="true" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
   <button class="eyeF" id="eyeF" type="button" title="Ocultar / mostrar valores" aria-label="Ocultar valores" onclick="trocaPrivF()">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
   </button>
@@ -595,13 +608,12 @@ body{ padding-top:6px; }
   <div class="s">toque no quadrado pra concluir &middot; arraste a barrinha pra reordenar</div>
 </header>
 
-<!-- a barra que abre a gaveta, no lugar da fila de chips -->
-<button type="button" class="lbar" id="lbar" aria-haspopup="true" aria-expanded="false">
+<!-- o nome da categoria aberta. So mostra: quem troca e o ☰ la em cima -->
+<div class="lbar" id="lbar">
   <span class="ic" id="lbarIc"></span>
   <span class="nm" id="lbarNm">Minha lista</span>
   <span class="qt" id="lbarQt"></span>
-  <span class="seta"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15.5 18 9.5"/></svg></span>
-</button>
+</div>
 <div class="gav-fundo" id="gavFundo"></div>
 <aside class="gav" id="gav"><div class="gav-t">Minhas listas</div><div id="listas"></div></aside>
 
@@ -886,11 +898,11 @@ body{ padding-top:6px; }
 
   /* ---------- a gaveta ---------- */
   function gavAbre(){ document.body.classList.add("gav-on");
-    var b=document.getElementById("lbar"); if(b) b.setAttribute("aria-expanded","true"); }
+    var b=document.getElementById("hamb"); if(b) b.setAttribute("aria-expanded","true"); }
   function gavFecha(){ document.body.classList.remove("gav-on");
-    var b=document.getElementById("lbar"); if(b) b.setAttribute("aria-expanded","false"); }
+    var b=document.getElementById("hamb"); if(b) b.setAttribute("aria-expanded","false"); }
   function gavLiga(){
-    var b=document.getElementById("lbar"), f=document.getElementById("gavFundo");
+    var b=document.getElementById("hamb"), f=document.getElementById("gavFundo");
     if(b && !b._ligado){ b._ligado=1; b.addEventListener("click", gavAbre); }
     if(f && !f._ligado){ f._ligado=1; f.addEventListener("click", gavFecha); }
     if(!window._gavEsc){ window._gavEsc=1;
