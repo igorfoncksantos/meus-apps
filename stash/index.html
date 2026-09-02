@@ -84,8 +84,17 @@
   header .eye.on::after{content:"";position:absolute;left:6px;right:6px;top:50%;height:2.4px;background:currentColor;
              transform:translateY(-50%) rotate(-45deg);border-radius:2px;box-shadow:0 -2px 0 var(--panel)}
   /* modo privado: oculta os valores de entrada "crus" (os demais viram ••• pelo brl) */
-  body.priv #aSal, body.priv #aCon, body.priv [data-orc], body.priv [data-m], body.priv #gVal{ filter:blur(7px); }
+  body.priv #aSal, body.priv #aCon, body.priv [data-orc], body.priv [data-m]{ filter:blur(7px); }
   body.priv input.r, body.priv #iCart{ pointer-events:none; }
+  /* ===== o que o olhinho NAO esconde =====
+     Ele esconde o que JA esta registrado. O campo de lançar um gasto novo nao
+     tem nada a esconder ainda — e com pointer-events:none ele nem aceitava
+     toque, o que deixava o formulario inutilizavel de olhinho ligado. */
+  body.priv #gVal{ filter:none; pointer-events:auto; }
+  /* os que sao privados de verdade limpam ao serem tocados, pra dar pra ver o
+     que se digita (so alcançaveis com o olhinho desligado) */
+  body.priv #aSal:focus, body.priv #aCon:focus, body.priv [data-orc]:focus,
+  body.priv [data-m]:focus{ filter:none; }
 
   .tela{display:none}.tela.on{display:block}
   h2{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--mut);margin:24px 0 11px;
@@ -1276,7 +1285,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v120';
+var VERSAO = 'v121';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -1843,6 +1852,7 @@ document.getElementById("eAdd").addEventListener("click",async function(){
 })();
 
 document.getElementById("btSnap").addEventListener("click",async function(){
+  try{ som("dia"); }catch(e){}   /* fechar o mes e o maior marco do app */
   var h=new Date(), nome=MES[h.getMonth()]+" "+h.getFullYear();
   if(D.hist.length && D.hist[D.hist.length-1].mes===nome){
     if(!await appConfirm('Ja existe um retrato de "'+nome+'". O valor de agora entra no lugar dele.',
@@ -3163,6 +3173,7 @@ function renderGastos(){
 }
 
 document.getElementById("gAdd").addEventListener("click",function(){
+  try{ som("salvo"); }catch(e){}
   var iso=document.getElementById("gDt").value||hojeISO();
   var v=num(document.getElementById("gVal").value);
   if(!v){ toast("Informe o valor.","err"); document.getElementById("gVal").focus(); return; }
