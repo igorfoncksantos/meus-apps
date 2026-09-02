@@ -23,7 +23,7 @@
     + 'body.kbdopen{ padding-bottom:calc(var(--kbh, 300px) + 16px + env(safe-area-inset-bottom)) !important; }'
     + '#kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; display:none;'
     + '  background:linear-gradient(180deg,#0e1216,#070a0c); border-top:1px solid #20262b;'
-    + '  padding:4px 6px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);'
+    + '  padding:4px 3px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);'
     + '  -webkit-user-select:none; user-select:none; touch-action:manipulation;'
     + '  font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }'
     + '#kbd.on{ display:block; animation:kbdup .2s cubic-bezier(.25,.9,.3,1); }'
@@ -38,7 +38,7 @@
     + '  border-radius:9px; background:rgba(248,113,113,.13); border:1px solid rgba(248,113,113,.36);'
     + '  color:#f87171; font-size:14px; font-weight:800; line-height:1; }'
     + '#kbd .kbx:active{ background:rgba(248,113,113,.28); }'
-    + '#kbd .row{ display:flex; gap:6px; margin-bottom:6px; }'
+    + '#kbd .row{ display:flex; gap:4px; margin-bottom:6px; }'
     /* a segunda fila e recuada meia tecla, como em qualquer teclado de celular */
     + '#kbd .row.r2{ padding:0 5%; }'
     /* o rodape do teclado (8px + a faixa de gesto) e espaco morto: a ultima
