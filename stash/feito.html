@@ -167,6 +167,21 @@
   .tlin i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
   .tlin b{color:var(--txt2);font-variant-numeric:tabular-nums}
   .tsem{font-size:10.5px;color:var(--amber);margin-top:9px;opacity:.9}
+  .eprot{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+         color:var(--mut2);margin-bottom:7px}
+  .epline{display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:3px;
+          -webkit-overflow-scrolling:touch}
+  .epline::-webkit-scrollbar{display:none}
+  .ep{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;
+      font-size:9.5px;color:var(--mut2);padding:5px 9px;border-radius:9px;
+      border:1px solid var(--line);background:var(--bg);white-space:nowrap}
+  .ep b{font-size:15px;font-weight:800;color:var(--mut);font-variant-numeric:tabular-nums;line-height:1.1}
+  .ep.on{border-color:var(--acc-bd);background:var(--acc-bg);color:var(--acc-l)}
+  .ep.on b{color:var(--accent)}
+  .ep.f{border-color:var(--grn-bd);background:var(--grn-bg);color:var(--grn-l)}
+  .ep.f b{color:var(--green)}
+  /* o fio entre as etapas: e ele que diz que isto e uma linha, nao uma lista */
+  .epseta{flex:0 0 14px;height:1px;background:var(--line2)}
   /* a etiqueta de repeticao usa o teal, pra nao competir com preco e prazo */
   .tag.rep{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 42%, transparent)}
   #listas .chip.on{background:var(--acc-bg);border-color:var(--accent);color:var(--acc-l)}
@@ -642,6 +657,7 @@ body{ padding-top:6px; }
     <h3>Lista</h3>
     <button class="bt" id="btRenomear"><span data-ic="pen"></span> Renomear lista</button>
     <button class="bt" id="btDuplicar"><span data-ic="dup"></span> Duplicar lista</button>
+    <button class="bt" id="btNovaViagem" style="display:none"><span data-ic="plane"></span> Nova viagem</button>
     <button class="bt" id="btLimpaFeitas"><span data-ic="check"></span> Limpar concluídas</button>
     <button class="bt pg" id="btLimpaTudo">Limpar tudo</button>
     <button class="bt pg" id="btApagarLista"><span data-ic="trash"></span> Apagar esta lista</button>
@@ -795,8 +811,8 @@ body{ padding-top:6px; }
               mostra:function(v){ return "feito " + curto(v); } },
     mala:   { rot:"De quem é a mala", ic:"bag",   dica:"ex: Minha mala",       cls:"",
               mostra:function(v){ return v; } },
-    sempre: { rot:"Volta sempre",    ic:"star",     dica:"",                     cls:"", bool:true,
-              mostra:function(){ return "volta sempre"; } },
+    sempre: { rot:"Até o próximo destino", ic:"star", dica:"fica na mala nas próximas viagens", cls:"", bool:true,
+              mostra:function(){ return "até o próximo destino"; } },
     etapa:  { rot:"Etapa",           ic:"film",     dica:"ex: gravar",           cls:"",
               mostra:function(v){ return v; } },
     quem:   { rot:"Depende de quem", ic:"share",    dica:"ex: precisa do Léo", cls:"",
@@ -1042,6 +1058,26 @@ body{ padding-top:6px; }
     /* O total somava so o que tem preco e nao dizia isso — entao era sempre
        menor que a verdade, calado. Agora ele conta em quantos itens se apoia,
        reparte por categoria e avisa quantos ficaram de fora. */
+    /* PRODUCAO: no lugar do total em dinheiro, a linha de producao em ordem.
+       Cada etapa mostra quantas pecas estao nela; a vazia fica visivel porque
+       o buraco na linha tambem e informacao. */
+    if(tipoDe(l) === "producao"){
+      var conta = {}, publicadas = 0;
+      ETAPAS.forEach(function(e){ conta[e] = 0; });
+      (l.itens || []).forEach(function(o){
+        if(o.feito){ publicadas++; return; }
+        conta[ETAPAS[etapaDe(o)]]++;
+      });
+      var celulas = ETAPAS.map(function(e, i){
+        var n = (i === ETAPAS.length - 1) ? publicadas : conta[e];
+        var cls = "ep" + (n ? (i === ETAPAS.length - 1 ? " f" : " on") : "");
+        return '<span class="' + cls + '"><b>' + n + '</b>' + e + '</span>';
+      }).join('<i class="epseta"></i>');
+      document.getElementById("total").innerHTML =
+        '<div class="eprot">Linha de produção</div><div class="epline">' + celulas + '</div>';
+      pintaPorta();
+      return;
+    }
     /* Em Compras o total conta SO O QUE ESTA MARCADO (escolha do usuario): o
        numero serve dentro do mercado, pra saber quanto vai dar no caixa — nao
        antes de sair de casa. Nos outros tipos segue somando tudo. */
@@ -1078,6 +1114,9 @@ body{ padding-top:6px; }
 
     var c2=cat(filtro);
     document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
+    /* o "Nova viagem" so faz sentido em lista de viagem */
+    var bnv = document.getElementById("btNovaViagem");
+    if(bnv) bnv.style.display = (tipoDe(l) === "viagem") ? "" : "none";
     pintaPorta();
     /* o botao so existe quando ha lista embaixo dele */
     var tem=itensAVista().length;
@@ -1112,6 +1151,8 @@ body{ padding-top:6px; }
 
     var bx=document.createElement("div"); bx.className="box";
     bx.addEventListener("click",function(){
+      /* em Producao "feito" nao e binario: a peca caminha por cinco estados */
+      if(tipoDe(L()) === "producao"){ avancaEtapa(it); grava(); pinta(); return; }
       it.feito=!it.feito;
       /* a data da conclusao e o que permite o item voltar sozinho depois */
       if(it.feito){ it.fdt=Date.now(); flashFeito(); } else delete it.fdt;
@@ -1348,6 +1389,24 @@ body{ padding-top:6px; }
     var s = 0;
     (l.itens || []).forEach(function(o){ if(o.preco) s += (+o.preco || 0) * (+o.qtd || 1); });
     return s;
+  }
+
+  /* A linha de producao, na ordem do trabalho. E a ordem que da sentido ao
+     quadradinho: um toque leva a peca uma casa adiante. */
+  var ETAPAS = ["criar","roteirizar","gravar","editar","publicar"];
+  function etapaDe(it){
+    var i = ETAPAS.indexOf(String(it.etapa || "").toLowerCase());
+    return i < 0 ? 0 : i;
+  }
+  /* avanca uma casa; na ultima, a peca esta publicada e conta como feita */
+  function avancaEtapa(it){
+    var i = etapaDe(it);
+    if(it.feito){                 /* voltar do fim reabre a peca na ultima etapa */
+      it.feito = false; delete it.fdt; it.etapa = ETAPAS[ETAPAS.length - 1];
+      return;
+    }
+    if(i >= ETAPAS.length - 1){ it.feito = true; it.fdt = Date.now(); flashFeito(); return; }
+    it.etapa = ETAPAS[i + 1];
   }
 
   function menuItem(it, tudo){
@@ -2060,6 +2119,26 @@ body{ padding-top:6px; }
     c.id=uid(); c.nome=l.nome+" (cópia)";
     c.itens.forEach(function(o){ o.id=uid(); });
     D.listas.push(c); D.atual=c.id; grava(); pinta(); fecha();
+  });
+  /* VIAGEM: a proxima viagem nasce da anterior, com o que fica na mala.
+     A anterior NAO e apagada — e o registro do que voce levou pra onde. */
+  document.getElementById("btNovaViagem").addEventListener("click",function(){
+    var l = L();
+    fAsk("Para onde?", "", function(destino){
+      destino = destino.trim();
+      if(!destino) return;
+      var ficam = (l.itens || []).filter(function(o){ return o.sempre; });
+      var nova = { id: uid(), nome: destino, tipo: "viagem", cats: [], itens: [] };
+      ficam.forEach(function(o){
+        var c = JSON.parse(JSON.stringify(o));
+        c.id = uid();
+        c.feito = false;          /* renasce por fazer */
+        delete c.fdt;
+        nova.itens.push(c);
+      });
+      D.listas.push(nova); D.atual = nova.id; filtro = "";
+      grava(); pinta(); fecha();
+    }, "text", "ex: São Paulo");
   });
   document.getElementById("btApagarLista").addEventListener("click",function(){
     if(D.listas.length<2){ alert("É a única lista. Renomeie ou use Limpar tudo."); return; }
