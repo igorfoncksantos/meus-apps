@@ -270,11 +270,28 @@ function _kbdFecha(){
     if(k==='hide'){ hide(); try{target.blur();}catch(x){} return; }
   }
   /* ===== toque longo: os acentos =====
-     Segurar a letra abre o balao com as variantes; soltar em cima de uma
-     escreve ela. E o gesto do Gboard, que e onde ela aprendeu.
+     Segurar a letra abre o balao com as variantes E O BALAO FICA: da pra
+     soltar o dedo e tocar na opcao com calma. Deslizar ate a opcao e soltar
+     tambem vale, pra quem preferir o gesto do Gboard.
      O toque curto continua escrevendo a letra normal — quem nunca segurar
      nao percebe diferenca nenhuma. */
   var _pop=null, _popT=null, _popTecla=null, _popEscolha=null, _longo=false;
+  /* o balao fica aberto depois que o dedo sai: o proximo toque escolhe */
+  var _ignoraFim=false;
+  /* mesma folga de acerto das teclas: o vao entre as opcoes nao pode ser
+     um lugar onde o toque nao faz nada */
+  function opcaoPerto(x,y){
+    if(!_pop || x==null || y==null) return null;
+    var melhor=null, menor=1e9;
+    [].forEach.call(_pop.children,function(b){
+      var r=b.getBoundingClientRect();
+      var dx = x<r.left ? r.left-x : (x>r.right ? x-r.right : 0);
+      var dy = y<r.top  ? r.top-y  : (y>r.bottom ? y-r.bottom : 0);
+      var d = Math.sqrt(dx*dx+dy*dy);
+      if(d<menor){ menor=d; melhor=b; }
+    });
+    return menor<=14 ? melhor : null;
+  }
   function fechaPop(){ if(_pop&&_pop.parentNode) _pop.parentNode.removeChild(_pop);
     _pop=null; _popTecla=null; _popEscolha=null; }
   function abrePop(tecla, letra){
@@ -308,6 +325,16 @@ function _kbdFecha(){
   var _ktouch=0;
   kbd.addEventListener('touchstart', function(e){
     _ktouch=Date.now(); _longo=false;
+    /* balao aberto: este toque e a ESCOLHA, nao uma tecla nova */
+    if(_pop){
+      if(e.cancelable) e.preventDefault();
+      var b = e.target.closest && e.target.closest('.pop b');
+      if(!b){ var pb=pontoDe(e); b=opcaoPerto(pb[0],pb[1]); }
+      var ch = b && b.getAttribute('data-ins');
+      fechaPop(); _ignoraFim=true;
+      if(ch) ins(ch);          /* tocou numa opcao */
+      return;                  /* tocou fora: so cancela, sem escrever */
+    }
     var t=e.target.closest && e.target.closest('[data-k]');
     if(!t){ var pp=pontoDe(e); t=teclaPerto(pp[0],pp[1]); }
     var k=t && t.getAttribute('data-k');
@@ -328,15 +355,18 @@ function _kbdFecha(){
   }, {passive:false});
   kbd.addEventListener('touchend', function(e){
     clearTimeout(_popT);
+    if(_ignoraFim){ _ignoraFim=false; if(e.cancelable) e.preventDefault(); return; }
     if(_pop){
       var p=e.changedTouches&&e.changedTouches[0];
       if(p) marcaSob(p.clientX,p.clientY);
-      var esc=_popEscolha;
-      /* soltou sem sair da tecla: vale a variante mais usada, a primeira */
-      if(!esc) esc=_pop.children[0];
-      var ch=esc&&esc.getAttribute('data-ins');
-      fechaPop();
-      if(ch){ if(e.cancelable) e.preventDefault(); ins(ch); }
+      if(e.cancelable) e.preventDefault();
+      /* deslizou ate uma opcao: vale, como antes */
+      if(_popEscolha){
+        var ch=_popEscolha.getAttribute('data-ins');
+        fechaPop(); ins(ch);
+      }
+      /* soltou sem escolher: o balao FICA. Escrever a primeira aqui era o
+         que punha acento sem ele ter escolhido nenhum. */
       return;
     }
     if(_longo) return;

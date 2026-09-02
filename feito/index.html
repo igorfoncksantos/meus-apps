@@ -2003,6 +2003,20 @@
      Segurar a letra abre o balao com as variantes; soltar em cima de uma
      escreve ela. Toque curto continua escrevendo a letra normal. */
   var _pop=null, _popT=null, _popEscolha=null, _longo=false;
+  /* o balao fica aberto depois que o dedo sai: o proximo toque escolhe */
+  var _ignoraFim=false;
+  function opcaoPerto(x,y){
+    if(!_pop || x==null || y==null) return null;
+    var melhor=null, menor=1e9;
+    [].forEach.call(_pop.children,function(b){
+      var r=b.getBoundingClientRect();
+      var dx = x<r.left ? r.left-x : (x>r.right ? x-r.right : 0);
+      var dy = y<r.top  ? r.top-y  : (y>r.bottom ? y-r.bottom : 0);
+      var d = Math.sqrt(dx*dx+dy*dy);
+      if(d<menor){ menor=d; melhor=b; }
+    });
+    return menor<=14 ? melhor : null;
+  }
   function fechaPop(){ if(_pop&&_pop.parentNode) _pop.parentNode.removeChild(_pop);
     _pop=null; _popEscolha=null; }
   function abrePop(tecla, letra){
@@ -2034,12 +2048,15 @@
   kbd.addEventListener("pointermove", function(e){ if(_pop) marcaSob(e.clientX,e.clientY); });
   kbd.addEventListener("pointerup", function(e){
     clearTimeout(_popT);
+    if(_ignoraFim){ _ignoraFim=false; return; }
     if(_pop){
       marcaSob(e.clientX,e.clientY);
-      var esc=_popEscolha || _pop.children[0];
-      var ch=esc && esc.getAttribute("data-ins");
-      fechaPop();
-      if(ch) ins(ch);
+      /* deslizou ate uma opcao: vale */
+      if(_popEscolha){
+        var ch=_popEscolha.getAttribute("data-ins");
+        fechaPop(); ins(ch);
+      }
+      /* soltou sem escolher: o balao FICA, esperando o toque */
       return;
     }
     if(_longo) return;
@@ -2050,6 +2067,16 @@
   kbd.addEventListener("pointercancel", function(){ clearTimeout(_popT); fechaPop(); });
 
   kbd.addEventListener('pointerdown', function(e){
+    /* balao aberto: este toque e a ESCOLHA, nao uma tecla nova */
+    if(_pop){
+      e.preventDefault();
+      var b = e.target.closest && e.target.closest('.pop b');
+      if(!b) b = opcaoPerto(e.clientX, e.clientY);
+      var ch = b && b.getAttribute('data-ins');
+      fechaPop(); _ignoraFim=true;
+      if(ch) ins(ch);        /* tocou numa opcao */
+      return;                /* tocou fora: so cancela, sem escrever */
+    }
     var t=e.target.closest('[data-k],[data-ins]'); if(!t) return; _kbdBrilho(t);
     /* letra com acento: espera pra ver se e toque longo; a letra sai no soltar */
     var _k=t.getAttribute("data-k");
