@@ -176,6 +176,18 @@
     font-size:11px;color:var(--mut);margin-top:6px}
   .tlin i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
   .tlin b{color:var(--txt2);font-variant-numeric:tabular-nums}
+  .rot-p{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+         color:var(--mut2);margin-bottom:6px}
+  .porc{display:flex;align-items:center;gap:13px}
+  .porc b{font-size:26px;font-weight:800;color:var(--txt2);font-variant-numeric:tabular-nums;
+          min-width:34px;text-align:center}
+  .pbt{width:32px;height:32px;border-radius:10px;border:1px solid var(--line2);
+       background:var(--bg);color:var(--mut);font-size:19px;line-height:1;cursor:pointer;padding:0}
+  .pbt.mais{border-color:var(--acc-bd);background:var(--acc-bg);color:var(--acc-l)}
+  .pbt:active{transform:scale(.92)}
+  /* o rendimento da receita: so leitura ate voce tocar nele */
+  .pbase{margin-left:auto;font-size:11px;color:var(--mut);cursor:pointer;
+         border-bottom:1px dashed var(--line2)}
   .tsem{font-size:10.5px;color:var(--amber);margin-top:9px;opacity:.9}
   .eprot{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
          color:var(--mut2);margin-bottom:7px}
@@ -669,6 +681,8 @@ body{ padding-top:6px; }
     <h3>Lista</h3>
     <button class="bt" id="btRenomear"><span data-ic="pen"></span> Renomear lista</button>
     <button class="bt" id="btDuplicar"><span data-ic="dup"></span> Duplicar lista</button>
+    <button class="bt" id="btMandarMercado" style="display:none"><span data-ic="cart"></span> Mandar pro Mercado</button>
+    <button class="bt" id="btFecharTreino" style="display:none"><span data-ic="dumbbell"></span> Fechar treino</button>
     <button class="bt" id="btNovaViagem" style="display:none"><span data-ic="plane"></span> Nova viagem</button>
     <button class="bt" id="btLimpaFeitas"><span data-ic="check"></span> Limpar concluídas</button>
     <button class="bt pg" id="btLimpaTudo">Limpar tudo</button>
@@ -801,8 +815,11 @@ body{ padding-top:6px; }
      que icone usa, como aparece na linha e como se edita. */
   var CAMPOS = {
     qtd:    { rot:"Quantidade",      ic:"tag",      dica:"ex: 3",                cls:"q",
-              /* com unidade a medida e uma so: "1,4 kg". Sem ela, "2×". */
+              /* com unidade a medida e uma so: "1,4 kg". Sem ela, "2×".
+                 Em Receitas o numero mostrado ja vem escalado pelas porcoes. */
               mostra:function(v,it){
+                var l = L();
+                if(l && tipoDe(l) === "receitas") v = escalaQtd(v, it && it.un, fatorDe(l));
                 var n = String(v).split(".").join(",");
                 return (it && it.un) ? (n + " " + it.un) : (n + String.fromCharCode(215));
               } },
@@ -1055,6 +1072,17 @@ body{ padding-top:6px; }
         var gq=document.createElement("span"); gq.className="gq"; gq.textContent=fei.length+"/"+arr.length;
         gh.appendChild(gb); gh.appendChild(gn); gh.appendChild(gq); cont.appendChild(gh);
       }
+      /* ROTINA: a ordem util nao e a de escrita, e a da urgencia — o que
+         venceu ha mais tempo no topo. */
+      if(tipoDe(l) === "rotina"){
+        ord = ord.slice().sort(function(a, b){
+          var va = venceEm(a), vb = venceEm(b);
+          if(va === null && vb === null) return 0;
+          if(va === null) return -1;   /* nunca feito e o mais urgente */
+          if(vb === null) return 1;
+          return va - vb;
+        });
+      }
       var ul=document.createElement("ul");
       ord.forEach(function(it){ ul.appendChild(linha(it,cor)); });
       cont.appendChild(ul);
@@ -1070,6 +1098,73 @@ body{ padding-top:6px; }
     /* O total somava so o que tem preco e nao dizia isso — entao era sempre
        menor que a verdade, calado. Agora ele conta em quantos itens se apoia,
        reparte por categoria e avisa quantos ficaram de fora. */
+    var totalPronto = false;
+    /* RECEITAS: no lugar do total, as porcoes — e mexer nelas reescreve a
+       receita inteira. E o unico topo do app que se opera, nao so se le. */
+    if(tipoDe(l) === "receitas"){
+      var pc = porcDe(l), bs = baseDe(l);
+      document.getElementById("total").innerHTML =
+        '<div class="rot-p">Porções</div>' +
+        '<div class="porc">' +
+          '<button type="button" class="pbt" id="pMenos" aria-label="Menos uma porção">−</button>' +
+          '<b>' + pc + '</b>' +
+          '<button type="button" class="pbt mais" id="pMais" aria-label="Mais uma porção">+</button>' +
+          '<span class="pbase" id="pBase">a receita é de ' + bs + '</span>' +
+        '</div>';
+      document.getElementById("pMenos").addEventListener("click", function(){
+        l.porc = Math.max(1, porcDe(l) - 1); grava(); pinta();
+      });
+      document.getElementById("pMais").addEventListener("click", function(){
+        l.porc = porcDe(l) + 1; grava(); pinta();
+      });
+      document.getElementById("pBase").addEventListener("click", function(){
+        fAsk("A receita rende quantas porções?", String(baseDe(l)), function(v){
+          var n = num(v); if(n > 0){ l.base = n; grava(); pinta(); }
+        }, "number");
+      });
+      totalPronto = true;
+    }
+
+    /* TREINO: no lugar do total em dinheiro, o volume — o numero que diz se
+       hoje foi maior que o treino anterior. */
+    if(tipoDe(l) === "treino"){
+      var vFeito = 0, vTudo = 0;
+      (l.itens || []).forEach(function(o){
+        var v = volumeDe(o);
+        vTudo += v;
+        if(o.feito) vFeito += v;
+      });
+      var ses = l.sessoes || [];
+      var ant = ses.length ? ses[ses.length - 1].v : 0;
+      var comp = "";
+      if(ant && vFeito){
+        var pc = Math.round((vFeito - ant) / ant * 100);
+        comp = "treino anterior: " + kg(ant) + " \u00b7 " + (pc >= 0 ? "+" : "") + pc + "%";
+      } else if(ant){
+        comp = "treino anterior: " + kg(ant);
+      }
+      document.getElementById("total").innerHTML =
+        '<div class="tsoma">' + kg(vFeito) + ' <span>de volume</span></div>' +
+        (vTudo > vFeito ? ('<div class="tsem">de ' + kg(vTudo) + ' previstos</div>') : "") +
+        (comp ? ('<div class="tsem">' + comp + '</div>') : "");
+      totalPronto = true;   /* o topo ja foi desenhado; o resto do pinta segue */
+    }
+    /* ROTINA: no lugar do total, quantas venceram e quando vem a proxima */
+    if(tipoDe(l) === "rotina"){
+      var venc = 0, prox = null;
+      (l.itens || []).forEach(function(o){
+        if(!o.cada) return;
+        var d = venceEm(o);
+        if(d === null || d < 0){ venc++; return; }
+        if(prox === null || d < prox) prox = d;
+      });
+      var frase = (prox === null) ? "" :
+        ("a pr\u00f3xima vence " + (prox === 0 ? "hoje" : ("em " + prox + (prox === 1 ? " dia" : " dias"))));
+      document.getElementById("total").innerHTML =
+        '<div class="tsoma">' + venc + ' <span>' + (venc === 1 ? "vencida" : "vencidas") + '</span></div>' +
+        (frase ? ('<div class="tsem">' + frase + '</div>') : "");
+      totalPronto = true;   /* o topo ja foi desenhado; o resto do pinta segue */
+    }
     /* PRODUCAO: no lugar do total em dinheiro, a linha de producao em ordem.
        Cada etapa mostra quantas pecas estao nela; a vazia fica visivel porque
        o buraco na linha tambem e informacao. */
@@ -1087,12 +1182,12 @@ body{ padding-top:6px; }
       }).join('<i class="epseta"></i>');
       document.getElementById("total").innerHTML =
         '<div class="eprot">Linha de produção</div><div class="epline">' + celulas + '</div>';
-      pintaPorta();
-      return;
+      totalPronto = true;   /* o topo ja foi desenhado; o resto do pinta segue */
     }
     /* Em Compras o total conta SO O QUE ESTA MARCADO (escolha do usuario): o
        numero serve dentro do mercado, pra saber quanto vai dar no caixa — nao
        antes de sair de casa. Nos outros tipos segue somando tudo. */
+    if(!totalPronto){
     var soNoCarrinho = (tipoDe(l) === "compras");
     var soma=0, comPreco=0, semPreco=0, porCat={};
     l.itens.forEach(function(o){
@@ -1124,9 +1219,15 @@ body{ padding-top:6px; }
         (soNoCarrinho ? ('<div class="tsem">de '+din(totalDaLista(l))+' na lista inteira</div>') : '');
     }
 
+    }
+
     var c2=cat(filtro);
     document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
     /* o "Nova viagem" so faz sentido em lista de viagem */
+    var bmm = document.getElementById("btMandarMercado");
+    if(bmm) bmm.style.display = (tipoDe(l) === "receitas") ? "" : "none";
+    var bft = document.getElementById("btFecharTreino");
+    if(bft) bft.style.display = (tipoDe(l) === "treino") ? "" : "none";
     var bnv = document.getElementById("btNovaViagem");
     if(bnv) bnv.style.display = (tipoDe(l) === "viagem") ? "" : "none";
     pintaPorta();
@@ -1165,6 +1266,8 @@ body{ padding-top:6px; }
     bx.addEventListener("click",function(){
       /* em Producao "feito" nao e binario: a peca caminha por cinco estados */
       if(tipoDe(L()) === "producao"){ avancaEtapa(it); grava(); pinta(); return; }
+      /* em Rotina marcar feito REAGENDA em vez de apagar */
+      if(tipoDe(L()) === "rotina" && it.cada){ cumpreRotina(it); grava(); pinta(); return; }
       it.feito=!it.feito;
       /* a data da conclusao e o que permite o item voltar sozinho depois */
       if(it.feito){ it.fdt=Date.now(); flashFeito(); } else delete it.fdt;
@@ -1195,11 +1298,28 @@ body{ padding-top:6px; }
       if(rotulo === "" || rotulo === undefined) return;   /* absorvido por outro campo */
       etiqueta(c.cls || "", rotulo, c.rot, function(){ editaCampo(it, k); });
     });
+    /* RECEITAS: quando a receita esta escalada, mostrar de quanto era. Sem
+       isso o numero muda sozinho e voce nao sabe se leu errado. */
+    if(tipoDe(L()) === "receitas" && it.qtd && fatorDe(L()) !== 1)
+      etiqueta("", "era " + it.qtd + (it.un ? (" " + it.un) : ""), "quantidade da receita", function(){ editaCampo(it, "qtd"); });
+    /* ROTINA: o vencimento e o dado que importa — quanto tempo passou do
+       prazo, ou quanto falta. Sem ele "a cada 6 meses" nao diz nada. */
+    if(tipoDe(L()) === "rotina" && it.cada){
+      var dv = venceEm(it);
+      if(dv === null) etiqueta("d", "nunca feito", "sem \u00faltima vez", function(){ editaCampo(it, "ultima"); });
+      else if(dv < 0)  etiqueta("d perto", "venceu h\u00e1 " + (-dv) + (dv === -1 ? " dia" : " dias"), it.ultima, function(){ editaCampo(it, "ultima"); });
+      else if(dv === 0) etiqueta("d perto", "vence hoje", it.ultima, function(){ editaCampo(it, "ultima"); });
+      else              etiqueta("d", "em " + dv + (dv === 1 ? " dia" : " dias"), it.ultima, function(){ editaCampo(it, "ultima"); });
+    }
     if(it.rep) etiqueta("rep","\u21bb "+({dia:"todo dia",semana:"toda semana",mes:"todo m\u00eas"}[it.rep]||it.rep),"repete",function(){
       it.rep=null; delete it.fdt; grava(); pinta(); });
     /* preco e carga saem no laco de CAMPOS, acima */
+    /* TREINO: recorde e o unico elogio que o app da — e ele so vale se for
+       verdade, entao sai da comparacao com o historico, nao de um palpite. */
+    if(tipoDe(L()) === "treino" && it.carga && num(it.carga) > recordeDe(it) && (it.hist || []).length)
+      etiqueta("r", "recorde", "maior carga j\u00e1 registrada", function(){});
     if(it.hist && it.hist.length) etiqueta("","antes: "+it.hist[it.hist.length-1],"último registro",function(){
-      alert("Histórico:\n• "+it.hist.slice().reverse().join("\n• "));
+      fInfo("Histórico:\n• "+it.hist.slice().reverse().join("\n• "));
     });
     if(it.prazo){
       var dd=Math.ceil((new Date(it.prazo+"T00:00:00")-new Date(new Date().toDateString()))/86400000);
@@ -1350,6 +1470,16 @@ body{ padding-top:6px; }
     document.removeEventListener("keydown",fEsc);
   }
   function fEsc(e){ if(e.key==="Escape") fClose(); }
+  /* aviso na folha do proprio app: o alerta do navegador trava a pagina e
+     nao se parece com nada aqui dentro */
+  function fInfo(texto, titulo){
+    var sh = fOverlay(
+      '<div class="fsh-t">' + (titulo || "Pronto") + '</div>' +
+      '<div class="fsh-s">' + texto + '</div>' +
+      '<div class="fsh-a"><button type="button" class="fsk-p" id="fnfOk">Entendi</button></div>');
+    sh.querySelector("#fnfOk").addEventListener("click", fClose);
+  }
+
   function fOverlay(html){
     fCss(); fClose();
     var ov=document.createElement("div"); ov.id="fSheetOv"; ov.className="fov";
@@ -1401,6 +1531,90 @@ body{ padding-top:6px; }
     var s = 0;
     (l.itens || []).forEach(function(o){ if(o.preco) s += (+o.preco || 0) * (+o.qtd || 1); });
     return s;
+  }
+
+  /* ---------- RECEITAS ---------- */
+  function baseDe(l){ return (+(l && l.base) > 0) ? +l.base : 4; }
+  function porcDe(l){ return (+(l && l.porc) > 0) ? +l.porc : baseDe(l); }
+  function fatorDe(l){ return porcDe(l) / baseDe(l); }
+  /* o que se conta na mao (cebola, ovo, dente) nao aceita meio: arredonda.
+     O que se pesa ou se mede aceita: 900 g e uma medida legitima. */
+  function contavel(un){
+    if(!un) return true;
+    var u = String(un).toLowerCase();
+    return !(u.indexOf("kg") >= 0 || u.indexOf("g") >= 0 || u.indexOf("l") >= 0 ||
+             u.indexOf("ml") >= 0 || u.indexOf("mg") >= 0);
+  }
+  function escalaQtd(q, un, f){
+    var v = num(q) * f;
+    if(!v) return q;
+    if(contavel(un)) return String(Math.max(1, Math.round(v)));
+    var r = Math.round(v * 100) / 100;
+    return String(r).split(".").join(",");
+  }
+
+  /* ---------- TREINO ---------- */
+  /* "4 x 10", "4x10", "4 por 10" -> 40 repeticoes. Sem os dois numeros nao da
+     pra calcular volume, e o exercicio fica de fora da conta em vez de entrar
+     com um palpite. */
+  function repsDe(txt){
+    var m = String(txt || "").match(/[0-9]+([.,][0-9]+)?/g);
+    if(!m || m.length < 2) return 0;
+    return num(m[0]) * num(m[1]);
+  }
+  function num(t){ return parseFloat(String(t).split(",").join(".").replace(/[^0-9.]/g, "")) || 0; }
+  function volumeDe(it){
+    var r = repsDe(it.serie), c = num(it.carga);
+    return (r && c) ? r * c : 0;
+  }
+  /* a maior carga ja registrada neste exercicio, olhando o historico */
+  function recordeDe(it){
+    var maior = 0;
+    (it.hist || []).forEach(function(h){ var v = num(h); if(v > maior) maior = v; });
+    return maior;
+  }
+  function kg(v){
+    return v.toLocaleString("pt-BR", {maximumFractionDigits:0}) + " kg";
+  }
+
+  /* ---------- ROTINA ---------- */
+  /* "6 meses", "toda semana", "15 dias" -> quantos dias sao. Devolve 0 quando
+     nao da pra entender: sem intervalo nao ha vencimento, e a rotina vira um
+     item comum em vez de mentir uma data. */
+  function diasDoIntervalo(txt){
+    if(!txt) return 0;
+    var t = String(txt).toLowerCase();
+    var m = t.match(/[0-9]+/);
+    var n = m ? parseInt(m[0], 10) : 1;      /* "toda semana" = 1 semana */
+    if(t.indexOf("ano") >= 0)    return n * 365;
+    if(t.indexOf("mes") >= 0 || t.indexOf("mês") >= 0) return n * 30;
+    if(t.indexOf("seman") >= 0)  return n * 7;
+    if(t.indexOf("dia") >= 0)    return n;
+    return m ? n : 0;
+  }
+  function soData(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  /* quantos dias faltam pro proximo vencimento. Negativo = venceu. */
+  function venceEm(it){
+    var dias = diasDoIntervalo(it.cada);
+    if(!dias || !it.ultima) return null;
+    var p = String(it.ultima).split("-");
+    if(p.length !== 3) return null;
+    var base = new Date(+p[0], +p[1] - 1, +p[2]);
+    var alvo = new Date(base.getTime() + dias * 86400000);
+    return Math.round((soData(alvo) - soData(new Date())) / 86400000);
+  }
+  function hojeISO(){
+    var d = new Date(), z = function(n){ return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+  }
+  /* marcar feito numa rotina nao apaga: registra hoje e reagenda. O intervalo
+     conta a partir de HOJE — se voce lavou 3 dias atrasado, a proxima e daqui
+     a 15 dias, nao daqui a 12. */
+  function cumpreRotina(it){
+    it.ultima = hojeISO();
+    it.feito = false;
+    delete it.fdt;
+    flashFeito();
   }
 
   /* A linha de producao, na ordem do trabalho. E a ordem que da sentido ao
@@ -2132,6 +2346,53 @@ body{ padding-top:6px; }
     c.itens.forEach(function(o){ o.id=uid(); });
     D.listas.push(c); D.atual=c.id; grava(); pinta(); fecha();
   });
+  /* RECEITAS: a ponte. Escolhe uma lista de Compras que JA EXISTE e leva os
+     ingredientes ja escalados. Item repetido SOMA a quantidade em vez de
+     duplicar — senao voce chega no mercado com "cebola" duas vezes. */
+  document.getElementById("btMandarMercado").addEventListener("click",function(){
+    var l = L();
+    var destinos = D.listas.filter(function(x){ return tipoDe(x) === "compras"; });
+    if(!destinos.length){
+      fInfo("N\u00e3o h\u00e1 nenhuma lista de Compras ainda. Crie uma e volte aqui.");
+      return;
+    }
+    fMenu("Mandar os ingredientes para", destinos.map(function(x){
+      return { id:x.id, ic:"cart", nome:x.nome, sub:x.itens.length + (x.itens.length === 1 ? " item" : " itens") };
+    }), function(id){
+      var alvo = D.listas.filter(function(x){ return x.id === id; })[0];
+      if(!alvo) return;
+      var f = fatorDe(l), somados = 0, novos = 0;
+      (l.itens || []).forEach(function(o){
+        var q = o.qtd ? escalaQtd(o.qtd, o.un, f) : "";
+        var chave = String(o.texto || "").trim().toLowerCase();
+        var ja = alvo.itens.filter(function(x){ return String(x.texto || "").trim().toLowerCase() === chave; })[0];
+        if(ja && q && ja.un === o.un){
+          ja.qtd = String(num(ja.qtd) + num(q)).split(".").join(",");
+          somados++;
+        } else if(ja){ somados++; }
+        else {
+          alvo.itens.push({ id: uid(), texto: o.texto, feito: false, qtd: q, un: o.un });
+          novos++;
+        }
+      });
+      D.atual = alvo.id; filtro = "";
+      grava(); pinta(); fecha();
+      fInfo(novos + (novos === 1 ? " item novo" : " itens novos") +
+            (somados ? (" \u00b7 " + somados + (somados === 1 ? " j\u00e1 estava e foi somado" : " j\u00e1 estavam e foram somados")) : "") +
+            " em " + alvo.nome + ".");
+    });
+  });
+  /* TREINO: fechar a sessao guarda o volume do dia e desmarca tudo pro
+     proximo. Sem esse marco nao ha com o que comparar na semana seguinte. */
+  document.getElementById("btFecharTreino").addEventListener("click",function(){
+    var l = L(), v = 0;
+    (l.itens || []).forEach(function(o){ if(o.feito) v += volumeDe(o); });
+    if(!v){ fInfo("Nenhum exerc\u00edcio marcado — n\u00e3o h\u00e1 volume a guardar."); return; }
+    l.sessoes = l.sessoes || [];
+    l.sessoes.push({ d: hojeISO(), v: v });
+    (l.itens || []).forEach(function(o){ o.feito = false; delete o.fdt; });
+    grava(); pinta(); fecha();
+  });
   /* VIAGEM: a proxima viagem nasce da anterior, com o que fica na mala.
      A anterior NAO e apagada — e o registro do que voce levou pra onde. */
   document.getElementById("btNovaViagem").addEventListener("click",function(){
@@ -2153,7 +2414,7 @@ body{ padding-top:6px; }
     }, "text", "ex: São Paulo");
   });
   document.getElementById("btApagarLista").addEventListener("click",function(){
-    if(D.listas.length<2){ alert("É a única lista. Renomeie ou use Limpar tudo."); return; }
+    if(D.listas.length<2){ fInfo("É a única lista. Renomeie ou use Limpar tudo."); return; }
     var l=L(); if(!confirm("Apagar a lista \""+l.nome+"\" e os "+l.itens.length+" itens dela?")) return;
     D.listas=D.listas.filter(function(o){ return o.id!==l.id; });
     D.atual=D.listas[0].id; filtro=""; grava(); pinta(); fecha();
@@ -2216,7 +2477,7 @@ body{ padding-top:6px; }
     var t=comoTexto();
     if(navigator.share){ navigator.share({title:L().nome,text:t}).catch(function(){}); fecha(); return; }
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(t).then(function(){ alert("Lista copiada."); fecha(); },function(){ prompt("Copie:",t); });
+      navigator.clipboard.writeText(t).then(function(){ fInfo("Lista copiada."); fecha(); },function(){ prompt("Copie:",t); });
     } else prompt("Copie:",t);
   });
   document.getElementById("btExportar").addEventListener("click",function(){
@@ -2235,7 +2496,7 @@ body{ padding-top:6px; }
         else if(Array.isArray(d)){ D={listas:[{id:uid(),nome:"Importada",cats:[],itens:d}],modelos:[],freq:{}}; D.atual=D.listas[0].id; }
         else if(d && d.itens){ D={listas:[{id:uid(),nome:"Importada",cats:d.cats||[],itens:d.itens}],modelos:[],freq:{}}; D.atual=D.listas[0].id; }
         grava(); ler(); pinta(); fecha();
-      }catch(err){ alert("Não consegui ler esse arquivo."); }
+      }catch(err){ fInfo("Não consegui ler esse arquivo."); }
     };
     r.readAsText(f); e.target.value="";
   });
