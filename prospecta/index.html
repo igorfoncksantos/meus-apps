@@ -1028,8 +1028,12 @@ function aplicaPriv(){
   if(b){ b.classList.toggle("on",PRIV); b.title = PRIV?"Mostrar valores":"Ocultar valores";
          b.innerHTML = window.svgIc ? window.svgIc(PRIV?"eyeoff":"eye") : "◉"; }
 }
-function trocaPriv(){ PRIV=!PRIV; try{ localStorage.setItem("prospecta-priv",PRIV?"1":"0"); }catch(e){} aplicaPriv(); }
-try{ PRIV = localStorage.getItem("prospecta-priv")==="1"; }catch(e){}
+function trocaPriv(){ PRIV=!PRIV; try{ localStorage.setItem("apps-priv",PRIV?"1":"0"); }catch(e){} aplicaPriv(); }
+/* a chave e uma so pros apps; quem ja tinha ligado aqui continua ligado.
+   O ==="1" tem que valer pros DOIS ramos: a string "0" e verdadeira. */
+try{ var _p = localStorage.getItem("apps-priv");
+     if(_p === null) _p = localStorage.getItem("prospecta-priv");
+     PRIV = (_p === "1"); }catch(e){}
 
 function fechaBV(){
   var b=document.getElementById("bv"); if(b) b.classList.remove("on");

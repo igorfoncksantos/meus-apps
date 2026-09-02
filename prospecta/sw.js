@@ -1,6 +1,6 @@
 /* Rede primeiro: o app e um arquivo so, e vale mais chegar atualizado do que
    chegar rapido. O cache serve pra quando nao houver rede. */
-var CACHE = 'meusapps-prospecta-v4';
+var CACHE = 'meusapps-prospecta-v5';
 var ARQ = ['./', './index.html', './som.js', './manifest.json', './klix.png', './icone-192.png', './icone-512.png', './icons.js', './sync.js', './supabase.js'];
 
 self.addEventListener('install', function (e) {

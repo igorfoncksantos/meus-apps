@@ -1129,7 +1129,7 @@ var MES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto",
 var PRIV = false;
 function brl(n){ if(PRIV) return "•••"; return (n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function applyPriv(){ document.body.classList.toggle("priv",PRIV); var b=document.getElementById("eyeBtn"); if(b){ b.classList.toggle("on",PRIV); b.title=PRIV?"Mostrar valores":"Ocultar valores"; } }
-function togglePriv(){ PRIV=!PRIV; try{ localStorage.setItem("stash-priv",PRIV?"1":"0"); }catch(e){} applyPriv(); renderTudo(); }
+function togglePriv(){ PRIV=!PRIV; try{ localStorage.setItem("apps-priv",PRIV?"1":"0"); }catch(e){} applyPriv(); renderTudo(); }
 function num(s){ if(s===0) return 0; if(!s) return 0; s=String(s).trim();
   if(s.indexOf(",")>=0){ s=s.replace(/\./g,"").replace(",","."); }
   var v=parseFloat(s.replace(/[^0-9.\-]/g,"")); return isNaN(v)?0:v; }
@@ -1285,7 +1285,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v121';
+var VERSAO = 'v122';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -3384,7 +3384,9 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Enter" && e.target && e.target.classList && e.target.classList.contains("r")) e.target.blur();
 });
 function renderTudo(){ renderPatrimonio(); renderAporte(); renderGastos(); }
-try{ PRIV = localStorage.getItem("stash-priv")==="1"; }catch(e){}
+try{ var _p=localStorage.getItem("apps-priv");
+     if(_p===null) _p=localStorage.getItem("stash-priv");   /* a chave de antes */
+     PRIV=(_p==="1"); }catch(e){}
 applyPriv();
 document.getElementById("eyeBtn").addEventListener("click", togglePriv);
 function applyTheme(t){ if(t){ document.documentElement.setAttribute("data-theme",t); } else { document.documentElement.removeAttribute("data-theme"); }
