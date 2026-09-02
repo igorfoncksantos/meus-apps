@@ -71,6 +71,17 @@
         border:1px solid var(--line); border-radius:11px; color:var(--mut);
         cursor:pointer; font-size:15px; line-height:1; padding:0; }
   .thm:active{ border-color:var(--accent); color:var(--accent); }
+  /* o olhinho fica a esquerda do botao de tema */
+  .eyeF{ position:absolute; right:82px; top:-2px; width:34px; height:34px; display:flex;
+        align-items:center; justify-content:center; background:transparent;
+        border:1px solid var(--line); border-radius:11px; color:var(--mut);
+        cursor:pointer; padding:0; transition:.16s; }
+  .eyeF:active{ transform:scale(.92); }
+  .eyeF.on{ color:var(--accent); border-color:var(--accent);
+            background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .eyeF.on::after{ content:""; position:absolute; left:5px; right:5px; top:50%; height:2.2px;
+            background:currentColor; transform:translateY(-50%) rotate(-45deg);
+            border-radius:2px; box-shadow:0 -2px 0 var(--bg); }
 
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{background:var(--bg);min-height:100%}
@@ -533,6 +544,9 @@
 
 <header>
   <div class="k">Feito</div>
+  <button class="eyeF" id="eyeF" type="button" title="Ocultar / mostrar valores" aria-label="Ocultar valores" onclick="trocaPrivF()">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
   <button class="thm" type="button" title="Trocar tema" aria-label="Trocar tema" onclick="cicloTemaF()">◐</button>
   <div class="s">toque no quadrado pra concluir &middot; arraste a barrinha pra reordenar</div>
 </header>
@@ -612,6 +626,29 @@
 
   function uid(){ return "x"+Date.now().toString(36)+Math.floor(Math.random()*9999).toString(36); }
   function grava(){ try{ localStorage.setItem(K,JSON.stringify(D)); }catch(e){} }
+  /* ---------- o olhinho ----------
+     Uma chave pros apps todos, como a do som: e preferencia do APARELHO. */
+  var PRIVF = false;
+  try{ PRIVF = (localStorage.getItem("apps-priv") === "1"); }catch(e){}
+  function din(n){
+    return "R$ " + (PRIVF ? "•••" : (+n||0).toFixed(2).replace(".",","));
+  }
+  function aplicaPrivF(){
+    var b=document.getElementById("eyeF");
+    if(b){ b.classList.toggle("on",PRIVF); b.title = PRIVF ? "Mostrar valores" : "Ocultar valores"; }
+  }
+  window.trocaPrivF = function(){
+    PRIVF = !PRIVF;
+    try{ localStorage.setItem("apps-priv", PRIVF?"1":"0"); }catch(e){}
+    aplicaPrivF(); pinta();
+  };
+  /* o Feito tambem roda dentro do Stash, num quadro proprio: quando o
+     olhinho muda do lado de fora, o navegador avisa por aqui */
+  window.addEventListener("storage", function(e){
+    if(e.key !== "apps-priv") return;
+    PRIVF = (e.newValue === "1"); aplicaPrivF(); pinta();
+  });
+  aplicaPrivF();
   function L(){ for(var i=0;i<D.listas.length;i++){ if(D.listas[i].id===D.atual) return D.listas[i]; } return D.listas[0]; }
   function cat(id){ var l=L(); if(!l) return null; for(var i=0;i<l.cats.length;i++){ if(l.cats[i].id===id) return l.cats[i]; } return null; }
 
@@ -773,11 +810,11 @@
           var c=(k==="__sem")?{nome:"Sem categoria",cor:"#5b646a"}:cat(k);
           if(!c) c={nome:"Sem categoria",cor:"#5b646a"};
           linhas+='<div class="tlin"><span><i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</span>' +
-                  '<b>R$ '+porCat[k].toFixed(2).replace(".",",")+'</b></div>';
+                  '<b>'+din(porCat[k])+'</b></div>';
         });
       }
       elT.innerHTML =
-        '<div class="tsoma">R$ '+soma.toFixed(2).replace(".",",") +
+        '<div class="tsoma">'+din(soma) +
         ' <span>em '+comPreco+(comPreco===1?" item":" itens")+'</span></div>' + linhas +
         (semPreco ? ('<div class="tsem">'+semPreco+(semPreco===1?" item ainda sem pre\u00e7o":" itens ainda sem pre\u00e7o")+'</div>') : "");
     }
@@ -843,7 +880,7 @@
     });
     if(it.rep) etiqueta("rep","\u21bb "+({dia:"todo dia",semana:"toda semana",mes:"todo m\u00eas"}[it.rep]||it.rep),"repete",function(){
       it.rep=null; delete it.fdt; grava(); pinta(); });
-    if(it.preco) etiqueta("p","R$ "+(+it.preco).toFixed(2).replace(".",","),"preço",function(){
+    if(it.preco) etiqueta("p",din(it.preco),"preço",function(){
       fAsk("Preço",it.preco,function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
     });
     if(it.carga) etiqueta("q",it.carga,"séries × reps × carga",function(){
