@@ -870,7 +870,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v73';
+const VERSAO = 'v74';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1704,11 +1704,10 @@ function closeMenu(){ document.getElementById('menu').classList.add('hidden'); }
 document.addEventListener('click',(e)=>{ closeMenu();
   const p=document.getElementById('calPop');
   if(p && !p.classList.contains('hidden') && !p.contains(e.target)) closeCal(); });
-function sheet(html){ closeSheet();   /* uma por vez: duas com o mesmo id se atropelam */
-  let o=document.createElement('div'); o.className='overlay'; o.id='sheetOverlay';
+function sheet(html){ let o=document.createElement('div'); o.className='overlay'; o.id='sheetOverlay';
   o.innerHTML=`<div class="sheet" onclick="event.stopPropagation()">${html}</div>`;
   o.onclick=closeSheet; document.body.appendChild(o); }
-function closeSheet(){ document.querySelectorAll('#sheetOverlay').forEach(function(o){ o.remove(); }); }
+function closeSheet(){ const o=document.getElementById('sheetOverlay'); if(o)o.remove(); }
 
 /* ---- backup / restore / pdf ---- */
 function backup(){ closeMenu(); const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
