@@ -773,9 +773,14 @@ body{ padding-top:6px; }
      que icone usa, como aparece na linha e como se edita. */
   var CAMPOS = {
     qtd:    { rot:"Quantidade",      ic:"tag",      dica:"ex: 3",                cls:"q",
-              mostra:function(v){ return v + "×"; } },
+              /* com unidade a medida e uma so: "1,4 kg". Sem ela, "2×". */
+              mostra:function(v,it){
+                var n = String(v).split(".").join(",");
+                return (it && it.un) ? (n + " " + it.un) : (n + String.fromCharCode(215));
+              } },
     un:     { rot:"Unidade",         ic:"tag",      dica:"un · kg · g · L · ml", cls:"",
-              mostra:function(v){ return v; } },
+              /* vazio quando a quantidade ja a mostrou: senao sai "2 un" e "un" */
+              mostra:function(v,it){ return (it && it.qtd) ? "" : v; } },
     preco:  { rot:"Preço",         ic:"money",    dica:"só número",           cls:"p", num:true,
               mostra:function(v){ return din(v); } },
     local:  { rot:"Onde comprar",    ic:"cart",     dica:"ex: Condor",           cls:"",
@@ -1037,8 +1042,13 @@ body{ padding-top:6px; }
     /* O total somava so o que tem preco e nao dizia isso — entao era sempre
        menor que a verdade, calado. Agora ele conta em quantos itens se apoia,
        reparte por categoria e avisa quantos ficaram de fora. */
+    /* Em Compras o total conta SO O QUE ESTA MARCADO (escolha do usuario): o
+       numero serve dentro do mercado, pra saber quanto vai dar no caixa — nao
+       antes de sair de casa. Nos outros tipos segue somando tudo. */
+    var soNoCarrinho = (tipoDe(l) === "compras");
     var soma=0, comPreco=0, semPreco=0, porCat={};
     l.itens.forEach(function(o){
+      if(soNoCarrinho && !o.feito) return;
       if(o.preco){
         var v=(+o.preco||0)*(+o.qtd||1);
         soma+=v; comPreco++;
@@ -1061,8 +1071,9 @@ body{ padding-top:6px; }
       }
       elT.innerHTML =
         '<div class="tsoma">'+din(soma) +
-        ' <span>em '+comPreco+(comPreco===1?" item":" itens")+'</span></div>' + linhas +
-        (semPreco ? ('<div class="tsem">'+semPreco+(semPreco===1?" item ainda sem pre\u00e7o":" itens ainda sem pre\u00e7o")+'</div>') : "");
+        ' <span>' + (soNoCarrinho ? "no carrinho" : "em " + comPreco + (comPreco===1?" item":" itens")) + '</span></div>' + linhas +
+        (semPreco ? ('<div class="tsem">'+semPreco+(semPreco===1?" item ainda sem pre\u00e7o":" itens ainda sem pre\u00e7o")+'</div>') : "") +
+        (soNoCarrinho ? ('<div class="tsem">de '+din(totalDaLista(l))+' na lista inteira</div>') : '');
     }
 
     var c2=cat(filtro);
@@ -1120,19 +1131,20 @@ body{ padding-top:6px; }
       var s=document.createElement("span"); s.className="tag "+cls; s.textContent=txt; s.title=titulo;
       s.addEventListener("click",onEdit); ex.appendChild(s); return s;
     }
-    if(it.qtd) etiqueta("q",it.qtd+"×","quantidade",function(){
-      fAsk("Quantidade",it.qtd,function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","vazio apaga");
+    /* Os campos vem da TABELA, na ordem que o tipo declara. O que nao e do tipo
+       mas ja tem valor aparece tambem: o tipo manda no que se OFERECE, nunca no
+       que se esconde — senao toda lista antiga perderia os precos da tela. */
+    camposDoItem(it).forEach(function(k){
+      var c = CAMPOS[k]; if(!c) return;
+      var v = it[k];
+      if(v === undefined || v === "" || v === null) return;
+      var rotulo = c.mostra(v, it);
+      if(rotulo === "" || rotulo === undefined) return;   /* absorvido por outro campo */
+      etiqueta(c.cls || "", rotulo, c.rot, function(){ editaCampo(it, k); });
     });
     if(it.rep) etiqueta("rep","\u21bb "+({dia:"todo dia",semana:"toda semana",mes:"todo m\u00eas"}[it.rep]||it.rep),"repete",function(){
       it.rep=null; delete it.fdt; grava(); pinta(); });
-    if(it.preco) etiqueta("p",din(it.preco),"preço",function(){
-      fAsk("Preço",it.preco,function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
-    });
-    if(it.carga) etiqueta("q",it.carga,"séries × reps × carga",function(){
-      fAsk("Séries × reps × carga",it.carga,function(v){
-        if(v.trim()&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
-        it.carga=v.trim(); grava(); pinta(); },"text","ex: 4×10 · 60kg");
-    });
+    /* preco e carga saem no laco de CAMPOS, acima */
     if(it.hist && it.hist.length) etiqueta("","antes: "+it.hist[it.hist.length-1],"último registro",function(){
       alert("Histórico:\n• "+it.hist.slice().reverse().join("\n• "));
     });
@@ -1328,6 +1340,14 @@ body{ padding-top:6px; }
     sh.querySelector("#fskO").addEventListener("click",ok);
     i.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); ok(); } });
     setTimeout(function(){ try{ i.focus(); i.select(); }catch(e){} },80);
+  }
+
+  /* o total previsto da lista inteira, mostrado como referencia abaixo do
+     carrinho: sem ele o numero do topo encolhe sem explicar por que */
+  function totalDaLista(l){
+    var s = 0;
+    (l.itens || []).forEach(function(o){ if(o.preco) s += (+o.preco || 0) * (+o.qtd || 1); });
+    return s;
   }
 
   function menuItem(it, tudo){
