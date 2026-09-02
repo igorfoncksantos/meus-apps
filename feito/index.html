@@ -93,6 +93,50 @@
   header .s{font-size:10.5px;color:var(--mut2);margin-top:6px;line-height:1.5}
 
   .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+
+  /* ===== a gaveta das listas (layout D) =====
+     No celular ela desliza por cima; a partir de 900px de largura ela fica
+     fixa ao lado e a barra de abrir some — nao ha o que esconder. */
+  .lbar{ display:flex; align-items:center; gap:9px; width:100%; margin-bottom:11px;
+         padding:10px 13px; border-radius:14px; border:1px solid var(--line);
+         background:var(--panel); color:var(--txt); cursor:pointer; font:inherit;
+         transition:border-color .14s ease, transform .12s ease; }
+  .lbar:active{ transform:scale(.985); border-color:var(--accent); }
+  .lbar .ic{ display:flex; color:var(--accent); flex:0 0 auto; }
+  .lbar .nm{ font-weight:800; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lbar .qt{ font-size:11.5px; color:var(--mut); font-weight:700; flex:0 0 auto; }
+  .lbar .seta{ margin-left:auto; color:var(--mut2); display:flex; flex:0 0 auto; }
+
+  .gav-fundo{ position:fixed; inset:0; z-index:800000; background:rgba(4,6,10,.6);
+        -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+        opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  body.gav-on .gav-fundo{ opacity:1; pointer-events:auto; }
+  .gav{ position:fixed; left:0; top:0; bottom:0; z-index:800001; width:min(78vw,290px);
+        background:var(--panel); border-right:1px solid var(--line);
+        padding:18px 12px calc(18px + env(safe-area-inset-bottom));
+        display:flex; flex-direction:column; gap:5px; overflow-y:auto;
+        transform:translateX(-102%); transition:transform .22s cubic-bezier(.25,.9,.3,1); }
+  body.gav-on .gav{ transform:translateX(0); }
+  .gav-t{ font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+          color:var(--mut2); padding:0 8px 9px; }
+  .gav-i{ display:flex; align-items:center; gap:9px; padding:11px 10px; border-radius:12px;
+          border:1px solid transparent; background:transparent; color:var(--mut); cursor:pointer;
+          font:inherit; font-size:13.5px; font-weight:700; text-align:left; width:100%; }
+  .gav-i .ic{ display:flex; color:var(--accent); flex:0 0 auto; }
+  .gav-i .nm{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gav-i .qt{ font-size:11px; color:var(--mut2); font-weight:700; }
+  .gav-i:active{ background:var(--panel2); }
+  .gav-i.on{ background:var(--acc-bg); border-color:var(--acc-bd); color:var(--acc-l); }
+  .gav-i.nv{ color:var(--mut2); border:1px dashed var(--line2); margin-top:7px; }
+  @media (prefers-reduced-motion:reduce){ .gav{ transition:none } .gav-fundo{ transition:none } }
+
+  /* em tela larga a gaveta e uma coluna fixa, sempre a vista */
+  @media (min-width:900px){
+    body{ padding-left:calc(258px + 16px); }
+    .lbar{ display:none; }
+    .gav-fundo{ display:none; }
+    .gav{ transform:none; width:242px; border-radius:0; }
+  }
   .chips::-webkit-scrollbar{display:none}
   .chip{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:20px;
         border:1px solid var(--line);background:var(--panel);color:var(--mut);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
@@ -551,7 +595,15 @@
   <div class="s">toque no quadrado pra concluir &middot; arraste a barrinha pra reordenar</div>
 </header>
 
-<div class="chips" id="listas"></div>
+<!-- a barra que abre a gaveta, no lugar da fila de chips -->
+<button type="button" class="lbar" id="lbar" aria-haspopup="true" aria-expanded="false">
+  <span class="ic" id="lbarIc"></span>
+  <span class="nm" id="lbarNm">Minha lista</span>
+  <span class="qt" id="lbarQt"></span>
+  <span class="seta"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5 12 15.5 18 9.5"/></svg></span>
+</button>
+<div class="gav-fundo" id="gavFundo"></div>
+<aside class="gav" id="gav"><div class="gav-t">Minhas listas</div><div id="listas"></div></aside>
 
 <div class="bar">
   <span class="c" id="cont">0 de 0</span>
@@ -753,15 +805,53 @@
     });
   }
 
+  /* ---------- a gaveta ---------- */
+  function gavAbre(){ document.body.classList.add("gav-on");
+    var b=document.getElementById("lbar"); if(b) b.setAttribute("aria-expanded","true"); }
+  function gavFecha(){ document.body.classList.remove("gav-on");
+    var b=document.getElementById("lbar"); if(b) b.setAttribute("aria-expanded","false"); }
+  function gavLiga(){
+    var b=document.getElementById("lbar"), f=document.getElementById("gavFundo");
+    if(b && !b._ligado){ b._ligado=1; b.addEventListener("click", gavAbre); }
+    if(f && !f._ligado){ f._ligado=1; f.addEventListener("click", gavFecha); }
+    if(!window._gavEsc){ window._gavEsc=1;
+      document.addEventListener("keydown", function(e){ if(e.key==="Escape") gavFecha(); }); }
+  }
+
   function pintaListas(){
+    gavLiga();
     var el=document.getElementById("listas"); el.innerHTML="";
     D.listas.forEach(function(l){
       var pend=l.itens.filter(function(o){return !o.feito}).length;
-      el.appendChild(chip(l.nome+(pend?" ("+pend+")":""),null,l.id===D.atual,function(){
-        D.atual=l.id; filtro=""; grava(); pinta();   /* o ajuste escolhe o chip certo */
-      },null,icTipo(TIPOS[tipoDe(l)].ic,15)));
+      var b=document.createElement("button"); b.type="button";
+      b.className="gav-i"+(l.id===D.atual?" on":"");
+      var ic=document.createElement("span"); ic.className="ic";
+      ic.innerHTML=icTipo(TIPOS[tipoDe(l)].ic,17);            /* SVG nosso: pode ser marcacao */
+      var nm=document.createElement("span"); nm.className="nm";
+      nm.textContent=l.nome;                                   /* nome e digitado: textContent */
+      var qt=document.createElement("span"); qt.className="qt";
+      qt.textContent=pend?String(pend):"";
+      b.appendChild(ic); b.appendChild(nm); b.appendChild(qt);
+      b.addEventListener("click", function(){
+        D.atual=l.id; filtro=""; gavFecha(); grava(); pinta();
+      });
+      el.appendChild(b);
     });
-    el.appendChild(chip("+ Lista",null,false,escolherTipo,"novo"));
+    var nv=document.createElement("button"); nv.type="button"; nv.className="gav-i nv";
+    nv.innerHTML='<span class="ic"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg></span>';
+    var nn=document.createElement("span"); nn.className="nm"; nn.textContent="Nova lista";
+    nv.appendChild(nn);
+    nv.addEventListener("click", function(){ gavFecha(); setTimeout(escolherTipo,180); });
+    el.appendChild(nv);
+
+    /* a barra do topo diz onde voce esta, pra a troca nao ser as cegas */
+    var l=L();
+    if(l){
+      var pend=l.itens.filter(function(o){return !o.feito}).length;
+      var bi=document.getElementById("lbarIc"); if(bi) bi.innerHTML=icTipo(TIPOS[tipoDe(l)].ic,19);
+      var bn=document.getElementById("lbarNm"); if(bn) bn.textContent=l.nome;
+      var bq=document.getElementById("lbarQt"); if(bq) bq.textContent=pend?(pend+" em aberto"):"tudo feito";
+    }
   }
 
   function pintaChips(){
