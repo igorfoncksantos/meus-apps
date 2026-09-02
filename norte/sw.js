@@ -1,4 +1,4 @@
-const CACHE = 'norte-v71';
+const CACHE = 'norte-v72';
 self.addEventListener('install', e => { });
 self.addEventListener('message', e => { if(e.data==='SKIP_WAITING'||(e.data&&e.data.type==='SKIP_WAITING')) self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil((async () => {

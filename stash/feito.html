@@ -1895,6 +1895,45 @@ body{ padding-top:6px; }
     kbd.innerHTML='<div class="kbtop"><div class="kbx" data-k="hide">\u2715</div></div>'+h;
     if(document.body.classList.contains("kbdopen")) _kbdAltura();
   }
+
+  /* ---------- manter o cursor a vista ----------
+     Escrevendo por script o navegador nao rola o campo. A regua abaixo e um
+     div escondido que copia o estilo do campo pra medir, em pixels, onde o
+     cursor caiu — a unica forma correta quando o texto quebra linha sozinho. */
+  var _regua = null;
+  function _alturaDoCursor(el){
+    if(!_regua){
+      _regua = document.createElement("div");
+      _regua.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;"
+        + "white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;";
+      document.body.appendChild(_regua);
+    }
+    var c = getComputedStyle(el);
+    ["fontFamily","fontSize","fontWeight","fontStyle","lineHeight","letterSpacing",
+     "textTransform","textIndent","paddingTop","paddingRight","paddingBottom","paddingLeft",
+     "borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","boxSizing"]
+      .forEach(function(p){ _regua.style[p] = c[p]; });
+    _regua.style.width = el.offsetWidth + "px";
+    _regua.textContent = el.value.slice(0, el.selectionStart);
+    var marca = document.createElement("span");
+    marca.textContent = "\u200b";        /* largura zero: so serve de regua */
+    _regua.appendChild(marca);
+    return marca.offsetTop;
+  }
+  function aVista(el){
+    try{
+      if(!el || el.selectionStart == null) return;
+      if(el.tagName === "TEXTAREA"){
+        if(el.scrollHeight <= el.clientHeight) return;   /* cabe todo: nada a rolar */
+        var lh = parseFloat(getComputedStyle(el).lineHeight) || 20;
+        var y = _alturaDoCursor(el);
+        if(y < el.scrollTop) el.scrollTop = y;
+        else if(y + lh > el.scrollTop + el.clientHeight) el.scrollTop = y + lh - el.clientHeight;
+      } else if(el.selectionStart === el.value.length){
+        el.scrollLeft = el.scrollWidth;                  /* campo de uma linha so */
+      }
+    }catch(x){}
+  }
   function fire(){ target.dispatchEvent(new Event('input',{bubbles:true})); }
   /* onde se escreve direto no texto (o nome do item, a nota, o subitem)
      nao existe .value nem cursor de campo: quem cuida disso e o proprio
@@ -1905,6 +1944,7 @@ body{ padding-top:6px; }
     var s=target.selectionStart, e=target.selectionEnd, v=target.value;
     if(s==null){ s=e=v.length; }
     target.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{target.setSelectionRange(p,p);}catch(x){}
+    aVista(target);
     fire(); if(caps===1){ caps=0; render(); }
   }
   function back(){
@@ -1913,6 +1953,7 @@ body{ padding-top:6px; }
     if(s==null){ target.value=v.slice(0,-1); }
     else if(s!==e){ target.value=v.slice(0,s)+v.slice(e); try{target.setSelectionRange(s,s);}catch(x){} }
     else if(s>0){ target.value=v.slice(0,s-1)+v.slice(s); try{target.setSelectionRange(s-1,s-1);}catch(x){} }
+    aVista(target);
     fire();
   }
   /* texto solto nao tem .value; ler ele quebrava o teclado calado,
