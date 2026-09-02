@@ -1325,7 +1325,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v135';
+var VERSAO = 'v136';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -4017,5 +4017,24 @@ window.addEventListener("message",function(e){
 })();
 </script>
 
+<style>
+  /* o numero da versao: e como se sabe, num relance, se o app atualizou */
+  .verst{ text-align:center; font-size:10.5px; color:var(--mut2);
+          padding:10px 0 calc(84px + env(safe-area-inset-bottom)); letter-spacing:.04em; }
+</style>
+<div class="verst">Stash <span id="verSt">&mdash;</span></div>
+<script>
+/* a versao vem do operador: e ela que diz o que o aparelho esta rodando de
+   verdade, nao o que o servidor tem. */
+(function(){
+  try{
+    fetch("sw.js?cb=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.text(); }).then(function(t){
+      var m = t.match(/-v([0-9]+)/);
+      var el = document.getElementById("verSt");
+      if(m && el) el.textContent = "v" + m[1];
+    }).catch(function(){});
+  }catch(e){}
+})();
+</script>
 </body>
 </html>

@@ -661,6 +661,7 @@ body{ padding-top:6px; }
 <div class="regbar" id="regbar" style="display:none"><button type="button" class="regbt" id="btRegistrar">Registrar e limpar</button></div>
 <div id="porta"></div>
 
+<footer class="rodape">Feito <span id="verNum">&mdash;</span></footer>
 <div class="acoes">
   <button id="btDesmarcar" class="rec2">Desmarcar tudo</button>
   <button id="btMais" class="mais">•••</button>
@@ -704,6 +705,10 @@ body{ padding-top:6px; }
 
 <script>
 (function(){
+  /* a versao do codigo do Feito, igual a do autonomo — e ela que aparece
+     no rodape e diz se o aparelho ja pegou o app novo */
+  var VERSAO = "v64";
+  try{ window.__VER = VERSAO; }catch(e){}
   var K="afazeres-v3", KV="afazeres-v2";
   var PALETA=["#22C55E","#2FD9C9","#3B82F6","#A78BFA","#F472B6","#EF4444","#F97316","#FBBF24","#94A3B8","#FFFFFF"];
   var D={listas:[],atual:"",modelos:[],freq:{}};
@@ -3235,6 +3240,7 @@ window.addEventListener("storage",function(e){ if(e.key==="stash-theme") aplicaT
 window.addEventListener("message",function(e){
   if(e && e.data && typeof e.data==="object" && e.data.tema!==undefined) aplicaTemaF(e.data.tema||"");
 });
+try{ var _vn=document.getElementById("verNum"); if(_vn && window.__VER) _vn.textContent=window.__VER; }catch(e){}
 </script>
 </body>
 </html>
