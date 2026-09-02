@@ -649,12 +649,81 @@ body{ padding-top:6px; }
   }
 
   // ---------- chips
-  function chip(nome,cor,ativo,fn,extra){
+  function chip(nome,cor,ativo,fn,extra,ic){
     var d=document.createElement("div");
     d.className="chip"+(ativo?" on":"")+(extra?" "+extra:"");
     if(cor){ var p=document.createElement("span"); p.className="pt"; p.style.background=cor; d.appendChild(p); }
+    /* o icone vem de dentro do app (SVG nosso), entao pode ser marcacao;
+       o NOME e digitado pela pessoa e segue por textContent */
+    if(ic){ var w=document.createElement("span"); w.className="chipic"; w.innerHTML=ic; d.appendChild(w); }
     var s=document.createElement("span"); s.textContent=nome; d.appendChild(s);
     d.addEventListener("click",fn); return d;
+  }
+
+
+  /* ============================================================
+     OS TIPOS DE LISTA
+     Cada tipo diz: como se chama, o icone, que campos o item tem,
+     por qual campo a lista se agrupa, e que conta aparece no topo.
+     Acrescentar um tipo e acrescentar uma linha aqui.
+     ============================================================ */
+  var TIPOS = {
+    tarefas:  { nome:"Tarefas",  dica:"só o texto",         ic:"t-lista",    campos:[],                          grupo:null,    topo:null },
+    compras:  { nome:"Compras",  dica:"soma o total",       ic:"t-carrinho", campos:["qtd","un","preco","local"],grupo:"local", topo:"total" },
+    receitas: { nome:"Receitas", dica:"escala as porções",  ic:"t-panela",   campos:["qtd","un"],                grupo:null,    topo:"porcoes" },
+    treino:   { nome:"Treino",   dica:"volume e carga",     ic:"t-peso",     campos:["serie","carga"],           grupo:null,    topo:"volume" },
+    rotina:   { nome:"Rotina",   dica:"volta sozinha",      ic:"t-ciclo",    campos:["cada","ultima"],           grupo:null,    topo:"vencidas" },
+    viagem:   { nome:"Viagem",   dica:"renasce pronta",     ic:"t-mala",     campos:["qtd","mala","sempre"],     grupo:"mala",  topo:"namala" },
+    producao: { nome:"Produção", dica:"etapa da peça",      ic:"t-camera",   campos:["etapa","quem","dur"],      grupo:null,    topo:"etapas" }
+  };
+  var ORDEM_TIPOS = ["tarefas","compras","receitas","treino","rotina","viagem","producao"];
+
+  /* os icones escolhidos por ele, um por tipo */
+  var IC_TIPO = {
+    "t-lista":    '<path d="M4 6h11M4 12h11M4 18h7"/><path d="M17.5 16.5l2 2 3.5-4"/>',
+    "t-carrinho": '<path d="M2.5 3h2.2l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L20.5 7H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/>',
+    "t-panela":   '<path d="M3.8 10.2h16.4v4.6a5 5 0 0 1-5 5h-6.4a5 5 0 0 1-5-5z"/><path d="M1.8 10.2h20.4"/><circle cx="12" cy="7.6" r="1.4"/><path d="M12 9v1.2"/><path d="M20.2 12h1.3a1.7 1.7 0 0 1 0 3.4h-1.3M3.8 12H2.5a1.7 1.7 0 0 0 0 3.4h1.3"/>',
+    "t-peso":     '<path d="M2.5 12h2M19.5 12h2M6.5 8.5v7M17.5 8.5v7M4.5 10v4M19.5 10v4M6.5 12h11"/>',
+    "t-ciclo":    '<path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M21 3.5v4.2h-4.2"/><path d="M12 7.5V12l3 1.8"/>',
+    "t-mala":     '<rect x="2.5" y="7" width="19" height="13.5" rx="2.5"/><path d="M8.5 7V4.8A1.8 1.8 0 0 1 10.3 3h3.4a1.8 1.8 0 0 1 1.8 1.8V7"/><path d="M2.5 12.5h19"/>',
+    "t-camera":   '<rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/>'
+  };
+  function icTipo(nome,tam){
+    var d = IC_TIPO[nome] || IC_TIPO["t-lista"]; tam = tam || 22;
+    return '<svg viewBox="0 0 24 24" width="'+tam+'" height="'+tam+'" fill="none" stroke="currentColor"'
+         + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+  }
+  /* o tipo da lista aberta; lista sem tipo (as de antes) e Tarefas */
+  function tipoDe(l){ return (l && TIPOS[l.tipo]) ? l.tipo : "tarefas"; }
+  function T(){ return TIPOS[tipoDe(L())]; }
+  function temCampo(c){ return T().campos.indexOf(c) >= 0; }
+
+  /* ---------- a grade de escolha ---------- */
+  function escolherTipo(){
+    var g = ORDEM_TIPOS.map(function(k){
+      var t = TIPOS[k];
+      return '<button type="button" class="tipop" data-tipo="'+k+'">'
+           +   '<span class="tipoic">'+icTipo(t.ic,26)+'</span>'
+           +   '<b>'+t.nome+'</b><i>'+t.dica+'</i></button>';
+    }).join("");
+    var sh = fOverlay('<div class="fsh-t">O que é essa lista?</div>'
+      + '<div class="fsh-s">Os campos, o ícone e as contas vêm junto com a escolha.</div>'
+      + '<div class="tipogr">'+g+'</div>'
+      + '<div class="fsh-a"><button type="button" class="fsk-g" id="fskCT">Cancelar</button></div>');
+    sh.querySelector("#fskCT").addEventListener("click", fClose);
+    sh.querySelectorAll("[data-tipo]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var k = b.getAttribute("data-tipo");
+        fClose();
+        setTimeout(function(){
+          fAsk("Nome da lista","",function(n){
+            n = n.trim(); if(!n) return;
+            var nl = { id:uid(), nome:n, tipo:k, cats:[], itens:[] };
+            D.listas.push(nl); D.atual = nl.id; filtro=""; grava(); pinta();
+          },"text", TIPOS[k].nome + " · como quer chamar?");
+        },40);
+      });
+    });
   }
 
   function pintaListas(){
@@ -663,14 +732,9 @@ body{ padding-top:6px; }
       var pend=l.itens.filter(function(o){return !o.feito}).length;
       el.appendChild(chip(l.nome+(pend?" ("+pend+")":""),null,l.id===D.atual,function(){
         D.atual=l.id; filtro=""; grava(); pinta();   /* o ajuste escolhe o chip certo */
-      }));
+      },null,icTipo(TIPOS[tipoDe(l)].ic,15)));
     });
-    el.appendChild(chip("+ Lista",null,false,function(){
-      fAsk("Nova lista","",function(n){ n=n.trim(); if(!n) return;
-        var nl={id:uid(),nome:n,cats:[],itens:[]}; D.listas.push(nl); D.atual=nl.id;
-        filtro=""; grava(); pinta();
-      },"text","como quer chamar?");
-    },"novo"));
+    el.appendChild(chip("+ Lista",null,false,escolherTipo,"novo"));
   }
 
   function pintaChips(){
@@ -988,7 +1052,19 @@ body{ padding-top:6px; }
     ".fsh-a{display:flex;gap:8px;padding:14px 6px 2px}"+
     ".fsh-a button{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font:inherit;font-weight:700;font-size:15px}"+
     ".fsk-g{background:transparent;color:var(--txt)}"+
-    ".fsk-p{background:var(--accent);color:var(--onacc);border-color:var(--accent)}";
+    ".fsk-p{background:var(--accent);color:var(--onacc);border-color:var(--accent)}"+
+    /* ---- a grade de tipos de lista ---- */
+    ".fsh-s{font-size:12.5px;color:var(--mut);padding:0 6px 4px;line-height:1.45}"+
+    ".tipogr{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;padding:8px 4px 2px}"+
+    ".tipop{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:13px 8px;"+
+      "display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font:inherit;color:var(--txt);"+
+      "transition:border-color .14s ease,transform .12s ease}"+
+    ".tipop:active{transform:scale(.96);border-color:var(--accent)}"+
+    ".tipoic{color:var(--accent);display:flex}"+
+    ".tipop b{font-size:12.5px;font-weight:700}"+
+    ".tipop i{font-style:normal;font-size:10.5px;color:var(--mut);text-align:center;line-height:1.3}"+
+    ".chipic{display:inline-flex;align-items:center;margin-right:5px;color:var(--accent);vertical-align:-3px}"+
+    ".chip.on .chipic{color:var(--onacc)}";
     document.head.appendChild(s);
   }
   function fClose(){
