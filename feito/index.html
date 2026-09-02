@@ -737,7 +737,7 @@
 (function(){
   var K="afazeres-v3", KV="afazeres-v2";
   /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
-  var VERSAO = "v62";
+  var VERSAO = "v63";
   /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
      sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
   try{ window.__VER = VERSAO; }catch(e){}
@@ -949,6 +949,42 @@
     });
   }
 
+  /* o que dizer ao lado do nome da categoria. Lista vazia nao diz nada:
+     "tudo feito" ali seria mentira. E cada categoria tem o proprio fim —
+     rotina nunca acaba, peca de producao nao fica "pronta", fica publicada. */
+  function fraseDaLista(l){
+    var t = (l && l.itens) ? l.itens.length : 0;
+    if(!t) return "vazia";
+    var pend = l.itens.filter(function(o){ return !o.feito; }).length;
+    var tp = tipoDe(l);
+    if(tp === "compras"){
+      return pend ? (pend + (pend === 1 ? " a pegar" : " a pegar")) : "carrinho completo";
+    }
+    if(tp === "viagem"){
+      return pend ? (pend + " fora da mala") : "mala pronta";
+    }
+    if(tp === "treino"){
+      return pend ? (pend + (pend === 1 ? " exercício" : " exercícios")) : "treino feito";
+    }
+    if(tp === "receitas"){
+      return t + (t === 1 ? " ingrediente" : " ingredientes");
+    }
+    if(tp === "rotina"){
+      /* rotina nao "acaba": o que importa e quantas venceram */
+      var venc = 0;
+      l.itens.forEach(function(o){
+        if(!o.cada) return;
+        var d = venceEm(o);
+        if(d === null || d < 0) venc++;
+      });
+      return venc ? (venc + (venc === 1 ? " vencida" : " vencidas")) : "em dia";
+    }
+    if(tp === "producao"){
+      return pend ? (pend + (pend === 1 ? " em produção" : " em produção")) : "tudo publicado";
+    }
+    return pend ? (pend + " em aberto") : "tudo feito";
+  }
+
   /* ---------- a gaveta ---------- */
   function gavAbre(){ document.body.classList.add("gav-on");
     var b=document.getElementById("hamb"); if(b) b.setAttribute("aria-expanded","true"); }
@@ -994,7 +1030,7 @@
       var pend=l.itens.filter(function(o){return !o.feito}).length;
       var bi=document.getElementById("lbarIc"); if(bi) bi.innerHTML=icTipo(TIPOS[tipoDe(l)].ic,19);
       var bn=document.getElementById("lbarNm"); if(bn) bn.textContent=l.nome;
-      var bq=document.getElementById("lbarQt"); if(bq) bq.textContent=pend?(pend+" em aberto"):"tudo feito";
+      var bq=document.getElementById("lbarQt"); if(bq) bq.textContent=fraseDaLista(l);
     }
   }
 
