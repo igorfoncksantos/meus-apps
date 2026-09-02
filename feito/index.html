@@ -695,7 +695,7 @@
 (function(){
   var K="afazeres-v3", KV="afazeres-v2";
   /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
-  var VERSAO = "v56";
+  var VERSAO = "v57";
   /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
      sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
   try{ window.__VER = VERSAO; }catch(e){}
@@ -803,6 +803,73 @@
   function tipoDe(l){ return (l && TIPOS[l.tipo]) ? l.tipo : "tarefas"; }
   function T(){ return TIPOS[tipoDe(L())]; }
   function temCampo(c){ return T().campos.indexOf(c) >= 0; }
+
+  /* ---------- os campos, num lugar so ----------
+     A linha do item e o menu "+" leem daqui. Cada campo diz como se chama,
+     que icone usa, como aparece na linha e como se edita. */
+  var CAMPOS = {
+    qtd:    { rot:"Quantidade",      ic:"tag",      dica:"ex: 3",                cls:"q",
+              mostra:function(v){ return v + "×"; } },
+    un:     { rot:"Unidade",         ic:"tag",      dica:"un · kg · g · L · ml", cls:"",
+              mostra:function(v){ return v; } },
+    preco:  { rot:"Preço",         ic:"money",    dica:"só número",           cls:"p", num:true,
+              mostra:function(v){ return din(v); } },
+    local:  { rot:"Onde comprar",    ic:"cart",     dica:"ex: Condor",           cls:"",
+              mostra:function(v){ return v; } },
+    serie:  { rot:"Séries × reps",   ic:"dumbbell", dica:"ex: 4×10",           cls:"q",
+              mostra:function(v){ return v; } },
+    carga:  { rot:"Carga",           ic:"dumbbell", dica:"ex: 40kg",             cls:"q", hist:true,
+              mostra:function(v){ return v; } },
+    cada:   { rot:"A cada",          ic:"clock",    dica:"ex: 6 meses",          cls:"rep",
+              mostra:function(v){ return "a cada " + v; } },
+    ultima: { rot:"Última vez",     ic:"cal",      dica:"",                     cls:"d", tipo:"date",
+              mostra:function(v){ return "feito " + curto(v); } },
+    mala:   { rot:"De quem é a mala", ic:"bag",   dica:"ex: Minha mala",       cls:"",
+              mostra:function(v){ return v; } },
+    sempre: { rot:"Volta sempre",    ic:"star",     dica:"",                     cls:"", bool:true,
+              mostra:function(){ return "volta sempre"; } },
+    etapa:  { rot:"Etapa",           ic:"film",     dica:"ex: gravar",           cls:"",
+              mostra:function(v){ return v; } },
+    quem:   { rot:"Depende de quem", ic:"share",    dica:"ex: precisa do Léo", cls:"",
+              mostra:function(v){ return v; } },
+    dur:    { rot:"Duração",       ic:"clock",    dica:"ex: 40 s",             cls:"",
+              mostra:function(v){ return v; } }
+  };
+
+  /* data curta, pro "feito 02/09" das rotinas */
+  function curto(iso){
+    if(!iso) return "";
+    var p = String(iso).split("-");
+    return p.length === 3 ? (p[2] + "/" + p[1]) : String(iso);
+  }
+
+  /* ⚠️ mostra o campo se o TIPO o declara OU se o item ja tem valor nele.
+     Sem a segunda metade, toda lista antiga (que nasce "Tarefas", sem campos)
+     esconderia os precos e quantidades ja cadastrados — dado sumindo da tela. */
+  function camposDoItem(it){
+    var meus = T().campos, saida = [], k;
+    for(var i = 0; i < meus.length; i++) saida.push(meus[i]);
+    for(k in CAMPOS){
+      if(saida.indexOf(k) < 0 && it[k] !== undefined && it[k] !== "" && it[k] !== null) saida.push(k);
+    }
+    return saida;
+  }
+
+  /* pergunta o valor de um campo e grava */
+  function editaCampo(it, k){
+    var c = CAMPOS[k];
+    if(!c) return;
+    if(c.bool){ if(it[k]) delete it[k]; else it[k] = 1; grava(); pinta(); return; }
+    fAsk(c.rot, it[k] || "", function(v){
+      v = String(v).trim();
+      if(c.num) v = v.replace(",", ".");
+      /* a carga guarda o que veio antes: e o historico que deixa decidir se sobe */
+      if(c.hist && v && v !== it[k] && it[k]){ it.hist = it.hist || []; it.hist.push(it[k]); }
+      if(v === "") delete it[k]; else it[k] = v;
+      grava(); pinta();
+    }, c.tipo || "text", c.dica || "");
+  }
+
 
   /* ---------- a grade de escolha ---------- */
   function escolherTipo(){
@@ -1300,17 +1367,41 @@
     setTimeout(function(){ try{ i.focus(); i.select(); }catch(e){} },80);
   }
 
-  function menuItem(it){
-    fMenu("Adicionar ao item",[
-      {id:"1",ic:"tag",     nome:"Quantidade",  sub:"ex: 3"},
-      {id:"2",ic:"money",   nome:"Preço"},
-      {id:"3",ic:"cal",     nome:"Prazo"},
-      {id:"4",ic:"pen",     nome:"Nota"},
-      {id:"5",ic:"list",    nome:"Subitem"},
-      {id:"6",ic:"dumbbell",nome:"Séries × reps × carga", sub:"ex: 4×10 · 60kg"},
-      {id:"7",ic:"clock",   nome:"Cronômetro de descanso", sub:"em segundos"},
-      {id:"8",ic:"cal",     nome:"Repetir",                sub:"volta desmarcado sozinho"}
-    ],function(op){
+  function menuItem(it, tudo){
+    var opts = [];
+    if(tudo){
+      /* a saida: a lista inteira, como era antes das categorias */
+      opts = [
+        {id:"1",ic:"tag",     nome:"Quantidade",  sub:"ex: 3"},
+        {id:"2",ic:"money",   nome:"Preço"},
+        {id:"3",ic:"cal",     nome:"Prazo"},
+        {id:"4",ic:"pen",     nome:"Nota"},
+        {id:"5",ic:"list",    nome:"Subitem"},
+        {id:"6",ic:"dumbbell",nome:"Séries × reps × carga", sub:"ex: 4×10 · 60kg"},
+        {id:"7",ic:"clock",   nome:"Cronômetro de descanso", sub:"em segundos"},
+        {id:"8",ic:"cal",     nome:"Repetir",                sub:"volta desmarcado sozinho"}
+      ];
+    } else {
+      /* o que e DESTA categoria */
+      var meus = T().campos;
+      for(var i=0;i<meus.length;i++){
+        var c = CAMPOS[meus[i]];
+        if(!c) continue;
+        opts.push({id:"c:"+meus[i], ic:c.ic, nome:c.rot, sub:c.dica||""});
+      }
+      /* o que e de TODOS */
+      opts.push({id:"3",ic:"cal", nome:"Prazo"});
+      opts.push({id:"4",ic:"pen", nome:"Nota"});
+      opts.push({id:"5",ic:"list",nome:"Subitem"});
+      opts.push({id:"8",ic:"cal", nome:"Repetir", sub:"volta desmarcado sozinho"});
+      if(tipoDe(L())==="treino") opts.push({id:"7",ic:"clock",nome:"Cronômetro de descanso", sub:"em segundos"});
+      /* a saida. Sem ela, esconder opcao vira PERDER opcao: quem anota
+         "Arroz — 2un" numa lista de Tarefas ficaria sem como por a quantidade. */
+      opts.push({id:"mais",ic:"plus",nome:"Outro campo…", sub:"tudo o que o app tem"});
+    }
+    fMenu("Adicionar ao item", opts, function(op){
+      if(op.indexOf("c:")===0){ editaCampo(it, op.slice(2)); return; }
+      if(op==="mais"){ menuItem(it, true); return; }
       if(op==="1") fAsk("Quantidade",it.qtd||"",function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","ex: 3");
       else if(op==="2") fAsk("Preço",it.preco||"",function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
       else if(op==="3") fAsk("Prazo",it.prazo||"",function(v){ it.prazo=v.trim(); grava(); pinta(); },"date");
@@ -1347,6 +1438,7 @@
       });
     });
   }
+
 
   // ---------- arrastar
   var arr=null;
