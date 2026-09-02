@@ -398,8 +398,12 @@
 
   .vazio{text-align:center;color:var(--mut2);font-size:14px;padding:32px 10px;line-height:1.6}
 
-  .acoes{position:fixed;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);border-top:1px solid var(--panel2);
+  .acoes{position:fixed;left:0;right:0;bottom:0;flex-wrap:wrap;background:rgba(0,0,0,.95);border-top:1px solid var(--panel2);
          padding:11px 16px calc(11px + env(safe-area-inset-bottom));display:flex;gap:8px;max-width:640px;margin:0 auto}
+  /* dentro da barra fixa, em linha propria abaixo dos botoes: e o unico jeito
+     de ficar no pe da tela, ja que a barra e fixa e cobre o fluxo normal */
+  .rodape{ flex:1 0 100%; text-align:center; font-size:10px; color:var(--mut2);
+           padding:9px 0 0; letter-spacing:.06em; font-variant-numeric:tabular-nums; }
   .acoes button{flex:1;padding:13px 6px;border-radius:10px;font-size:11.5px;font-weight:700;
                 font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--txt)}
   .acoes button:active{background:var(--panel2)}
@@ -677,10 +681,10 @@ body{ padding-top:6px; }
 <div class="regbar" id="regbar" style="display:none"><button type="button" class="regbt" id="btRegistrar">Registrar e limpar</button></div>
 <div id="porta"></div>
 
-<footer class="rodape">Feito <span id="verNum">&mdash;</span></footer>
 <div class="acoes">
   <button id="btDesmarcar" class="rec2">Desmarcar tudo</button>
   <button id="btMais" class="mais">•••</button>
+  <footer class="rodape">Feito <span id="verNum">&mdash;</span></footer>
 </div>
 
 <div class="menu" id="menuCats">
@@ -723,7 +727,7 @@ body{ padding-top:6px; }
 (function(){
   /* a versao do codigo do Feito, igual a do autonomo — e ela que aparece
      no rodape e diz se o aparelho ja pegou o app novo */
-  var VERSAO = "v65";
+  var VERSAO = "v66";
   try{ window.__VER = VERSAO; }catch(e){}
   var K="afazeres-v3", KV="afazeres-v2";
   var PALETA=["#22C55E","#2FD9C9","#3B82F6","#A78BFA","#F472B6","#EF4444","#F97316","#FBBF24","#94A3B8","#FFFFFF"];
