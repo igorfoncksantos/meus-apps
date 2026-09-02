@@ -475,7 +475,7 @@
              border-radius:9px; background:rgba(248,113,113,.13); border:1px solid rgba(248,113,113,.36);
              color:var(--red); font-size:14px; font-weight:800; line-height:1; }
   #kbd .kbx:active{ background:rgba(248,113,113,.28); }
-  #kbd .row{ display:flex; gap:6px; margin-bottom:7px; }
+  #kbd .row{ display:flex; gap:6px; margin-bottom:6px; }
   /* a segunda fila e recuada meia tecla, como em qualquer teclado de celular */
   #kbd .row.r2{ padding:0 5%; }
   /* o pontinho: diz que a tecla esconde acento no toque longo. E a mesma
@@ -486,12 +486,12 @@
   #kbd .pop{ position:absolute; z-index:5; display:flex; gap:5px; padding:6px;
         background:var(--panel2); border:1px solid var(--accent); border-radius:12px;
         box-shadow:0 10px 26px rgba(0,0,0,.6); }
-  #kbd .pop b{ min-width:46px; height:50px; display:flex; align-items:center;
+  #kbd .pop b{ min-width:52px; height:57px; display:flex; align-items:center;
         justify-content:center; font-size:23px; font-weight:500; color:var(--txt2);
         background:var(--line); border-radius:9px; }
   #kbd .pop b:active,#kbd .pop b.sel{ background:var(--accent); color:var(--onacc); }
   #kbd .row:last-child{ margin-bottom:0; }
-  #kbd .k{ flex:1 1 0; min-width:0; height:54px; display:flex; align-items:center; justify-content:center;
+  #kbd .k{ flex:1 1 0; min-width:0; height:62px; display:flex; align-items:center; justify-content:center;
         background:var(--panel2); border-radius:9px; color:var(--txt2); font-size:20px; font-weight:600; cursor:pointer;
         box-shadow:0 2px 0 rgba(0,0,0,.45); transition:transform .05s ease, background .1s ease; }
   #kbd .k:active{ transform:translateY(2px); background:var(--line); box-shadow:0 0 0 rgba(0,0,0,.4); }
@@ -503,7 +503,7 @@
   #kbd .k.shift.lock{ background:var(--acc-bg); color:var(--acc-l); }
   /* teclado so-numeros (discador) */
   #kbd.num .row{ max-width:400px; margin-left:auto; margin-right:auto; gap:6px; margin-bottom:6px; }
-  #kbd.num .k{ height:50px; font-size:23px; font-weight:700; }#kbd.num .row:last-child .k{ height:44px; font-size:19px; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:var(--txt2); opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,var(--acc-l),var(--acc-l)); color:var(--onacc); font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }
+  #kbd.num .k{ height:58px; font-size:23px; font-weight:700; }#kbd.num .row:last-child .k{ height:44px; font-size:19px; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:var(--txt2); opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,var(--acc-l),var(--acc-l)); color:var(--onacc); font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }
 </style>
   <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
   <meta name="theme-color" content="#000000">

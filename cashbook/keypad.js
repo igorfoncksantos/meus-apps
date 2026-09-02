@@ -38,7 +38,7 @@
     + '  border-radius:9px; background:rgba(248,113,113,.13); border:1px solid rgba(248,113,113,.36);'
     + '  color:#f87171; font-size:14px; font-weight:800; line-height:1; }'
     + '#kbd .kbx:active{ background:rgba(248,113,113,.28); }'
-    + '#kbd .row{ display:flex; gap:6px; margin-bottom:7px; }'
+    + '#kbd .row{ display:flex; gap:6px; margin-bottom:6px; }'
     /* a segunda fila e recuada meia tecla, como em qualquer teclado de celular */
     + '#kbd .row.r2{ padding:0 5%; }'
     /* o rodape do teclado (8px + a faixa de gesto) e espaco morto: a ultima
@@ -54,12 +54,12 @@
     + '#kbd .pop{ position:absolute; z-index:5; display:flex; gap:5px; padding:6px;'
     +   ' background:#20262c; border:1px solid '+ACCENT+'; border-radius:12px;'
     +   ' box-shadow:0 10px 26px rgba(0,0,0,.6); }'
-    + '#kbd .pop b{ min-width:46px; height:50px; display:flex; align-items:center;'
+    + '#kbd .pop b{ min-width:52px; height:57px; display:flex; align-items:center;'
     +   ' justify-content:center; font-size:23px; font-weight:500; color:#f0f2f4;'
     +   ' background:#2a3138; border-radius:9px; }'
     + '#kbd .pop b:active,#kbd .pop b.sel{ background:'+ACCENT+'; color:'+accInk+'; }'
     + '#kbd .row:last-child{ margin-bottom:0; }'
-    + '#kbd .k{ flex:1 1 0; min-width:0; height:54px; display:flex; align-items:center; justify-content:center;'
+    + '#kbd .k{ flex:1 1 0; min-width:0; height:62px; display:flex; align-items:center; justify-content:center;'
     + '  background:#20262c; border-radius:9px; color:#eef2f4; font-size:20px; font-weight:600; cursor:pointer;'
     + '  box-shadow:0 2px 0 rgba(0,0,0,.45); transition:transform .05s ease, background .1s ease; }'
     + '#kbd .k *{ pointer-events:none; }'
@@ -72,7 +72,7 @@
     + '#kbd .k.shift.on{ background:'+accSoft+'; color:#cdeee9; }'
     + '#kbd .k.shift.lock{ background:'+accSoft+'; color:#eaf7f4; }'
     + '#kbd.num .row{ max-width:400px; margin-left:auto; margin-right:auto; gap:10px; margin-bottom:10px; }'
-    + '#kbd.num .k{ height:50px; font-size:23px; font-weight:700; }#kbd.num .row{ gap:6px; margin-bottom:6px; }#kbd.num .row:last-child .k{ height:44px; font-size:19px; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:#ffffff; opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,#f4fbfa,#cbe6e2); color:#07171b; font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }';
+    + '#kbd.num .k{ height:58px; font-size:23px; font-weight:700; }#kbd.num .row{ gap:6px; margin-bottom:6px; }#kbd.num .row:last-child .k{ height:44px; font-size:19px; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:#ffffff; opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,#f4fbfa,#cbe6e2); color:#07171b; font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }';
   var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
   var kbd=document.createElement('div'); kbd.id='kbd';
