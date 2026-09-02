@@ -870,7 +870,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v66';
+const VERSAO = 'v67';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1010,6 +1010,7 @@ let _lastPct=null;
 function jaComemorou(){ try{ return localStorage.getItem('norte-meta50')===cur; }catch(e){ return false; } }
 function cheer50(){
   if(document.getElementById('__cheer')) return;
+  try{ som('meta'); }catch(e){}
   let h=0; for(let i=0;i<cur.length;i++) h=(h*31+cur.charCodeAt(i))>>>0;
   const par=CHEER[h%CHEER.length];
   const el=document.createElement('div'); el.id='__cheer'; el.className='cheer';
@@ -1057,6 +1058,12 @@ function render(){
     `${s.doneN} de ${s.n} · ${s.pct}% do dia` + (s.blocked?` · ${s.blocked} bloqueada${s.blocked>1?'s':''}`:'') + (s.adia?` · ${s.adia} adiada${s.adia>1?'s':''}`:'');
   document.getElementById('fill').style.width = s.pct+'%';
   checaMetade(s.pct);
+  /* fechar o dia nao tinha marco nenhum — so o numero mudando pra 100% */
+  try{
+    if(cur===todayISO() && s.n>0 && s.pct>=100 && localStorage.getItem('norte-dia100')!==cur){
+      localStorage.setItem('norte-dia100',cur); som('dia');
+    }
+  }catch(e){}
 
   // legend (só aparece se houver categorias)
   const lg=document.getElementById('legend');
@@ -1209,7 +1216,9 @@ function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 /* ============= interações ============= */
 function findTask(id){ return day().tasks.find(t=>t.id===id); }
-function flashFx(){ const f=document.getElementById('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); if(navigator.vibrate)navigator.vibrate(16); }
+function flashFx(){ const f=document.getElementById('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); if(navigator.vibrate)navigator.vibrate(16);
+  /* o som e a terceira camada: a tela ja piscava e o aparelho ja vibrava */
+  try{ som('feito'); }catch(e){} }
 
 function toggleDone(id){ const t=findTask(id);
   if(t.status==='done'){ t.status='pend'; }
@@ -2418,6 +2427,7 @@ boot();
   window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').then(watch).catch(function(){}); });
 })();
 </script>
+<script src="som.js"></script>
 <script src="keypad.js"></script>
 
 

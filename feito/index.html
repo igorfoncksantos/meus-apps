@@ -801,6 +801,7 @@
   }
 
   function flashFeito(){
+    try{ som('feito'); }catch(e){}
     var f=document.getElementById("flash"); if(!f) return;
     f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
     try{ navigator.vibrate && navigator.vibrate(15); }catch(e){}
@@ -2132,6 +2133,7 @@
 </script>
 <script>window.__SYNC_CFG={app:'feito',keys:['afazeres-v3'],accent:'#2FD9C9',name:'Feito'};</script>
 <script src="supabase.js"></script>
+<script src="som.js"></script>
 <script src="sync.js"></script>
 <script src="icons.js"></script>
 <style>

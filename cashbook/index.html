@@ -877,6 +877,7 @@ function lancar(){
   salvar(); render(); flashLancamento(); document.getElementById("d").focus();
 }
 function flashLancamento(){
+  try{ som('salvo'); }catch(e){}
   var f = document.getElementById("flash");
   if(!f) return;
   f.classList.remove("go");
@@ -1273,6 +1274,7 @@ window.addEventListener("message",function(e){
 <script>window.__SYNC_CFG={app:'cashbook',keys:['gastos-*','vale-*'],accent:'#3ddb84',name:'Cashbook'};</script>
 <script src="supabase.js"></script>
 <script src="sync.js"></script>
+<script src="som.js"></script>
 <script src="keypad.js"></script>
 <style>
 #__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}

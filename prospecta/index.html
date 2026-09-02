@@ -590,6 +590,12 @@ function pintaMeta(){
   var d=diaHoje(), ab=Math.min(d.ab,3), fu=Math.min(d.fu,3);
   var pc=Math.round((ab+fu)/6*100);
   document.getElementById("metaPc").textContent=pc+"%";
+  /* a meta batida toca UMA vez no dia, por pessoa — senao repetiria a cada
+     redesenho da tela depois de fechada */
+  try{
+    var marca='prospecta-meta-'+hojeISO()+'-'+(quemSou()||'-');
+    if(pc>=100 && localStorage.getItem(marca)!=='1'){ localStorage.setItem(marca,'1'); som('meta'); }
+  }catch(e){}
   var eu = quemSou();
   document.getElementById("metaTxt").textContent = (pc>=100 ? "meta do dia cumprida" : "da meta do dia")
     + (eu ? " · " + eu : "");
@@ -851,6 +857,7 @@ function salvaLead(){
 var _atual=null, _modelo="local";
 function abre(id){
   var p=acha(id); if(!p) return; _atual=id;
+  try{ if(alerta(p).k==="atr") som('atencao'); }catch(e){}
   _modelo = /escola|infantil|educa/i.test(p.segmento||"") ? "escola"
           : (p.fonte==="Indicação" ? "indicacao" : (p.gatilho ? "gatilho" : "local"));
   var a = alerta(p), pond = ponderado(p);
@@ -944,6 +951,7 @@ function registraToque(){
   var n=(p.toques||[]).length;
   if(!p.toques) p.toques=[];
   p.toques.push({ data:hojeISO(), quem:quemSou(), oq:(n===0?"Abordagem":"Follow-up "+n) });
+  try{ som('salvo'); }catch(e){}
   p.ultimo = hojeISO();
   var d=diaHoje(); if(n===0) d.ab++; else d.fu++;
   if(p.etapa===0 || p.etapa===1) p.etapa=2;   /* mapeado / a fazer -> contato realizado */
@@ -1291,6 +1299,7 @@ else primeiraVez();
 })();
 </script>
 <script src="supabase.js"></script>
+<script src="som.js"></script>
 <script src="sync.js"></script>
 <div id="bv"><div class="cx">
   <img src="klix.png" alt="Klix Mídia">

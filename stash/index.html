@@ -1276,7 +1276,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v119';
+var VERSAO = 'v120';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -2314,6 +2314,7 @@ document.addEventListener("click",function(){
 
 function confirmarAporte(){
   if(!_apPend) return;
+  try{ som('salvo'); }catch(e){}
   var ow=_apPend.ow, plano=_apPend.plano;
   fecharConfirma();
   var h=new Date(), mes=MES[h.getMonth()]+" "+h.getFullYear();
@@ -3438,6 +3439,7 @@ window.addEventListener("message",function(e){
 });
 </script>
 <script src="sync.js"></script>
+<script src="som.js"></script>
 <script src="keypad.js"></script>
 <style>
 #__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}

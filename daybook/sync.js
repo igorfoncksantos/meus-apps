@@ -179,6 +179,21 @@
     '<div class="sync-act"><button class="sbtn-p" id="syGo" onclick="window.__enter()" style="width:100%">Entrar ou criar conta</button></div>'+
     '<button class="sync-link" onclick="window.__forgot()">Esqueci a senha</button>'+
     '<button class="sync-link" onclick="window.__codeLogin()">Entrar por link no e-mail</button>'); }
+  /* ---------- o som ----------
+     Preferencia do APARELHO, como o PIN: uma chave so pros cinco apps. */
+  function _somBotao(){
+    if(typeof window.somLigado !== "function") return "";   /* app sem som.js */
+    var on = window.somLigado();
+    return '<button onclick="window.__som()">' + (on ? '&#128266;' : '&#128263;') +
+           ' Som ' + (on ? 'ligado' : 'desligado') + '</button>';
+  }
+  window.__som=function(){
+    if(typeof window.somTrocar !== "function") return;
+    var on = window.somTrocar();
+    toast(on ? "Som ligado" : "Som desligado");
+    /* redesenha o painel pra o botao mostrar o estado novo */
+    if(typeof window.openSync === "function") window.openSync();
+  };
   window.__scn=function(){ showConnect(); };
   window.__sc=closeOv;
   window.__codeLogin=function(){ screen('<div class="sync-ic">'+IC.mail+'</div><h2>Entrar por e-mail</h2><p>Mando um <b>link de acesso</b> pro seu e-mail. Abra o link neste mesmo aparelho.</p>'+
@@ -270,7 +285,7 @@
   window.openSync=function(){
     if(!ready()){ showConnect(); return; }
     screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronização</h2><p>Conectado como <b style="color:#f0f2f4">'+(localStorage.getItem(LK.login)||(session.user&&session.user.email)||'')+'</b><br>Seus dados aparecem nos seus aparelhos.</p>'+
-      _diagHtml()+'<div class="sync-list"><button onclick="window.__mkpw()">'+IC.pen+' Senha da conta</button><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button><button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
+      _diagHtml()+'<div class="sync-list"><button onclick="window.__mkpw()">'+IC.pen+' Senha da conta</button><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button>'+_somBotao()+'<button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
       '<div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); };
   window.__dc=async function(){ if(!await uiConfirm('Você vai parar de sincronizar neste aparelho. Os dados continuam aqui, só não atualizam no outro. Pra voltar, é só entrar de novo.',{title:'Sair da conta?',ok:'Sair',danger:true}))return;
     _synced=false; try{ if(sb)await sb.auth.signOut(); }catch(e){} if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }
