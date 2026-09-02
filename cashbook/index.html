@@ -153,7 +153,11 @@
   .rings { display:flex; gap:7px; margin-bottom:14px; }
   .ring { flex:1; display:flex; flex-direction:column; align-items:stretch; text-align:center; background:#101317; border:1px solid #23282d; border-radius:14px; padding:12px 5px 13px; min-width:0; }
   .ring > svg { display:block; margin:0 auto; flex:0 0 auto; }
-  .ring .rbg { stroke:#141719; }
+  /* o trilho na cor da propria categoria, bem apagado: a 0% ja se ve o circulo */
+  .ring .rbg { stroke-opacity:.20; }
+  /* o arco corre ate o valor novo em vez de saltar */
+  .ring svg circle { transition:stroke-dashoffset .5s cubic-bezier(.22,.61,.36,1), filter .5s ease; }
+  @media (prefers-reduced-motion:reduce){ .ring svg circle{ transition:none; } }
   .ring .pcT { fill:#fff; font-size:18px; font-weight:800; }
   .ring.est .pcT { fill:#f87171; }
   .ring .rname { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:5px; min-height:56px;
@@ -692,6 +696,16 @@ function brl(n){ if(PRIV) return "•••";
    REGRA: sempre sai numero com %. Nunca vazio, nunca traco.
    Todo anel e todo total passam por aqui — se a conta voltar a ser copiada,
    e aqui que ela tem que ser mudada. */
+
+/* ---------- o brilho do anel ----------
+   Cresce com o preenchimento: nada no comecinho, forte perto do fim.
+   Sai na propria cor, entao serve pra qualquer categoria que ele criar. */
+function brilhoAnel(pc, cor){
+  var g = Math.max(0, Math.min(1, (+pc || 0) / 100));
+  if(g < 0.02) return "none";
+  return "drop-shadow(0 0 " + (1.5 + g * 5.5).toFixed(1) + "px " + cor + ")";
+}
+
 function anelPct(gasto, orc){
   gasto = +gasto || 0; orc = +orc || 0;
   if(orc > 0){
@@ -758,7 +772,9 @@ function bloco(id, orc, gasto, dias){
   var arc = document.getElementById("arc_"+id);
   if(arc){
     arc.style.strokeDashoffset = (213.628 * (1 - pc/100));
-    arc.setAttribute("stroke", estourou ? "#f87171" : catCor(id));
+    var _cor = estourou ? "#f87171" : catCor(id);
+    arc.setAttribute("stroke", _cor);
+    arc.style.filter = brilhoAnel(estourou ? 100 : pc, _cor);
   }
   var pcEl = document.getElementById("pc_"+id); if(pcEl) pcEl.textContent = a.txt;
   var gEl = document.getElementById("g_"+id); if(gEl) gEl.innerHTML = "R$ " + brl(gasto) + ' <small>/ ' + brl(orc) + "</small>";
@@ -1152,7 +1168,7 @@ function montarRings(){
   CATS.forEach(function(cat){
     h += '<div class="ring" id="ring_' + cat.id + '">'
       + '<svg width="96" height="96" viewBox="0 0 96 96">'
-      +   '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke-width="9"/>'
+      +   '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke="' + cat.cor + '" stroke-width="9"/>'
       +   '<circle id="arc_' + cat.id + '" cx="48" cy="48" r="34" fill="none" stroke="' + cat.cor + '" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="213.628" transform="rotate(-90 48 48)"/>'
       +   '<text class="pcT" id="pc_' + cat.id + '" x="48" y="54" text-anchor="middle"></text>'
       + '</svg>'

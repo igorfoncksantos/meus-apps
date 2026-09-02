@@ -742,7 +742,11 @@
   #t3 .gp-rings{ display:grid; grid-template-columns:repeat(auto-fit,minmax(92px,1fr)); gap:7px; margin-bottom:14px; }
   #t3 .gp-ring{ display:flex; flex-direction:column; align-items:stretch; text-align:center; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 5px 13px; min-width:0; }
   #t3 .gp-ring > svg{ display:block; margin:0 auto; width:66px; height:66px; flex:0 0 auto; }
-  #t3 .gp-ring .rbg{ stroke:#141719; }
+  /* o trilho na cor da propria categoria, bem apagado: a 0% ja se ve o circulo */
+  #t3 .gp-ring .rbg{ stroke-opacity:.20; }
+  /* o arco corre ate o valor novo em vez de saltar */
+  #t3 .gp-ring svg circle{ transition:stroke-dashoffset .5s cubic-bezier(.22,.61,.36,1), filter .5s ease; }
+  @media (prefers-reduced-motion:reduce){ #t3 .gp-ring svg circle{ transition:none; } }
   #t3 .gp-ring .pcT{ fill:#fff; font-size:18px; font-weight:800; }
   #t3 .gp-ring.est .pcT{ fill:#f87171; }
   #t3 .gp-ring .rname{ display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:5px;
@@ -1133,6 +1137,16 @@ function brl(n){ if(PRIV) return "•••"; return (n||0).toLocaleString("pt-B
    REGRA: sempre sai numero com %. Nunca vazio, nunca traco.
    Todo anel e todo total passam por aqui — se a conta voltar a ser copiada,
    e aqui que ela tem que ser mudada. */
+
+/* ---------- o brilho do anel ----------
+   Cresce com o preenchimento: nada no comecinho, forte perto do fim.
+   Sai na propria cor, entao serve pra qualquer categoria que ele criar. */
+function brilhoAnel(pc, cor){
+  var g = Math.max(0, Math.min(1, (+pc || 0) / 100));
+  if(g < 0.02) return "none";
+  return "drop-shadow(0 0 " + (1.5 + g * 5.5).toFixed(1) + "px " + cor + ")";
+}
+
 function anelPct(gasto, orc){
   gasto = +gasto || 0; orc = +orc || 0;
   if(orc > 0){
@@ -2983,8 +2997,8 @@ function renderGastos(){
     var off=213.628*(1-pc/100);
     rh+='<div class="gp-ring'+(est?' est':'')+'">' +
         '<svg width="96" height="96" viewBox="0 0 96 96">' +
-          '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke-width="9"/>' +
-          '<circle cx="48" cy="48" r="34" fill="none" stroke="'+(est?"#f87171":k.cor)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="'+off+'" transform="rotate(-90 48 48)"/>' +
+          '<circle class="rbg" cx="48" cy="48" r="34" fill="none" stroke="'+k.cor+'" stroke-width="9"/>' +
+          '<circle cx="48" cy="48" r="34" fill="none" stroke="'+(est?"#f87171":k.cor)+'" style="filter:'+brilhoAnel(est?100:pc, est?"#f87171":k.cor)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="213.628" stroke-dashoffset="'+off+'" transform="rotate(-90 48 48)"/>' +
           '<text class="pcT" x="48" y="54" text-anchor="middle">'+_a.txt+'</text>' +
         '</svg>' +
         '<div class="rname" style="color:'+k.cor+'">'+catIcoHTML(k)+'<span class="rnm">'+esc(k.nome)+'</span></div>' +

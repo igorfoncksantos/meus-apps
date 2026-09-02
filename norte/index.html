@@ -845,7 +845,7 @@
 <div id="cats"></div>
 
 <div class="obs">
-  <div class="obs-h"><span class="cbar"></span><span class="obs-ic" data-ic="pen"></span>Observações
+  <div class="obs-h"><span class="cbar"></span><span class="obs-ic" data-ic="pen"></span>Notas
     <button class="cadd" onclick="addObs()">+ nota</button></div>
   <div class="obs-box" id="obsBox"></div>
 </div>
@@ -870,7 +870,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v67';
+const VERSAO = 'v68';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1115,7 +1115,7 @@ function render(){
   // obs
   const ob=document.getElementById('obsBox'); const obs=day().obs||[];
   ob.innerHTML = obs.length ? obs.map((o,i)=>{ const N=notaDe(o); return `<div class="oi${i===_obsAnim?' new':''}${N.fix?' fixa':''}" onclick="abreObs(${i})" title="Tocar para editar"><span class="dt">${escapeHtml(dataCurta(N.dt))}</span><span class="tx">${escapeHtml(N.t)}</span>${N.fix?'<span class="pin" title="Fica todo dia">📌</span>':''}<span class="del" onclick="event.stopPropagation();delObs(${i})">✕</span></div>`; }).join('')
-                            : `<div class="obs-empty">Sem observações hoje.</div>`;
+                            : `<div class="obs-empty">Sem notas hoje.</div>`;
   _obsAnim=-1; _subAnim='';
   document.getElementById('footer').textContent = `Norte ${VERSAO} · ${fmtBR(cur)}/${cur.split('-')[0]} · salvo no aparelho.`;
   pintaBarras();   /* as barras dos cartoes nascem na largura de antes; aqui vao pra nova e a transicao roda */
@@ -1497,7 +1497,7 @@ function ditarPara(bt, alvoId){
 function micHTML(alvoId){
   return _temVoz() ? ('<button type="button" class="micbt" data-mic="'+alvoId+'" onclick="ditarPara(this,\''+alvoId+'\')" title="Ditar" aria-label="Ditar">'+svgIc("mic")+'</button>') : "";
 }
-/* ---- observações ---- */
+/* ---- notas ---- */
 /* A nota era uma string. Virou {t,dt,fix} pra carregar data e o "fica pro dia
    seguinte" — mas as antigas continuam string no aparelho de quem já usava,
    entao toda leitura passa por aqui. */
@@ -1516,18 +1516,21 @@ function maiusculaNaPrimeira(t){
   return s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
 }
 let _obsAnim=-1, _obsEdit=-1;
+/* a nota nova ainda nao existe na lista, entao carrega o proprio estado do
+   interruptor aqui ate ser salva */
+let _obsFixNovo=false, _obsTxtPend="";
 function addObs(){ abreObs(-1); }
-function abreObs(i){ _obsEdit = (typeof i === "number") ? i : -1;
+function abreObs(i){ _obsEdit = (typeof i === "number") ? i : -1; _obsFixNovo = false;
   const novo = _obsEdit < 0, N = novo ? {t:'',dt:'',fix:false} : notaDe((day().obs||[])[_obsEdit]);
   const atual = N.t;
-  sheet(`<h3 style="color:var(--note-txt)">🖋️ ${novo?"Nova observação":"Editar observação"}</h3>
+  sheet(`<h3 style="color:var(--note-txt)">🖋️ ${novo?"Nova nota":"Editar nota"}</h3>
     <div class="field linhamic"><textarea id="obsInput" placeholder="Escreva sua nota..." data-kb="text" style="min-height:100px;font-family:'Nota',cursive;font-size:19px;line-height:1.5;color:var(--note-txt2);background:rgba(253,230,138,0.06);border-color:var(--note-line)"></textarea>${micHTML("obsInput")}</div>
-    ${novo?'':`<div class="swfix${N.fix?' on':''}" id="swFixa" onclick="fixaObs()">
+    <div class="swfix${N.fix?' on':''}" id="swFixa" onclick="fixaObs()">
       <span class="ic">${svgIc('pin')}</span>
       <span class="tt"><div class="t1">Fica todo dia</div>
         <div class="t2">Acompanha os dias até você desligar</div></span>
       <span class="tog${N.fix?' on':''}"><i></i></span></div>
-    <button type="button" class="linkacao" onclick="obsViraTarefa()">${svgIc('arrow')}Virar tarefa</button>`}
+    <button type="button" class="linkacao" onclick="obsViraTarefa()">${svgIc('arrow')}Virar tarefa</button>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" style="background:var(--note-bg);color:var(--note-on)" onclick="saveObs()">${novo?"Adicionar":"Salvar"}</button></div>`);
   setTimeout(()=>{ const el=document.getElementById('obsInput'); if(!el) return;
     if(atual){ el.value = atual; }
@@ -1544,14 +1547,23 @@ function saveObs(){ const el=document.getElementById('obsInput'); const v=el?el.
     L[_obsEdit]={ t:v, dt:N.dt||cur, fix:N.fix };
     _obsAnim=_obsEdit;
   }
-  else { L.push({ t:v, dt:cur, fix:false }); _obsAnim=L.length-1; }
+  else { L.push({ t:v, dt:cur, fix:_obsFixNovo }); _obsAnim=L.length-1; _obsFixNovo=false; }
   _obsEdit=-1; closeSheet();
   if(navigator.vibrate)navigator.vibrate(14); render(); }
 function delObs(i){ day().obs.splice(i,1); save(); render(); }
 /* Nota fixada acompanha os dias, igual a tarefa pendente. As outras ficam no
    dia em que foram escritas — e continuam la, navegando pra tras. */
 function fixaObs(){
-  const L=day().obs||[]; if(_obsEdit<0 || _obsEdit>=L.length) return;
+  /* nota nova: nao ha o que salvar ainda, so o interruptor virando */
+  if(_obsEdit<0){
+    _obsFixNovo = !_obsFixNovo;
+    const sw=document.getElementById("swFixa");
+    if(sw){ sw.classList.toggle("on",_obsFixNovo);
+            const t=sw.querySelector(".tog"); if(t) t.classList.toggle("on",_obsFixNovo); }
+    if(navigator.vibrate)navigator.vibrate(10);
+    return;
+  }
+  const L=day().obs||[]; if(_obsEdit>=L.length) return;
   const N=notaDe(L[_obsEdit]);
   const lig = !N.fix;
   L[_obsEdit]={ t:N.t, dt:N.dt||cur, fix:lig };
@@ -1565,8 +1577,17 @@ function fixaObs(){
 /* Uma nota que virou tarefa cumpriu o papel dela: sai da lista de notas, em
    vez de a mesma coisa existir em dois lugares. */
 function obsViraTarefa(){
-  const L=day().obs||[]; if(_obsEdit<0 || _obsEdit>=L.length) return;
-  const N=notaDe(L[_obsEdit]);
+  /* na nota nova o texto so existe no campo — capturar ANTES de trocar a
+     folha, senao o campo some junto */
+  if(_obsEdit<0){
+    const el=document.getElementById("obsInput");
+    _obsTxtPend = el ? el.value.trim() : "";
+    if(!_obsTxtPend){ if(el) el.focus(); toast("Escreva a nota primeiro."); return; }
+  } else {
+    const L0=day().obs||[]; if(_obsEdit>=L0.length) return;
+    _obsTxtPend = notaDe(L0[_obsEdit]).t;
+  }
+  const N={t:_obsTxtPend};
   if(!CATS.length){ toast('Crie uma categoria primeiro.'); return; }
   const opts=CATS.map(c=>`<div class="catopt" onclick="obsViraTarefaEm('${c.id}')"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('');
   sheet(`<h3>Virar tarefa de qual categoria?</h3>
@@ -1575,10 +1596,13 @@ function obsViraTarefa(){
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button></div>`);
 }
 function obsViraTarefaEm(catId){
-  const L=day().obs||[]; if(_obsEdit<0 || _obsEdit>=L.length){ closeSheet(); return; }
-  const N=notaDe(L[_obsEdit]);
-  day().tasks.push({ id:uid(), cat:catId, title:N.t, meta:'', status:'pend', prio:null });
-  L.splice(_obsEdit,1); _obsEdit=-1;
+  const L=day().obs||[];
+  const txt = _obsTxtPend || (_obsEdit>=0 && _obsEdit<L.length ? notaDe(L[_obsEdit]).t : "");
+  if(!txt){ closeSheet(); return; }
+  day().tasks.push({ id:uid(), cat:catId, title:txt, meta:'', status:'pend', prio:null });
+  /* nota que ja existia sai da lista; nota nova nunca chegou a entrar */
+  if(_obsEdit>=0 && _obsEdit<L.length) L.splice(_obsEdit,1);
+  _obsEdit=-1; _obsTxtPend="";
   closeSheet(); save(); render();
   const c=CATS.find(x=>x.id===catId);
   toast('Virou tarefa em '+(c?c.name:'')+'.');
@@ -1680,10 +1704,11 @@ function closeMenu(){ document.getElementById('menu').classList.add('hidden'); }
 document.addEventListener('click',(e)=>{ closeMenu();
   const p=document.getElementById('calPop');
   if(p && !p.classList.contains('hidden') && !p.contains(e.target)) closeCal(); });
-function sheet(html){ let o=document.createElement('div'); o.className='overlay'; o.id='sheetOverlay';
+function sheet(html){ closeSheet();   /* uma por vez: duas com o mesmo id se atropelam */
+  let o=document.createElement('div'); o.className='overlay'; o.id='sheetOverlay';
   o.innerHTML=`<div class="sheet" onclick="event.stopPropagation()">${html}</div>`;
   o.onclick=closeSheet; document.body.appendChild(o); }
-function closeSheet(){ const o=document.getElementById('sheetOverlay'); if(o)o.remove(); }
+function closeSheet(){ document.querySelectorAll('#sheetOverlay').forEach(function(o){ o.remove(); }); }
 
 /* ---- backup / restore / pdf ---- */
 function backup(){ closeMenu(); const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
@@ -1761,7 +1786,7 @@ function showShared(p){
     });
     body+='</div>';
   });
-  if(p.obs&&p.obs.length){ body+=`<div class="obs"><div class="obs-h"><span class="cbar"></span>🖋️ Observações</div><div class="obs-box">`+p.obs.map(o=>`<div class="oi">${escapeHtml(o)}</div>`).join('')+`</div></div>`; }
+  if(p.obs&&p.obs.length){ body+=`<div class="obs"><div class="obs-h"><span class="cbar"></span>🖋️ Notas</div><div class="obs-box">`+p.obs.map(o=>`<div class="oi">${escapeHtml(o)}</div>`).join('')+`</div></div>`; }
   body+='</div>';
   document.body.innerHTML=body; window.__shared=p;
 }
