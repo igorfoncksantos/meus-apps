@@ -93,6 +93,18 @@
   header .s{font-size:10.5px;color:var(--mut2);margin-top:6px;line-height:1.5}
 
   .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  /* ===== sub-abas: Categorias | Registros ===== */
+  .sabas{ display:flex; gap:5px; padding:3px; margin-bottom:12px; border-radius:14px;
+          background:var(--panel); border:1px solid var(--line); }
+  .saba{ flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+         padding:9px 10px; border-radius:11px; border:1px solid transparent; background:transparent;
+         color:var(--mut); font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+         transition:background .14s ease, color .14s ease, border-color .14s ease; }
+  .saba:active{ transform:scale(.98); }
+  .saba.on{ background:var(--acc-bg); border-color:var(--acc-bd); color:var(--acc-l); }
+  .saba .qt{ font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:20px;
+             background:var(--panel2); color:var(--mut2); font-variant-numeric:tabular-nums; }
+  .saba.on .qt{ background:var(--accent); color:var(--onacc); }
   .rodape{ text-align:center; font-size:11px; color:var(--mut2); padding:18px 0 4px;
            letter-spacing:.06em; font-variant-numeric:tabular-nums; }
 
@@ -615,6 +627,12 @@
 
 <div class="chips" id="filtros"></div>
 
+<!-- no lugar onde ficava o "+ Categoria" -->
+<div class="sabas" id="sabas" role="tablist">
+  <button type="button" class="saba on" id="sabaLista" role="tab" aria-selected="true">Categorias</button>
+  <button type="button" class="saba" id="sabaReg" role="tab" aria-selected="false">Registros <span class="qt" id="sabaRegQt">0</span></button>
+</div>
+
 <form class="add" id="form" autocomplete="off">
   <div class="linha">
     <input id="campo" placeholder="O que precisa ser feito?" enterkeyhint="done">
@@ -677,7 +695,7 @@
 (function(){
   var K="afazeres-v3", KV="afazeres-v2";
   /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
-  var VERSAO = "v55";
+  var VERSAO = "v56";
   /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
      sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
   try{ window.__VER = VERSAO; }catch(e){}
@@ -863,23 +881,57 @@
     }
   }
 
+  /* As categorias-etiqueta sairam da tela: a CATEGORIA agora e o TIPO da
+     lista, e quem agrupa e o campo do proprio tipo. O dado (lista.cats e
+     item.cat) continua guardado — so nao e mais desenhado nem criado. */
   function pintaChips(){
-    var l=L();
-    var fl=document.getElementById("filtros"); fl.innerHTML="";
-    if(l.cats.length){
-      l.cats.forEach(function(c){ fl.appendChild(chip(c.nome,c.cor,filtro===c.id,function(){ filtro=c.id; pinta(); })); });
-      /* "Sem categoria" existe quando ha item solto — ou quando e o filtro
-         ativo, senao o chip aceso desapareceria da barra */
-      if(filtro==="_sem" || l.itens.some(function(o){return !o.cat})){
-        fl.appendChild(chip("Sem categoria","#5b646a",filtro==="_sem",function(){ filtro="_sem"; pinta(); }));
-      }
-    }
-    fl.appendChild(chip(l.cats.length?"⚙":"+ Categoria",null,false,abreCats,"novo"));
+    var fl=document.getElementById("filtros");
+    if(fl){ fl.innerHTML=""; fl.style.display="none"; }
+    filtro="tudo";              /* sem filtro na tela, a lista mostra tudo */
+    pintaAbas();
+  }
 
+  /* ---------- sub-abas: Categorias | Registros ----------
+     Elas nao movem nada no documento: mostram e escondem dois conjuntos de
+     blocos. Mover no DOM soltaria os handlers ja presos neles. */
+  var ABA_CH = "feito-aba";
+  function abaAtual(){
+    try{ return localStorage.getItem(ABA_CH)==="reg" ? "reg" : "lista"; }catch(e){ return "lista"; }
+  }
+  function trocaAba(qual){
+    try{ localStorage.setItem(ABA_CH, qual); }catch(e){}
+    pintaAbas();
+  }
+  function pintaAbas(){
+    var a = abaAtual();
+    var daLista = ["bar","form","transfbar","grupos","vazio","sugestoes"];
+    /* o BOTAO de registrar age sobre a lista que se esta vendo, entao fica com
+       ela; o que vai pra aba Registros e o HISTORICO de rodadas */
+    var daReg   = ["porta"];
+    /* o "transfbar" e o "regbar" tem visibilidade propria (o app decide
+       quando eles fazem sentido), entao aqui so tiramos os da outra aba */
+    daLista.forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display = (a==="lista") ? "" : "none"; });
+    daReg.forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display = (a==="reg") ? "" : "none"; });
+    var ac=document.querySelector(".acoes"); if(ac) ac.style.display = (a==="lista") ? "" : "none";
+
+    var bl=document.getElementById("sabaLista"), br=document.getElementById("sabaReg");
+    if(bl){ bl.classList.toggle("on", a==="lista"); bl.setAttribute("aria-selected", a==="lista"); }
+    if(br){ br.classList.toggle("on", a==="reg");   br.setAttribute("aria-selected", a==="reg"); }
+    /* quantas rodadas ha: sem esse numero a aba e uma porta fechada sem pista */
+    var q=document.getElementById("sabaRegQt");
+    if(q){ var n=0; try{ n=regsDoFiltro().length; }catch(e){}
+           q.textContent=String(n); q.style.display = n ? "" : "none"; }
+    if(!window._abasLigadas){
+      window._abasLigadas=1;
+      if(bl) bl.addEventListener("click", function(){ trocaAba("lista"); });
+      if(br) br.addEventListener("click", function(){ trocaAba("reg"); });
+    }
   }
 
   function pintaSugestoes(){
-    var el=document.getElementById("sugestoes"); el.innerHTML="";
+    var el=document.getElementById("sugestoes");
+    if(el){ el.innerHTML=""; el.style.display="none"; }
+    if(1) return;                     /* fila desligada; o resto fica de reserva */
     var l=L();
     var tem={}; l.itens.forEach(function(o){ tem[o.texto.toLowerCase()]=1; });
     var arr=[];
