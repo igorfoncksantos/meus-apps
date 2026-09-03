@@ -377,6 +377,19 @@
   .calpop .ch button.trava{ opacity:.25; pointer-events:none; }
   .schedlbl{ margin-top:9px; font-size:12px; color:var(--mut); text-align:center; }
   .schedlbl.on{ color:var(--accent); font-weight:700; }
+  /* a linha rapida: mesma altura de uma tarefa, pra nao empurrar a lista */
+  .qarow{ display:flex; gap:7px; align-items:center; margin-top:7px; }
+  .qarow input{ flex:1; min-width:0; background:var(--card); border:1px solid var(--line);
+    border-radius:9px; padding:10px 11px; color:var(--txt); font-size:13.5px; font-family:inherit; }
+  .qarow input:focus{ outline:none; border-color:var(--accent); }
+  .qarow .qaok{ flex:0 0 auto; width:38px; height:38px; border:none; border-radius:9px;
+    background:var(--accent); color:var(--onacc); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .qarow .qaok svg{ width:17px; height:17px; }
+  .qarow .qaok:active{ transform:scale(.92); }
+  .qamais{ display:flex; gap:14px; margin-top:6px; padding-left:2px; }
+  .qamais button{ background:none; border:none; padding:2px 0; color:var(--mut2);
+    font-size:11.5px; font-weight:700; font-family:inherit; cursor:pointer; }
+  .qamais button:first-child{ color:var(--accent); }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -913,7 +926,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v79';
+const VERSAO = 'v80';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -939,6 +952,7 @@ function load(){
   migrarDiariasFixas();
   const t = todayISO();
   if(!DB.days[t]){ DB.days[t] = Object.keys(DB.days).length ? buildNewDay(t) : emptyDay(); save(); }
+  else if(resolvePrevia(t)) save();
   cur = t;
 }
 async function wipeAll(){ closeMenu();
@@ -1128,8 +1142,9 @@ function render(){
     const div=document.createElement('div'); div.className='cat';
     div.innerHTML=`<div class="chead"><span class="cbar" style="background:${c.color};box-shadow:0 0 8px ${c.color}99"></span>
       <span class="cname" style="cursor:pointer" onclick="openCatActions('${c.id}')">${escapeHtml(c.name)} <span class="cedit">${svgIc('pen')}</span></span>
-      <button class="cadd" onclick="openAdd('${c.id}')">+ tarefa</button></div>`;
+      <button class="cadd" onclick="quickAdd('${c.id}')">+ tarefa</button></div>`;
     ts.forEach(t=> div.appendChild(itemEl(t,c)));
+    if(_qaCat===c.id) div.insertAdjacentHTML('beforeend', quickRowHTML());
     host.appendChild(div);
   });
   pintaFDS(host); pintaBarraFDS();
@@ -1350,7 +1365,7 @@ function pintaFDS(host){
   const div=document.createElement('div'); div.className='cat';
   let h='<div class="chead"><span class="cbar" style="background:var(--fdsc);box-shadow:0 0 8px var(--fdsc)"></span>'+
         '<span class="cname">Fim de semana</span>'+
-        '<button class="cadd" onclick="openAdd(\'__fds\')">+ tarefa</button></div>';
+        '<button class="cadd" onclick="quickAdd(\'__fds\')">+ tarefa</button></div>';
   div.innerHTML=h;
   F.itens.slice().sort((a,b)=> sortKey(a)-sortKey(b)).forEach(t=>{
     /* a cor da categoria de ORIGEM fica: no sabado voce ainda ve o que e da
@@ -1368,6 +1383,7 @@ function pintaFDS(host){
   });
   /* no sabado o fim de semana e o assunto: a secao dele vem ANTES das outras.
      No resto da semana isso nem se aplica — la ele e a linha recolhida. */
+  if(_qaCat==='__fds') div.insertAdjacentHTML('beforeend', quickRowHTML());
   if(host.firstChild) host.insertBefore(div, host.firstChild); else host.appendChild(div);
 }
 /* a barra do periodo, no alto: so existe no sabado e no domingo */
@@ -1545,7 +1561,43 @@ async function delTask(id){ const t=findTask(id); if(!t)return;
 
 /* ---- add / edit ---- */
 let editing=null;
-function openAdd(catId){ if(!CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; } editing=null; showForm({cat:catId||CATS[0].id}); }
+/* ---- linha rapida: o "+ tarefa" de dentro de uma categoria ---- */
+let _qaCat=null;
+function quickRowHTML(){
+  /* form de verdade: e o submit que o teclado do app dispara no Enter */
+  return '<form class="qarow" onsubmit="return quickSave()">'+
+    '<input id="qaIn" autocomplete="off" placeholder="o que fazer">'+
+    '<button type="submit" class="qaok" title="Adicionar">'+svgIc('check')+'</button>'+
+    '</form><div class="qamais"><button type="button" onclick="quickMais()">mais opções</button>'+
+    '<button type="button" onclick="quickFecha()">fechar</button></div>';
+}
+function quickAdd(catId){
+  if(catId!=='__fds' && !CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; }
+  _qaCat=catId; render(); quickFoco();
+}
+function quickFoco(){ const el=document.getElementById('qaIn'); if(el){ el.focus(); el.scrollIntoView({block:'center'}); } }
+function quickFecha(){ _qaCat=null; render(); }
+function quickSave(){
+  const el=document.getElementById('qaIn'); const txt=el?el.value.trim():'';
+  if(!txt){ quickFecha(); return false; }
+  const t={ id:uid(), cat:(_qaCat==='__fds'?null:_qaCat), title:txt, meta:'', status:'pend', prio:null };
+  if(_qaCat==='__fds'){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+    t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
+  else day().tasks.push(t);
+  save(); render();
+  /* a linha continua aberta: quem abre pra escrever uma costuma escrever tres */
+  quickFoco();
+  return false;
+}
+function quickMais(){
+  const el=document.getElementById('qaIn'); const txt=el?el.value.trim():'';
+  const alvo=_qaCat; _qaCat=null; render();
+  /* o que ja foi digitado vai junto — ninguem redigita por ter mudado de ideia */
+  if(alvo==='__fds'){ _formParaFDS=true; editing=null; showForm({cat:(CATS[0]&&CATS[0].id)||null, title:txt}); }
+  else { editing=null; showForm({cat:alvo, title:txt}); }
+}
+function openAdd(catId){ if(!CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; } editing=null; _formParaFDS=false; showForm({cat:catId||CATS[0].id}); }
+let _formParaFDS=false;
 function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
   formCat=t.cat||(CATS[0]&&CATS[0].id)||null; formPrio=t.prio||null;
@@ -1698,7 +1750,11 @@ function saveForm(){
         return o; }); }
     else delete t.subs;
     syncRecurring(t); }
-  else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr; day().tasks.push(t); syncRecurring(t); }
+  else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr;
+    if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+      t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
+    else { day().tasks.push(t); syncRecurring(t); } }
+  _formParaFDS=false;
   editing=null; closeSheet(); render();
 }
 function escapeAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
@@ -1863,7 +1919,7 @@ function obsViraTarefaEm(catId){
 }
 
 /* ---- navegação de dias + novo dia ---- */
-function nav(n){ const iso=shiftISO(cur,n); if(!DB.days[iso]){ DB.days[iso]=buildNewDay(iso); } cur=iso; render(); }
+function nav(n){ const iso=shiftISO(cur,n); if(!DB.days[iso]){ DB.days[iso]=criaPorNavegacao(iso); } cur=iso; render(); }
 let calMonth;
 function openCalendar(e){ if(e)e.stopPropagation(); const p=document.getElementById('calPop');
   if(!p.classList.contains('hidden')){ p.classList.add('hidden'); return; }
@@ -1892,9 +1948,9 @@ function dayCell(dt,y,m,t,other){
 }
 function pickCal(iso){ closeCal(); jumpTo(iso); }
 function jumpTo(iso){ if(!iso)return;
-  if(!DB.days[iso]){ DB.days[iso]=buildNewDay(iso); }
+  if(!DB.days[iso]){ DB.days[iso]=criaPorNavegacao(iso); }
   cur=iso; render(); }
-function goToday(){ const iso=todayISO(); if(!DB.days[iso])DB.days[iso]=buildNewDay(iso); cur=iso; render(); }
+function goToday(){ const iso=todayISO(); if(!DB.days[iso])DB.days[iso]=buildNewDay(iso); else resolvePrevia(iso); cur=iso; render(); }
 async function newDay(){ closeMenu(); const iso=todayISO()>cur?todayISO():shiftISO(cur,1);
   if(DB.days[iso]&&!await uiConfirm(fmtBR(iso)+' já existe. Recriar do zero apaga o que tem lá. Continuar?',{title:'Recriar o dia?',ok:'Recriar',danger:true}))return;
   DB.days[iso]=buildNewDay(iso); cur=iso; render(); }
@@ -1913,7 +1969,23 @@ function migrarDiariasFixas(){
   add({cat:'pessoal',title:'Beber 2 garrafas de água',meta:'',prio:null,subLabels:['Garrafa 1','Garrafa 2']});
 }
 
-function buildNewDay(iso){
+/* dia aberto na mao: nasce so com o que e dele. Se for no futuro, fica
+   marcado como PREVIA — o carry-over dele ainda esta por vir. */
+function criaPorNavegacao(iso){
+  const d = buildNewDay(iso, false);
+  if(iso > todayISO()) d.previa = true;
+  return d;
+}
+/* o dia que voce tinha espiado finalmente chegou: o carry-over entra agora,
+   somando ao que ja estava la em vez de substituir. */
+function resolvePrevia(iso){
+  const d = DB.days[iso]; if(!d || !d.previa) return false;
+  delete d.previa;
+  const trazidas = buildNewDay(iso, true).tasks.filter(nt => nt.carriedFrom);
+  if(trazidas.length) d.tasks = d.tasks.concat(trazidas);
+  return trazidas.length > 0;
+}
+function buildNewDay(iso, carrega){
   // pega o dia anterior mais recente
   const prevIso = Object.keys(DB.days).filter(k=>k<iso).sort().pop();
   const prev = prevIso?DB.days[prevIso]:null;
@@ -1937,8 +2009,8 @@ function buildNewDay(iso){
     if(e.subLabels)nt.subs=e.subLabels.map(l=>({label:l,done:false}));
     tasks.push(nt);
   });
-  // carry-over do dia anterior
-  if(prev){ prev.tasks.forEach(t=>{
+  // carry-over do dia anterior — SO quando o dia vira de verdade
+  if(carrega!==false && prev){ prev.tasks.forEach(t=>{
     if(t.recur==='diária') return;                 // diárias já recriadas
     if(t.rid) return;                              // recorrências do usuário já recriadas acima
     if(t.status==='done'||t.status==='canc') return; // feitas/canceladas ficam pra trás
@@ -2289,7 +2361,7 @@ async function pushRemote(){ if(!sbReady())return;
     if(!r.error) localStorage.setItem('norte-syncedAt',stamp); }catch(e){} }
 function hasLocalData(){ return (DB&&DB.days&&Object.values(DB.days).some(d=>d.tasks&&d.tasks.length)) || (DB&&DB.cats&&DB.cats.length); }
 function normalizeDB(){ if(!DB||!DB.days)DB={days:{}}; if(!DB.cats)DB.cats=[]; if(!DB.recurring)DB.recurring=[]; CATS=DB.cats;
-  const t=todayISO(); if(!DB.days[t]) DB.days[t]=Object.keys(DB.days).length?buildNewDay(t):emptyDay(); cur=t; }
+  const t=todayISO(); if(!DB.days[t]) DB.days[t]=Object.keys(DB.days).length?buildNewDay(t):emptyDay(); else resolvePrevia(t); cur=t; }
 function mergeDB(a,b){ const out={days:{},cats:[],recurring:(a.recurring&&a.recurring.length?a.recurring:(b.recurring||[]))};
   const cm={}; [].concat(a.cats||[],b.cats||[]).forEach(c=>{ if(!cm[c.id])cm[c.id]=c; }); out.cats=Object.values(cm);
   const ds=new Set([].concat(Object.keys(a.days||{}),Object.keys(b.days||{})));
