@@ -368,6 +368,9 @@
   .fds-dobra .ic{ display:flex; }
   .fds-dobra .n{ margin-left:auto; font-size:11px; color:var(--mut2); font-weight:600; }
   .fds-barra{ margin:4px 0 13px; }
+  /* o fim de semana no seletor de destino: cor propria, pra nao se confundir
+     com uma categoria sua */
+  .catopt.fdsopt{ color:var(--fdsc); }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -904,7 +907,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v77';
+const VERSAO = 'v78';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1771,9 +1774,11 @@ function obsViraTarefa(){
     _obsTxtPend = notaDe(L0[_obsEdit]).t;
   }
   const N={t:_obsTxtPend};
-  if(!CATS.length){ toast('Crie uma categoria primeiro.'); return; }
-  const opts=CATS.map(c=>`<div class="catopt" onclick="obsViraTarefaEm('${c.id}')"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('');
-  sheet(`<h3>Virar tarefa de qual categoria?</h3>
+  /* sem categoria nenhuma ainda da pra mandar pro fim de semana: ele nao
+     depende de categoria, e barrar aqui seria barrar por nada. */
+  const opts=CATS.map(c=>`<div class="catopt" onclick="obsViraTarefaEm('${c.id}')"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('')
+    + `<div class="catopt fdsopt" onclick="obsViraTarefaEm('__fds')"><span class="dot" style="background:var(--fdsc)"></span>Fim de semana</div>`;
+  sheet(`<h3>Virar tarefa de quê?</h3>
     <div class="mtxt" style="color:var(--mut);margin-bottom:12px">${escapeHtml(N.t)}</div>
     <div class="catrow">${opts}</div>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button></div>`);
@@ -1782,7 +1787,21 @@ function obsViraTarefaEm(catId){
   const L=day().obs||[];
   const txt = _obsTxtPend || (_obsEdit>=0 && _obsEdit<L.length ? notaDe(L[_obsEdit]).t : "");
   if(!txt){ closeSheet(); return; }
-  day().tasks.push({ id:uid(), cat:catId, title:txt, meta:'', status:'pend', prio:null });
+  const praFDS = (catId === '__fds');
+  const nova = { id:uid(), cat:(praFDS?null:catId), title:txt, meta:'', status:'pend', prio:null };
+  if(praFDS){
+    const F=fds(); const primeiraVez=!F.on;
+    F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+    nova.fdsDesde = sabadoDe(cur) || proximoSabado();
+    F.itens.push(nova);
+    if(_obsEdit>=0 && _obsEdit<L.length) L.splice(_obsEdit,1);
+    _obsEdit=-1; _obsTxtPend="";
+    closeSheet(); save(); render();
+    if(primeiraVez) uiAlert('O que você mandar pro fim de semana some da lista da semana e volta no sábado. Se não fizer, ele espera o próximo — não cai na sua segunda.',{title:'Pronto — ela volta no sábado'});
+    else toast('Virou tarefa do fim de semana.');
+    return;
+  }
+  day().tasks.push(nova);
   /* nota que ja existia sai da lista; nota nova nunca chegou a entrar */
   if(_obsEdit>=0 && _obsEdit<L.length) L.splice(_obsEdit,1);
   _obsEdit=-1; _obsTxtPend="";
