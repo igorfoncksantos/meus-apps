@@ -380,6 +380,14 @@
   .nota{margin-top:7px;font-size:12.5px;color:var(--mut);line-height:1.5;outline:none;
         border-left:2px solid var(--line);padding-left:9px}
   .nota:focus{border-left-color:var(--accent);color:var(--txt)}
+  /* numero do passo/serie: diz que ha ORDEM, onde ela importa */
+  .snum{ flex:0 0 15px; text-align:right; font-size:10px; color:var(--mut2);
+         font-variant-numeric:tabular-nums; }
+  /* na serie, o texto e um dado: toca e edita */
+  .sub .sdado{ cursor:pointer; }
+  .sub .scarga{ flex:0 0 auto; font-size:11.5px; color:var(--acc-l); cursor:pointer;
+                font-variant-numeric:tabular-nums; padding:0 2px; }
+  .sub.ok .scarga{ color:var(--mut2); }
   .subs{margin-top:9px;display:flex;flex-direction:column;gap:6px}
   .sub{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--mut)}
   .sub .sb{width:16px;height:16px;border-radius:5px;border:2px solid var(--line2);flex-shrink:0;cursor:pointer;position:relative}
@@ -762,7 +770,7 @@
 (function(){
   var K="afazeres-v3", KV="afazeres-v2";
   /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
-  var VERSAO = "v67";
+  var VERSAO = "v68";
   /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
      sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
   try{ window.__VER = VERSAO; }catch(e){}
@@ -1292,9 +1300,22 @@
     if(tipoDe(l) === "treino"){
       var vFeito = 0, vTudo = 0;
       (l.itens || []).forEach(function(o){
-        var v = volumeDe(o);
-        vTudo += v;
-        if(o.feito) vFeito += v;
+        /* com series, quem se marca e a SERIE: o exercicio quase nunca e
+           marcado, e exigir isso fazia o topo dizer 0 com o treino andando. */
+        var series = (o.subs || []).filter(function(s){
+          return s.reps !== undefined || s.carga !== undefined;
+        });
+        if(series.length){
+          series.forEach(function(s){
+            var v = num(s.reps) * num(s.carga);
+            vTudo += v;
+            if(s.ok) vFeito += v;
+          });
+        } else {
+          var p = volumeDe(o);
+          vTudo += p;
+          if(o.feito) vFeito += p;
+        }
       });
       var ses = l.sessoes || [];
       var ant = ses.length ? ses[ses.length - 1].v : 0;
@@ -1513,22 +1534,71 @@
       var tf=document.createElement("div"); tf.className="tf"; tf.style.width=(okc/it.subs.length*100)+"%";
       tt.appendChild(tf);
       var tc=document.createElement("span"); tc.className="tc"; tc.textContent=okc+"/"+it.subs.length;
-      tb.appendChild(tt); tb.appendChild(tc); meio.appendChild(tb);
+      /* TREINO: ao lado da contagem, quanto ja pesou — sobe a cada serie */
+      tb.appendChild(tc); tb.appendChild(tt);
+      /* TREINO: o peso ja levantado fecha a linha — e o numero que sobe a
+         cada serie marcada, entao ele merece a ponta direita. */
+      if(tipoDe(L()) === "treino"){
+        var vSerie = 0;
+        it.subs.forEach(function(s){ if(s.ok) vSerie += (num(s.reps) * num(s.carga)); });
+        if(vSerie){
+          var tv=document.createElement("span"); tv.className="tc";
+          tv.textContent = kg(vSerie);
+          tb.appendChild(tv);
+        }
+      }
+      meio.appendChild(tb);
 
+      var tpSub = tipoDe(L());
       var ds=document.createElement("div"); ds.className="subs";
       it.subs.forEach(function(s,idx){
         var r=document.createElement("div"); r.className="sub"+(s.ok?" ok":"");
         var sb=document.createElement("span"); sb.className="sb";
-        sb.addEventListener("click",function(){ s.ok=!s.ok; grava(); pinta(); });
-        var st=document.createElement("span"); st.className="st";
-        editavel(st,s.t,function(t){ if(t===""){ it.subs.splice(idx,1); } else { s.t=t; } grava(); pinta(); });
+        sb.addEventListener("click",function(){
+          s.ok=!s.ok;
+          /* TREINO: terminar a serie e o momento exato de comecar o descanso.
+             Pedir um segundo toque num botao seria pedir o que ja se sabe. */
+          if(tpSub === "treino" && s.ok) it._descansar = true;
+          grava(); pinta();
+        });
+        /* passo numerado onde a ORDEM importa: preparo e serie */
+        if(tpSub === "receitas" || tpSub === "treino"){
+          var nu=document.createElement("span"); nu.className="snum"; nu.textContent=String(idx+1);
+          r.appendChild(nu);
+        }
+        r.appendChild(sb);
+        if(tpSub === "treino"){
+          /* a serie nao tem texto: tem repeticoes e carga, cada uma editavel */
+          var rp=document.createElement("span"); rp.className="st sdado";
+          rp.textContent = (s.reps ? (s.reps + " reps") : "quantas reps?");
+          rp.addEventListener("click",function(){
+            fAsk("Repetições desta série", s.reps || "", function(v){
+              s.reps = String(v).trim(); grava(); pinta();
+            }, "number", "ex: 10");
+          });
+          var cg=document.createElement("span"); cg.className="scarga";
+          cg.textContent = (s.carga ? (s.carga + " kg") : "carga");
+          cg.addEventListener("click",function(){
+            fAsk("Carga desta série", s.carga || "", function(v){
+              s.carga = String(v).trim(); grava(); pinta();
+            }, "number", "ex: 40");
+          });
+          r.appendChild(rp); r.appendChild(cg);
+        } else {
+          var st=document.createElement("span"); st.className="st";
+          editavel(st,s.t,function(t){ if(t===""){ it.subs.splice(idx,1); } else { s.t=t; } grava(); pinta(); });
+          r.appendChild(st);
+        }
         var sx=document.createElement("span"); sx.className="sx"; sx.textContent="✕";
         sx.addEventListener("click",function(){ it.subs.splice(idx,1); grava(); pinta(); });
-        r.appendChild(sb); r.appendChild(st); r.appendChild(sx); ds.appendChild(r);
+        r.appendChild(sx); ds.appendChild(r);
       });
       meio.appendChild(ds);
     }
 
+    /* TREINO sempre tem descanso: sem numero definido, 60s. Nas outras
+       categorias ele so aparece se voce pedir. */
+    if(tipoDe(L()) === "treino" && !it.crono) it.crono = 60;
     if(it.crono){
       var cw=document.createElement("div"); cw.className="crono";
       var vis=document.createElement("span"); vis.className="vis"; vis.textContent=fmt(it.crono);
@@ -1544,6 +1614,8 @@
         },1000); if(window.__TIMERS) window.__TIMERS.push(tid);
       });
       cw.appendChild(bt1); cw.appendChild(vis); meio.appendChild(cw);
+      /* marcou a serie: o descanso comeca sozinho, sem pedir outro toque */
+      if(it._descansar){ delete it._descansar; setTimeout(function(){ try{ bt1.click(); }catch(e){} }, 60); }
     }
 
     var bt=document.createElement("button"); bt.className="x"; bt.textContent="✕";
@@ -1727,6 +1799,18 @@
   }
   function num(t){ return parseFloat(String(t).split(",").join(".").replace(/[^0-9.]/g, "")) || 0; }
   function volumeDe(it){
+    /* com series registradas, o volume e o que FOI FEITO: so as marcadas.
+       Sem elas, cai no plano do item (series x reps x carga). */
+    if(it.subs && it.subs.length){
+      var temSerie = false, v = 0;
+      for(var i = 0; i < it.subs.length; i++){
+        var s = it.subs[i];
+        if(s.reps === undefined && s.carga === undefined) continue;
+        temSerie = true;
+        if(s.ok) v += num(s.reps) * num(s.carga);
+      }
+      if(temSerie) return v;
+    }
     var r = repsDe(it.serie), c = num(it.carga);
     return (r && c) ? r * c : 0;
   }
@@ -1776,6 +1860,8 @@
   function cumpreRotina(it){
     it.ultima = hojeISO();
     it.feito = false;
+    /* a rotina volta do zero, entao os passos voltam tambem */
+    (it.subs || []).forEach(function(s){ s.ok = false; });
     delete it.fdt;
     flashFeito();
   }
@@ -1793,6 +1879,16 @@
     if(it.feito){                 /* voltar do fim reabre a peca na ultima etapa */
       it.feito = false; delete it.fdt; it.etapa = ETAPAS[ETAPAS.length - 1];
       return;
+    }
+    /* trava em aberto segura a peca: e pra isso que ela foi escrita */
+    if(it.subs && it.subs.length){
+      var abertas = it.subs.filter(function(s){ return !s.ok; });
+      if(abertas.length){
+        fInfo("Falta " + abertas.length + (abertas.length === 1 ? " trava" : " travas") +
+              " nesta peça: " + abertas.map(function(s){ return s.t; }).join(", ") + ".",
+              "A peça não anda ainda");
+        return;
+      }
     }
     if(i >= ETAPAS.length - 1){ it.feito = true; it.fdt = Date.now(); flashFeito(); return; }
     it.etapa = ETAPAS[i + 1];
@@ -1823,7 +1919,13 @@
       /* o que e de TODOS */
       opts.push({id:"3",ic:"cal", nome:"Prazo"});
       opts.push({id:"4",ic:"pen", nome:"Nota"});
-      opts.push({id:"5",ic:"list",nome:"Subitem"});
+      /* COMPRAS nao tem subitem: dentro de "Arroz" ele nao descreve nada que a
+         lista nao descreva, e nao entra na conta do carrinho — o que engana.
+         Segue em "Outro campo...": some da vista, nao do app. */
+      var tpM = tipoDe(L());
+      if(tpM === "treino")        opts.push({id:"serie", ic:"dumbbell", nome:"Série", sub:"repetições e carga"});
+      else if(tpM === "receitas") opts.push({id:"passo", ic:"list", nome:"Passo do preparo"});
+      else if(tpM !== "compras")  opts.push({id:"5",ic:"list",nome:"Subitem"});
       opts.push({id:"8",ic:"cal", nome:"Repetir", sub:"volta desmarcado sozinho"});
       if(tipoDe(L())==="treino") opts.push({id:"7",ic:"clock",nome:"Cronômetro de descanso", sub:"em segundos"});
       /* a saida. Sem ela, esconder opcao vira PERDER opcao: quem anota
@@ -1833,6 +1935,24 @@
     fMenu("Adicionar ao item", opts, function(op){
       if(op.indexOf("c:")===0){ editaCampo(it, op.slice(2)); return; }
       if(op==="mais"){ menuItem(it, true); return; }
+      if(op==="serie"){
+        /* a serie nova herda o plano do item: quase sempre e o que voce quer,
+           e corrigir um numero e mais rapido que digitar dois */
+        var pl = String(it.serie || "").match(/[0-9]+/g);
+        it.subs = it.subs || [];
+        it.subs.push({ t:"", ok:false,
+                       reps: (pl && pl.length > 1) ? pl[1] : "",
+                       carga: it.carga || "" });
+        grava(); pinta(); return;
+      }
+      if(op==="passo"){
+        fAsk("Passo do preparo","",function(v){
+          if(!v.trim()) return;
+          it.subs = it.subs || []; it.subs.push({t:v.trim(), ok:false});
+          grava(); pinta();
+        }, "text", "ex: doure a cebola");
+        return;
+      }
       if(op==="1") fAsk("Quantidade",it.qtd||"",function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","ex: 3");
       else if(op==="2") fAsk("Preço",it.preco||"",function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
       else if(op==="3") fAsk("Prazo",it.prazo||"",function(v){ it.prazo=v.trim(); grava(); pinta(); },"date");
@@ -2570,6 +2690,9 @@
         c.id = uid();
         c.feito = false;          /* renasce por fazer */
         delete c.fdt;
+        /* o que vai DENTRO tambem renasce por fazer: senao a necessaire volta
+           com tudo marcado e voce fecha a mala sem ter posto nada */
+        (c.subs || []).forEach(function(s){ s.ok = false; });
         nova.itens.push(c);
       });
       D.listas.push(nova); D.atual = nova.id; filtro = "";
