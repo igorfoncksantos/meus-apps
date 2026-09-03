@@ -383,6 +383,13 @@
   .cmbtn.ghost { background:#171b1f; color:#c7ced3; border-color:#2a2f33; }
   .cmbtn.del { background:#2b1214; color:#f87171; border-color:#5c2a2f; }
   .cmbtn.del[disabled] { opacity:.35; cursor:not-allowed; }
+  /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
+     focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
+     @supports (-webkit-touch-callout:none) so existe no iOS — Android e
+     desktop nao mudam de aparencia. */
+  @supports (-webkit-touch-callout: none) {
+    input, textarea, select { font-size: 16px !important; }
+  }
 </style>
   <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
   <meta name="theme-color" content="#3ddb84">
@@ -1438,6 +1445,25 @@ window.addEventListener("message",function(e){
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", function(){ setTimeout(restaurar, 80); });
   else setTimeout(restaurar, 80);
+})();
+</script>
+<style>
+  /* o numero da versao: e como se sabe, num relance, se o app atualizou */
+  .verapp{ text-align:center; font-size:10.5px; color:#6b7378; letter-spacing:.05em;
+           padding:14px 0 calc(26px + env(safe-area-inset-bottom)); }
+</style>
+<div class="verapp">Cashbook <span id="verApp">&mdash;</span></div>
+<script>
+/* le do operador do APARELHO, nao do servidor: e ele que diz o que voce esta
+   rodando de fato */
+(function(){
+  try{
+    fetch("sw.js?cb=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.text(); }).then(function(t){
+      var m = t.match(/-v([0-9]+)/);
+      var el = document.getElementById("verApp");
+      if(m && el) el.textContent = "v" + m[1];
+    }).catch(function(){});
+  }catch(e){}
 })();
 </script>
 </body>

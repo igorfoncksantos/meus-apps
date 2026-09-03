@@ -786,6 +786,13 @@
   .prog-empty svg{ width:40px; height:40px; stroke:var(--mut); display:block; margin:0 auto 10px; }
 
   @media print{ .toolbar,.fab,.cadd,.gbtn,.menu,.calpop,#flash,#__welcome,#authOv,nav,.progview{ display:none!important; } body{ padding:15mm 14mm; } }
+  /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
+     focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
+     @supports (-webkit-touch-callout:none) so existe no iOS — Android e
+     desktop nao mudam de aparencia. */
+  @supports (-webkit-touch-callout: none) {
+    input, textarea, select { font-size: 16px !important; }
+  }
 </style>
 </head>
 <body>
@@ -870,7 +877,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v75';
+const VERSAO = 'v76';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }

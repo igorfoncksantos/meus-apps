@@ -237,6 +237,13 @@
     .actions button{padding:9px 6px}
     #__welcome .__wcard{transform:scale(.8);transform-origin:center}
   }
+  /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
+     focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
+     @supports (-webkit-touch-callout:none) so existe no iOS — Android e
+     desktop nao mudam de aparencia. */
+  @supports (-webkit-touch-callout: none) {
+    input, textarea, select { font-size: 16px !important; }
+  }
 </style>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#9A9585">
@@ -785,6 +792,25 @@ var SEED = {"tasks":{},"notes":{}};
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", function(){ setTimeout(restaurar, 80); });
   else setTimeout(restaurar, 80);
+})();
+</script>
+<style>
+  /* o numero da versao: e como se sabe, num relance, se o app atualizou */
+  .verapp{ text-align:center; font-size:10.5px; color:#6b7378; letter-spacing:.05em;
+           padding:14px 0 calc(26px + env(safe-area-inset-bottom)); }
+</style>
+<div class="verapp">Daybook <span id="verApp">&mdash;</span></div>
+<script>
+/* le do operador do APARELHO, nao do servidor: e ele que diz o que voce esta
+   rodando de fato */
+(function(){
+  try{
+    fetch("sw.js?cb=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.text(); }).then(function(t){
+      var m = t.match(/-v([0-9]+)/);
+      var el = document.getElementById("verApp");
+      if(m && el) el.textContent = "v" + m[1];
+    }).catch(function(){});
+  }catch(e){}
 })();
 </script>
 </body>

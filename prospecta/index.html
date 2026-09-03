@@ -317,6 +317,13 @@
                display:flex; align-items:center; justify-content:center; margin-top:1px; }
   footer{text-align:center;font-size:10.5px;color:var(--mut2);margin-top:26px;padding-top:14px;
          border-top:1px solid var(--line)}
+  /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
+     focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
+     @supports (-webkit-touch-callout:none) so existe no iOS — Android e
+     desktop nao mudam de aparencia. */
+  @supports (-webkit-touch-callout: none) {
+    input, textarea, select { font-size: 16px !important; }
+  }
 </style>
 </head>
 <body>
@@ -1132,7 +1139,20 @@ else primeiraVez();
   var r2 = hx2(AC);
   var suave = 'rgba('+r2[0]+','+r2[1]+','+r2[2]+',.16)';
   var tinta = (r2[0]*.299+r2[1]*.587+r2[2]*.114) > 150 ? '#06131a' : '#04181c';
-  var TOQUE = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
+  var TOQUE = (function(){
+    /* So o teclado do app quando ha ponteiro GROSSO e NENHUM fino: celular
+       tem so o dedo; notebook com tela de toque tem tambem o trackpad, e la
+       quem escreve e o teclado fisico. */
+    try{
+      if(!window.matchMedia) return false;
+      /* a chave manual ganha da deteccao: nenhuma regra acerta todo aparelho */
+      var esc = null;
+      try{ esc = localStorage.getItem('apps-teclado'); }catch(x){}
+      if(esc === 'sim') return true;
+      if(esc === 'nao') return false;
+      return matchMedia('(pointer:coarse)').matches && !matchMedia('(any-pointer:fine)').matches;
+    }catch(e){ return false; }
+  })();
 
   var MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   var MESC = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];

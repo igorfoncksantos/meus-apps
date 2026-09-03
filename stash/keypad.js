@@ -6,7 +6,20 @@
 (function(){
   var CFG = window.__SYNC_CFG || {};
   var ACCENT = CFG.accent || '#2FD9C9';
-  var TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
+  var TOUCH = (function(){
+    /* So o teclado do app quando ha ponteiro GROSSO e NENHUM fino: celular
+       tem so o dedo; notebook com tela de toque tem tambem o trackpad, e la
+       quem escreve e o teclado fisico. */
+    try{
+      if(!window.matchMedia) return false;
+      /* a chave manual ganha da deteccao: nenhuma regra acerta todo aparelho */
+      var esc = null;
+      try{ esc = localStorage.getItem('apps-teclado'); }catch(x){}
+      if(esc === 'sim') return true;
+      if(esc === 'nao') return false;
+      return matchMedia('(pointer:coarse)').matches && !matchMedia('(any-pointer:fine)').matches;
+    }catch(e){ return false; }
+  })();
   if(!TOUCH) return;                       // desktop: nada muda
   if(window.__KP_ON) return; window.__KP_ON=true;
 
@@ -594,7 +607,20 @@ function _kbdFecha(){
   var r2 = hx2(AC);
   var suave = 'rgba('+r2[0]+','+r2[1]+','+r2[2]+',.16)';
   var tinta = (r2[0]*.299+r2[1]*.587+r2[2]*.114) > 150 ? '#06131a' : '#04181c';
-  var TOQUE = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
+  var TOQUE = (function(){
+    /* So o teclado do app quando ha ponteiro GROSSO e NENHUM fino: celular
+       tem so o dedo; notebook com tela de toque tem tambem o trackpad, e la
+       quem escreve e o teclado fisico. */
+    try{
+      if(!window.matchMedia) return false;
+      /* a chave manual ganha da deteccao: nenhuma regra acerta todo aparelho */
+      var esc = null;
+      try{ esc = localStorage.getItem('apps-teclado'); }catch(x){}
+      if(esc === 'sim') return true;
+      if(esc === 'nao') return false;
+      return matchMedia('(pointer:coarse)').matches && !matchMedia('(any-pointer:fine)').matches;
+    }catch(e){ return false; }
+  })();
 
   var MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   var MESC = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];

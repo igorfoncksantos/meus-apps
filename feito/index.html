@@ -615,6 +615,13 @@
   /* teclado so-numeros (discador) */
   #kbd.num .row{ max-width:400px; margin-left:auto; margin-right:auto; gap:6px; margin-bottom:6px; }
   #kbd.num .k{ height:58px; font-size:23px; font-weight:700; }#kbd.num .row:last-child .k{ height:44px; font-size:19px; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:var(--txt2); opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,var(--acc-l),var(--acc-l)); color:var(--onacc); font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }
+  /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
+     focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
+     @supports (-webkit-touch-callout:none) so existe no iOS — Android e
+     desktop nao mudam de aparencia. */
+  @supports (-webkit-touch-callout: none) {
+    input, textarea, select { font-size: 16px !important; }
+  }
 </style>
   <link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png">
   <meta name="theme-color" content="#000000">
@@ -755,7 +762,7 @@
 (function(){
   var K="afazeres-v3", KV="afazeres-v2";
   /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
-  var VERSAO = "v66";
+  var VERSAO = "v67";
   /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
      sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
   try{ window.__VER = VERSAO; }catch(e){}
@@ -2670,7 +2677,20 @@
   var campoQt=document.getElementById('campoQt');
   var form=document.getElementById('form');
   var target=campo, numerico=false;
-  var TOUCH = (window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  var TOUCH = (function(){
+    /* So o teclado do app quando ha ponteiro GROSSO e NENHUM fino: celular
+       tem so o dedo; notebook com tela de toque tem tambem o trackpad, e la
+       quem escreve e o teclado fisico. */
+    try{
+      if(!window.matchMedia) return false;
+      /* a chave manual ganha da deteccao: nenhuma regra acerta todo aparelho */
+      var esc = null;
+      try{ esc = localStorage.getItem('apps-teclado'); }catch(x){}
+      if(esc === 'sim') return true;
+      if(esc === 'nao') return false;
+      return matchMedia('(pointer:coarse)').matches && !matchMedia('(any-pointer:fine)').matches;
+    }catch(e){ return false; }
+  })();
   /* o resto do app precisa saber disso pra marcar o campo ANTES do foco */
   try{ window.__kbTouch = TOUCH; }catch(x){}
   if(TOUCH){ campo.setAttribute('inputmode','none'); if(campoQt) campoQt.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
@@ -3158,7 +3178,20 @@
   var r2 = hx2(AC);
   var suave = 'rgba('+r2[0]+','+r2[1]+','+r2[2]+',.16)';
   var tinta = (r2[0]*.299+r2[1]*.587+r2[2]*.114) > 150 ? '#06131a' : '#04181c';
-  var TOQUE = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
+  var TOQUE = (function(){
+    /* So o teclado do app quando ha ponteiro GROSSO e NENHUM fino: celular
+       tem so o dedo; notebook com tela de toque tem tambem o trackpad, e la
+       quem escreve e o teclado fisico. */
+    try{
+      if(!window.matchMedia) return false;
+      /* a chave manual ganha da deteccao: nenhuma regra acerta todo aparelho */
+      var esc = null;
+      try{ esc = localStorage.getItem('apps-teclado'); }catch(x){}
+      if(esc === 'sim') return true;
+      if(esc === 'nao') return false;
+      return matchMedia('(pointer:coarse)').matches && !matchMedia('(any-pointer:fine)').matches;
+    }catch(e){ return false; }
+  })();
 
   var MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   var MESC = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
