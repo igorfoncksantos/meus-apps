@@ -1,0 +1,3490 @@
+<!-- GERADO por _fixsync/norte-aba-listas.js a partir de feito/index.html.
+     Nao editar a mao: rode o script de novo. -->
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Feito</title>
+<style>
+  /* ===== as cores viram token =====
+     Estavam cravadas, e cor cravada nenhum tema alcanca. Cada uma abaixo tem
+     EXATAMENTE o valor que ja tinha, entao o tema Padrao nao muda um pixel. */
+  :root{
+    --bg:#000; --panel:#121417; --panel2:#1b2024; --line:#2a2f34; --line2:#3a3f45;
+    --txt:#e8ebed; --txt2:#f0f2f4; --mut:#8a97a0; --mut2:#6b7378;
+    --accent:#2FD9C9; --acc-d:#1fb3a6; --acc-l:#8ee9df; --acc-bd:#23555c;
+    --acc-bg:#0d2b30; --onacc:#04181c;
+    --green:#22c55e; --grn-l:#7ee2b8; --grn-bd:#1f4a2f; --grn-bg:#0d1a13; --ongrn:#05130b;
+    --amber:#FBBF24; --amb-l:#f0b45e; --amb-bd:#5a4620; --amb-bg:#1b1108;
+    --red:#f87171; --red-l:#f0a3b4; --red-bd:#5c2a2f; --red-bg:#2b1214;
+    --violet:#A78BFA; --orange:#F97316;
+  /* o lapis do campo e um SVG dentro da url(): var() nao alcanca o interior
+     dele, entao o desenho inteiro vira token e troca por tema */
+  --lapis:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232FD9C9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  --lapis-foco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237df0e4' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  }
+
+  /* ===== TEMA EDITORIAL (Cofre) — os mesmos valores do Stash ===== */
+  :root[data-theme="editorial"]{
+    --bg:#F4F0E6; --panel:#FBF8F0; --panel2:#F1EADB; --line:#E3DBC9; --line2:#D6CBB4;
+    --txt:#2a2620; --txt2:#26332b; --mut:#7a7062; --mut2:#8a8072;
+    --accent:#3f6b57; --acc-d:#2f5343; --acc-l:#2b4d3f; --acc-bd:#B9CFC3;
+    --acc-bg:#E8F0EA; --onacc:#f7f3e8;
+    --green:#3f6b57; --grn-l:#2f5343; --grn-bd:#B9CFC3; --grn-bg:#E8F0EA; --ongrn:#f7f3e8;
+    --amber:#8f5f2e; --amb-l:#7a4f26; --amb-bd:#E0CBA8; --amb-bg:#F6EBD8;
+    --red:#95402d; --red-l:#7d3524; --red-bd:#E3C0B6; --red-bg:#F7E4DE;
+    --violet:#655691; --orange:#a85a1f;
+    --lapis:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f6b57' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+    --lapis-foco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f5343' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  }
+  /* o titulo do Feito e um degrade sobre o teal; no claro ele some */
+  [data-theme="editorial"] header .k{ font-family:"Fraunces",Georgia,serif; letter-spacing:2px; }
+
+  /* ===== TEMA COCKPIT DATA — os mesmos valores do Stash ===== */
+  :root[data-theme="cockpit"]{
+    --bg:#060f12; --panel:rgba(10,24,25,.8); --panel2:rgba(9,20,22,.72);
+    --line:rgba(47,217,201,.22); --line2:rgba(47,217,201,.34);
+    --txt:#cfeeeb; --txt2:#eafffb; --mut:#6fb7ae; --mut2:#8fcfc7;
+    --accent:#2FD9C9; --acc-d:#1fb3a6; --acc-l:#8ee9df; --acc-bd:rgba(47,217,201,.4);
+    --acc-bg:rgba(47,217,201,.1); --onacc:#04131a;
+    --green:#22c55e; --grn-l:#7ee2b8; --grn-bd:rgba(34,197,94,.4); --grn-bg:rgba(34,197,94,.1); --ongrn:#04120a;
+    --amber:#FBBF24; --amb-l:#f0b45e; --amb-bd:rgba(251,191,36,.35); --amb-bg:rgba(251,191,36,.08);
+    --red:#f87171; --red-l:#f0a3b4; --red-bd:rgba(248,113,113,.35); --red-bg:rgba(248,113,113,.1);
+    --violet:#A78BFA; --orange:#F97316;
+    --lapis:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232FD9C9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+    --lapis-foco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238ee9df' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  }
+  [data-theme="cockpit"] body{
+    background:
+      linear-gradient(rgba(47,217,201,.05) 1px,transparent 1px) 0 0/22px 22px,
+      linear-gradient(90deg,rgba(47,217,201,.05) 1px,transparent 1px) 0 0/22px 22px,
+      radial-gradient(120% 80% at 50% 0%,#0c2024,#060f12 72%);
+    background-attachment:fixed;
+  }
+  [data-theme="cockpit"] header .k{ font-family:"Chakra Petch",system-ui,sans-serif; }
+
+  /* o botao de trocar tema mora no canto do cabecalho */
+  header{ position:relative; }
+  /* a esquerda do botao de sincronizacao, que e fixo no canto e viria por cima */
+  /* a porta de troca de categoria, no canto de cima a esquerda */
+  .hamb{ flex:0 0 34px; width:34px; height:34px; display:flex;
+         align-items:center; justify-content:center; background:transparent;
+         border:1px solid var(--line2); border-radius:10px; color:var(--mut);
+         cursor:pointer; padding:0; margin-right:2px; }
+  .hamb:active{ border-color:var(--accent); color:var(--accent); transform:scale(.94); }
+  body.gav-on .hamb{ border-color:var(--acc-bd); color:var(--accent); background:var(--acc-bg); }
+  .thm{ position:absolute; right:44px; top:-2px; width:34px; height:34px; display:flex;
+        align-items:center; justify-content:center; background:transparent;
+        border:1px solid var(--line); border-radius:11px; color:var(--mut);
+        cursor:pointer; font-size:15px; line-height:1; padding:0; }
+  .thm:active{ border-color:var(--accent); color:var(--accent); }
+  /* o olhinho fica a esquerda do botao de tema */
+  .eyeF{ position:absolute; right:82px; top:-2px; width:34px; height:34px; display:flex;
+        align-items:center; justify-content:center; background:transparent;
+        border:1px solid var(--line); border-radius:11px; color:var(--mut);
+        cursor:pointer; padding:0; transition:.16s; }
+  .eyeF:active{ transform:scale(.92); }
+  .eyeF.on{ color:var(--accent); border-color:var(--accent);
+            background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .eyeF.on::after{ content:""; position:absolute; left:5px; right:5px; top:50%; height:2.2px;
+            background:currentColor; transform:translateY(-50%) rotate(-45deg);
+            border-radius:2px; box-shadow:0 -2px 0 var(--bg); }
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:var(--txt);
+       padding:16px 16px calc(112px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto}
+
+  header{text-align:center;border-bottom:3px solid var(--accent);padding-bottom:12px;margin-bottom:14px}
+  header .k{font-size:20px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:var(--accent)}
+  header .s{font-size:10.5px;color:var(--mut2);margin-top:6px;line-height:1.5}
+
+  .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  /* a fila das listas DESTA categoria: abaixo das sub-abas, acima dos itens */
+  .fila{ display:flex; gap:7px; overflow-x:auto; padding:0 0 4px; margin-bottom:11px;
+         scrollbar-width:none; }
+  .fila::-webkit-scrollbar{ display:none; }
+  .fchip{ flex:0 0 auto; display:flex; align-items:center; gap:6px; padding:8px 13px;
+          border-radius:20px; border:1px solid var(--line); background:var(--panel);
+          color:var(--mut); font:inherit; font-size:12.5px; font-weight:700;
+          cursor:pointer; white-space:nowrap; }
+  .fchip:active{ transform:scale(.97); }
+  .fchip.on{ background:var(--acc-bg); border-color:var(--acc-bd); color:var(--acc-l); }
+  .fchip .n{ font-size:10.5px; font-weight:800; color:var(--mut2); }
+  .fchip.on .n{ color:var(--accent); }
+  /* o "+" nao e uma lista: borda tracejada pra nao se confundir com uma */
+  .fchip.nova{ border-style:dashed; color:var(--mut2); background:transparent; }
+  /* ===== sub-abas: Categorias | Registros ===== */
+  .sabas{ display:flex; gap:5px; padding:3px; margin-bottom:12px; border-radius:14px;
+          background:var(--panel); border:1px solid var(--line); }
+  .saba{ flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+         padding:9px 10px; border-radius:11px; border:1px solid transparent; background:transparent;
+         color:var(--mut); font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+         transition:background .14s ease, color .14s ease, border-color .14s ease; }
+  .saba:active{ transform:scale(.98); }
+  .saba.on{ background:var(--acc-bg); border-color:var(--acc-bd); color:var(--acc-l); }
+  .saba .qt{ font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:20px;
+             background:var(--panel2); color:var(--mut2); font-variant-numeric:tabular-nums; }
+  .saba.on .qt{ background:var(--accent); color:var(--onacc); }
+  /* dentro da barra fixa, em linha propria abaixo dos botoes: e o unico jeito
+     de ficar no pe da tela, ja que a barra e fixa e cobre o fluxo normal */
+  .rodape{ flex:1 0 100%; text-align:center; font-size:10px; color:var(--mut2);
+           padding:9px 0 0; letter-spacing:.06em; font-variant-numeric:tabular-nums; }
+
+  /* ===== a gaveta das listas (layout D) =====
+     No celular ela desliza por cima; a partir de 900px de largura ela fica
+     fixa ao lado e a barra de abrir some — nao ha o que esconder. */
+  .lbar{ display:flex; align-items:center; gap:9px; width:100%; margin-bottom:11px;
+         padding:10px 13px; border-radius:14px; border:1px solid var(--line);
+         background:var(--panel); color:var(--txt); cursor:pointer; font:inherit;
+         transition:border-color .14s ease, transform .12s ease; }
+  /* deixou de ser botao: sem resposta ao toque, senao promete o que nao faz */
+  .lbar{ cursor:default; }
+  .lbar .ic{ display:flex; color:var(--accent); flex:0 0 auto; }
+  .lbar .nm{ font-weight:800; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lbar .qt{ font-size:11.5px; color:var(--mut); font-weight:700; flex:0 0 auto; }
+  .lbar .seta{ margin-left:auto; color:var(--mut2); display:flex; flex:0 0 auto; }
+
+  .gav-fundo{ position:fixed; inset:0; z-index:800000; background:rgba(4,6,10,.6);
+        -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+        opacity:0; pointer-events:none; transition:opacity .2s ease; }
+  body.gav-on .gav-fundo{ opacity:1; pointer-events:auto; }
+  .gav{ position:fixed; left:0; top:0; bottom:0; z-index:800001; width:min(78vw,290px);
+        background:var(--panel); border-right:1px solid var(--line);
+        padding:18px 12px calc(18px + env(safe-area-inset-bottom));
+        display:flex; flex-direction:column; gap:5px; overflow-y:auto;
+        transform:translateX(-102%); transition:transform .22s cubic-bezier(.25,.9,.3,1); }
+  body.gav-on .gav{ transform:translateX(0); }
+  .gav-t{ font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+          color:var(--mut2); padding:0 8px 9px; }
+  .gav-i{ display:flex; align-items:center; gap:9px; padding:11px 10px; border-radius:12px;
+          border:1px solid transparent; background:transparent; color:var(--mut); cursor:pointer;
+          font:inherit; font-size:13.5px; font-weight:700; text-align:left; width:100%; }
+  .gav-i .ic{ display:flex; color:var(--accent); flex:0 0 auto; }
+  .gav-i .nm{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gav-i .qt{ font-size:11px; color:var(--mut2); font-weight:700; }
+  .gav-i:active{ background:var(--panel2); }
+  .gav-i.on{ background:var(--acc-bg); border-color:var(--acc-bd); color:var(--acc-l); }
+  .gav-i.nv{ color:var(--mut2); border:1px dashed var(--line2); margin-top:7px; }
+  @media (prefers-reduced-motion:reduce){ .gav{ transition:none } .gav-fundo{ transition:none } }
+
+  /* em tela larga a gaveta e uma coluna fixa, sempre a vista */
+  @media (min-width:900px){
+    body{ padding-left:calc(258px + 16px); }
+    /* a gaveta ja e coluna fixa aqui: o ☰ abriria o que ja esta aberto.
+       O nome da categoria continua a vista — e ele que diz onde voce esta. */
+    .hamb{ display:none; }
+    .gav-fundo{ display:none; }
+    .gav{ transform:none; width:242px; border-radius:0; }
+  }
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:20px;
+        border:1px solid var(--line);background:var(--panel);color:var(--mut);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .chip .pt{width:9px;height:9px;border-radius:50%}
+  .chip.on{background:var(--panel2);color:var(--txt2);border-color:var(--line2)}
+  .chip.novo{border-style:dashed;color:var(--accent);border-color:var(--acc-bd)}
+
+  #listas{margin-bottom:12px}
+  /* a nota vazia mostra do que se trata, sem virar texto de verdade */
+  .nota:empty::before{ content:"escreva aqui"; color:var(--mut2); }
+  /* o total repartido: a soma grande, de quantos itens ela veio, o que falta */
+  .tsoma{font-size:13px;font-weight:800;color:var(--amber)}
+  .tsoma span{font-size:11px;font-weight:700;color:var(--mut)}
+  .tlin{display:flex;justify-content:space-between;gap:10px;align-items:center;
+    font-size:11px;color:var(--mut);margin-top:6px}
+  .tlin i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+  .tlin b{color:var(--txt2);font-variant-numeric:tabular-nums}
+  .rot-p{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+         color:var(--mut2);margin-bottom:6px}
+  .porc{display:flex;align-items:center;gap:13px}
+  .porc b{font-size:26px;font-weight:800;color:var(--txt2);font-variant-numeric:tabular-nums;
+          min-width:34px;text-align:center}
+  .pbt{width:32px;height:32px;border-radius:10px;border:1px solid var(--line2);
+       background:var(--bg);color:var(--mut);font-size:19px;line-height:1;cursor:pointer;padding:0}
+  .pbt.mais{border-color:var(--acc-bd);background:var(--acc-bg);color:var(--acc-l)}
+  .pbt:active{transform:scale(.92)}
+  /* o rendimento da receita: so leitura ate voce tocar nele */
+  .pbase{margin-left:auto;font-size:11px;color:var(--mut);cursor:pointer;
+         border-bottom:1px dashed var(--line2)}
+  .tsem{font-size:10.5px;color:var(--amber);margin-top:9px;opacity:.9}
+  .eprot{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+         color:var(--mut2);margin-bottom:7px}
+  .epline{display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:3px;
+          -webkit-overflow-scrolling:touch}
+  .epline::-webkit-scrollbar{display:none}
+  .ep{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:1px;
+      font-size:9.5px;color:var(--mut2);padding:5px 9px;border-radius:9px;
+      border:1px solid var(--line);background:var(--bg);white-space:nowrap}
+  .ep b{font-size:15px;font-weight:800;color:var(--mut);font-variant-numeric:tabular-nums;line-height:1.1}
+  .ep.on{border-color:var(--acc-bd);background:var(--acc-bg);color:var(--acc-l)}
+  .ep.on b{color:var(--accent)}
+  .ep.f{border-color:var(--grn-bd);background:var(--grn-bg);color:var(--grn-l)}
+  .ep.f b{color:var(--green)}
+  /* o fio entre as etapas: e ele que diz que isto e uma linha, nao uma lista */
+  .epseta{flex:0 0 14px;height:1px;background:var(--line2)}
+  /* a etiqueta de repeticao usa o teal, pra nao competir com preco e prazo */
+  .tag.rep{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 42%, transparent)}
+  #listas .chip.on{background:var(--acc-bg);border-color:var(--accent);color:var(--acc-l)}
+
+  .bar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .bar .c{font-size:12.5px;color:var(--txt);font-weight:600;white-space:nowrap}
+  .track{flex:1;height:10px;background:var(--panel2);border-radius:20px;overflow:hidden}
+  .fill{height:100%;background:var(--green);border-radius:20px;transition:width .25s}
+  .bar .tot{font-size:12px;font-weight:800;color:var(--amber);white-space:nowrap}
+
+  #filtros{margin-bottom:14px}
+
+  .add{margin-bottom:16px}
+  .add .linha{display:flex;gap:6px}
+  .add input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:11px;
+             padding:14px 15px;color:var(--txt2);font-size:16px;font-family:inherit;outline:none}
+  .add input:focus{border-color:var(--accent)}
+  .add .qt{flex:0 0 54px;text-align:center;padding:14px 4px}
+  .add button{flex-shrink:0;width:50px;background:var(--accent);color:var(--onacc);border:none;border-radius:11px;
+              font-size:25px;font-weight:700;line-height:1;cursor:pointer}
+  .add .mic{background:var(--panel);color:var(--accent);border:1px solid var(--acc-bd);font-size:18px;width:44px}
+  .add .mic.rec{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+  /* o da quantidade e menor: e um numero, nao uma frase */
+  .add .micq{width:38px;font-size:15px}
+  .add .micq span{transform:scale(.85);display:block}
+
+
+  .sug{display:flex;gap:6px;overflow-x:auto;margin-top:9px;scrollbar-width:none}
+  .sug::-webkit-scrollbar{display:none}
+  .sug .s{flex-shrink:0;padding:7px 12px;border-radius:18px;border:1px dashed var(--line2);background:var(--bg);
+          color:var(--mut);font-size:12px;cursor:pointer;white-space:nowrap}
+
+  .gh{display:flex;align-items:center;gap:9px;margin:16px 0 9px}
+  .gh .gb{width:5px;height:17px;border-radius:3px}
+  /* O nome fica NEUTRO e a cor vive na barrinha e no ponto — a mesma regra
+     que voce escolheu no Norte em 28/08. Cor de categoria e escolha sua: o
+     app nao tem como garantir que ela funcione sobre um fundo claro (verde
+     sobre creme dava 2,00:1). */
+  .gh .gn{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--txt2)}
+  .gh .gq{margin-left:auto;font-size:10.5px;color:var(--mut2);font-weight:700}
+
+  ul{list-style:none}
+  li{display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--line);
+     border-left:4px solid var(--mut2);border-radius:11px;padding:10px 11px 10px 9px;margin-bottom:7px}
+  li.done{background:var(--grn-bg);border-color:var(--grn-bd)}
+  .cor{flex-shrink:0;width:10px;align-self:stretch;border-radius:5px;cursor:grab;min-height:26px;touch-action:none}
+  li.arrasta{opacity:.92;box-shadow:0 10px 26px rgba(0,0,0,.7);border-color:var(--accent);position:relative;z-index:5}
+  li.arrasta .cor{cursor:grabbing}
+  .box{flex-shrink:0;width:26px;height:26px;border-radius:7px;border:2.5px solid var(--line2);
+       cursor:pointer;position:relative;margin-top:1px}
+  li.done .box{background:var(--green);border-color:var(--green)}
+  li.done .box::after{content:"✓";position:absolute;top:-2px;left:5px;color:var(--ongrn);font-size:17px;font-weight:800}
+  .meio{flex:1;min-width:0}
+  .txt{font-size:16px;line-height:1.35;color:var(--txt2);outline:none;word-break:break-word;padding:2px 0;min-height:22px}
+  li.done .txt{color:var(--grn-l)}
+  .txt:focus{border-bottom:1px dashed var(--accent)}
+  .extra{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--panel);color:var(--mut);
+       border:1px solid var(--line);cursor:pointer;outline:none}
+  .tag.q{color:var(--accent);border-color:var(--acc-bd)}
+  .tag.p{color:var(--amber);border-color:var(--amb-bd)}
+  .tag.d{color:var(--red-l);border-color:var(--red-bd)}
+  .tag.d.perto{background:var(--red-bg);color:var(--red)}
+  .tag.add{border-style:dashed;color:var(--mut2)}
+  /* ---- registro das listas ---- */
+  /* o botao fica em cima da lista, alinhado a direita: e uma acao sobre o que
+     esta embaixo, nao um item do fluxo de escrever */
+  .transfbar{display:flex;justify-content:flex-end;margin:2px 0 7px}
+  .transfbt{display:flex;align-items:center;gap:6px;font-family:inherit;
+            font-size:11.5px;font-weight:700;color:var(--mut);cursor:pointer;
+            background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:7px 13px}
+  .transfbt:active{border-color:var(--acc-bd);color:var(--accent)}
+  .transfbt b{font-size:13px;line-height:1;font-weight:700}
+  /* marcado = o que vai mudar de categoria */
+  .transferindo li{border-color:var(--acc-bd);background:var(--acc-bg)}
+  .transferindo li.done{background:var(--acc-bg)}
+  .transferindo li .box,.transferindo li .cor{opacity:.5}
+  .destinos{display:flex;flex-wrap:wrap;gap:7px;padding:2px 6px 4px}
+  .dest{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;
+        padding:10px 14px;border-radius:22px;border:1px solid var(--line);background:var(--panel);
+        color:var(--txt);cursor:pointer;font-family:inherit}
+  .dest i{width:9px;height:9px;border-radius:50%;display:block}
+  .dest.aqui{border-color:var(--acc-bd);color:var(--accent)}
+  .dest.nova{border-style:dashed;color:var(--accent);border-color:var(--acc-bd)}
+  .porta{margin:15px 0 2px;border:1px solid var(--line);background:var(--panel);border-radius:12px;
+         padding:12px 13px;cursor:pointer}
+  .porta:active{border-color:var(--acc-bd)}
+  .porta .cab{display:flex;align-items:baseline;gap:8px}
+  .porta .cab .t{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--mut2)}
+  .porta .cab .d{margin-left:auto;font-size:10.5px;color:var(--mut)}
+  .porta .res{margin-top:6px;font-size:14px;color:var(--txt2);font-weight:600}
+  .porta .res em{font-style:normal;color:var(--amber)}
+  .porta .ver{margin-top:9px;font-size:11.5px;font-weight:700;color:var(--accent)}
+  .cnf{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 14px;margin:0 6px 4px}
+  .cnfl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut2)}
+  .cnfl b{color:var(--mut)}
+  .cnfn{margin-top:5px;font-size:21px;font-weight:800;color:var(--txt2)}
+  .cnfs{margin-top:3px;font-size:12.5px;color:var(--mut)}
+  .cnfs em{font-style:normal;color:var(--amber);font-weight:700}
+  .cnfi{margin-top:8px;font-size:12px;color:var(--mut2);line-height:1.45}
+  .cnfw{margin:6px 6px 0;font-size:12px;color:var(--amb-l);background:var(--amb-bg);
+        border:1px solid var(--amb-bd);border-radius:10px;padding:9px 11px;line-height:1.45}
+  .regbar{display:flex;margin:14px 0 2px}
+  .regbt{flex:1;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+         color:var(--orange);background:var(--amb-bg);border:1px solid var(--amb-bd);border-radius:12px;padding:13px}
+  .regbt:active{background:var(--amb-bg);border-color:var(--orange)}
+  .porta.vazia{border-style:dashed;cursor:default}
+  .porta .res2{margin-top:6px;font-size:13px;color:var(--mut);font-weight:700}
+  .porta .dica2{margin-top:5px;font-size:11.5px;color:var(--mut2);line-height:1.5}
+  .porta .dica2 b{color:var(--mut)}
+
+  .reg{border:1px solid var(--line);background:var(--panel);border-radius:11px;padding:11px 12px;margin-bottom:7px}
+  .reg .rh{display:flex;align-items:baseline;gap:8px;cursor:pointer}
+  .reg .rd{font-size:13px;font-weight:700;color:var(--txt2)}
+  .reg .rc{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+           padding:2px 7px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+  .reg .rq{margin-left:auto;font-size:10.5px;color:var(--mut)}
+  .reg .rs{margin-top:5px;font-size:12px;color:var(--mut)}
+  .reg .rs em{font-style:normal;color:var(--amber);font-weight:700}
+  .reg .rr{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .reg .mini{font-size:11px;font-weight:700;padding:7px 11px;border-radius:8px;font-family:inherit;
+             border:1px solid var(--acc-bd);color:var(--accent);background:var(--acc-bg);cursor:pointer}
+  .reg .mini.n{border-color:var(--line);color:var(--mut);background:var(--panel)}
+  .reg .mini.pg{border-color:var(--red-bd);color:var(--red);background:var(--panel)}
+  .reg .mini.forte{background:var(--accent);color:var(--onacc);border-color:var(--accent)}
+  .reg .corpo{margin-top:10px;border-top:1px solid var(--panel2);padding-top:9px}
+  .reg .dica{font-size:11px;color:var(--mut2);margin-bottom:7px}
+  .ri{display:flex;align-items:flex-start;gap:9px;padding:6px 0}
+  .ri .rb{width:17px;height:17px;flex:none;border-radius:5px;border:2px solid var(--line2);
+          margin-top:2px;position:relative}
+  .ri.ok .rb{background:var(--green);border-color:var(--green)}
+  .ri.ok .rb::after{content:"\2713";position:absolute;top:-4px;left:2px;color:var(--ongrn);font-size:12px;font-weight:800}
+  .ri .rn{flex:1;min-width:0;font-size:13.5px;color:var(--txt);word-break:break-word}
+  .ri.nao .rn{color:var(--mut2)}
+  .ri .rex{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+  .ri .rex .tag{cursor:default}
+  .ri .rsub{margin-top:4px;font-size:11.5px;color:var(--mut2);line-height:1.5}
+  .ri .rnota{margin-top:4px;font-size:11.5px;color:var(--mut2);border-left:2px solid var(--line);padding-left:8px}
+  .escolhendo .ri{cursor:pointer}
+  .escolhendo .ri.fora{opacity:.4}
+  .escolhendo .ri.fora .rb{background:transparent;border-color:var(--line2)}
+  .escolhendo .ri.fora .rb::after{content:""}
+  .reg .destinos{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .reg .dest{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+             padding:7px 11px;border-radius:20px;border:1px solid var(--line);background:var(--panel);
+             color:var(--txt);cursor:pointer;font-family:inherit}
+  .reg .dest i{width:8px;height:8px;border-radius:50%;display:block}
+  .reg .dest.aqui{border-color:var(--acc-bd);color:var(--accent)}
+  .regvazio{font-size:12.5px;color:var(--mut2);padding:6px 2px}
+
+  #toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);z-index:100001;background:var(--panel);color:var(--acc-l);
+    border:1px solid var(--grn-bd);border-radius:12px;padding:9px 15px;font-size:13px;font-weight:700;
+    opacity:0;transition:opacity .3s;box-shadow:0 10px 30px rgba(0,0,0,.5);pointer-events:none;max-width:86vw}
+
+  .nota{margin-top:7px;font-size:12.5px;color:var(--mut);line-height:1.5;outline:none;
+        border-left:2px solid var(--line);padding-left:9px}
+  .nota:focus{border-left-color:var(--accent);color:var(--txt)}
+  /* numero do passo/serie: diz que ha ORDEM, onde ela importa */
+  .snum{ flex:0 0 15px; text-align:right; font-size:10px; color:var(--mut2);
+         font-variant-numeric:tabular-nums; }
+  /* na serie, o texto e um dado: toca e edita */
+  .sub .sdado{ cursor:pointer; }
+  .sub .scarga{ flex:0 0 auto; font-size:11.5px; color:var(--acc-l); cursor:pointer;
+                font-variant-numeric:tabular-nums; padding:0 2px; }
+  .sub.ok .scarga{ color:var(--mut2); }
+  .subs{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+  .sub{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--mut)}
+  .sub .sb{width:16px;height:16px;border-radius:5px;border:2px solid var(--line2);flex-shrink:0;cursor:pointer;position:relative}
+  .sub.ok .sb{background:var(--green);border-color:var(--green)}
+  .sub.ok .sb::after{content:"✓";position:absolute;top:-3px;left:2px;color:var(--ongrn);font-size:11px;font-weight:800}
+  .sub .st{flex:1;outline:none}
+  .sub .sx{color:var(--line2);cursor:pointer;font-size:14px;padding:0 4px}
+  .tbar{display:flex;align-items:center;gap:8px;margin-top:7px}
+  .tbar .tt{flex:1;max-width:150px;height:5px;background:var(--panel2);border-radius:20px;overflow:hidden}
+  .tbar .tf{height:100%;background:var(--green);border-radius:20px}
+  .tbar .tc{font-size:10px;color:var(--mut2);font-weight:700}
+  .x{flex-shrink:0;width:28px;height:28px;border:none;background:transparent;color:var(--mut2);
+     font-size:19px;line-height:1;cursor:pointer;border-radius:8px}
+  .x:active{background:var(--red-bg);color:var(--red)}
+
+  .crono{margin-top:8px;display:flex;align-items:center;gap:9px}
+  .crono button{background:var(--panel);border:1px solid var(--line);color:var(--violet);border-radius:8px;
+                padding:6px 11px;font-size:11.5px;font-weight:700;font-family:inherit;cursor:pointer}
+  .crono .vis{font-size:15px;font-weight:800;color:var(--violet);font-variant-numeric:tabular-nums}
+
+  .vazio{text-align:center;color:var(--mut2);font-size:14px;padding:32px 10px;line-height:1.6}
+
+  .acoes{position:fixed;left:0;right:0;bottom:0;flex-wrap:wrap;background:rgba(0,0,0,.95);border-top:1px solid var(--panel2);
+         padding:11px 16px calc(11px + env(safe-area-inset-bottom));display:flex;gap:8px;max-width:640px;margin:0 auto}
+  .acoes button{flex:1;padding:13px 6px;border-radius:10px;font-size:11.5px;font-weight:700;
+                font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--txt)}
+  .acoes button:active{background:var(--panel2)}
+  .acoes .rec2{border-color:var(--grn-bd);color:var(--grn-l)}
+  .acoes .perigo{border-color:var(--red-bd);color:var(--red)}
+  .acoes .mais{flex:0 0 48px;border-color:var(--acc-bd);color:var(--accent)}
+
+  .menu{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+  .menu.on{display:flex}
+  .menu .cx{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;width:100%;max-width:400px;max-height:86vh;overflow-y:auto}
+  .menu h3{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mut2);margin:2px 0 12px}
+  .menu h3.sep{margin-top:20px;padding-top:14px;border-top:1px solid var(--panel2)}
+  .menu .bt{width:100%;padding:13px;margin-bottom:8px;border-radius:10px;font-size:14px;font-weight:600;
+            font-family:inherit;border:1px solid var(--line);background:var(--panel);color:var(--txt);cursor:pointer;text-align:left}
+  .menu .bt.ac{border-color:var(--acc-bd);color:var(--accent)}
+  .menu .bt.pg{border-color:var(--red-bd);color:var(--red)}
+  .menu .fechar{text-align:center;background:transparent;border-color:var(--line2);color:var(--mut)}
+
+  .catrow{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid var(--panel2);
+          border-radius:10px;padding:10px;margin-bottom:8px}
+  .catrow .dot{flex-shrink:0;width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid color-mix(in srgb, var(--txt2) 15%, transparent)}
+  .catrow .nm{flex:1;font-size:15px;color:var(--txt2);outline:none}
+  .paleta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;padding:10px;background:var(--bg);border-radius:10px}
+  .paleta span{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid color-mix(in srgb, var(--txt2) 12%, transparent)}
+  .obs{text-align:center;color:var(--mut2);font-size:12px;padding:6px 0 12px;line-height:1.6}
+
+  /* ===== VISUAL MODERNO (estilo Gastos) ===== */
+  body{ background:radial-gradient(1100px 480px at 50% -8%, var(--acc-bg) 0%, var(--bg) 58%); }
+  header{ border-bottom:none; padding-bottom:6px; }
+  header .k{ background:linear-gradient(90deg,var(--accent),var(--green)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+
+  /* progresso vira card-herói */
+  .bar{ display:block; background:linear-gradient(160deg,var(--acc-bg),var(--bg)); border:1px solid var(--acc-bd);
+        border-radius:16px; padding:15px 17px; box-shadow:0 12px 30px rgba(0,0,0,.4); margin-bottom:16px; }
+  .bar .c{ display:block; font-size:15px; color:var(--txt2); font-weight:800; margin-bottom:11px; letter-spacing:.2px; }
+  .bar .track{ height:12px; background:var(--acc-bg); }
+  .bar .fill{ background:linear-gradient(90deg,var(--acc-d),var(--accent)); box-shadow:0 0 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+  .bar .tot{ display:inline-block; margin-top:10px; }
+
+  /* itens: pop no hover + acabamento */
+  li{ border-radius:13px; box-shadow:0 2px 10px rgba(0,0,0,.25);
+      transition:transform .15s cubic-bezier(.34,1.45,.64,1), box-shadow .15s ease, border-color .15s ease, background .15s ease; }
+  li:hover{ transform:translateY(-3px); box-shadow:0 13px 26px rgba(0,0,0,.5); border-color:var(--line2); }
+  li.done{ background:linear-gradient(160deg,var(--grn-bg),var(--grn-bg)); }
+  li.arrasta{ transform:scale(1.02); }
+
+  /* checkbox animado ao concluir */
+  .box{ transition:transform .15s cubic-bezier(.34,1.7,.5,1), background .15s ease, border-color .15s ease; }
+  .box:hover{ border-color:var(--accent); }
+  li.done .box{ animation:pop .3s cubic-bezier(.34,1.7,.5,1); }
+  .sub .sb{ transition:transform .12s ease, background .15s ease, border-color .15s ease; }
+  .sub.ok .sb{ animation:pop .3s cubic-bezier(.34,1.7,.5,1); }
+  @keyframes pop{ 0%{transform:scale(.7)} 60%{transform:scale(1.18)} 100%{transform:scale(1)} }
+
+  /* botão + com brilho e pressão */
+  .add button[type="submit"]{ box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 35%, transparent); transition:transform .12s ease, box-shadow .12s ease; }
+  .add button[type="submit"]:hover{ transform:translateY(-2px); box-shadow:0 10px 22px color-mix(in srgb, var(--accent) 50%, transparent); }
+  .add button[type="submit"]:active{ transform:translateY(0) scale(.95); }
+  .add input:focus{ box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+
+  /* chips */
+  .chip{ transition:transform .1s ease, border-color .12s ease, background .12s ease; }
+  .chip:hover{ border-color:var(--line2); }
+
+  /* flash teal->verde ao concluir uma tarefa */
+  #flash{ position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0;
+          background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, transparent) 0%, color-mix(in srgb, var(--green) 30%, transparent) 36%, color-mix(in srgb, var(--green) 0%, transparent) 72%); }
+  #flash.go{ animation:flashsweep .85s cubic-bezier(.22,.61,.36,1); }
+  @keyframes flashsweep{ 0%{opacity:0;transform:translateY(-14%)} 18%{opacity:1} 100%{opacity:0;transform:translateY(0)} }
+
+  /* ===== VISUAL MODERNO v2 (2026-08-20) ===== */
+  body{ background:radial-gradient(1200px 520px at 50% -10%, var(--acc-bg) 0%, var(--bg) 60%); }
+  header .k{ font-size:22px; letter-spacing:5px; filter:drop-shadow(0 2px 14px color-mix(in srgb, var(--accent) 25%, transparent)); }
+  header .s{ color:var(--mut2); }
+
+  /* chips de lista/categoria: pilula moderna */
+  .chip{ border-radius:14px; padding:9px 14px; background:var(--panel2); border-color:var(--line);
+         transition:transform .12s cubic-bezier(.34,1.5,.6,1), border-color .15s, background .15s, color .15s; }
+  .chip:active{ transform:scale(.94); }
+  .chip.on{ background:linear-gradient(180deg,var(--acc-bg),var(--acc-bg)); border-color:var(--accent); color:var(--acc-l); box-shadow:0 4px 16px color-mix(in srgb, var(--accent) 14%, transparent); }
+  #listas .chip.on{ background:linear-gradient(180deg,var(--acc-bg),var(--acc-bg)); }
+  .chip.novo{ background:color-mix(in srgb, var(--accent) 6%, transparent); }
+
+  /* barra de adicionar: moderna, elevada, com anel de foco */
+  .add .linha{ gap:9px; background:var(--panel2); border:1px solid var(--line); border-radius:16px; padding:6px;
+               box-shadow:0 6px 20px rgba(0,0,0,.35); transition:border-color .15s, box-shadow .15s; }
+  .add .linha:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent),0 10px 26px rgba(0,0,0,.45); }
+  .add input{ background:transparent; border:none; border-radius:12px; padding:13px 14px; }
+  .add input:focus{ box-shadow:none; border-color:transparent; }
+  .add button{ width:52px; border-radius:13px; background:linear-gradient(135deg,var(--accent),var(--acc-d));
+               box-shadow:0 8px 18px color-mix(in srgb, var(--accent) 40%, transparent); transition:transform .12s, box-shadow .12s; }
+  .add button:active{ transform:scale(.9); }
+  .add .mic{ background:var(--panel); border:1px solid var(--acc-bd); border-radius:13px; box-shadow:none; }
+  .add .mic.rec{ background:var(--red-bg); }
+
+  /* itens: mais arredondados e macios */
+  li{ border-radius:16px; background:var(--panel2); border-color:var(--panel2); padding:14px 12px 14px 10px;
+      box-shadow:0 3px 12px rgba(0,0,0,.28); }
+  li.done{ background:linear-gradient(160deg,var(--grn-bg),var(--grn-bg)); border-color:var(--grn-bd); }
+  .box{ border-radius:8px; }
+  .txt{ font-weight:600; }
+
+  /* cabecalho de grupo mais elegante */
+  .gh .gn{ font-size:12.5px; letter-spacing:1px; }
+  .gh .gb{ width:6px; height:19px; box-shadow:0 0 10px currentColor; }
+
+  /* tags e botao x arredondados */
+  .tag{ border-radius:9px; padding:4px 9px; }
+  .x{ border-radius:9px; }
+
+  /* barra de acoes inferior: pilula flutuante (como o Stash) */
+  .acoes{ left:12px; right:12px; margin:0 auto; max-width:560px; bottom:calc(11px + env(safe-area-inset-bottom));
+          background:color-mix(in srgb, var(--panel) 86%, transparent); -webkit-backdrop-filter:blur(18px) saturate(1.4); backdrop-filter:blur(18px) saturate(1.4);
+          border:1px solid color-mix(in srgb, var(--txt2) 9%, transparent); border-top:1px solid color-mix(in srgb, var(--txt2) 9%, transparent); border-radius:20px; padding:8px;
+          box-shadow:0 16px 40px rgba(0,0,0,.55); }
+  .acoes button{ border-radius:13px; padding:12px 6px; background:var(--panel); border:1px solid color-mix(in srgb, var(--txt2) 6%, transparent);
+                 transition:transform .1s, background .15s; }
+  .acoes button:active{ transform:scale(.94); background:var(--panel2); }
+  .acoes .mais{ background:color-mix(in srgb, var(--accent) 10%, transparent); border-color:var(--acc-bd); }
+
+  /* menu modal: mais moderno */
+  .menu{ background:rgba(0,0,0,.72); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+  .menu .cx{ border-radius:20px; border-color:var(--line); box-shadow:0 30px 80px rgba(0,0,0,.6); }
+  .menu .bt{ border-radius:12px; }
+  .catrow{ border-radius:13px; }
+  .paleta{ border-radius:13px; }
+
+  /* ===== DIGITACAO MODERNA v3 (2026-08-20) ===== */
+  .add{ margin-bottom:18px; }
+  .add .linha{ align-items:center; gap:5px; padding:7px 6px 7px 7px; border-radius:20px;
+               background:linear-gradient(180deg,var(--panel),var(--bg)); border:1px solid var(--line); }
+  .add .linha:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent),0 12px 30px rgba(0,0,0,.5); }
+  .add #campo{ font-size:16.5px; font-weight:600; padding:15px 4px 15px 38px; caret-color:var(--accent); letter-spacing:.2px;
+    background:transparent var(--lapis) no-repeat 13px center;
+    background-size:19px 19px; }
+  .add #campo::placeholder{ color:var(--mut2); font-weight:500; }
+  .add .linha:focus-within #campo{ background-image:var(--lapis-foco); }
+  .add .qt{ flex:0 0 48px; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 3px;
+            font-size:13px; color:var(--txt); }
+  .add .qt::placeholder{ color:var(--mut2); }
+  .add .mic{ width:44px; height:44px; flex:0 0 44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+             font-size:17px; background:var(--panel); border:1px solid var(--line); color:var(--acc-l);
+             transition:transform .12s, background .15s, border-color .15s; }
+  .add .mic:active{ transform:scale(.9); }
+  /* o da quantidade e menor: ele dita um numero, nao uma frase */
+  .add .micq{ width:36px; height:36px; flex:0 0 36px; font-size:14px; }
+  .add .micq span{ transform:scale(.82); display:block; }
+  .add .mic.rec{ background:var(--red-bg); border-color:var(--red-bd); color:var(--red); animation:micpulse 1s ease-in-out infinite; }
+  @keyframes micpulse{ 0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.45)} 50%{box-shadow:0 0 0 7px rgba(248,113,113,0)} }
+  .add button[type="submit"]{ width:48px; height:48px; flex:0 0 48px; border-radius:50%; font-size:27px;
+             display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--accent),var(--acc-d));
+             color:var(--onacc); box-shadow:0 8px 20px color-mix(in srgb, var(--accent) 42%, transparent);
+             transition:transform .14s cubic-bezier(.34,1.5,.6,1), box-shadow .14s; }
+  .add button[type="submit"]:hover{ transform:translateY(-2px) scale(1.06); box-shadow:0 12px 26px color-mix(in srgb, var(--accent) 55%, transparent); }
+  .add button[type="submit"]:active{ transform:scale(.88); }
+
+
+  /* sugestoes: pilulas modernas */
+  .sug{ gap:7px; margin-top:11px; }
+  .sug .s{ border-radius:20px; padding:8px 13px; background:var(--panel2); border:1px solid var(--line); color:var(--mut);
+           transition:transform .1s, border-color .14s, color .14s, background .14s; }
+  .sug .s:hover{ border-color:var(--accent); color:var(--acc-l); background:color-mix(in srgb, var(--accent) 6%, transparent); }
+  .sug .s:active{ transform:scale(.94); }
+
+  /* ===== TECLADO PROPRIO DO APP (2026-08-20) ===== */
+  body.kbdopen{ padding-bottom:calc(372px + env(safe-area-inset-bottom)) !important; }
+  #kbd{ position:fixed; left:0; right:0; bottom:0; z-index:2000000; display:none;
+        background:linear-gradient(180deg,var(--bg),var(--bg)); border-top:1px solid var(--panel2);
+        padding:4px 3px calc(8px + env(safe-area-inset-bottom)); box-shadow:0 -14px 36px rgba(0,0,0,.6);
+        -webkit-user-select:none; user-select:none; touch-action:manipulation; }
+  #kbd.on{ display:block; animation:kbdup .2s cubic-bezier(.25,.9,.3,1); }
+  @keyframes kbdup{ from{ transform:translateY(102%); } to{ transform:translateY(0); } }
+  #kbd .acc{ display:flex; gap:7px; overflow-x:auto; padding:6px 2px 9px; scrollbar-width:none; }
+  #kbd .acc::-webkit-scrollbar{ display:none; }
+  #kbd .acc b{ flex:0 0 auto; min-width:44px; height:44px; display:flex; align-items:center; justify-content:center;
+        background:var(--panel); border:1px solid var(--line); border-radius:9px; color:var(--acc-l); font-size:19px; font-weight:600; cursor:pointer; }
+  #kbd .acc b:active{ background:var(--acc-bg); }
+  #kbd .kbtop{ display:flex; justify-content:flex-end; padding:0 2px 5px; }
+  #kbd .kbx{ min-width:46px; height:28px; display:flex; align-items:center; justify-content:center;
+             border-radius:9px; background:rgba(248,113,113,.13); border:1px solid rgba(248,113,113,.36);
+             color:var(--red); font-size:14px; font-weight:800; line-height:1; }
+  #kbd .kbx:active{ background:rgba(248,113,113,.28); }
+  #kbd .row{ display:flex; gap:4px; margin-bottom:6px; }
+  /* a segunda fila e recuada meia tecla, como em qualquer teclado de celular */
+  #kbd .row.r2{ padding:0 5%; }
+  /* o pontinho: diz que a tecla esconde acento no toque longo. E a mesma
+     pista que o Gboard da — sem ela, ninguem descobre o ç. */
+  #kbd .k.tem::after{ content:""; position:absolute; top:6px; right:8px; width:5px; height:5px;
+        border-radius:50%; background:var(--accent); opacity:.8; }
+  /* o balao do toque longo */
+  #kbd .pop{ position:absolute; z-index:5; display:flex; gap:5px; padding:6px;
+        background:var(--panel2); border:1px solid var(--accent); border-radius:12px;
+        box-shadow:0 10px 26px rgba(0,0,0,.6); }
+  #kbd .pop b{ min-width:52px; height:57px; display:flex; align-items:center;
+        justify-content:center; font-size:23px; font-weight:500; color:var(--txt2);
+        background:var(--line); border-radius:9px; }
+  #kbd .pop b:active,#kbd .pop b.sel{ background:var(--accent); color:var(--onacc); }
+  #kbd .row:last-child{ margin-bottom:0; }
+  #kbd .k{ flex:1 1 0; min-width:0; height:62px; display:flex; align-items:center; justify-content:center;
+        background:var(--panel2); border-radius:9px; color:var(--txt2); font-size:20px; font-weight:600; cursor:pointer;
+        box-shadow:0 2px 0 rgba(0,0,0,.45); transition:transform .05s ease, background .1s ease; }
+  #kbd .k:active{ transform:translateY(2px); background:var(--line); box-shadow:0 0 0 rgba(0,0,0,.4); }
+  #kbd .k.wide{ flex:3 1 0; font-size:14px; font-weight:700; letter-spacing:.4px; color:var(--mut); text-transform:uppercase; }
+  #kbd .k.fn{ background:var(--panel); color:var(--mut); font-size:15px; font-weight:700; }
+  #kbd .k.act{ background:linear-gradient(135deg,var(--accent),var(--acc-d)); color:var(--onacc); box-shadow:0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent); }
+  #kbd .k.back{ background:var(--panel); color:var(--red-l); }
+  #kbd .k.shift.on{ background:var(--acc-bg); color:var(--acc-l); }
+  #kbd .k.shift.lock{ background:var(--acc-bg); color:var(--acc-l); }
+  /* teclado so-numeros (discador) */
+  #kbd.num .row{ max-width:400px; margin-left:auto; margin-right:auto; gap:6px; margin-bottom:6px; }
+  #kbd.num .k{ height:58px; font-size:23px; font-weight:700; }#kbd.num .row:last-child .k{ height:44px; font-size:19px; }#kbd .k,#kbd .acc b{ position:relative; }#kbd .k::after,#kbd .acc b::after{ content:""; position:absolute; inset:0; border-radius:inherit; background:var(--txt2); opacity:0; pointer-events:none; }#kbd .k.hit,#kbd .acc b.hit{ animation:kbdpop .2s cubic-bezier(.3,1.5,.5,1); z-index:5; }#kbd .k.hit::after,#kbd .acc b.hit::after{ animation:kbdbrilho .22s ease-out; }@keyframes kbdpop{ 0%{ transform:scale(.93); } 45%{ transform:scale(1.14); } 100%{ transform:scale(1); } }@keyframes kbdbrilho{ 0%{ opacity:.5; } 100%{ opacity:0; } }.kbdpv{ position:fixed; z-index:2000001; display:flex; align-items:center; justify-content:center; pointer-events:none; border-radius:13px; background:linear-gradient(180deg,var(--acc-l),var(--acc-l)); color:var(--onacc); font-weight:800; box-shadow:0 10px 26px rgba(0,0,0,.55); animation:kbdpv .26s cubic-bezier(.25,1.4,.45,1) forwards; font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif; }@keyframes kbdpv{ 0%{ transform:translate(-50%,-50%) scale(.8); opacity:0; } 22%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 62%{ transform:translate(-50%,-96%) scale(1.32); opacity:1; } 100%{ transform:translate(-50%,-88%) scale(1.16); opacity:0; } }
+  /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
+     focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
+     @supports (-webkit-touch-callout:none) so existe no iOS — Android e
+     desktop nao mudam de aparencia. */
+  @supports (-webkit-touch-callout: none) {
+    input, textarea, select { font-size: 16px !important; }
+  }
+  /* embutido no Norte: quem manda no cabecalho e o app de fora */
+  header{ display:none !important; }
+</style>
+</head>
+<body>
+<div id="flash"></div>
+
+<header>
+  <div class="k">Feito</div>
+  <button class="eyeF" id="eyeF" type="button" title="Ocultar / mostrar valores" aria-label="Ocultar valores" onclick="trocaPrivF()">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
+  <button class="thm" type="button" title="Trocar tema" aria-label="Trocar tema" onclick="cicloTemaF()">◐</button>
+  <div class="s">toque no quadrado pra concluir &middot; arraste a barrinha pra reordenar</div>
+</header>
+
+<!-- o nome da categoria aberta. So mostra: quem troca e o ☰ la em cima -->
+<div class="lbar" id="lbar">
+  <button class="hamb" id="hamb" type="button" title="Trocar de categoria" aria-label="Trocar de categoria" aria-haspopup="true" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <span class="ic" id="lbarIc"></span>
+  <span class="nm" id="lbarNm">Minha lista</span>
+  <span class="qt" id="lbarQt"></span>
+</div>
+<div class="gav-fundo" id="gavFundo"></div>
+<aside class="gav" id="gav"><div class="gav-t">Minhas listas</div><div id="listas"></div></aside>
+
+<div class="bar">
+  <span class="c" id="cont">0 de 0</span>
+  <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
+  <span class="tot" id="total"></span>
+</div>
+
+<div class="chips" id="filtros"></div>
+
+<!-- no lugar onde ficava o "+ Categoria" -->
+<div class="sabas" id="sabas" role="tablist">
+  <button type="button" class="saba on" id="sabaLista" role="tab" aria-selected="true">Categorias</button>
+  <button type="button" class="saba" id="sabaReg" role="tab" aria-selected="false">Registros <span class="qt" id="sabaRegQt">0</span></button>
+</div>
+
+<div class="fila" id="filaListas"></div>
+
+<form class="add" id="form" autocomplete="off">
+  <div class="linha">
+    <input id="campo" placeholder="O que precisa ser feito?" enterkeyhint="done">
+    <button type="button" class="mic" id="btVoz" title="Ditar o item" aria-label="Ditar o item"><span data-ic="mic"></span></button>
+    <input id="campoQt" class="qt" placeholder="qtd" inputmode="decimal">
+    <button type="button" class="mic micq" id="btVozQt" title="Ditar a quantidade" aria-label="Ditar a quantidade"><span data-ic="mic"></span></button>
+    <button type="submit" aria-label="Adicionar">+</button>
+  </div>
+  <div class="sug" id="sugestoes"></div>
+</form>
+
+<div class="transfbar" id="transfbar" style="display:none"><button type="button" class="transfbt" id="btTransferir"><b>⇄</b> Transferir</button></div>
+<div id="grupos"></div>
+<div class="vazio" id="vazio">Lista vazia.<br>Escreva ali em cima e toque no <b>+</b>.</div>
+
+<div class="regbar" id="regbar" style="display:none"><button type="button" class="regbt" id="btRegistrar">Registrar e limpar</button></div>
+<div id="porta"></div>
+
+<div class="acoes">
+  <button id="btDesmarcar" class="rec2">Desmarcar tudo</button>
+  <button id="btMais" class="mais">•••</button>
+  <footer class="rodape">Feito <span id="verNum">&mdash;</span></footer>
+</div>
+
+
+<div class="menu" id="menuCats">
+  <div class="cx">
+    <h3>Categorias desta lista</h3>
+    <div id="listaCats"></div>
+    <div class="obs" id="semCats">Nenhuma categoria ainda.</div>
+    <button class="bt ac" id="btNovaCat">+ Nova categoria</button>
+    <button class="bt fechar" id="btFecharCats">Fechar</button>
+  </div>
+</div>
+
+<div class="menu" id="menu">
+  <div class="cx">
+    <h3>Lista</h3>
+    <button class="bt" id="btRenomear"><span data-ic="pen"></span> Renomear lista</button>
+    <button class="bt" id="btDuplicar"><span data-ic="dup"></span> Duplicar lista</button>
+    <button class="bt" id="btMandarMercado" style="display:none"><span data-ic="cart"></span> Mandar pro Mercado</button>
+    <button class="bt" id="btFecharTreino" style="display:none"><span data-ic="dumbbell"></span> Fechar treino</button>
+    <button class="bt" id="btNovaViagem" style="display:none"><span data-ic="plane"></span> Nova viagem</button>
+    <button class="bt" id="btLimpaFeitas"><span data-ic="check"></span> Limpar concluídas</button>
+    <button class="bt pg" id="btLimpaTudo">Limpar tudo</button>
+    <button class="bt pg" id="btApagarLista"><span data-ic="trash"></span> Apagar esta lista</button>
+
+    <h3 class="sep">Modelos</h3>
+    <button class="bt ac" id="btSalvarModelo"><span data-ic="star"></span> Salvar esta lista como modelo</button>
+    <div id="listaModelos"></div>
+    <div class="obs" id="semModelos">Nenhum modelo salvo.</div>
+
+    <h3 class="sep">Backup</h3>
+    <button class="bt" id="btCompartilhar"><span data-ic="share"></span> Compartilhar como texto</button>
+    <button class="bt" id="btExportar"><span data-ic="download"></span> Baixar backup (.json)</button>
+    <button class="bt" id="btImportar"><span data-ic="upload"></span> Restaurar backup</button>
+    <input type="file" id="arquivo" accept="application/json" style="display:none">
+    <button class="bt fechar" id="btFechar">Fechar</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var K="afazeres-v3", KV="afazeres-v2";
+  /* a mesma versao do sw.js — mexeu num, mexe no outro (o sobe-versao.js faz os dois) */
+  var VERSAO = "v68";
+  /* o rodape e desenhado FORA deste modulo, entao a versao precisa sair daqui;
+     sem isso o try/catch de la engolia a falha e o rodape ficava com um traco */
+  try{ window.__VER = VERSAO; }catch(e){}
+  var PALETA=["#22C55E","#2FD9C9","#3B82F6","#A78BFA","#F472B6","#EF4444","#F97316","#FBBF24","#94A3B8","#FFFFFF"];
+  var D={listas:[],atual:"",modelos:[],freq:{}};
+  var filtro="";   /* nunca e um chip valido: forca o ajustaFiltro() a escolher */
+
+  function uid(){ return "x"+Date.now().toString(36)+Math.floor(Math.random()*9999).toString(36); }
+  function grava(){ try{ localStorage.setItem(K,JSON.stringify(D)); }catch(e){} }
+  /* ---------- o olhinho ----------
+     Uma chave pros apps todos, como a do som: e preferencia do APARELHO. */
+  var PRIVF = false;
+  try{ PRIVF = (localStorage.getItem("apps-priv") === "1"); }catch(e){}
+  function din(n){
+    return "R$ " + (PRIVF ? "•••" : (+n||0).toFixed(2).replace(".",","));
+  }
+  function aplicaPrivF(){
+    var b=document.getElementById("eyeF");
+    if(b){ b.classList.toggle("on",PRIVF); b.title = PRIVF ? "Mostrar valores" : "Ocultar valores"; }
+  }
+  window.trocaPrivF = function(){
+    PRIVF = !PRIVF;
+    try{ localStorage.setItem("apps-priv", PRIVF?"1":"0"); }catch(e){}
+    aplicaPrivF(); pinta();
+  };
+  /* o Feito tambem roda dentro do Stash, num quadro proprio: quando o
+     olhinho muda do lado de fora, o navegador avisa por aqui */
+  window.addEventListener("storage", function(e){
+    if(e.key !== "apps-priv") return;
+    PRIVF = (e.newValue === "1"); aplicaPrivF(); pinta();
+  });
+  aplicaPrivF();
+  function L(){ for(var i=0;i<D.listas.length;i++){ if(D.listas[i].id===D.atual) return D.listas[i]; } return D.listas[0]; }
+  function cat(id){ var l=L(); if(!l) return null; for(var i=0;i<l.cats.length;i++){ if(l.cats[i].id===id) return l.cats[i]; } return null; }
+
+  function ler(){
+    var bruto=null;
+    try{ bruto=JSON.parse(localStorage.getItem(K)||"null"); }catch(e){}
+    if(bruto && bruto.listas){ D=bruto; }
+    else{
+      var v2=null; try{ v2=JSON.parse(localStorage.getItem(KV)||"null"); }catch(e){}
+      D={listas:[{id:uid(),nome:"Minha lista",cats:(v2&&v2.cats)||[],itens:(v2&&v2.itens)||[]}],modelos:[],freq:{}};
+      D.atual=D.listas[0].id; grava();
+    }
+    if(!D.modelos) D.modelos=[];
+    if(!D.freq) D.freq={};
+    if(!D.listas.length){ D.listas=[{id:uid(),nome:"Minha lista",cats:[],itens:[]}]; }
+    if(!L()) D.atual=D.listas[0].id;
+    D.listas.forEach(function(l){
+      l.cats=l.cats||[]; l.itens=l.itens||[]; l.regs=l.regs||[];
+      var ids=l.cats.map(function(c){return c.id});
+      l.itens.forEach(function(o){
+        if(ids.indexOf(o.cat)<0) o.cat="";
+        if(o.subs===undefined) o.subs=[];
+      });
+    });
+  }
+
+  // ---------- chips
+  function chip(nome,cor,ativo,fn,extra,ic){
+    var d=document.createElement("div");
+    d.className="chip"+(ativo?" on":"")+(extra?" "+extra:"");
+    if(cor){ var p=document.createElement("span"); p.className="pt"; p.style.background=cor; d.appendChild(p); }
+    /* o icone vem de dentro do app (SVG nosso), entao pode ser marcacao;
+       o NOME e digitado pela pessoa e segue por textContent */
+    if(ic){ var w=document.createElement("span"); w.className="chipic"; w.innerHTML=ic; d.appendChild(w); }
+    var s=document.createElement("span"); s.textContent=nome; d.appendChild(s);
+    d.addEventListener("click",fn); return d;
+  }
+
+
+  /* ============================================================
+     OS TIPOS DE LISTA
+     Cada tipo diz: como se chama, o icone, que campos o item tem,
+     por qual campo a lista se agrupa, e que conta aparece no topo.
+     Acrescentar um tipo e acrescentar uma linha aqui.
+     ============================================================ */
+  var TIPOS = {
+    tarefas:  { nome:"Tarefas",  dica:"só o texto",         ic:"t-lista",    campos:[],                          grupo:null,    topo:null },
+    compras:  { nome:"Compras",  dica:"soma o total",       ic:"t-carrinho", campos:["qtd","un","preco","local"],grupo:"local", topo:"total" },
+    receitas: { nome:"Receitas", dica:"escala as porções",  ic:"t-panela",   campos:["qtd","un"],                grupo:null,    topo:"porcoes" },
+    treino:   { nome:"Treino",   dica:"volume e carga",     ic:"t-peso",     campos:["serie","carga"],           grupo:null,    topo:"volume" },
+    rotina:   { nome:"Rotina",   dica:"volta sozinha",      ic:"t-ciclo",    campos:["cada","ultima"],           grupo:null,    topo:"vencidas" },
+    viagem:   { nome:"Viagem",   dica:"renasce pronta",     ic:"t-mala",     campos:["qtd","mala","sempre"],     grupo:"mala",  topo:"namala" },
+    producao: { nome:"Produção", dica:"etapa da peça",      ic:"t-camera",   campos:["etapa","quem","dur"],      grupo:null,    topo:"etapas" }
+  };
+  var ORDEM_TIPOS = ["tarefas","compras","receitas","treino","rotina","viagem","producao"];
+
+  /* os icones escolhidos por ele, um por tipo */
+  var IC_TIPO = {
+    "t-lista":    '<path d="M4 6h11M4 12h11M4 18h7"/><path d="M17.5 16.5l2 2 3.5-4"/>',
+    "t-carrinho": '<path d="M2.5 3h2.2l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L20.5 7H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17.5" cy="20" r="1.4"/>',
+    "t-panela":   '<path d="M3.8 10.2h16.4v4.6a5 5 0 0 1-5 5h-6.4a5 5 0 0 1-5-5z"/><path d="M1.8 10.2h20.4"/><circle cx="12" cy="7.6" r="1.4"/><path d="M12 9v1.2"/><path d="M20.2 12h1.3a1.7 1.7 0 0 1 0 3.4h-1.3M3.8 12H2.5a1.7 1.7 0 0 0 0 3.4h1.3"/>',
+    "t-peso":     '<path d="M2.5 12h2M19.5 12h2M6.5 8.5v7M17.5 8.5v7M4.5 10v4M19.5 10v4M6.5 12h11"/>',
+    "t-ciclo":    '<path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M21 3.5v4.2h-4.2"/><path d="M12 7.5V12l3 1.8"/>',
+    "t-mala":     '<rect x="2.5" y="7" width="19" height="13.5" rx="2.5"/><path d="M8.5 7V4.8A1.8 1.8 0 0 1 10.3 3h3.4a1.8 1.8 0 0 1 1.8 1.8V7"/><path d="M2.5 12.5h19"/>',
+    "t-camera":   '<rect x="2.5" y="6" width="13" height="12" rx="2.5"/><path d="M15.5 10.5 21.5 7v10l-6-3.5z"/>'
+  };
+  function icTipo(nome,tam){
+    var d = IC_TIPO[nome] || IC_TIPO["t-lista"]; tam = tam || 22;
+    return '<svg viewBox="0 0 24 24" width="'+tam+'" height="'+tam+'" fill="none" stroke="currentColor"'
+         + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+  }
+  /* o tipo da lista aberta; lista sem tipo (as de antes) e Tarefas */
+  function tipoDe(l){ return (l && TIPOS[l.tipo]) ? l.tipo : "tarefas"; }
+  function T(){ return TIPOS[tipoDe(L())]; }
+  function temCampo(c){ return T().campos.indexOf(c) >= 0; }
+
+  /* ---------- os campos, num lugar so ----------
+     A linha do item e o menu "+" leem daqui. Cada campo diz como se chama,
+     que icone usa, como aparece na linha e como se edita. */
+  var CAMPOS = {
+    qtd:    { rot:"Quantidade",      ic:"tag",      dica:"ex: 3",                cls:"q",
+              /* com unidade a medida e uma so: "1,4 kg". Sem ela, "2×".
+                 Em Receitas o numero mostrado ja vem escalado pelas porcoes. */
+              mostra:function(v,it){
+                var l = L();
+                if(l && tipoDe(l) === "receitas") v = escalaQtd(v, it && it.un, fatorDe(l));
+                var n = String(v).split(".").join(",");
+                return (it && it.un) ? (n + " " + it.un) : (n + String.fromCharCode(215));
+              } },
+    un:     { rot:"Unidade",         ic:"tag",      dica:"un · kg · g · L · ml", cls:"",
+              /* vazio quando a quantidade ja a mostrou: senao sai "2 un" e "un" */
+              mostra:function(v,it){ return (it && it.qtd) ? "" : v; } },
+    preco:  { rot:"Preço",         ic:"money",    dica:"só número",           cls:"p", num:true,
+              mostra:function(v){ return din(v); } },
+    local:  { rot:"Onde comprar",    ic:"cart",     dica:"ex: Condor",           cls:"",
+              mostra:function(v){ return v; } },
+    serie:  { rot:"Séries × reps",   ic:"dumbbell", dica:"ex: 4×10",           cls:"q",
+              mostra:function(v){ return v; } },
+    carga:  { rot:"Carga",           ic:"dumbbell", dica:"ex: 40kg",             cls:"q", hist:true,
+              mostra:function(v){ return v; } },
+    cada:   { rot:"A cada",          ic:"clock",    dica:"ex: 6 meses",          cls:"rep",
+              mostra:function(v){ return "a cada " + v; } },
+    ultima: { rot:"Última vez",     ic:"cal",      dica:"",                     cls:"d", tipo:"date",
+              mostra:function(v){ return "feito " + curto(v); } },
+    mala:   { rot:"De quem é a mala", ic:"bag",   dica:"ex: Minha mala",       cls:"",
+              mostra:function(v){ return v; } },
+    sempre: { rot:"Até o próximo destino", ic:"star", dica:"fica na mala nas próximas viagens", cls:"", bool:true,
+              mostra:function(){ return "até o próximo destino"; } },
+    etapa:  { rot:"Etapa",           ic:"film",     dica:"ex: gravar",           cls:"",
+              mostra:function(v){ return v; } },
+    quem:   { rot:"Depende de quem", ic:"share",    dica:"ex: precisa do Léo", cls:"",
+              mostra:function(v){ return v; } },
+    dur:    { rot:"Duração",       ic:"clock",    dica:"ex: 40 s",             cls:"",
+              mostra:function(v){ return v; } }
+  };
+
+  /* data curta, pro "feito 02/09" das rotinas */
+  function curto(iso){
+    if(!iso) return "";
+    var p = String(iso).split("-");
+    return p.length === 3 ? (p[2] + "/" + p[1]) : String(iso);
+  }
+
+  /* ⚠️ mostra o campo se o TIPO o declara OU se o item ja tem valor nele.
+     Sem a segunda metade, toda lista antiga (que nasce "Tarefas", sem campos)
+     esconderia os precos e quantidades ja cadastrados — dado sumindo da tela. */
+  function camposDoItem(it){
+    var meus = T().campos, saida = [], k;
+    for(var i = 0; i < meus.length; i++) saida.push(meus[i]);
+    for(k in CAMPOS){
+      if(saida.indexOf(k) < 0 && it[k] !== undefined && it[k] !== "" && it[k] !== null) saida.push(k);
+    }
+    return saida;
+  }
+
+  /* pergunta o valor de um campo e grava */
+  function editaCampo(it, k){
+    var c = CAMPOS[k];
+    if(!c) return;
+    if(c.bool){ if(it[k]) delete it[k]; else it[k] = 1; grava(); pinta(); return; }
+    fAsk(c.rot, it[k] || "", function(v){
+      v = String(v).trim();
+      if(c.num) v = v.replace(",", ".");
+      /* a carga guarda o que veio antes: e o historico que deixa decidir se sobe */
+      if(c.hist && v && v !== it[k] && it[k]){ it.hist = it.hist || []; it.hist.push(it[k]); }
+      if(v === "") delete it[k]; else it[k] = v;
+      grava(); pinta();
+    }, c.tipo || "text", c.dica || "");
+  }
+
+
+  /* ---------- a grade de escolha ---------- */
+  function escolherTipo(){
+    var g = ORDEM_TIPOS.map(function(k){
+      var t = TIPOS[k];
+      return '<button type="button" class="tipop" data-tipo="'+k+'">'
+           +   '<span class="tipoic">'+icTipo(t.ic,26)+'</span>'
+           +   '<b>'+t.nome+'</b><i>'+t.dica+'</i></button>';
+    }).join("");
+    var sh = fOverlay('<div class="fsh-t">O que é essa lista?</div>'
+      + '<div class="fsh-s">Os campos, o ícone e as contas vêm junto com a escolha.</div>'
+      + '<div class="tipogr">'+g+'</div>'
+      + '<div class="fsh-a"><button type="button" class="fsk-g" id="fskCT">Cancelar</button></div>');
+    sh.querySelector("#fskCT").addEventListener("click", fClose);
+    sh.querySelectorAll("[data-tipo]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var k = b.getAttribute("data-tipo");
+        fClose();
+        setTimeout(function(){
+          fAsk("Nome da lista","",function(n){
+            n = n.trim(); if(!n) return;
+            var nl = { id:uid(), nome:n, tipo:k, cats:[], itens:[] };
+            D.listas.push(nl); D.atual = nl.id; filtro=""; grava(); pinta();
+          },"text", TIPOS[k].nome + " · como quer chamar?");
+        },40);
+      });
+    });
+  }
+
+  /* o que dizer ao lado do nome da categoria. Lista vazia nao diz nada:
+     "tudo feito" ali seria mentira. E cada categoria tem o proprio fim —
+     rotina nunca acaba, peca de producao nao fica "pronta", fica publicada. */
+  function fraseDaLista(l){
+    var t = (l && l.itens) ? l.itens.length : 0;
+    if(!t) return "vazia";
+    var pend = l.itens.filter(function(o){ return !o.feito; }).length;
+    var tp = tipoDe(l);
+    if(tp === "compras"){
+      return pend ? (pend + (pend === 1 ? " a pegar" : " a pegar")) : "carrinho completo";
+    }
+    if(tp === "viagem"){
+      return pend ? (pend + " fora da mala") : "mala pronta";
+    }
+    if(tp === "treino"){
+      return pend ? (pend + (pend === 1 ? " exercício" : " exercícios")) : "treino feito";
+    }
+    if(tp === "receitas"){
+      return t + (t === 1 ? " ingrediente" : " ingredientes");
+    }
+    if(tp === "rotina"){
+      /* rotina nao "acaba": o que importa e quantas venceram */
+      var venc = 0;
+      l.itens.forEach(function(o){
+        if(!o.cada) return;
+        var d = venceEm(o);
+        if(d === null || d < 0) venc++;
+      });
+      return venc ? (venc + (venc === 1 ? " vencida" : " vencidas")) : "em dia";
+    }
+    if(tp === "producao"){
+      return pend ? (pend + (pend === 1 ? " em produção" : " em produção")) : "tudo publicado";
+    }
+    return pend ? (pend + " em aberto") : "tudo feito";
+  }
+
+  /* ---------- categoria aberta (nivel 1) ---------- */
+  /* Guardada por aparelho, nao no dado sincronizado: e onde voce ESTA, nao
+     o que voce tem. */
+  var catAberta = "tarefas";
+  try{ var _ca = localStorage.getItem("feito-cat"); if(_ca && TIPOS[_ca]) catAberta = _ca; }catch(e){}
+  function listasDaCat(k){
+    return D.listas.filter(function(l){ return tipoDe(l) === (k || catAberta); });
+  }
+  /* a ultima lista aberta em cada categoria, pra voltar onde parou */
+  function lembraLista(){
+    try{ localStorage.setItem("feito-ult-" + catAberta, D.atual || ""); }catch(e){}
+  }
+  function abreCategoria(k){
+    catAberta = k;
+    try{ localStorage.setItem("feito-cat", k); }catch(e){}
+    var minhas = listasDaCat(k);
+    if(!minhas.length){
+      /* categoria vazia: perguntar o nome AGORA evita o estado "aberta sem
+         lista", que nao teria o que desenhar */
+      fAsk("Nome da lista", "", function(n){
+        n = n.trim(); if(!n){ return; }
+        criaLista(n, k);
+      }, "text", TIPOS[k].nome + " · como quer chamar?");
+      return;
+    }
+    var alvo = null;
+    try{
+      var ult = localStorage.getItem("feito-ult-" + k);
+      alvo = minhas.filter(function(l){ return l.id === ult; })[0] || null;
+    }catch(e){}
+    D.atual = (alvo || minhas[0]).id;
+    filtro = ""; grava(); pinta();
+  }
+  function criaLista(nome, k){
+    var nl = { id: uid(), nome: nome, tipo: k || catAberta, cats: [], itens: [] };
+    D.listas.push(nl); D.atual = nl.id; filtro = "";
+    lembraLista(); grava(); pinta();
+  }
+
+  /* ---------- a gaveta ---------- */
+  function gavAbre(){ document.body.classList.add("gav-on");
+    var b=document.getElementById("hamb"); if(b) b.setAttribute("aria-expanded","true"); }
+  function gavFecha(){ document.body.classList.remove("gav-on");
+    var b=document.getElementById("hamb"); if(b) b.setAttribute("aria-expanded","false"); }
+  function gavLiga(){
+    var b=document.getElementById("hamb"), f=document.getElementById("gavFundo");
+    if(b && !b._ligado){ b._ligado=1; b.addEventListener("click", gavAbre); }
+    if(f && !f._ligado){ f._ligado=1; f.addEventListener("click", gavFecha); }
+    if(!window._gavEsc){ window._gavEsc=1;
+      document.addEventListener("keydown", function(e){ if(e.key==="Escape") gavFecha(); }); }
+  }
+
+  function pintaListas(){
+    gavLiga();
+    var el=document.getElementById("listas"); el.innerHTML="";
+    /* nivel 1: as sete categorias, sempre as mesmas. Ter tres listas de
+       treino nao faz "Treino" aparecer tres vezes. */
+    ORDEM_TIPOS.forEach(function(k){
+      var t = TIPOS[k], minhas = listasDaCat(k);
+      var b=document.createElement("button"); b.type="button";
+      b.className="gav-i"+(k===catAberta?" on":"");
+      var ic=document.createElement("span"); ic.className="ic";
+      ic.innerHTML=icTipo(t.ic,17);
+      var nm=document.createElement("span"); nm.className="nm";
+      nm.textContent=t.nome;
+      var qt=document.createElement("span"); qt.className="qt";
+      /* quantas listas ha aqui dentro. Vazio fica vazio: um "0" so pesa. */
+      qt.textContent = minhas.length ? String(minhas.length) : "";
+      b.appendChild(ic); b.appendChild(nm); b.appendChild(qt);
+      b.addEventListener("click", function(){ gavFecha(); setTimeout(function(){ abreCategoria(k); },160); });
+      el.appendChild(b);
+    });
+
+    /* a barra do topo diz onde voce esta, pra a troca nao ser as cegas */
+    var l=L();
+    if(l){
+      var bi=document.getElementById("lbarIc"); if(bi) bi.innerHTML=icTipo(TIPOS[tipoDe(l)].ic,19);
+      var bn=document.getElementById("lbarNm"); if(bn) bn.textContent=TIPOS[tipoDe(l)].nome;
+      var bq=document.getElementById("lbarQt"); if(bq) bq.textContent=fraseDaLista(l);
+    }
+    pintaFila();
+  }
+
+  /* nivel 2: as listas DESTA categoria, como opcoes */
+  function pintaFila(){
+    var fl = document.getElementById("filaListas");
+    if(!fl) return;
+    fl.innerHTML = "";
+    var l = L();
+    var k = l ? tipoDe(l) : catAberta;
+    catAberta = k;
+    listasDaCat(k).forEach(function(x){
+      var pend = x.itens.filter(function(o){ return !o.feito; }).length;
+      var b = document.createElement("button"); b.type = "button";
+      b.className = "fchip" + (x.id === D.atual ? " on" : "");
+      var n = document.createElement("span"); n.textContent = x.nome;
+      b.appendChild(n);
+      if(pend){ var q = document.createElement("span"); q.className = "n"; q.textContent = String(pend); b.appendChild(q); }
+      b.addEventListener("click", function(){
+        D.atual = x.id; filtro = ""; lembraLista(); grava(); pinta();
+      });
+      fl.appendChild(b);
+    });
+    var nv = document.createElement("button"); nv.type = "button";
+    nv.className = "fchip nova"; nv.textContent = "+ lista";
+    nv.addEventListener("click", function(){
+      fAsk("Nome da lista", "", function(n){
+        n = n.trim(); if(!n) return;
+        criaLista(n, k);
+      }, "text", TIPOS[k].nome + " · como quer chamar?");
+    });
+    fl.appendChild(nv);
+  }
+
+  /* As categorias-etiqueta sairam da tela: a CATEGORIA agora e o TIPO da
+     lista, e quem agrupa e o campo do proprio tipo. O dado (lista.cats e
+     item.cat) continua guardado — so nao e mais desenhado nem criado. */
+  function pintaChips(){
+    var fl=document.getElementById("filtros");
+    if(fl){ fl.innerHTML=""; fl.style.display="none"; }
+    filtro="tudo";              /* sem filtro na tela, a lista mostra tudo */
+    pintaAbas();
+  }
+
+  /* ---------- sub-abas: Categorias | Registros ----------
+     Elas nao movem nada no documento: mostram e escondem dois conjuntos de
+     blocos. Mover no DOM soltaria os handlers ja presos neles. */
+  var ABA_CH = "feito-aba";
+  function abaAtual(){
+    try{ return localStorage.getItem(ABA_CH)==="reg" ? "reg" : "lista"; }catch(e){ return "lista"; }
+  }
+  function trocaAba(qual){
+    try{ localStorage.setItem(ABA_CH, qual); }catch(e){}
+    pintaAbas();
+  }
+  function pintaAbas(){
+    var a = abaAtual();
+    var daLista = ["bar","form","transfbar","grupos","vazio","sugestoes","filaListas"];
+    /* o BOTAO de registrar age sobre a lista que se esta vendo, entao fica com
+       ela; o que vai pra aba Registros e o HISTORICO de rodadas */
+    var daReg   = ["porta"];
+    /* o "transfbar" e o "regbar" tem visibilidade propria (o app decide
+       quando eles fazem sentido), entao aqui so tiramos os da outra aba */
+    daLista.forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display = (a==="lista") ? "" : "none"; });
+    daReg.forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display = (a==="reg") ? "" : "none"; });
+    var ac=document.querySelector(".acoes"); if(ac) ac.style.display = (a==="lista") ? "" : "none";
+
+    var bl=document.getElementById("sabaLista"), br=document.getElementById("sabaReg");
+    if(bl){ bl.classList.toggle("on", a==="lista"); bl.setAttribute("aria-selected", a==="lista"); }
+    if(br){ br.classList.toggle("on", a==="reg");   br.setAttribute("aria-selected", a==="reg"); }
+    /* quantas rodadas ha: sem esse numero a aba e uma porta fechada sem pista */
+    var q=document.getElementById("sabaRegQt");
+    if(q){ var n=0; try{ n=regsDoFiltro().length; }catch(e){}
+           q.textContent=String(n); q.style.display = n ? "" : "none"; }
+    if(!window._abasLigadas){
+      window._abasLigadas=1;
+      if(bl) bl.addEventListener("click", function(){ trocaAba("lista"); });
+      if(br) br.addEventListener("click", function(){ trocaAba("reg"); });
+    }
+  }
+
+  function pintaSugestoes(){
+    var el=document.getElementById("sugestoes");
+    if(el){ el.innerHTML=""; el.style.display="none"; }
+    if(1) return;                     /* fila desligada; o resto fica de reserva */
+    var l=L();
+    var tem={}; l.itens.forEach(function(o){ tem[o.texto.toLowerCase()]=1; });
+    var arr=[];
+    for(var k in D.freq){ if(!tem[k]) arr.push({t:k,n:D.freq[k]}); }
+    arr.sort(function(a,b){ return b.n-a.n; });
+    arr.slice(0,8).forEach(function(o){
+      var d=document.createElement("div"); d.className="s"; d.textContent="+ "+o.t;
+      d.addEventListener("click",function(){ addItem(o.t,""); });
+      el.appendChild(d);
+    });
+  }
+
+  // ---------- render
+  /* Um item que repete volta desmarcado quando o ciclo dele vira. Nao apaga
+     nada nem cria item novo: so desmarca, entao o historico do item continua. */
+  var _CICLO = { dia: 864e5, semana: 7*864e5, mes: 30*864e5 };
+  function renascer(){
+    var mudou=false;
+    (D.listas||[]).forEach(function(li){
+      (li.itens||[]).forEach(function(o){
+        if(!o.rep || !o.feito) return;
+        var passou = _CICLO[o.rep] || _CICLO.semana;
+        if(!o.fdt || (Date.now() - o.fdt) >= passou){
+          o.feito=false; delete o.fdt; mudou=true;
+        }
+      });
+    });
+    if(mudou) grava();
+    return mudou;
+  }
+
+  /* o esc2 mora no outro bloco de script; aqui precisa do proprio */
+  function esc1(x){ return String(x==null?"":x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+  function pinta(){
+    if(window.__TIMERS){ window.__TIMERS.forEach(clearInterval); } window.__TIMERS=[];
+    ajustaFiltro();
+    lembraFiltro();
+    pintaListas(); pintaChips(); pintaSugestoes();
+    var l=L();
+    var cont=document.getElementById("grupos"); cont.innerHTML="";
+    var vis=l.itens.filter(function(o){
+      if(filtro==="tudo") return true;
+      if(filtro==="_sem") return !o.cat;
+      return o.cat===filtro;
+    });
+
+    function bloco(nome,cor,arr){
+      if(!arr.length) return;
+      var pend=arr.filter(function(o){return !o.feito});
+      var fei=arr.filter(function(o){return o.feito});
+      var ord=pend.concat(fei);
+      if(l.cats.length){
+        var gh=document.createElement("div"); gh.className="gh";
+        var gb=document.createElement("span"); gb.className="gb"; gb.style.background=cor;
+        var gn=document.createElement("span"); gn.className="gn"; gn.textContent=nome;
+        var gq=document.createElement("span"); gq.className="gq"; gq.textContent=fei.length+"/"+arr.length;
+        gh.appendChild(gb); gh.appendChild(gn); gh.appendChild(gq); cont.appendChild(gh);
+      }
+      /* ROTINA: a ordem util nao e a de escrita, e a da urgencia — o que
+         venceu ha mais tempo no topo. */
+      if(tipoDe(l) === "rotina"){
+        ord = ord.slice().sort(function(a, b){
+          var va = venceEm(a), vb = venceEm(b);
+          if(va === null && vb === null) return 0;
+          if(va === null) return -1;   /* nunca feito e o mais urgente */
+          if(vb === null) return 1;
+          return va - vb;
+        });
+      }
+      var ul=document.createElement("ul");
+      ord.forEach(function(it){ ul.appendChild(linha(it,cor)); });
+      cont.appendChild(ul);
+    }
+    l.cats.forEach(function(c){ bloco(c.nome,c.cor,vis.filter(function(o){return o.cat===c.id})); });
+    bloco("Sem categoria","#5b646a",vis.filter(function(o){return !o.cat}));
+
+    document.getElementById("vazio").style.display=vis.length?"none":"block";
+    var f=l.itens.filter(function(o){return o.feito}).length, t=l.itens.length;
+    document.getElementById("cont").textContent=f+" de "+t+(t?" · "+Math.round(f/t*100)+"%":"");
+    document.getElementById("fill").style.width=(t?(f/t*100):0)+"%";
+
+    /* O total somava so o que tem preco e nao dizia isso — entao era sempre
+       menor que a verdade, calado. Agora ele conta em quantos itens se apoia,
+       reparte por categoria e avisa quantos ficaram de fora. */
+    var totalPronto = false;
+    /* RECEITAS: no lugar do total, as porcoes — e mexer nelas reescreve a
+       receita inteira. E o unico topo do app que se opera, nao so se le. */
+    if(tipoDe(l) === "receitas"){
+      var pc = porcDe(l), bs = baseDe(l);
+      document.getElementById("total").innerHTML =
+        '<div class="rot-p">Porções</div>' +
+        '<div class="porc">' +
+          '<button type="button" class="pbt" id="pMenos" aria-label="Menos uma porção">−</button>' +
+          '<b>' + pc + '</b>' +
+          '<button type="button" class="pbt mais" id="pMais" aria-label="Mais uma porção">+</button>' +
+          '<span class="pbase" id="pBase">a receita é de ' + bs + '</span>' +
+        '</div>';
+      document.getElementById("pMenos").addEventListener("click", function(){
+        l.porc = Math.max(1, porcDe(l) - 1); grava(); pinta();
+      });
+      document.getElementById("pMais").addEventListener("click", function(){
+        l.porc = porcDe(l) + 1; grava(); pinta();
+      });
+      document.getElementById("pBase").addEventListener("click", function(){
+        fAsk("A receita rende quantas porções?", String(baseDe(l)), function(v){
+          var n = num(v); if(n > 0){ l.base = n; grava(); pinta(); }
+        }, "number");
+      });
+      totalPronto = true;
+    }
+
+    /* TREINO: no lugar do total em dinheiro, o volume — o numero que diz se
+       hoje foi maior que o treino anterior. */
+    if(tipoDe(l) === "treino"){
+      var vFeito = 0, vTudo = 0;
+      (l.itens || []).forEach(function(o){
+        /* com series, quem se marca e a SERIE: o exercicio quase nunca e
+           marcado, e exigir isso fazia o topo dizer 0 com o treino andando. */
+        var series = (o.subs || []).filter(function(s){
+          return s.reps !== undefined || s.carga !== undefined;
+        });
+        if(series.length){
+          series.forEach(function(s){
+            var v = num(s.reps) * num(s.carga);
+            vTudo += v;
+            if(s.ok) vFeito += v;
+          });
+        } else {
+          var p = volumeDe(o);
+          vTudo += p;
+          if(o.feito) vFeito += p;
+        }
+      });
+      var ses = l.sessoes || [];
+      var ant = ses.length ? ses[ses.length - 1].v : 0;
+      var comp = "";
+      if(ant && vFeito){
+        var pc = Math.round((vFeito - ant) / ant * 100);
+        comp = "treino anterior: " + kg(ant) + " \u00b7 " + (pc >= 0 ? "+" : "") + pc + "%";
+      } else if(ant){
+        comp = "treino anterior: " + kg(ant);
+      }
+      document.getElementById("total").innerHTML =
+        '<div class="tsoma">' + kg(vFeito) + ' <span>de volume</span></div>' +
+        (vTudo > vFeito ? ('<div class="tsem">de ' + kg(vTudo) + ' previstos</div>') : "") +
+        (comp ? ('<div class="tsem">' + comp + '</div>') : "");
+      totalPronto = true;   /* o topo ja foi desenhado; o resto do pinta segue */
+    }
+    /* ROTINA: no lugar do total, quantas venceram e quando vem a proxima */
+    if(tipoDe(l) === "rotina"){
+      var venc = 0, prox = null;
+      (l.itens || []).forEach(function(o){
+        if(!o.cada) return;
+        var d = venceEm(o);
+        if(d === null || d < 0){ venc++; return; }
+        if(prox === null || d < prox) prox = d;
+      });
+      var frase = (prox === null) ? "" :
+        ("a pr\u00f3xima vence " + (prox === 0 ? "hoje" : ("em " + prox + (prox === 1 ? " dia" : " dias"))));
+      document.getElementById("total").innerHTML =
+        '<div class="tsoma">' + venc + ' <span>' + (venc === 1 ? "vencida" : "vencidas") + '</span></div>' +
+        (frase ? ('<div class="tsem">' + frase + '</div>') : "");
+      totalPronto = true;   /* o topo ja foi desenhado; o resto do pinta segue */
+    }
+    /* PRODUCAO: no lugar do total em dinheiro, a linha de producao em ordem.
+       Cada etapa mostra quantas pecas estao nela; a vazia fica visivel porque
+       o buraco na linha tambem e informacao. */
+    if(tipoDe(l) === "producao"){
+      var conta = {}, publicadas = 0;
+      ETAPAS.forEach(function(e){ conta[e] = 0; });
+      (l.itens || []).forEach(function(o){
+        if(o.feito){ publicadas++; return; }
+        conta[ETAPAS[etapaDe(o)]]++;
+      });
+      var celulas = ETAPAS.map(function(e, i){
+        var n = (i === ETAPAS.length - 1) ? publicadas : conta[e];
+        var cls = "ep" + (n ? (i === ETAPAS.length - 1 ? " f" : " on") : "");
+        return '<span class="' + cls + '"><b>' + n + '</b>' + e + '</span>';
+      }).join('<i class="epseta"></i>');
+      document.getElementById("total").innerHTML =
+        '<div class="eprot">Linha de produção</div><div class="epline">' + celulas + '</div>';
+      totalPronto = true;   /* o topo ja foi desenhado; o resto do pinta segue */
+    }
+    /* Em Compras o total conta SO O QUE ESTA MARCADO (escolha do usuario): o
+       numero serve dentro do mercado, pra saber quanto vai dar no caixa — nao
+       antes de sair de casa. Nos outros tipos segue somando tudo. */
+    if(!totalPronto){
+    var soNoCarrinho = (tipoDe(l) === "compras");
+    var soma=0, comPreco=0, semPreco=0, porCat={};
+    l.itens.forEach(function(o){
+      if(soNoCarrinho && !o.feito) return;
+      if(o.preco){
+        var v=(+o.preco||0)*(+o.qtd||1);
+        soma+=v; comPreco++;
+        var k=o.cat||"__sem"; porCat[k]=(porCat[k]||0)+v;
+      } else semPreco++;
+    });
+    var elT=document.getElementById("total");
+    if(!comPreco){ elT.innerHTML=""; }
+    else {
+      var linhas="";
+      /* so vale repartir quando ha mais de uma categoria com preco */
+      var ks=Object.keys(porCat);
+      if(ks.length>1){
+        ks.sort(function(a,b){ return porCat[b]-porCat[a]; }).forEach(function(k){
+          var c=(k==="__sem")?{nome:"Sem categoria",cor:"#5b646a"}:cat(k);
+          if(!c) c={nome:"Sem categoria",cor:"#5b646a"};
+          linhas+='<div class="tlin"><span><i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</span>' +
+                  '<b>'+din(porCat[k])+'</b></div>';
+        });
+      }
+      elT.innerHTML =
+        '<div class="tsoma">'+din(soma) +
+        ' <span>' + (soNoCarrinho ? "no carrinho" : "em " + comPreco + (comPreco===1?" item":" itens")) + '</span></div>' + linhas +
+        (semPreco ? ('<div class="tsem">'+semPreco+(semPreco===1?" item ainda sem pre\u00e7o":" itens ainda sem pre\u00e7o")+'</div>') : "") +
+        (soNoCarrinho ? ('<div class="tsem">de '+din(totalDaLista(l))+' na lista inteira</div>') : '');
+    }
+
+    }
+
+    var c2=cat(filtro);
+    document.getElementById("btLimpaTudo").textContent=filtro==="tudo"?"Limpar tudo":("Limpar "+(c2?c2.nome:"sem cat."));
+    /* o "Nova viagem" so faz sentido em lista de viagem */
+    var bmm = document.getElementById("btMandarMercado");
+    if(bmm) bmm.style.display = (tipoDe(l) === "receitas") ? "" : "none";
+    var bft = document.getElementById("btFecharTreino");
+    if(bft) bft.style.display = (tipoDe(l) === "treino") ? "" : "none";
+    var bnv = document.getElementById("btNovaViagem");
+    if(bnv) bnv.style.display = (tipoDe(l) === "viagem") ? "" : "none";
+    pintaPorta();
+    /* o botao so existe quando ha lista embaixo dele */
+    var tem=itensAVista().length;
+    var tb=document.getElementById("transfbar");
+    if(tb) tb.style.display = tem ? "" : "none";
+    var rb=document.getElementById("regbar");
+    if(rb) rb.style.display = tem ? "" : "none";
+  }
+
+  function editavel(el,ini,onOk){
+    el.contentEditable="true"; el.textContent=ini;
+    if(window.__kbTouch) el.setAttribute("inputmode","none");
+    el.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); el.blur(); } });
+    el.addEventListener("blur",function(){ onOk(el.textContent.trim()); });
+  }
+
+  function flashFeito(){
+    try{ som('feito'); }catch(e){}
+    var f=document.getElementById("flash"); if(!f) return;
+    f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+    try{ navigator.vibrate && navigator.vibrate(15); }catch(e){}
+  }
+
+  function linha(it,cor){
+    var l=L();
+    var li=document.createElement("li");
+    if(it.feito) li.className="done";
+    li.style.borderLeftColor=cor||"#5b646a";
+    li._item=it;
+
+    var cr=document.createElement("div"); cr.className="cor"; cr.style.background=cor||"#5b646a";
+    cr.addEventListener("pointerdown",function(ev){ comecaArrasto(ev,li); });
+
+    var bx=document.createElement("div"); bx.className="box";
+    bx.addEventListener("click",function(){
+      /* em Producao "feito" nao e binario: a peca caminha por cinco estados */
+      if(tipoDe(L()) === "producao"){ avancaEtapa(it); grava(); pinta(); return; }
+      /* em Rotina marcar feito REAGENDA em vez de apagar */
+      if(tipoDe(L()) === "rotina" && it.cada){ cumpreRotina(it); grava(); pinta(); return; }
+      it.feito=!it.feito;
+      /* a data da conclusao e o que permite o item voltar sozinho depois */
+      if(it.feito){ it.fdt=Date.now(); flashFeito(); } else delete it.fdt;
+      grava(); pinta(); });
+
+    var meio=document.createElement("div"); meio.className="meio";
+    var tx=document.createElement("div"); tx.className="txt";
+    editavel(tx,it.texto,function(t){
+      if(t===""){ pinta(); return; }
+      it.texto=t; grava();
+    });
+    meio.appendChild(tx);
+
+    // ----- etiquetas: quantidade / preco / prazo / carga
+    var ex=document.createElement("div"); ex.className="extra";
+    function etiqueta(cls,txt,titulo,onEdit){
+      var s=document.createElement("span"); s.className="tag "+cls; s.textContent=txt; s.title=titulo;
+      s.addEventListener("click",onEdit); ex.appendChild(s); return s;
+    }
+    /* Os campos vem da TABELA, na ordem que o tipo declara. O que nao e do tipo
+       mas ja tem valor aparece tambem: o tipo manda no que se OFERECE, nunca no
+       que se esconde — senao toda lista antiga perderia os precos da tela. */
+    camposDoItem(it).forEach(function(k){
+      var c = CAMPOS[k]; if(!c) return;
+      var v = it[k];
+      if(v === undefined || v === "" || v === null) return;
+      var rotulo = c.mostra(v, it);
+      if(rotulo === "" || rotulo === undefined) return;   /* absorvido por outro campo */
+      etiqueta(c.cls || "", rotulo, c.rot, function(){ editaCampo(it, k); });
+    });
+    /* RECEITAS: quando a receita esta escalada, mostrar de quanto era. Sem
+       isso o numero muda sozinho e voce nao sabe se leu errado. */
+    if(tipoDe(L()) === "receitas" && it.qtd && fatorDe(L()) !== 1)
+      etiqueta("", "era " + it.qtd + (it.un ? (" " + it.un) : ""), "quantidade da receita", function(){ editaCampo(it, "qtd"); });
+    /* ROTINA: o vencimento e o dado que importa — quanto tempo passou do
+       prazo, ou quanto falta. Sem ele "a cada 6 meses" nao diz nada. */
+    if(tipoDe(L()) === "rotina" && it.cada){
+      var dv = venceEm(it);
+      if(dv === null) etiqueta("d", "nunca feito", "sem \u00faltima vez", function(){ editaCampo(it, "ultima"); });
+      else if(dv < 0)  etiqueta("d perto", "venceu h\u00e1 " + (-dv) + (dv === -1 ? " dia" : " dias"), it.ultima, function(){ editaCampo(it, "ultima"); });
+      else if(dv === 0) etiqueta("d perto", "vence hoje", it.ultima, function(){ editaCampo(it, "ultima"); });
+      else              etiqueta("d", "em " + dv + (dv === 1 ? " dia" : " dias"), it.ultima, function(){ editaCampo(it, "ultima"); });
+    }
+    if(it.rep) etiqueta("rep","\u21bb "+({dia:"todo dia",semana:"toda semana",mes:"todo m\u00eas"}[it.rep]||it.rep),"repete",function(){
+      it.rep=null; delete it.fdt; grava(); pinta(); });
+    /* preco e carga saem no laco de CAMPOS, acima */
+    /* TREINO: recorde e o unico elogio que o app da — e ele so vale se for
+       verdade, entao sai da comparacao com o historico, nao de um palpite. */
+    if(tipoDe(L()) === "treino" && it.carga && num(it.carga) > recordeDe(it) && (it.hist || []).length)
+      etiqueta("r", "recorde", "maior carga j\u00e1 registrada", function(){});
+    if(it.hist && it.hist.length) etiqueta("","antes: "+it.hist[it.hist.length-1],"último registro",function(){
+      fInfo("Histórico:\n• "+it.hist.slice().reverse().join("\n• "));
+    });
+    if(it.prazo){
+      var dd=Math.ceil((new Date(it.prazo+"T00:00:00")-new Date(new Date().toDateString()))/86400000);
+      var rot=dd===0?"hoje":(dd===1?"amanhã":(dd<0?Math.abs(dd)+"d atrás":"em "+dd+"d"));
+      var e=etiqueta("d "+(dd<=1?"perto":""),"⏱ "+rot,it.prazo,function(){
+        fAsk("Prazo",it.prazo,function(v){ it.prazo=v.trim(); grava(); pinta(); },"date","vazio apaga");
+      });
+    }
+    var mais=document.createElement("span"); mais.className="tag add"; mais.textContent="+";
+    mais.addEventListener("click",function(){ menuItem(it); });
+    ex.appendChild(mais);
+    meio.appendChild(ex);
+
+    if(it.nota!==undefined){
+      var nt=document.createElement("div"); nt.className="nota";
+      editavel(nt,it.nota,function(t){
+        /* sair sem escrever nada apaga a nota, em vez de deixar uma linha vazia */
+        if(t===""){ delete it.nota; grava(); pinta(); }
+        else { it.nota=t; grava(); }
+      });
+      meio.appendChild(nt);
+    }
+
+    if(it.subs && it.subs.length){
+      var okc=it.subs.filter(function(s){return s.ok}).length;
+      var tb=document.createElement("div"); tb.className="tbar";
+      var tt=document.createElement("div"); tt.className="tt";
+      var tf=document.createElement("div"); tf.className="tf"; tf.style.width=(okc/it.subs.length*100)+"%";
+      tt.appendChild(tf);
+      var tc=document.createElement("span"); tc.className="tc"; tc.textContent=okc+"/"+it.subs.length;
+      /* TREINO: ao lado da contagem, quanto ja pesou — sobe a cada serie */
+      tb.appendChild(tc); tb.appendChild(tt);
+      /* TREINO: o peso ja levantado fecha a linha — e o numero que sobe a
+         cada serie marcada, entao ele merece a ponta direita. */
+      if(tipoDe(L()) === "treino"){
+        var vSerie = 0;
+        it.subs.forEach(function(s){ if(s.ok) vSerie += (num(s.reps) * num(s.carga)); });
+        if(vSerie){
+          var tv=document.createElement("span"); tv.className="tc";
+          tv.textContent = kg(vSerie);
+          tb.appendChild(tv);
+        }
+      }
+      meio.appendChild(tb);
+
+      var tpSub = tipoDe(L());
+      var ds=document.createElement("div"); ds.className="subs";
+      it.subs.forEach(function(s,idx){
+        var r=document.createElement("div"); r.className="sub"+(s.ok?" ok":"");
+        var sb=document.createElement("span"); sb.className="sb";
+        sb.addEventListener("click",function(){
+          s.ok=!s.ok;
+          /* TREINO: terminar a serie e o momento exato de comecar o descanso.
+             Pedir um segundo toque num botao seria pedir o que ja se sabe. */
+          if(tpSub === "treino" && s.ok) it._descansar = true;
+          grava(); pinta();
+        });
+        /* passo numerado onde a ORDEM importa: preparo e serie */
+        if(tpSub === "receitas" || tpSub === "treino"){
+          var nu=document.createElement("span"); nu.className="snum"; nu.textContent=String(idx+1);
+          r.appendChild(nu);
+        }
+        r.appendChild(sb);
+        if(tpSub === "treino"){
+          /* a serie nao tem texto: tem repeticoes e carga, cada uma editavel */
+          var rp=document.createElement("span"); rp.className="st sdado";
+          rp.textContent = (s.reps ? (s.reps + " reps") : "quantas reps?");
+          rp.addEventListener("click",function(){
+            fAsk("Repetições desta série", s.reps || "", function(v){
+              s.reps = String(v).trim(); grava(); pinta();
+            }, "number", "ex: 10");
+          });
+          var cg=document.createElement("span"); cg.className="scarga";
+          cg.textContent = (s.carga ? (s.carga + " kg") : "carga");
+          cg.addEventListener("click",function(){
+            fAsk("Carga desta série", s.carga || "", function(v){
+              s.carga = String(v).trim(); grava(); pinta();
+            }, "number", "ex: 40");
+          });
+          r.appendChild(rp); r.appendChild(cg);
+        } else {
+          var st=document.createElement("span"); st.className="st";
+          editavel(st,s.t,function(t){ if(t===""){ it.subs.splice(idx,1); } else { s.t=t; } grava(); pinta(); });
+          r.appendChild(st);
+        }
+        var sx=document.createElement("span"); sx.className="sx"; sx.textContent="✕";
+        sx.addEventListener("click",function(){ it.subs.splice(idx,1); grava(); pinta(); });
+        r.appendChild(sx); ds.appendChild(r);
+      });
+      meio.appendChild(ds);
+    }
+
+    /* TREINO sempre tem descanso: sem numero definido, 60s. Nas outras
+       categorias ele so aparece se voce pedir. */
+    if(tipoDe(L()) === "treino" && !it.crono) it.crono = 60;
+    if(it.crono){
+      var cw=document.createElement("div"); cw.className="crono";
+      var vis=document.createElement("span"); vis.className="vis"; vis.textContent=fmt(it.crono);
+      var bt1=document.createElement("button"); bt1.textContent="▶ descanso";
+      var tid=null;
+      bt1.addEventListener("click",function(){
+        if(tid){ clearInterval(tid); tid=null; bt1.textContent="▶ descanso"; vis.textContent=fmt(it.crono); return; }
+        var resta=it.crono; bt1.textContent="■ parar";
+        tid=setInterval(function(){
+          resta--; vis.textContent=fmt(resta);
+          if(resta<=0){ clearInterval(tid); tid=null; bt1.textContent="▶ descanso"; vis.textContent="fim!";
+            try{ navigator.vibrate&&navigator.vibrate([200,100,200]); }catch(e){} }
+        },1000); if(window.__TIMERS) window.__TIMERS.push(tid);
+      });
+      cw.appendChild(bt1); cw.appendChild(vis); meio.appendChild(cw);
+      /* marcou a serie: o descanso comeca sozinho, sem pedir outro toque */
+      if(it._descansar){ delete it._descansar; setTimeout(function(){ try{ bt1.click(); }catch(e){} }, 60); }
+    }
+
+    var bt=document.createElement("button"); bt.className="x"; bt.textContent="✕";
+    bt.addEventListener("click",function(){ l.itens=l.itens.filter(function(o){return o.id!==it.id}); grava(); pinta(); });
+
+    li.appendChild(cr); li.appendChild(bx); li.appendChild(meio); li.appendChild(bt);
+    return li;
+  }
+  function fmt(s){ var m=Math.floor(s/60), r=s%60; return m+":"+(r<10?"0":"")+r; }
+
+  // ---------- folha de opções (substitui os prompts numerados)
+  var fCssOk=false;
+  function fCss(){
+    if(fCssOk) return; fCssOk=true;
+    var s=document.createElement("style");
+    s.textContent=
+    ".fov{position:fixed;inset:0;z-index:900000;display:flex;align-items:center;justify-content:center;"+
+      "padding:18px 14px calc(18px + var(--kbh,0px));transition:padding-bottom .18s ease;"+
+      "background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:fFade .18s ease}"+
+    ".fov.out{animation:fFade .16s ease reverse forwards}"+
+    /* na folha de transferir o fundo fica limpo: a lista marcada e a informacao */
+    ".fov.limpo{background:rgba(4,6,10,.42);-webkit-backdrop-filter:none;backdrop-filter:none}"+
+    "@keyframes fFade{from{opacity:0}to{opacity:1}}"+
+    "@keyframes fUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}"+
+    ".fsheet{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--line);"+
+      "border-radius:18px;padding:16px 14px;max-height:calc(100vh - var(--kbh,0px) - 44px);overflow:auto;"+
+      "box-shadow:0 18px 50px rgba(0,0,0,.62);animation:fUp .22s cubic-bezier(.34,1.4,.64,1)}"+
+
+    ".fsh-t{font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--mut);padding:2px 6px 12px}"+
+    ".fsh-l{display:flex;flex-direction:column;gap:4px}"+
+    ".fsh-i{position:relative;display:flex;align-items:center;gap:12px;width:100%;background:transparent;border:0;cursor:pointer;"+
+      "padding:11px 8px;border-radius:12px;text-align:left;color:var(--txt2);font:inherit;font-size:15px;overflow:hidden;"+
+      "transition:background .16s ease,transform .16s cubic-bezier(.34,1.4,.64,1)}"+
+    /* o filete que entra pela esquerda: fica fora da linha e desliza pra dentro */
+    ".fsh-i::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;"+
+      "background:var(--accent);transform:translateX(-5px);opacity:0;transition:transform .16s ease,opacity .16s ease}"+
+    ".fsh-ic{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:10px;"+
+      "background:color-mix(in srgb, var(--accent) 13%, transparent);color:var(--accent);font-size:16px;"+
+      "transition:transform .18s cubic-bezier(.34,1.5,.5,1),background .16s ease,box-shadow .16s ease}"+
+
+    /* so em aparelho com mouse: no toque o hover fica grudado depois do clique */
+    "@media(hover:hover){"+
+      ".fsh-i:hover{background:linear-gradient(90deg,color-mix(in srgb, var(--accent) 10%, transparent),color-mix(in srgb, var(--accent) 2%, transparent) 60%,transparent);transform:translateX(3px)}"+
+      ".fsh-i:hover::before{transform:translateX(0);opacity:1}"+
+      ".fsh-i:hover .fsh-ic{transform:scale(1.09);background:color-mix(in srgb, var(--accent) 20%, transparent);box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),0 5px 14px color-mix(in srgb, var(--accent) 14%, transparent)}"+
+      ".fsh-i:hover .fsh-n em{color:#7c8b95}"+
+    "}"+
+    /* o teclado enxerga o mesmo destaque que o mouse */
+    ".fsh-i:focus-visible{outline:0;background:color-mix(in srgb, var(--accent) 10%, transparent);transform:translateX(3px)}"+
+    ".fsh-i:focus-visible::before{transform:translateX(0);opacity:1}"+
+    ".fsh-i:active{background:#1d2228;transform:translateX(3px) scale(.985)}"+
+    ".fsh-i:active .fsh-ic{transform:scale(.96)}"+
+    "@media(prefers-reduced-motion:reduce){.fsh-i,.fsh-i::before,.fsh-ic{transition:none}}"+
+    ".fsh-n{display:flex;flex-direction:column;line-height:1.25}"+
+    ".fsh-n em{font-style:normal;font-size:12px;color:var(--mut2);margin-top:1px}"+
+    ".fsh-p{padding:0 6px 6px;font-size:13px;color:var(--mut);line-height:1.5}"+
+    ".fsh-p b{color:var(--txt)}"+
+    ".fsk-p.pg{background:var(--red);color:var(--onacc);border-color:var(--red)}"+
+    ".fsh-f{padding:2px 6px 4px}"+
+    ".fsh-f input{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:12px;"+
+      "padding:13px 14px;color:var(--txt2);font:inherit;font-size:16px;outline:none}"+
+    ".fsh-f input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)}"+
+    ".fsh-a{display:flex;gap:8px;padding:14px 6px 2px}"+
+    ".fsh-a button{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font:inherit;font-weight:700;font-size:15px}"+
+    ".fsk-g{background:transparent;color:var(--txt)}"+
+    ".fsk-p{background:var(--accent);color:var(--onacc);border-color:var(--accent)}"+
+    /* ---- a grade de tipos de lista ---- */
+    ".fsh-s{font-size:12.5px;color:var(--mut);padding:0 6px 4px;line-height:1.45}"+
+    ".tipogr{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;padding:8px 4px 2px}"+
+    ".tipop{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:13px 8px;"+
+      "display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font:inherit;color:var(--txt);"+
+      "transition:border-color .14s ease,transform .12s ease}"+
+    ".tipop:active{transform:scale(.96);border-color:var(--accent)}"+
+    ".tipoic{color:var(--accent);display:flex}"+
+    ".tipop b{font-size:12.5px;font-weight:700}"+
+    ".tipop i{font-style:normal;font-size:10.5px;color:var(--mut);text-align:center;line-height:1.3}"+
+    ".chipic{display:inline-flex;align-items:center;margin-right:5px;color:var(--accent);vertical-align:-3px}"+
+    ".chip.on .chipic{color:var(--onacc)}";
+    document.head.appendChild(s);
+  }
+  function fClose(){
+    /* fechar a caixa fecha o teclado junto: ele veio dela, nao faz sentido
+       ficar sozinho na tela ocupando metade dela */
+    try{ if(window.__kbdHide) window.__kbdHide(); }catch(e){}
+    var o=document.getElementById("fSheetOv");
+    if(o){ o.classList.add("out"); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },170); }
+    document.removeEventListener("keydown",fEsc);
+  }
+  function fEsc(e){ if(e.key==="Escape") fClose(); }
+  /* aviso na folha do proprio app: o alerta do navegador trava a pagina e
+     nao se parece com nada aqui dentro */
+  function fInfo(texto, titulo){
+    var sh = fOverlay(
+      '<div class="fsh-t">' + (titulo || "Pronto") + '</div>' +
+      '<div class="fsh-s">' + texto + '</div>' +
+      '<div class="fsh-a"><button type="button" class="fsk-p" id="fnfOk">Entendi</button></div>');
+    sh.querySelector("#fnfOk").addEventListener("click", fClose);
+  }
+
+  function fOverlay(html){
+    fCss(); fClose();
+    var ov=document.createElement("div"); ov.id="fSheetOv"; ov.className="fov";
+    var sh=document.createElement("div"); sh.className="fsheet"; sh.innerHTML=html;
+    ov.appendChild(sh);
+    ov.addEventListener("click",function(e){ if(e.target===ov) fClose(); });
+    document.body.appendChild(ov);
+    document.addEventListener("keydown",fEsc);
+    if(window.paintIcons) try{ window.paintIcons(sh); }catch(e){}
+    return sh;
+  }
+  function fMenu(titulo,ops,cb){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div><div class="fsh-l"></div>');
+    var lista=sh.querySelector(".fsh-l");
+    ops.forEach(function(o){
+      var b=document.createElement("button"); b.type="button"; b.className="fsh-i";
+      b.innerHTML='<span class="fsh-ic"><span data-ic="'+o.ic+'"></span></span>'+
+                  '<span class="fsh-n">'+o.nome+(o.sub?'<em>'+o.sub+'</em>':'')+'</span>';
+      b.addEventListener("click",function(){ fClose(); setTimeout(function(){ cb(o.id); },40); });
+      lista.appendChild(b);
+    });
+    if(window.paintIcons) try{ window.paintIcons(lista); }catch(e){}
+  }
+  function fAsk(titulo,valor,cb,tipo,dica){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div>'+
+      '<div class="fsh-f"><input id="fskIn" type="'+(tipo||"text")+'" placeholder="'+(dica||"")+'"></div>'+
+      '<div class="fsh-a"><button type="button" class="fsk-g" id="fskC">Cancelar</button>'+
+      '<button type="button" class="fsk-p" id="fskO">Salvar</button></div>');
+    var i=sh.querySelector("#fskIn"); i.value=(valor===undefined||valor===null)?"":valor;
+    /* marcar no foco e tarde: no celular o teclado do sistema ja subiu.
+       A data fica de fora — ali quem abre e o calendario do proprio app. */
+    if(window.__kbTouch && tipo!=="date"){
+      i.setAttribute("inputmode","none");
+      i.setAttribute("data-kbro","1"); i.readOnly=true;   /* segura o Gboard */
+    }
+    /* quantidade, preco e segundos pedem o discador; o resto, as letras */
+    if(tipo==="number") i.setAttribute("data-kb","numeric");
+    else if(/quantidade|pre\u00e7o|segundos/i.test(titulo)) i.setAttribute("data-kb","decimal");
+    function ok(){ var v=i.value; fClose(); setTimeout(function(){ cb(v); },40); }
+    sh.querySelector("#fskC").addEventListener("click",fClose);
+    sh.querySelector("#fskO").addEventListener("click",ok);
+    i.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); ok(); } });
+    setTimeout(function(){ try{ i.focus(); i.select(); }catch(e){} },80);
+  }
+
+  /* o total previsto da lista inteira, mostrado como referencia abaixo do
+     carrinho: sem ele o numero do topo encolhe sem explicar por que */
+  function totalDaLista(l){
+    var s = 0;
+    (l.itens || []).forEach(function(o){ if(o.preco) s += (+o.preco || 0) * (+o.qtd || 1); });
+    return s;
+  }
+
+  /* ---------- RECEITAS ---------- */
+  function baseDe(l){ return (+(l && l.base) > 0) ? +l.base : 4; }
+  function porcDe(l){ return (+(l && l.porc) > 0) ? +l.porc : baseDe(l); }
+  function fatorDe(l){ return porcDe(l) / baseDe(l); }
+  /* o que se conta na mao (cebola, ovo, dente) nao aceita meio: arredonda.
+     O que se pesa ou se mede aceita: 900 g e uma medida legitima. */
+  function contavel(un){
+    if(!un) return true;
+    var u = String(un).toLowerCase();
+    return !(u.indexOf("kg") >= 0 || u.indexOf("g") >= 0 || u.indexOf("l") >= 0 ||
+             u.indexOf("ml") >= 0 || u.indexOf("mg") >= 0);
+  }
+  function escalaQtd(q, un, f){
+    var v = num(q) * f;
+    if(!v) return q;
+    if(contavel(un)) return String(Math.max(1, Math.round(v)));
+    var r = Math.round(v * 100) / 100;
+    return String(r).split(".").join(",");
+  }
+
+  /* ---------- TREINO ---------- */
+  /* "4 x 10", "4x10", "4 por 10" -> 40 repeticoes. Sem os dois numeros nao da
+     pra calcular volume, e o exercicio fica de fora da conta em vez de entrar
+     com um palpite. */
+  function repsDe(txt){
+    var m = String(txt || "").match(/[0-9]+([.,][0-9]+)?/g);
+    if(!m || m.length < 2) return 0;
+    return num(m[0]) * num(m[1]);
+  }
+  function num(t){ return parseFloat(String(t).split(",").join(".").replace(/[^0-9.]/g, "")) || 0; }
+  function volumeDe(it){
+    /* com series registradas, o volume e o que FOI FEITO: so as marcadas.
+       Sem elas, cai no plano do item (series x reps x carga). */
+    if(it.subs && it.subs.length){
+      var temSerie = false, v = 0;
+      for(var i = 0; i < it.subs.length; i++){
+        var s = it.subs[i];
+        if(s.reps === undefined && s.carga === undefined) continue;
+        temSerie = true;
+        if(s.ok) v += num(s.reps) * num(s.carga);
+      }
+      if(temSerie) return v;
+    }
+    var r = repsDe(it.serie), c = num(it.carga);
+    return (r && c) ? r * c : 0;
+  }
+  /* a maior carga ja registrada neste exercicio, olhando o historico */
+  function recordeDe(it){
+    var maior = 0;
+    (it.hist || []).forEach(function(h){ var v = num(h); if(v > maior) maior = v; });
+    return maior;
+  }
+  function kg(v){
+    return v.toLocaleString("pt-BR", {maximumFractionDigits:0}) + " kg";
+  }
+
+  /* ---------- ROTINA ---------- */
+  /* "6 meses", "toda semana", "15 dias" -> quantos dias sao. Devolve 0 quando
+     nao da pra entender: sem intervalo nao ha vencimento, e a rotina vira um
+     item comum em vez de mentir uma data. */
+  function diasDoIntervalo(txt){
+    if(!txt) return 0;
+    var t = String(txt).toLowerCase();
+    var m = t.match(/[0-9]+/);
+    var n = m ? parseInt(m[0], 10) : 1;      /* "toda semana" = 1 semana */
+    if(t.indexOf("ano") >= 0)    return n * 365;
+    if(t.indexOf("mes") >= 0 || t.indexOf("mês") >= 0) return n * 30;
+    if(t.indexOf("seman") >= 0)  return n * 7;
+    if(t.indexOf("dia") >= 0)    return n;
+    return m ? n : 0;
+  }
+  function soData(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  /* quantos dias faltam pro proximo vencimento. Negativo = venceu. */
+  function venceEm(it){
+    var dias = diasDoIntervalo(it.cada);
+    if(!dias || !it.ultima) return null;
+    var p = String(it.ultima).split("-");
+    if(p.length !== 3) return null;
+    var base = new Date(+p[0], +p[1] - 1, +p[2]);
+    var alvo = new Date(base.getTime() + dias * 86400000);
+    return Math.round((soData(alvo) - soData(new Date())) / 86400000);
+  }
+  function hojeISO(){
+    var d = new Date(), z = function(n){ return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate());
+  }
+  /* marcar feito numa rotina nao apaga: registra hoje e reagenda. O intervalo
+     conta a partir de HOJE — se voce lavou 3 dias atrasado, a proxima e daqui
+     a 15 dias, nao daqui a 12. */
+  function cumpreRotina(it){
+    it.ultima = hojeISO();
+    it.feito = false;
+    /* a rotina volta do zero, entao os passos voltam tambem */
+    (it.subs || []).forEach(function(s){ s.ok = false; });
+    delete it.fdt;
+    flashFeito();
+  }
+
+  /* A linha de producao, na ordem do trabalho. E a ordem que da sentido ao
+     quadradinho: um toque leva a peca uma casa adiante. */
+  var ETAPAS = ["criar","roteirizar","gravar","editar","publicar"];
+  function etapaDe(it){
+    var i = ETAPAS.indexOf(String(it.etapa || "").toLowerCase());
+    return i < 0 ? 0 : i;
+  }
+  /* avanca uma casa; na ultima, a peca esta publicada e conta como feita */
+  function avancaEtapa(it){
+    var i = etapaDe(it);
+    if(it.feito){                 /* voltar do fim reabre a peca na ultima etapa */
+      it.feito = false; delete it.fdt; it.etapa = ETAPAS[ETAPAS.length - 1];
+      return;
+    }
+    /* trava em aberto segura a peca: e pra isso que ela foi escrita */
+    if(it.subs && it.subs.length){
+      var abertas = it.subs.filter(function(s){ return !s.ok; });
+      if(abertas.length){
+        fInfo("Falta " + abertas.length + (abertas.length === 1 ? " trava" : " travas") +
+              " nesta peça: " + abertas.map(function(s){ return s.t; }).join(", ") + ".",
+              "A peça não anda ainda");
+        return;
+      }
+    }
+    if(i >= ETAPAS.length - 1){ it.feito = true; it.fdt = Date.now(); flashFeito(); return; }
+    it.etapa = ETAPAS[i + 1];
+  }
+
+  function menuItem(it, tudo){
+    var opts = [];
+    if(tudo){
+      /* a saida: a lista inteira, como era antes das categorias */
+      opts = [
+        {id:"1",ic:"tag",     nome:"Quantidade",  sub:"ex: 3"},
+        {id:"2",ic:"money",   nome:"Preço"},
+        {id:"3",ic:"cal",     nome:"Prazo"},
+        {id:"4",ic:"pen",     nome:"Nota"},
+        {id:"5",ic:"list",    nome:"Subitem"},
+        {id:"6",ic:"dumbbell",nome:"Séries × reps × carga", sub:"ex: 4×10 · 60kg"},
+        {id:"7",ic:"clock",   nome:"Cronômetro de descanso", sub:"em segundos"},
+        {id:"8",ic:"cal",     nome:"Repetir",                sub:"volta desmarcado sozinho"}
+      ];
+    } else {
+      /* o que e DESTA categoria */
+      var meus = T().campos;
+      for(var i=0;i<meus.length;i++){
+        var c = CAMPOS[meus[i]];
+        if(!c) continue;
+        opts.push({id:"c:"+meus[i], ic:c.ic, nome:c.rot, sub:c.dica||""});
+      }
+      /* o que e de TODOS */
+      opts.push({id:"3",ic:"cal", nome:"Prazo"});
+      opts.push({id:"4",ic:"pen", nome:"Nota"});
+      /* COMPRAS nao tem subitem: dentro de "Arroz" ele nao descreve nada que a
+         lista nao descreva, e nao entra na conta do carrinho — o que engana.
+         Segue em "Outro campo...": some da vista, nao do app. */
+      var tpM = tipoDe(L());
+      if(tpM === "treino")        opts.push({id:"serie", ic:"dumbbell", nome:"Série", sub:"repetições e carga"});
+      else if(tpM === "receitas") opts.push({id:"passo", ic:"list", nome:"Passo do preparo"});
+      else if(tpM !== "compras")  opts.push({id:"5",ic:"list",nome:"Subitem"});
+      opts.push({id:"8",ic:"cal", nome:"Repetir", sub:"volta desmarcado sozinho"});
+      if(tipoDe(L())==="treino") opts.push({id:"7",ic:"clock",nome:"Cronômetro de descanso", sub:"em segundos"});
+      /* a saida. Sem ela, esconder opcao vira PERDER opcao: quem anota
+         "Arroz — 2un" numa lista de Tarefas ficaria sem como por a quantidade. */
+      opts.push({id:"mais",ic:"plus",nome:"Outro campo…", sub:"tudo o que o app tem"});
+    }
+    fMenu("Adicionar ao item", opts, function(op){
+      if(op.indexOf("c:")===0){ editaCampo(it, op.slice(2)); return; }
+      if(op==="mais"){ menuItem(it, true); return; }
+      if(op==="serie"){
+        /* a serie nova herda o plano do item: quase sempre e o que voce quer,
+           e corrigir um numero e mais rapido que digitar dois */
+        var pl = String(it.serie || "").match(/[0-9]+/g);
+        it.subs = it.subs || [];
+        it.subs.push({ t:"", ok:false,
+                       reps: (pl && pl.length > 1) ? pl[1] : "",
+                       carga: it.carga || "" });
+        grava(); pinta(); return;
+      }
+      if(op==="passo"){
+        fAsk("Passo do preparo","",function(v){
+          if(!v.trim()) return;
+          it.subs = it.subs || []; it.subs.push({t:v.trim(), ok:false});
+          grava(); pinta();
+        }, "text", "ex: doure a cebola");
+        return;
+      }
+      if(op==="1") fAsk("Quantidade",it.qtd||"",function(v){ it.qtd=v.trim(); grava(); pinta(); },"text","ex: 3");
+      else if(op==="2") fAsk("Preço",it.preco||"",function(v){ it.preco=v.replace(",",".").trim(); grava(); pinta(); },"text","só número");
+      else if(op==="3") fAsk("Prazo",it.prazo||"",function(v){ it.prazo=v.trim(); grava(); pinta(); },"date");
+      else if(op==="4"){
+        var nova = (it.nota===undefined||it.nota==="");
+        if(nova) it.nota="";
+        grava(); pinta();
+        /* sem isto, escolher "Nota" nao fazia nada visivel: a nota nascia
+           vazia no meio da lista e voce tinha que achar e tocar nela */
+        setTimeout(function(){
+          var lis=document.querySelectorAll("#grupos li");
+          for(var q=0;q<lis.length;q++){
+            if(lis[q]._item!==it) continue;
+            var nt=lis[q].querySelector(".nota");
+            if(nt){ try{ nt.focus(); }catch(e){} }
+            break;
+          }
+        }, 120);
+      }
+      else if(op==="5") fAsk("Novo subitem","",function(v){ if(v.trim()){ it.subs=it.subs||[]; it.subs.push({t:v.trim(),ok:false}); } grava(); pinta(); });
+      else if(op==="6") fAsk("Séries × reps × carga",it.carga||"",function(v){
+        if(it.carga&&v.trim()!==it.carga){ it.hist=it.hist||[]; it.hist.push(it.carga); }
+        it.carga=v.trim(); grava(); pinta(); },"text","ex: 4×10 · 60kg");
+      else if(op==="7") fAsk("Descanso em segundos",it.crono||"60",function(v){ it.crono=+v||60; grava(); pinta(); },"number");
+      else if(op==="8") fMenu("Com que frequência volta?",[
+        {id:"dia",   ic:"cal", nome:"Todo dia"},
+        {id:"semana",ic:"cal", nome:"Toda semana"},
+        {id:"mes",   ic:"cal", nome:"Todo mês"},
+        {id:"nao",   ic:"x",   nome:"Não repetir", sub:"tira a repetição"}
+      ],function(r){
+        it.rep = (r==="nao") ? null : r;
+        if(!it.rep) delete it.fdt;
+        grava(); pinta();
+      });
+    });
+  }
+
+
+  // ---------- arrastar
+  var arr=null;
+  function comecaArrasto(ev,li){
+    ev.preventDefault();
+    arr={li:li, ul:li.parentNode, y0:ev.clientY, mexeu:false, alvo:ev.currentTarget, pid:ev.pointerId};
+    try{ ev.currentTarget.setPointerCapture(ev.pointerId); }catch(e){}
+    ev.currentTarget.addEventListener("pointermove",moveArrasto);
+    ev.currentTarget.addEventListener("pointerup",soltaArrasto);
+    ev.currentTarget.addEventListener("pointercancel",soltaArrasto);
+  }
+  function moveArrasto(ev){
+    if(!arr) return;
+    var y=ev.clientY;
+    if(!arr.mexeu){ if(Math.abs(y-arr.y0)<6) return; arr.mexeu=true; arr.li.classList.add("arrasta"); }
+    arr.li.style.transform="";
+    var r=arr.li.getBoundingClientRect();
+    arr.li.style.transform="translateY("+(y-(r.top+r.height/2))+"px)";
+    var depois=null, filhos=arr.ul.children;
+    for(var i=0;i<filhos.length;i++){
+      var n=filhos[i]; if(n===arr.li) continue;
+      var nr=n.getBoundingClientRect();
+      if(y>nr.top+nr.height/2) depois=n;
+    }
+    if(depois){ if(depois.nextSibling!==arr.li) arr.ul.insertBefore(arr.li,depois.nextSibling); }
+    else { if(arr.ul.firstChild!==arr.li) arr.ul.insertBefore(arr.li,arr.ul.firstChild); }
+  }
+  function soltaArrasto(ev){
+    if(!arr) return;
+    var alvo=arr.alvo, mexeu=arr.mexeu, li=arr.li;
+    alvo.removeEventListener("pointermove",moveArrasto);
+    alvo.removeEventListener("pointerup",soltaArrasto);
+    alvo.removeEventListener("pointercancel",soltaArrasto);
+    try{ alvo.releasePointerCapture(arr.pid); }catch(e){}
+    li.style.transform=""; li.classList.remove("arrasta"); arr=null;
+    if(mexeu){ salvaOrdem(); }
+    else{
+      var l=L(), it=li._item;
+      if(!l.cats.length){ abreCats(); return; }
+      var seq=[""].concat(l.cats.map(function(c){return c.id}));
+      var i=seq.indexOf(it.cat||""); it.cat=seq[(i+1)%seq.length]; grava(); pinta();
+    }
+  }
+  function salvaOrdem(){
+    var l=L(), visiveis=[];
+    var uls=document.getElementById("grupos").getElementsByTagName("ul");
+    for(var u=0;u<uls.length;u++){
+      for(var i=0;i<uls[u].children.length;i++){ var it=uls[u].children[i]._item; if(it) visiveis.push(it.id); }
+    }
+    var set={}; visiveis.forEach(function(id){ set[id]=1; });
+    var k=0;
+    l.itens=l.itens.map(function(o){
+      if(set[o.id]){ var id=visiveis[k++]; return l.itens.filter(function(z){return z.id===id})[0]; }
+      return o;
+    });
+    grava(); pinta();
+  }
+
+  // ---------- categorias
+  var menuCats=document.getElementById("menuCats");
+  function abreCats(){ pintaCats(); menuCats.classList.add("on"); }
+  document.getElementById("btFecharCats").addEventListener("click",function(){ menuCats.classList.remove("on"); pinta(); });
+  menuCats.addEventListener("click",function(e){ if(e.target===menuCats){ menuCats.classList.remove("on"); pinta(); } });
+  function pintaCats(){
+    var l=L(), box=document.getElementById("listaCats"); box.innerHTML="";
+    document.getElementById("semCats").style.display=l.cats.length?"none":"block";
+    l.cats.forEach(function(c){
+      var row=document.createElement("div"); row.className="catrow";
+      var dot=document.createElement("div"); dot.className="dot"; dot.style.background=c.cor;
+      var pal=null;
+      dot.addEventListener("click",function(){
+        if(pal){ pal.remove(); pal=null; return; }
+        pal=document.createElement("div"); pal.className="paleta";
+        PALETA.forEach(function(cor){
+          var s=document.createElement("span"); s.style.background=cor;
+          s.addEventListener("click",function(){ c.cor=cor; grava(); pintaCats(); });
+          pal.appendChild(s);
+        });
+        row.after(pal);
+      });
+      var nm=document.createElement("div"); nm.className="nm";
+      editavel(nm,c.nome,function(t){ if(t){ c.nome=t; grava(); } else pintaCats(); });
+      var x=document.createElement("button"); x.className="x"; x.textContent="✕";
+      x.addEventListener("click",function(){
+        var n=l.itens.filter(function(o){return o.cat===c.id}).length;
+        if(!confirm("Apagar \""+c.nome+"\"?"+(n?" Os "+n+" itens ficam sem categoria.":""))) return;
+        l.itens.forEach(function(o){ if(o.cat===c.id) o.cat=""; });
+        l.cats=l.cats.filter(function(o){ return o.id!==c.id; });
+        if(filtro===c.id) filtro="_sem";   /* os itens dela viram soltos */
+        grava(); pintaCats();
+      });
+      row.appendChild(dot); row.appendChild(nm); row.appendChild(x); box.appendChild(row);
+    });
+  }
+  document.getElementById("btNovaCat").addEventListener("click",function(){
+    var l=L();
+    fAsk("Nova categoria","",function(n){ n=n.trim(); if(!n) return;
+      l.cats.push({id:uid(),nome:n,cor:PALETA[l.cats.length%PALETA.length]}); grava(); pintaCats();
+    },"text","ex: Mercado");
+  });
+
+  // ---------- adicionar
+  function addItem(texto,qtd){
+    /* o item novo nasce na categoria que esta na tela; em "Tudo", sem categoria */
+    var l=L(), c="";
+    if(filtro!=="tudo" && filtro!=="_sem" && cat(filtro)) c=filtro;
+    l.itens.push({id:uid(),texto:texto,feito:false,cat:c,qtd:qtd||"",subs:[]});
+    var k=texto.toLowerCase(); D.freq[k]=(D.freq[k]||0)+1;
+    grava(); pinta();
+  }
+  document.getElementById("form").addEventListener("submit",function(e){
+    e.preventDefault();
+    var campo=document.getElementById("campo"), cq=document.getElementById("campoQt");
+    var t=campo.value.trim(); if(!t) return;
+    addItem(t,cq.value.trim());
+    campo.value=""; cq.value=""; campo.focus();
+  });
+
+  // ---------- voz
+  var Rec=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, recBt=null;
+  var btVoz=document.getElementById("btVoz"), btVozQt=document.getElementById("btVozQt");
+
+  /* a API quase sempre devolve o algarismo, mas as vezes vem por extenso */
+  var NUM={zero:"0",um:"1",uma:"1",dois:"2",duas:"2",tres:"3","três":"3",quatro:"4",cinco:"5",
+           seis:"6",sete:"7",oito:"8",nove:"9",dez:"10",onze:"11",doze:"12",treze:"13",
+           quatorze:"14",catorze:"14",quinze:"15",dezesseis:"16",dezessete:"17",dezoito:"18",
+           dezenove:"19",vinte:"20","meia":"0,5",meio:"0,5"};
+  function soNumero(t){
+    var limpo=String(t).toLowerCase().trim();
+    if(NUM[limpo]) return NUM[limpo];
+    /* "2 quilos", "1,5 kg", "3 unidades" -> fica so o numero.
+       Sem regex de proposito: barra invertida em texto gerado ja se perdeu
+       uma vez e o erro passa despercebido. */
+    var out="", achou=false;
+    for(var i=0;i<limpo.length;i++){
+      var c=limpo.charAt(i);
+      if(c>="0" && c<="9"){ out+=c; achou=true; }
+      else if((c==="," || c===".") && achou && out.indexOf(",")<0){ out+=","; }
+      else if(achou){ break; }
+    }
+    if(out.charAt(out.length-1)===",") out=out.slice(0,-1);
+    if(out) return out;
+    /* nada de algarismo: tenta a primeira palavra por extenso */
+    var p=limpo.split(" ")[0];
+    return NUM[p] || "";
+  }
+
+  function ditar(bt, alvo, numerico){
+    bt.addEventListener("click",function(){
+      if(rec){ rec.stop(); return; }        /* tocar de novo (ou no outro) encerra */
+      rec=new Rec(); rec.lang="pt-BR"; rec.interimResults=false; rec.continuous=false;
+      recBt=bt; bt.classList.add("rec");
+      rec.onresult=function(ev){
+        var t=String(ev.results[0][0].transcript||"").trim();
+        if(!t) return;
+        var campoAlvo=document.getElementById(alvo);
+        var v=numerico ? soNumero(t) : t;
+        if(v) campoAlvo.value=v;
+      };
+      rec.onend=function(){ if(recBt) recBt.classList.remove("rec"); recBt=null; rec=null; };
+      rec.onerror=function(){ if(recBt) recBt.classList.remove("rec"); recBt=null; rec=null; };
+      rec.start();
+    });
+  }
+
+  if(!Rec){ btVoz.style.display="none"; btVozQt.style.display="none"; }
+  else{
+    ditar(btVoz,   "campo",   false);
+    ditar(btVozQt, "campoQt", true);
+  }
+
+  // ---------- acoes
+  function noFiltro(o){ return filtro==="tudo" || (filtro==="_sem"?!o.cat:o.cat===filtro); }
+
+  /* Sem o "Tudo", o filtro precisa apontar sempre pra um chip que existe — e,
+     de preferencia, pra um que tenha itens: abrir numa categoria vazia parece
+     lista sumida. */
+  /* onde voce estava, por lista e por aparelho. Fica fora do que o Feito
+     sincroniza (so "afazeres-v3" sobe) porque e vista, nao dado. */
+  var KF="feito-filtro";
+  function lidosFiltros(){ try{ return JSON.parse(localStorage.getItem(KF)||"{}")||{}; }catch(e){ return {}; } }
+  function lembraFiltro(){
+    try{ var m=lidosFiltros(); m[D.atual]=filtro; localStorage.setItem(KF,JSON.stringify(m)); }catch(e){}
+  }
+  function ajustaFiltro(){
+    var l=L(); if(!l) return;
+    var soltos=l.itens.some(function(o){ return !o.cat; });
+    var validos=(l.cats||[]).map(function(c){ return c.id; });
+    if(soltos || !validos.length) validos.push("_sem");
+    if(validos.indexOf(filtro)>=0) return;              /* ja esta num chip valido */
+    /* 1o: a categoria onde ele parou da ultima vez nesta lista */
+    var salvo=lidosFiltros()[D.atual];
+    if(salvo && validos.indexOf(salvo)>=0){ filtro=salvo; return; }
+    var comItens=null;
+    (l.cats||[]).forEach(function(c){
+      if(comItens) return;
+      if(l.itens.some(function(o){ return o.cat===c.id; })) comItens=c.id;
+    });
+    if(!comItens && soltos) comItens="_sem";
+    filtro = comItens || validos[0] || "_sem";
+  }
+
+  /* ---------- REGISTRAR E LIMPAR ---------- */
+  function registrarELimpar(){
+    var alvo=L().itens.filter(noFiltro);
+    if(!alvo.length) return;
+    var marcados=0, tot=0, temPreco=false;
+    alvo.forEach(function(o){
+      if(o.feito) marcados++;
+      if(o.preco){ temPreco=true; tot+=(+o.preco||0)*(+o.qtd||1); }
+    });
+    var nomes=alvo.slice(0,3).map(function(o){ return esc1(o.texto); }).join(", ");
+    if(alvo.length>3) nomes += " e mais "+(alvo.length-3);
+
+    /* 1 de 2 — a conferencia: o que exatamente vai ser guardado */
+    var corpo='<div class="cnf"><div class="cnfl">Vai pro registro '+ondeVai()+'</div>'+
+      '<div class="cnfn">'+itens(alvo.length)+'</div>'+
+      '<div class="cnfs">'+marcados+' marcado'+(marcados===1?"":"s")+
+        (alvo.length-marcados>0 ? ' · '+(alvo.length-marcados)+' sem marcar' : '')+
+        (temPreco ? ' · <em>R$ '+real(tot)+'</em>' : '')+'</div>'+
+      '<div class="cnfi">'+nomes+'</div></div>';
+    if(!marcados) corpo+='<div class="cnfw">Nada foi marcado — não há rodada pra guardar. A lista só vai ser limpa.</div>';
+
+    fConfirm("Conferir a rodada", corpo, "Continuar", function(){
+      /* 2 de 2 — a consequencia, curta e final */
+      fConfirm("Limpar a lista agora?",
+        marcados
+          ? ("A rodada fica guardada no registro; os "+alvo.length+" itens saem da tela. Você traz de volta pelo <b>Usar de novo</b>.")
+          : ("Os "+alvo.length+" itens saem da tela e <b>não ficam guardados</b>, porque nenhum foi marcado."),
+        marcados ? "Registrar e limpar" : "Limpar mesmo assim",
+        function(){
+          var reg=guardaRodada();
+          var l=L();
+          l.itens=l.itens.filter(function(o){ return !noFiltro(o); });
+          grava(); pinta();
+          toast(reg ? "Rodada guardada no registro." : "Lista limpa.");
+        }, !marcados);
+    }, false);
+  }
+
+  /* ---------- TRANSFERIR: a lista da tela muda de categoria de uma vez ---------- */
+  function itensAVista(){ return L().itens.filter(noFiltro); }
+  function marcaTransferindo(liga){
+    var g=document.getElementById("grupos");
+    if(g) g.classList.toggle("transferindo", !!liga);
+  }
+  /* COPIA, nao move: a lista original fica onde estava, intacta. E a copia vai
+     exatamente como esta — o que estava marcado continua marcado, com as
+     quantidades, precos, cargas, notas e subitens do jeito que estao. */
+  function transfereTudo(destino){
+    var l=L(), alvo=itensAVista(), n=alvo.length;
+    alvo.forEach(function(o){
+      l.itens.push({
+        id:uid(), texto:o.texto, feito:!!o.feito, cat:destino,
+        qtd:o.qtd||"", preco:o.preco||"", carga:o.carga||"",
+        nota:o.nota||"", prazo:o.prazo||"", freq:o.freq||"",
+        hist:(o.hist||[]).slice(),
+        subs:(o.subs||[]).map(function(sb){ return {t:sb.t, ok:!!sb.ok}; })
+      });
+    });
+    grava(); marcaTransferindo(false);
+    /* vou pra categoria de destino: sem isso a copia acontece fora da tela e
+       parece que nada aconteceu */
+    filtro = destino || "_sem";
+    pinta();
+    var c=destino?cat(destino):null;
+    toast(itens(n)+" copiados para "+(c?c.nome:"Sem categoria")+".");
+  }
+  function abreTransferir(){
+    var alvo=itensAVista();
+    if(!alvo.length) return;
+    marcaTransferindo(true);
+    var l=L(), atual=(filtro!=="tudo"&&filtro!=="_sem")?filtro:(filtro==="_sem"?"":null);
+    var h='<div class="fsh-t">Transferir '+itens(alvo.length)+' para</div><div class="destinos">';
+    (l.cats||[]).forEach(function(c){
+      h+='<button type="button" class="dest'+(atual===c.id?" aqui":"")+'" data-dest="'+c.id+'">' +
+         '<i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</button>';
+    });
+    h+='<button type="button" class="dest'+(atual===""?" aqui":"")+'" data-dest="">' +
+       '<i style="background:#5b646a"></i>Sem categoria</button>';
+    h+='<button type="button" class="dest nova" data-nova="1">+ Nova categoria</button>';
+    h+='</div><div class="fsh-a"><button type="button" class="fsk-g" id="trC">Cancelar</button></div>';
+    var sh=fOverlay(h);
+    var ovT=document.getElementById("fSheetOv"); if(ovT) ovT.classList.add("limpo");
+    sh.querySelector("#trC").addEventListener("click",function(){ marcaTransferindo(false); fClose(); });
+    /* fechar por fora (clique no fundo ou Esc) tambem tem que desmarcar */
+    var ov=document.getElementById("fSheetOv");
+    if(ov) ov.addEventListener("click",function(e){ if(e.target===ov) marcaTransferindo(false); });
+    Array.prototype.forEach.call(sh.querySelectorAll("[data-dest]"),function(b){
+      b.addEventListener("click",function(){
+        var d=this.getAttribute("data-dest"); fClose();
+        setTimeout(function(){ transfereTudo(d); },40);
+      });
+    });
+    var nv=sh.querySelector("[data-nova]");
+    if(nv) nv.addEventListener("click",function(){
+      fClose();
+      setTimeout(function(){
+        fAsk("Nova categoria","",function(n){
+          n=String(n||"").trim();
+          if(!n){ marcaTransferindo(false); return; }
+          var l2=L(), novo={id:uid(),nome:n,cor:PALETA[l2.cats.length%PALETA.length]};
+          l2.cats.push(novo); grava();
+          transfereTudo(novo.id);
+        },"text","ex: Mercado");
+      },40);
+    });
+  }
+
+  /* ===================== REGISTRO DAS LISTAS =====================
+     Uma rodada fechada vira um registro daquela categoria. Guardo a lista
+     INTEIRA, nao so o que foi marcado: saber que o azeite nao tinha na
+     prateleira vale tanto quanto saber o que entrou no carrinho. */
+  var MESES=["janeiro","fevereiro","março","abril","maio","junho",
+             "julho","agosto","setembro","outubro","novembro","dezembro"];
+  function doisD(n){ return (n<10?"0":"")+n; }
+  function hojeISO(){ var d=new Date(); return d.getFullYear()+"-"+doisD(d.getMonth()+1)+"-"+doisD(d.getDate()); }
+  function dataLonga(iso){ var p=String(iso||"").split("-");
+    return p.length===3 ? (+p[2])+" de "+MESES[(+p[1])-1] : (iso||""); }
+  function dataCurta(iso){ var p=String(iso||"").split("-");
+    return p.length===3 ? p[2]+"/"+p[1] : (iso||""); }
+  function real(v){ return (+v||0).toFixed(2).replace(".",","); }
+  function itens(n){ return n+(n===1?" item":" itens"); }
+
+  /* "de esta lista" nao existe: de + esta = desta */
+  /* "de esta lista" nao existe; a juncao certa e "desta lista" */
+  function ondeVai(){
+    return filtro==="tudo" ? "<b>desta lista</b>" : ("de <b>"+esc1(nomeFiltro())+"</b>");
+  }
+  function tituloRegistro(){
+    return filtro==="tudo" ? "Registro desta lista" : ("Registro de "+esc1(nomeFiltro()));
+  }
+  function nomeFiltro(){
+    if(filtro==="tudo") return "esta lista";
+    if(filtro==="_sem") return "Sem categoria";
+    var c=cat(filtro); return c?c.nome:"esta lista";
+  }
+
+  /* guarda a rodada ANTES da acao que a apaga. Rodada sem nada marcado nao e
+     rodada — e faxina; nesse caso nao guardo nada. */
+  function guardaRodada(){
+    var l=L(), alvo=l.itens.filter(noFiltro);
+    var temFeito=false;
+    alvo.forEach(function(o){ if(o.feito) temFeito=true; });
+    if(!temFeito) return null;
+    var c=(filtro!=="tudo"&&filtro!=="_sem") ? cat(filtro) : null;
+    var reg={ id:uid(), cat:filtro, nome:nomeFiltro(), cor:(c?c.cor:"#5b646a"), dt:hojeISO(),
+      itens: alvo.map(function(o){ return {
+        texto:o.texto||"", feito:!!o.feito, qtd:o.qtd||"", preco:o.preco||"",
+        carga:o.carga||"", nota:o.nota||"", prazo:o.prazo||"",
+        subs:(o.subs||[]).map(function(x){ return {t:x.t, ok:!!x.ok}; }) }; }) };
+    l.regs=l.regs||[]; l.regs.unshift(reg); grava();
+    return reg;
+  }
+
+  function regsDoFiltro(){
+    var l=L();
+    return (l.regs||[]).filter(function(r){
+      if(filtro==="tudo") return true;
+      /* rodadas guardadas quando existia o "Tudo" nao podem sumir: ficam com
+         as soltas, que e onde elas cabem */
+      if(filtro==="_sem") return r.cat==="_sem" || r.cat==="" || r.cat==="tudo";
+      return r.cat===filtro;
+    });
+  }
+  function totalReg(r){
+    var t=0, tem=false;
+    r.itens.forEach(function(x){ if(x.preco){ tem=true; t+=(+x.preco||0)*(+x.qtd||1); } });
+    return tem ? t : null;
+  }
+  function resumoReg(r){
+    var n=r.itens.length, ok=0;
+    r.itens.forEach(function(x){ if(x.feito) ok++; });
+    var s = ok+" marcado"+(ok===1?"":"s");
+    if(n-ok>0) s += " · "+(n-ok)+((n-ok)===1?" faltou":" faltaram");
+    var t=totalReg(r);
+    if(t!==null) s += " · <em>R$ "+real(t)+"</em>";
+    return s;
+  }
+
+  /* ---- 1-B: a porta, com a ultima vez ja respondida ---- */
+  function pintaPorta(){
+    var el=document.getElementById("porta"); if(!el) return;
+    var rs=regsDoFiltro();
+    if(!rs.length){
+      /* sem lista embaixo nao ha o que registrar; com lista, o cartao explica
+         o que ele e — foi por esconde-lo que ninguem achou o recurso */
+      if(!itensAVista().length){ el.innerHTML=""; return; }
+      el.innerHTML='<div class="porta vazia"><div class="cab">'+
+        '<span class="t">'+tituloRegistro()+'</span></div>'+
+        '<div class="res2">Nenhuma rodada guardada ainda.</div>'+
+        '<div class="dica2">Toque em <b>Registrar e limpar</b>, aqui em cima, quando terminar: '+
+        'a rodada fica guardada aqui com o que foi marcado, os preços e a data — e volta pelo <b>Usar de novo</b>.</div></div>';
+      return;
+    }
+    var u=rs[0], n=u.itens.length, t=totalReg(u), resto=rs.length-1;
+    el.innerHTML='<div class="porta"><div class="cab">'+
+      '<span class="t">'+(filtro==="tudo" ? "Última vez nesta lista"
+        : "Última vez em "+esc1(nomeFiltro()))+'</span>'+
+      '<span class="d">'+dataCurta(u.dt)+'</span></div>'+
+      '<div class="res">'+itens(n)+(t!==null?' · <em>R$ '+real(t)+'</em>':'')+'</div>'+
+      '<div class="ver">'+(resto ? (resto===1 ? "Ver a anterior ›" : "Ver as "+resto+" anteriores ›")
+                                 : "Ver o registro ›")+'</div></div>';
+    var p=el.querySelector(".porta");
+    if(p && !p.classList.contains("vazia")) p.addEventListener("click",abreRegistro);
+  }
+
+  /* ---- 3-A: os itens como eram ---- */
+  function itemReg(x,ix,escolha){
+    var fora = escolha && !escolha.marc[ix];
+    var cls = "ri"+(escolha ? (fora?" fora ok":" ok") : (x.feito?" ok":" nao"));
+    var h='<div class="'+cls+'" data-ix="'+ix+'"><span class="rb"></span><div style="flex:1;min-width:0">'+
+      '<div class="rn">'+esc1(x.texto)+'</div>';
+    var tg="";
+    if(x.qtd)   tg+='<span class="tag q">'+esc1(x.qtd)+'×</span>';
+    if(x.preco) tg+='<span class="tag p">R$ '+real(x.preco)+'</span>';
+    if(x.carga) tg+='<span class="tag q">'+esc1(x.carga)+'</span>';
+    if(x.prazo) tg+='<span class="tag d">'+esc1(x.prazo)+'</span>';
+    if(!escolha && !x.feito) tg+='<span class="tag">faltou</span>';
+    if(tg) h+='<div class="rex">'+tg+'</div>';
+    if(x.subs && x.subs.length){
+      h+='<div class="rsub">'+x.subs.map(function(sb){
+        return (sb.ok?"✓ ":"○ ")+esc1(sb.t); }).join(" · ")+'</div>';
+    }
+    if(x.nota) h+='<div class="rnota">'+esc1(x.nota)+'</div>';
+    return h+'</div></div>';
+  }
+
+  var _aberto=null, _escolha=null, _movendo=null;
+
+  function cartaoReg(r){
+    var aberto=(_aberto===r.id), escolha=(_escolha&&_escolha.id===r.id)?_escolha:null;
+    var h='<div class="reg'+(escolha?" escolhendo":"")+'" data-reg="'+r.id+'">'+
+      '<div class="rh" data-abre="'+r.id+'"><span class="rd">'+dataLonga(r.dt)+'</span>'+
+      (filtro==="tudo" && r.cat!=="tudo" ? '<span class="rc" style="color:'+r.cor+'">'+esc1(r.nome)+'</span>' : '')+
+      '<span class="rq">'+itens(r.itens.length)+'</span></div>'+
+      '<div class="rs">'+resumoReg(r)+'</div>';
+    if(aberto || escolha){
+      h+='<div class="corpo">';
+      if(escolha) h+='<div class="dica">Toque pra tirar o que você não quer trazer.</div>';
+      r.itens.forEach(function(x,ix){ h+=itemReg(x,ix,escolha); });
+      h+='</div>';
+    }
+    if(_movendo===r.id){
+      var atual=(r.cat==="tudo"||r.cat==="_sem")?r.cat:(cat(r.cat)?r.cat:"_sem");
+      h+='<div class="dica" style="margin-top:10px">Para qual categoria vai esta rodada?</div><div class="destinos">';
+      (L().cats||[]).forEach(function(c){
+        h+='<button type="button" class="dest'+(atual===c.id?" aqui":"")+'" data-dest="'+c.id+'" data-rmov="'+r.id+'">' +
+           '<i style="background:'+c.cor+'"></i>'+esc1(c.nome)+'</button>';
+      });
+      h+='<button type="button" class="dest'+(atual==="_sem"?" aqui":"")+'" data-dest="_sem" data-rmov="'+r.id+'">' +
+         '<i style="background:#5b646a"></i>Sem categoria</button>';
+      h+='<button type="button" class="dest" data-cancela="1">Cancelar</button>';
+      return h+'</div></div>';
+    }
+    h+='<div class="rr">';
+    if(escolha){
+      var q=0; escolha.marc.forEach(function(m){ if(m) q++; });
+      h+='<button type="button" class="mini forte" data-traz="'+r.id+'"'+(q?"":" disabled")+'>Trazer '+itens(q)+'</button>'+
+         '<button type="button" class="mini n" data-cancela="1">Cancelar</button>';
+    } else {
+      h+='<button type="button" class="mini" data-usa="'+r.id+'">Usar de novo</button>'+
+         '<button type="button" class="mini n" data-escolhe="'+r.id+'">Escolher…</button>';
+      if(aberto){
+        h+='<button type="button" class="mini n" data-move="'+r.id+'">Mover para…</button>';
+        h+='<button type="button" class="mini pg" data-apaga="'+r.id+'">Apagar registro</button>';
+      }
+    }
+    return h+'</div></div>';
+  }
+
+  function achaReg(id){ var l=L(), r=null; (l.regs||[]).forEach(function(x){ if(x.id===id) r=x; }); return r; }
+
+  function abreRegistro(){
+    _aberto=null; _escolha=null; _movendo=null;
+    desenhaRegistro();
+  }
+  function desenhaRegistro(){
+    var rs=regsDoFiltro();
+    var h='<div class="fsh-t">'+tituloRegistro()+'</div><div id="regLista">';
+    if(!rs.length) h+='<div class="regvazio">Nenhuma rodada guardada aqui ainda.</div>';
+    rs.forEach(function(r){ h+=cartaoReg(r); });
+    h+='</div>';
+    var sh=fOverlay(h);
+    ligaRegistro(sh);
+  }
+  /* redesenha so a lista, sem fechar e reabrir a folha (perderia a rolagem) */
+  function repintaRegistro(){
+    var el=document.getElementById("regLista"); if(!el){ desenhaRegistro(); return; }
+    var rs=regsDoFiltro(), h="";
+    if(!rs.length) h='<div class="regvazio">Nenhuma rodada guardada aqui ainda.</div>';
+    rs.forEach(function(r){ h+=cartaoReg(r); });
+    el.innerHTML=h;
+    ligaRegistro(el.parentNode);
+  }
+  function ligaRegistro(raiz){
+    var q=function(sel){ return raiz.querySelectorAll(sel); };
+    Array.prototype.forEach.call(q("[data-abre]"),function(b){ b.addEventListener("click",function(){
+      var id=this.getAttribute("data-abre");
+      _escolha=null; _aberto=(_aberto===id?null:id); repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-usa]"),function(b){ b.addEventListener("click",function(){
+      reutiliza(achaReg(this.getAttribute("data-usa")),null); }); });
+    Array.prototype.forEach.call(q("[data-escolhe]"),function(b){ b.addEventListener("click",function(){
+      var r=achaReg(this.getAttribute("data-escolhe")); if(!r) return;
+      _aberto=null;
+      _escolha={id:r.id, marc:r.itens.map(function(){ return true; })};
+      repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-cancela]"),function(b){ b.addEventListener("click",function(){
+      _escolha=null; _movendo=null; repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-move]"),function(b){ b.addEventListener("click",function(){
+      _escolha=null; _movendo=this.getAttribute("data-move"); repintaRegistro(); }); });
+    Array.prototype.forEach.call(q("[data-dest]"),function(b){ b.addEventListener("click",function(){
+      var r=achaReg(this.getAttribute("data-rmov")); if(!r) return;
+      var d=this.getAttribute("data-dest"), c=(d==="_sem")?null:cat(d);
+      r.cat = c ? c.id : "_sem";
+      r.nome = c ? c.nome : "Sem categoria";
+      r.cor = c ? c.cor : "#5b646a";
+      grava(); _movendo=null; _aberto=null;
+      pintaPorta();
+      /* se a rodada saiu da categoria que esta na tela, ela some daqui — e a
+         folha tem que dizer isso, em vez de simplesmente esvaziar */
+      var aindaAqui = (filtro==="tudo" || r.cat===filtro);
+      desenhaRegistro();
+      toast(aindaAqui ? ("Rodada movida para "+r.nome+".")
+                      : ("Rodada movida para "+r.nome+" — está no registro de lá.")); }); });
+    Array.prototype.forEach.call(q("[data-traz]"),function(b){ b.addEventListener("click",function(){
+      var r=achaReg(this.getAttribute("data-traz")); if(!r||!_escolha) return;
+      var quais=[]; _escolha.marc.forEach(function(m,i){ if(m) quais.push(i); });
+      reutiliza(r,quais); }); });
+    Array.prototype.forEach.call(q("[data-apaga]"),function(b){ b.addEventListener("click",function(){
+      var id=this.getAttribute("data-apaga"), r=achaReg(id); if(!r) return;
+      fConfirm("Apagar este registro?","A rodada de <b>"+esc1(dataLonga(r.dt))+"</b> sai do histórico. Os itens da sua lista não são tocados.","Apagar",function(){
+        var l=L(); l.regs=(l.regs||[]).filter(function(x){ return x.id!==id; }); grava();
+        _aberto=null; pintaPorta(); desenhaRegistro();
+      },true); }); });
+    /* modo escolha: tocar no item tira ou devolve */
+    if(_escolha) Array.prototype.forEach.call(q(".escolhendo .ri"),function(li){
+      li.addEventListener("click",function(){
+        var ix=+this.getAttribute("data-ix");
+        _escolha.marc[ix]=!_escolha.marc[ix]; repintaRegistro(); }); });
+  }
+
+  /* ---- 4-C: reutilizar; traz os dados junto, tudo desmarcado ---- */
+  function reutiliza(r,quais){
+    if(!r) return;
+    var l=L(), destino=(r.cat!=="tudo"&&r.cat!=="_sem"&&cat(r.cat)) ? r.cat : "";
+    var n=0;
+    r.itens.forEach(function(x,ix){
+      if(quais && quais.indexOf(ix)<0) return;
+      l.itens.push({ id:uid(), texto:x.texto, feito:false, cat:destino,
+        qtd:x.qtd||"", preco:x.preco||"", carga:x.carga||"", nota:x.nota||"", prazo:x.prazo||"",
+        subs:(x.subs||[]).map(function(sb){ return {t:sb.t, ok:false}; }) });
+      n++;
+    });
+    if(!n) return;
+    grava(); _escolha=null; _aberto=null; fClose();
+    pinta();
+    toast(itens(n)+" de volta na lista.");
+  }
+
+  /* ---- aviso curto; o app so tinha o flash da tela ---- */
+  function toast(msg){
+    var t=document.getElementById("toast");
+    if(!t){ t=document.createElement("div"); t.id="toast"; document.body.appendChild(t); }
+    t.textContent=msg; t.style.opacity="1";
+    clearTimeout(t._h); t._h=setTimeout(function(){ t.style.opacity="0"; },2600);
+  }
+
+  /* ---- pergunta do app, no lugar da do navegador ---- */
+  function fConfirm(titulo,texto,rotulo,cb,perigo){
+    var sh=fOverlay('<div class="fsh-t">'+titulo+'</div>'+
+      (texto?'<div class="fsh-p">'+texto+'</div>':'')+
+      '<div class="fsh-a"><button type="button" class="fsk-g" id="fcC">Cancelar</button>'+
+      '<button type="button" class="fsk-p'+(perigo?" pg":"")+'" id="fcO">'+rotulo+'</button></div>');
+    sh.querySelector("#fcC").addEventListener("click",fClose);
+    sh.querySelector("#fcO").addEventListener("click",function(){ fClose(); setTimeout(cb,40); });
+  }
+
+  document.getElementById("btTransferir").addEventListener("click",abreTransferir);
+  document.getElementById("btRegistrar").addEventListener("click",registrarELimpar);
+  document.getElementById("btDesmarcar").addEventListener("click",function(){
+    var l=L(), n=l.itens.filter(function(o){ return o.feito && noFiltro(o); }).length;
+    if(!n) return;
+    /* aqui nao pergunto: e a acao mais usada da lista que se repete. Guardo a
+       rodada e aviso — o registro aparece logo abaixo, entao da pra conferir. */
+    var reg=guardaRodada();
+    l.itens.forEach(function(o){ if(noFiltro(o)){ o.feito=false; (o.subs||[]).forEach(function(s){ s.ok=false; }); } });
+    grava(); pinta();
+    if(reg) toast("Rodada guardada no registro.");
+  });
+  document.getElementById("btLimpaFeitas").addEventListener("click",function(){
+    var l=L(), alvo=l.itens.filter(function(o){ return o.feito && noFiltro(o); });
+    if(!alvo.length) return;
+    fecha();
+    fConfirm("Remover "+alvo.length+" concluída"+(alvo.length===1?"":"s")+"?",
+      "Antes de remover, guardo esta rodada no registro "+ondeVai()+" com a data de hoje.",
+      "Remover", function(){
+        var reg=guardaRodada();
+        var l2=L();
+        l2.itens=l2.itens.filter(function(o){ return !(o.feito && noFiltro(o)); }); grava(); pinta();
+        if(reg) toast("Rodada guardada no registro.");
+      });
+  });
+  document.getElementById("btLimpaTudo").addEventListener("click",function(){
+    var l=L(), alvo=l.itens.filter(noFiltro), temFeito=false;
+    alvo.forEach(function(o){ if(o.feito) temFeito=true; });
+    if(!alvo.length) return;
+    fecha();
+    fConfirm("Apagar "+itens(alvo.length)+"?",
+      temFeito
+        ? "Antes de apagar, guardo esta rodada no registro "+ondeVai()+" com a data de hoje."
+        : "Nada foi marcado nesta rodada, então não há o que guardar no registro.",
+      "Apagar", function(){
+        var reg=guardaRodada();
+        var l2=L();
+        l2.itens=l2.itens.filter(function(o){ return !noFiltro(o); }); grava(); pinta();
+        if(reg) toast("Rodada guardada no registro.");
+      }, true);
+  });
+
+  // ---------- menu
+  var menu=document.getElementById("menu");
+  function fecha(){ menu.classList.remove("on"); }
+  document.getElementById("btMais").addEventListener("click",function(){ pintaModelos(); menu.classList.add("on"); });
+  document.getElementById("btFechar").addEventListener("click",fecha);
+  menu.addEventListener("click",function(e){ if(e.target===menu) fecha(); });
+
+  document.getElementById("btRenomear").addEventListener("click",function(){
+    var l=L();
+    fAsk("Renomear lista",l.nome,function(n){ n=n.trim(); if(!n) return;
+      l.nome=n; grava(); pinta(); fecha();
+    });
+  });
+  document.getElementById("btDuplicar").addEventListener("click",function(){
+    var l=L(); var c=JSON.parse(JSON.stringify(l));
+    c.id=uid(); c.nome=l.nome+" (cópia)";
+    c.itens.forEach(function(o){ o.id=uid(); });
+    D.listas.push(c); D.atual=c.id; grava(); pinta(); fecha();
+  });
+  /* RECEITAS: a ponte. Escolhe uma lista de Compras que JA EXISTE e leva os
+     ingredientes ja escalados. Item repetido SOMA a quantidade em vez de
+     duplicar — senao voce chega no mercado com "cebola" duas vezes. */
+  document.getElementById("btMandarMercado").addEventListener("click",function(){
+    var l = L();
+    var destinos = D.listas.filter(function(x){ return tipoDe(x) === "compras"; });
+    if(!destinos.length){
+      fInfo("N\u00e3o h\u00e1 nenhuma lista de Compras ainda. Crie uma e volte aqui.");
+      return;
+    }
+    fMenu("Mandar os ingredientes para", destinos.map(function(x){
+      return { id:x.id, ic:"cart", nome:x.nome, sub:x.itens.length + (x.itens.length === 1 ? " item" : " itens") };
+    }), function(id){
+      var alvo = D.listas.filter(function(x){ return x.id === id; })[0];
+      if(!alvo) return;
+      var f = fatorDe(l), somados = 0, novos = 0;
+      (l.itens || []).forEach(function(o){
+        var q = o.qtd ? escalaQtd(o.qtd, o.un, f) : "";
+        var chave = String(o.texto || "").trim().toLowerCase();
+        var ja = alvo.itens.filter(function(x){ return String(x.texto || "").trim().toLowerCase() === chave; })[0];
+        if(ja && q && ja.un === o.un){
+          ja.qtd = String(num(ja.qtd) + num(q)).split(".").join(",");
+          somados++;
+        } else if(ja){ somados++; }
+        else {
+          alvo.itens.push({ id: uid(), texto: o.texto, feito: false, qtd: q, un: o.un });
+          novos++;
+        }
+      });
+      D.atual = alvo.id; filtro = "";
+      grava(); pinta(); fecha();
+      fInfo(novos + (novos === 1 ? " item novo" : " itens novos") +
+            (somados ? (" \u00b7 " + somados + (somados === 1 ? " j\u00e1 estava e foi somado" : " j\u00e1 estavam e foram somados")) : "") +
+            " em " + alvo.nome + ".");
+    });
+  });
+  /* TREINO: fechar a sessao guarda o volume do dia e desmarca tudo pro
+     proximo. Sem esse marco nao ha com o que comparar na semana seguinte. */
+  document.getElementById("btFecharTreino").addEventListener("click",function(){
+    var l = L(), v = 0;
+    (l.itens || []).forEach(function(o){ if(o.feito) v += volumeDe(o); });
+    if(!v){ fInfo("Nenhum exerc\u00edcio marcado — n\u00e3o h\u00e1 volume a guardar."); return; }
+    l.sessoes = l.sessoes || [];
+    l.sessoes.push({ d: hojeISO(), v: v });
+    (l.itens || []).forEach(function(o){ o.feito = false; delete o.fdt; });
+    grava(); pinta(); fecha();
+  });
+  /* VIAGEM: a proxima viagem nasce da anterior, com o que fica na mala.
+     A anterior NAO e apagada — e o registro do que voce levou pra onde. */
+  document.getElementById("btNovaViagem").addEventListener("click",function(){
+    var l = L();
+    fAsk("Para onde?", "", function(destino){
+      destino = destino.trim();
+      if(!destino) return;
+      var ficam = (l.itens || []).filter(function(o){ return o.sempre; });
+      var nova = { id: uid(), nome: destino, tipo: "viagem", cats: [], itens: [] };
+      ficam.forEach(function(o){
+        var c = JSON.parse(JSON.stringify(o));
+        c.id = uid();
+        c.feito = false;          /* renasce por fazer */
+        delete c.fdt;
+        /* o que vai DENTRO tambem renasce por fazer: senao a necessaire volta
+           com tudo marcado e voce fecha a mala sem ter posto nada */
+        (c.subs || []).forEach(function(s){ s.ok = false; });
+        nova.itens.push(c);
+      });
+      D.listas.push(nova); D.atual = nova.id; filtro = "";
+      grava(); pinta(); fecha();
+    }, "text", "ex: São Paulo");
+  });
+  document.getElementById("btApagarLista").addEventListener("click",function(){
+    if(D.listas.length<2){ fInfo("É a única lista. Renomeie ou use Limpar tudo."); return; }
+    var l=L(); if(!confirm("Apagar a lista \""+l.nome+"\" e os "+l.itens.length+" itens dela?")) return;
+    D.listas=D.listas.filter(function(o){ return o.id!==l.id; });
+    D.atual=D.listas[0].id; filtro=""; grava(); pinta(); fecha();
+  });
+
+  // ---------- modelos
+  document.getElementById("btSalvarModelo").addEventListener("click",function(){
+    var l=L();
+    fAsk("Salvar como modelo",l.nome,function(n){ n=n.trim(); if(!n) return;
+      var m={id:uid(),nome:n,cats:JSON.parse(JSON.stringify(l.cats)),
+             itens:l.itens.map(function(o){
+               return {texto:o.texto,cat:o.cat,qtd:o.qtd||"",preco:o.preco||"",carga:o.carga||"",
+                       crono:o.crono||0,nota:o.nota||"",subs:(o.subs||[]).map(function(s){return {t:s.t,ok:false}})};
+             })};
+      D.modelos.push(m); grava(); pintaModelos();
+    },"text","nome do modelo");
+  });
+  function pintaModelos(){
+    var box=document.getElementById("listaModelos"); box.innerHTML="";
+    document.getElementById("semModelos").style.display=D.modelos.length?"none":"block";
+    D.modelos.forEach(function(m){
+      var row=document.createElement("div"); row.className="catrow";
+      var nm=document.createElement("div"); nm.className="nm"; nm.textContent=m.nome+" ("+m.itens.length+")";
+      var us=document.createElement("button"); us.className="x"; us.textContent="＋"; us.title="criar lista deste modelo";
+      us.style.color="var(--accent)";
+      us.addEventListener("click",function(){
+        var nl={id:uid(),nome:m.nome,cats:JSON.parse(JSON.stringify(m.cats)),
+                itens:m.itens.map(function(o){
+                  return {id:uid(),texto:o.texto,feito:false,cat:o.cat,qtd:o.qtd,preco:o.preco,
+                          carga:o.carga,crono:o.crono,nota:o.nota,
+                          subs:(o.subs||[]).map(function(s){return {t:s.t,ok:false}})};
+                })};
+        D.listas.push(nl); D.atual=nl.id; filtro=""; grava(); pinta(); fecha();
+      });
+      var x=document.createElement("button"); x.className="x"; x.textContent="✕";
+      x.addEventListener("click",function(){
+        if(!confirm("Apagar o modelo \""+m.nome+"\"?")) return;
+        D.modelos=D.modelos.filter(function(o){ return o.id!==m.id; }); grava(); pintaModelos();
+      });
+      row.appendChild(nm); row.appendChild(us); row.appendChild(x); box.appendChild(row);
+    });
+  }
+
+  // ---------- compartilhar / backup
+  function comoTexto(){
+    var l=L(), out=[l.nome.toUpperCase(),""];
+    function bloco(nome,arr){
+      if(!arr.length) return;
+      if(nome) out.push(nome+":");
+      arr.forEach(function(o){
+        out.push((o.feito?"[x] ":"[ ] ")+(o.qtd?o.qtd+"× ":"")+o.texto+(o.carga?" ("+o.carga+")":""));
+      });
+      out.push("");
+    }
+    l.cats.forEach(function(c){ bloco(c.nome,l.itens.filter(function(o){return o.cat===c.id})); });
+    bloco(l.cats.length?"Sem categoria":"",l.itens.filter(function(o){return !o.cat}));
+    return out.join("\n").trim();
+  }
+  document.getElementById("btCompartilhar").addEventListener("click",function(){
+    var t=comoTexto();
+    if(navigator.share){ navigator.share({title:L().nome,text:t}).catch(function(){}); fecha(); return; }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(function(){ fInfo("Lista copiada."); fecha(); },function(){ prompt("Copie:",t); });
+    } else prompt("Copie:",t);
+  });
+  document.getElementById("btExportar").addEventListener("click",function(){
+    var b=new Blob([JSON.stringify(D,null,2)],{type:"application/json"});
+    var a=document.createElement("a"); a.href=URL.createObjectURL(b);
+    a.download="afazeres-backup.json"; a.click(); fecha();
+  });
+  document.getElementById("btImportar").addEventListener("click",function(){ document.getElementById("arquivo").click(); });
+  document.getElementById("arquivo").addEventListener("change",function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var d=JSON.parse(r.result);
+        if(d && d.listas){ D=d; }
+        else if(Array.isArray(d)){ D={listas:[{id:uid(),nome:"Importada",cats:[],itens:d}],modelos:[],freq:{}}; D.atual=D.listas[0].id; }
+        else if(d && d.itens){ D={listas:[{id:uid(),nome:"Importada",cats:d.cats||[],itens:d.itens}],modelos:[],freq:{}}; D.atual=D.listas[0].id; }
+        grava(); ler(); pinta(); fecha();
+      }catch(err){ fInfo("Não consegui ler esse arquivo."); }
+    };
+    r.readAsText(f); e.target.value="";
+  });
+
+  ler(); renascer(); pinta();
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden && renascer()) pinta();
+  });
+})();
+</script>
+<script>
+/* ===== TECLADO PROPRIO DO APP (so no campo principal) ===== */
+(function(){
+  var campo=document.getElementById('campo'); if(!campo) return;
+  var campoQt=document.getElementById('campoQt');
+  var form=document.getElementById('form');
+  var target=campo, numerico=false;
+  var TOUCH = (function(){
+    /* So o teclado do app quando ha ponteiro GROSSO e NENHUM fino: celular
+       tem so o dedo; notebook com tela de toque tem tambem o trackpad, e la
+       quem escreve e o teclado fisico. */
+    try{
+      if(!window.matchMedia) return false;
+      /* a chave manual ganha da deteccao: nenhuma regra acerta todo aparelho */
+      var esc = null;
+      try{ esc = localStorage.getItem('apps-teclado'); }catch(x){}
+      if(esc === 'sim') return true;
+      if(esc === 'nao') return false;
+      return matchMedia('(pointer:coarse)').matches && !matchMedia('(any-pointer:fine)').matches;
+    }catch(e){ return false; }
+  })();
+  /* o resto do app precisa saber disso pra marcar o campo ANTES do foco */
+  try{ window.__kbTouch = TOUCH; }catch(x){}
+  if(TOUCH){ campo.setAttribute('inputmode','none'); if(campoQt) campoQt.setAttribute('inputmode','none'); } // suprime o teclado nativo no celular
+  campo.setAttribute('autocapitalize','off'); campo.setAttribute('autocorrect','off'); campo.setAttribute('spellcheck','false');
+
+  var kbd=document.createElement('div'); kbd.id='kbd'; document.body.appendChild(kbd);
+  var caps=1, layer='abc';   // caps: 0 off, 1 uma letra, 2 trava
+  /* o que cada letra esconde no toque longo. Ordem importa: o primeiro e o
+     mais usado, porque e o que fica embaixo do dedo quando o balao abre. */
+  var ACENTOS={ a:['á','ã','â','à'], e:['é','ê'], i:['í'], o:['ó','õ','ô'],
+                u:['ú','ü'], c:['ç'], n:['ñ'] };
+  /* 10 · 9 · 9 — o molde do Gboard em portugues */
+  var ABC=[['q','w','e','r','t','y','u','i','o','p'],
+           ['a','s','d','f','g','h','j','k','l'],
+           ['shift','z','x','c','v','b','n','m','back']];
+  var NUM=[['1','2','3','4','5','6','7','8','9','0'],
+           ['@','#','$','%','&','-','_','/','(',')'],
+           ['sym','*','"','’',':',';','!','?','back']];
+  var SYM=[['~','`','|','=','+','{','}','[',']','\\'],
+           ['<','>','^','°','€','R$','.',',','ç','º'],
+           ['sym','ª','½','…','_','!','?','¿','back']];
+  var BOT=['layer','comma','space','dot','enter'];
+  var NUMPAD=[['1','2','3'],['4','5','6'],['7','8','9'],['comma','0','back']];
+  function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function keyHTML(k){
+    var cls='k', txt, ins=null;
+    if(k==='shift'){ cls+=' fn shift'+(caps?(caps===2?' on lock':' on'):''); txt='⇧'; }
+    else if(k==='back'){ cls+=' back'; txt='⌫'; }
+    else if(k==='layer'){ cls+=' fn'; txt=(layer==='abc'?'123':'ABC'); }
+    else if(k==='sym'){ cls+=' fn'; txt=(layer==='sym'?'123':'#+='); }
+    else if(k==='enter'){ cls+=' act'; txt='⏎'; }
+    else if(k==='hide'){ cls+=' fn'; txt='⌄'; }
+    else if(k==='space'){ cls+=' wide'; txt='espaço'; ins=' '; }
+    else if(k==='comma'){ txt=','; ins=','; }
+    else if(k==='dot'){ txt='.'; ins='.'; }
+    else {
+      txt=(caps && /^[a-zà-ÿ]$/i.test(k)) ? k.toUpperCase() : k; ins=txt;
+      if(ACENTOS[k]) cls+=' tem';        /* o pontinho do toque longo */
+    }
+    return '<div class="'+cls+'" data-k="'+esc2(k)+'"'+(ins!==null?' data-ins="'+esc2(ins)+'"':'')+'>'+esc2(txt)+'</div>';
+  }
+  function render(){
+    var h='';
+    if(numerico){   // teclado SO com numeros (estilo discador)
+      kbd.classList.add('num');
+      NUMPAD.forEach(function(r){ h+='<div class="row">'+r.map(keyHTML).join('')+'</div>'; });
+      h+='<div class="row">'+['enter'].map(keyHTML).join('')+'</div>';
+    } else {
+      kbd.classList.remove('num');
+      var rows = layer==='abc'?ABC:(layer==='num'?NUM:SYM);
+      /* a fila de acentos saiu: os acentos passaram pro toque longo da letra */
+      rows.forEach(function(r,i){
+        var rec = (layer==='abc' && i===1) ? ' r2' : '';
+        h+='<div class="row'+rec+'">'+r.map(keyHTML).join('')+'</div>';
+      });
+      h+='<div class="row">'+BOT.map(keyHTML).join('')+'</div>';
+    }
+    /* o X fica FORA do que muda de camada: a posicao dele nunca se mexe */
+    kbd.innerHTML='<div class="kbtop"><div class="kbx" data-k="hide">\u2715</div></div>'+h;
+    if(document.body.classList.contains("kbdopen")) _kbdAltura();
+  }
+
+  /* ---------- manter o cursor a vista ----------
+     Escrevendo por script o navegador nao rola o campo. A regua abaixo e um
+     div escondido que copia o estilo do campo pra medir, em pixels, onde o
+     cursor caiu — a unica forma correta quando o texto quebra linha sozinho. */
+  var _regua = null;
+  function _alturaDoCursor(el){
+    if(!_regua){
+      _regua = document.createElement("div");
+      _regua.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;"
+        + "white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;";
+      document.body.appendChild(_regua);
+    }
+    var c = getComputedStyle(el);
+    ["fontFamily","fontSize","fontWeight","fontStyle","lineHeight","letterSpacing",
+     "textTransform","textIndent","paddingTop","paddingRight","paddingBottom","paddingLeft",
+     "borderTopWidth","borderRightWidth","borderBottomWidth","borderLeftWidth","boxSizing"]
+      .forEach(function(p){ _regua.style[p] = c[p]; });
+    _regua.style.width = el.offsetWidth + "px";
+    _regua.textContent = el.value.slice(0, el.selectionStart);
+    var marca = document.createElement("span");
+    marca.textContent = "\u200b";        /* largura zero: so serve de regua */
+    _regua.appendChild(marca);
+    return marca.offsetTop;
+  }
+  function aVista(el){
+    try{
+      if(!el || el.selectionStart == null) return;
+      if(el.tagName === "TEXTAREA"){
+        if(el.scrollHeight <= el.clientHeight) return;   /* cabe todo: nada a rolar */
+        var lh = parseFloat(getComputedStyle(el).lineHeight) || 20;
+        var y = _alturaDoCursor(el);
+        if(y < el.scrollTop) el.scrollTop = y;
+        else if(y + lh > el.scrollTop + el.clientHeight) el.scrollTop = y + lh - el.clientHeight;
+      } else if(el.selectionStart === el.value.length){
+        el.scrollLeft = el.scrollWidth;                  /* campo de uma linha so */
+      }
+    }catch(x){}
+  }
+  function fire(){ target.dispatchEvent(new Event('input',{bubbles:true})); }
+  /* onde se escreve direto no texto (o nome do item, a nota, o subitem)
+     nao existe .value nem cursor de campo: quem cuida disso e o proprio
+     navegador, pelo execCommand, que preserva onde o cursor esta */
+  function ehTexto(){ return target && target.isContentEditable; }
+  function ins(ch){
+    if(ehTexto()){ document.execCommand("insertText", false, ch); reCaps(); return; }
+    var s=target.selectionStart, e=target.selectionEnd, v=target.value;
+    if(s==null){ s=e=v.length; }
+    target.value=v.slice(0,s)+ch+v.slice(e); var p=s+ch.length; try{target.setSelectionRange(p,p);}catch(x){}
+    aVista(target);
+    fire(); reCaps();
+  }
+  function back(){
+    if(ehTexto()){ document.execCommand("delete"); return; }
+    var s=target.selectionStart, e=target.selectionEnd, v=target.value;
+    if(s==null){ target.value=v.slice(0,-1); }
+    else if(s!==e){ target.value=v.slice(0,s)+v.slice(e); try{target.setSelectionRange(s,s);}catch(x){} }
+    else if(s>0){ target.value=v.slice(0,s-1)+v.slice(s); try{target.setSelectionRange(s-1,s-1);}catch(x){} }
+    aVista(target);
+    fire(); reCaps();
+  }
+  /* texto solto nao tem .value; ler ele quebrava o teclado calado,
+     antes mesmo de ele aparecer */
+  /* ---------- a maiuscula automatica ----------
+     Liga no comeco do campo, depois de . ! ? seguidos de espaco, e depois
+     de quebra de linha. O espaco e exigido pra "www.google" nao virar
+     "www.Google" nem "3.5" armar a maiuscula a toa. */
+  function precisaMaiuscula(){
+    if(!target) return true;
+    var v = ehTexto() ? (target.textContent || "") : (target.value || "");
+    var p = (ehTexto() || target.selectionStart == null) ? v.length : target.selectionStart;
+    var antes = v.slice(0, p);
+    if(!antes.replace(/\s/g,"")) return true;      /* vazio ou so espacos */
+    if(/\n\s*$/.test(antes)) return true;          /* linha nova */
+    if(/[.!?\u2026]\s+$/.test(antes)) return true; /* fim de frase */
+    return false;
+  }
+  function autocaps(){
+    if(caps === 2) return;                        /* trava manual: nao mexer */
+    caps = precisaMaiuscula() ? 1 : 0;
+  }
+  /* depois de escrever ou apagar, a maiuscula se recalcula. So redesenha o
+     teclado quando o estado muda de verdade. */
+  function reCaps(){ var a = caps; autocaps(); if(caps !== a) render(); }
+
+
+  function _kbdAltura(){
+    try{
+      var a=kbd.offsetHeight;
+      if(a>60){
+        document.body.style.setProperty("padding-bottom", a+"px", "important");
+        /* quem estiver sobreposto na tela precisa saber quanto sobrou de altura */
+        document.documentElement.style.setProperty("--kbh", a+"px");
+      }
+    }catch(x){}
+  }
+  function _kbdAbre(){ document.body.classList.add('kbdopen'); _kbdAltura(); }
+  function _kbdFecha(){
+    document.body.classList.remove('kbdopen');
+    try{ document.body.style.removeProperty("padding-bottom"); }catch(x){}
+    try{ document.documentElement.style.removeProperty("--kbh"); }catch(x){}
+  }
+  var _kbdRepT=null;
+  function _kbdSolta(){ if(_kbdRepT){ clearTimeout(_kbdRepT); _kbdRepT=null; } }
+  function _kbdApagando(){
+    _kbdSolta(); var n=0;
+    _kbdRepT=setTimeout(function passo(){
+      if(!target || target.value===""){ _kbdSolta(); return; }
+      back(); n++;
+      _kbdRepT=setTimeout(passo, n<8?55:(n<20?34:20));
+    }, 420);
+  }
+  ["touchend","touchcancel","mouseup","mouseleave","pointerup","pointercancel"].forEach(function(ev){
+    try{ kbd.addEventListener(ev, _kbdSolta); }catch(x){}
+  });
+  try{ document.addEventListener("touchend", _kbdSolta); document.addEventListener("mouseup", _kbdSolta); window.addEventListener("blur", _kbdSolta); }catch(x){}
+  function _kbdBrilho(el){ if(!el||!el.classList) return; el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit");
+    setTimeout(function(){ try{ el.classList.remove("hit"); }catch(x){} }, 240);
+    try{ if(navigator.vibrate) navigator.vibrate(8); }catch(x){}
+    try{
+      var r=el.getBoundingClientRect(); if(!r.width) return;
+      var b=document.createElement("div"); b.className="kbdpv";
+      var oculto = target && (target.type==="password");
+      b.textContent = oculto ? "•" : (el.textContent||"").trim().slice(0,7);
+      var la=el.offsetWidth||r.width, al=el.offsetHeight||r.height;
+      var meio=r.left+r.width/2, folga=la*0.70+4;
+      if(meio<folga) meio=folga; if(meio>window.innerWidth-folga) meio=window.innerWidth-folga;
+      b.style.left=meio+"px"; b.style.top=(r.top+r.height/2)+"px";
+      b.style.width=la+"px"; b.style.height=al+"px";
+      b.style.fontSize=getComputedStyle(el).fontSize;
+      document.body.appendChild(b);
+      setTimeout(function(){ try{ b.parentNode.removeChild(b); }catch(y){} }, 300);
+    }catch(x){}
+  }
+  /* ===== toque longo: os acentos =====
+     Segurar a letra abre o balao com as variantes; soltar em cima de uma
+     escreve ela. Toque curto continua escrevendo a letra normal. */
+  var _pop=null, _popT=null, _popEscolha=null, _longo=false;
+  /* o balao fica aberto depois que o dedo sai: o proximo toque escolhe */
+  var _ignoraFim=false;
+  function opcaoPerto(x,y){
+    if(!_pop || x==null || y==null) return null;
+    var melhor=null, menor=1e9;
+    [].forEach.call(_pop.children,function(b){
+      var r=b.getBoundingClientRect();
+      var dx = x<r.left ? r.left-x : (x>r.right ? x-r.right : 0);
+      var dy = y<r.top  ? r.top-y  : (y>r.bottom ? y-r.bottom : 0);
+      var d = Math.sqrt(dx*dx+dy*dy);
+      if(d<menor){ menor=d; melhor=b; }
+    });
+    return menor<=14 ? melhor : null;
+  }
+  function fechaPop(){ if(_pop&&_pop.parentNode) _pop.parentNode.removeChild(_pop);
+    _pop=null; _popEscolha=null; }
+  function abrePop(tecla, letra){
+    fechaPop();
+    var lista=ACENTOS[letra]; if(!lista) return;
+    var p=document.createElement("div"); p.className="pop";
+    p.innerHTML=lista.map(function(a){ var A=caps?a.toUpperCase():a;
+      return '<b data-ins="'+A+'">'+A+'</b>'; }).join("");
+    kbd.appendChild(p);
+    var rk=tecla.getBoundingClientRect(), rb=kbd.getBoundingClientRect();
+    var lg=p.offsetWidth;
+    var x=rk.left-rb.left+(rk.width-lg)/2;
+    x=Math.max(6, Math.min(x, rb.width-lg-6));
+    p.style.left=x+"px";
+    p.style.top=(rk.top-rb.top-p.offsetHeight-6)+"px";
+    _pop=p;
+    if(navigator.vibrate) navigator.vibrate(12);
+  }
+  function marcaSob(x,y){
+    if(!_pop) return;
+    var alvo=null;
+    [].forEach.call(_pop.children,function(b){
+      var r=b.getBoundingClientRect();
+      var dentro = x>=r.left-6 && x<=r.right+6 && y>=r.top-14 && y<=r.bottom+14;
+      b.classList.toggle("sel", dentro); if(dentro) alvo=b;
+    });
+    _popEscolha=alvo;
+  }
+  kbd.addEventListener("pointermove", function(e){ if(_pop) marcaSob(e.clientX,e.clientY); });
+  kbd.addEventListener("pointerup", function(e){
+    clearTimeout(_popT);
+    if(_ignoraFim){ _ignoraFim=false; return; }
+    if(_pop){
+      marcaSob(e.clientX,e.clientY);
+      /* deslizou ate uma opcao: vale */
+      if(_popEscolha){
+        var ch=_popEscolha.getAttribute("data-ins");
+        fechaPop(); ins(ch);
+      }
+      /* soltou sem escolher: o balao FICA, esperando o toque */
+      return;
+    }
+    if(_longo) return;
+    var t=e.target.closest && e.target.closest("[data-k]");
+    var k=t && t.getAttribute("data-k");
+    if(k && ACENTOS[k]) ins(caps ? k.toUpperCase() : k);   /* toque curto */
+  });
+  kbd.addEventListener("pointercancel", function(){ clearTimeout(_popT); fechaPop(); });
+
+  kbd.addEventListener('pointerdown', function(e){
+    /* balao aberto: este toque e a ESCOLHA, nao uma tecla nova */
+    if(_pop){
+      e.preventDefault();
+      var b = e.target.closest && e.target.closest('.pop b');
+      if(!b) b = opcaoPerto(e.clientX, e.clientY);
+      var ch = b && b.getAttribute('data-ins');
+      fechaPop(); _ignoraFim=true;
+      if(ch) ins(ch);        /* tocou numa opcao */
+      return;                /* tocou fora: so cancela, sem escrever */
+    }
+    var t=e.target.closest('[data-k],[data-ins]'); if(!t) return; _kbdBrilho(t);
+    /* letra com acento: espera pra ver se e toque longo; a letra sai no soltar */
+    var _k=t.getAttribute("data-k");
+    if(_k && ACENTOS[_k]){
+      e.preventDefault(); _longo=false;
+      clearTimeout(_popT);
+      _popT=setTimeout(function(){ _longo=true; abrePop(t,_k); }, 300);
+      return;
+    }
+    e.preventDefault(); // NAO rouba o foco do campo (mantem o cursor)
+    var k=t.getAttribute('data-k'), di=t.getAttribute('data-ins');
+    var special=(k==='shift'||k==='back'||k==='layer'||k==='sym'||k==='enter'||k==='hide');
+    if(di!==null && !special){ ins(di); return; }
+    if(k==='shift'){ caps = caps===0?1:(caps===1?2:0); render(); return; }
+    if(k==='back'){ back(); _kbdApagando(); return; }
+    if(k==='layer'){ layer=(layer==='abc'?'num':'abc'); render(); return; }
+    if(k==='sym'){ layer=(layer==='sym'?'num':'sym'); render(); return; }
+    if(k==='enter'){ if(ehTexto()){ target.blur(); hide(); return; } if(form&&form.requestSubmit){ form.requestSubmit(); } else if(form){ form.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true})); } setTimeout(function(){ autocaps(); render(); },0); return; }
+    if(k==='hide'){ hide(); try{target.blur();}catch(x){} return; }
+  });
+
+  /* quando o Feito roda dentro de outro app (a aba do Stash), o teclado fica
+     preso ao quadro e nao alcanca a base da tela. Aviso o app de fora, que
+     abre o quadro em tela cheia enquanto se digita. */
+  function avisaPai(ligado){
+    try{ if(window.parent && window.parent!==window) window.parent.postMessage({feitoKbd:!!ligado},'*'); }catch(x){}
+  }
+  function show(){ if(!TOUCH) return; autocaps(); render(); kbd.classList.add('on'); _kbdAbre(); avisaPai(true); }
+  function hide(){ kbd.classList.remove('on'); _kbdFecha(); avisaPai(false); }
+  /* rede: se esta pagina sair do ar sem fechar o teclado, o app de fora nao
+     pode ficar sem a barra de abas */
+  window.addEventListener('pagehide',function(){ avisaPai(false); });
+  /* o resto do app precisa poder fechar o teclado (a folha, ao sair) */
+  try{ window.__kbdHide = hide; }catch(x){}
+  function focusCampo(){ target=campo; numerico=false; show(); }
+  function focusQt(){ target=campoQt; numerico=true; show(); }
+
+  /* REGRA: no Feito nao sobe teclado de navegador, em lugar nenhum.
+     Como os campos costumam nascer na hora (as perguntas da folha, o registro,
+     o que vier depois), nao da pra ligar um por um: escuto o foco e adoto
+     QUALQUER campo que apareca. As excecoes sao nomeadas abaixo, e sao poucas. */
+  function ehNumero(el){
+    var im=(el.getAttribute("data-kb")||el.getAttribute("inputmode")||"").toLowerCase();
+    return el.type==="number" || im==="decimal" || im==="numeric";
+  }
+  /* SELAR ANTES DO FOCO — marcar no focusin e tarde: no celular quem chama o
+     painel do sistema e o proprio foco. Todo campo ja nasce selado. */
+  function adotavel(el){
+    if(!el || !el.tagName) return false;
+    if(el===campo || el===campoQt) return true;
+    if(el.isContentEditable) return (el.getAttribute("data-kb")||"")!=="off";
+    if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return false;
+    if((el.getAttribute("data-kb")||"")==="off") return false;
+    if(el.disabled) return false;
+    if(el.readOnly && el.getAttribute("data-kbro")!=="1") return false;
+    var t=(el.type||"text").toLowerCase();
+    return ["file","date","month","week","time","datetime-local","checkbox","radio","range","color","button","submit","reset"].indexOf(t)<0;
+  }
+  function selar(raiz){
+    if(!TOUCH) return;
+    var els;
+    try{ els=(raiz||document).querySelectorAll('input,textarea,[contenteditable="true"]'); }catch(x){ return; }
+    for(var i=0;i<els.length;i++){
+      var el=els[i];
+      if(!adotavel(el)) continue;
+      if(el.getAttribute("inputmode")==="none") continue;
+      el.setAttribute("inputmode","none");
+      /* o cinto que funciona onde o inputmode e ignorado (Android/Gboard):
+         readonly barra o painel do sistema e nao atrapalha o script */
+      if(!el.isContentEditable && !el.readOnly){
+        el.setAttribute("data-kbro","1"); el.readOnly=true;
+      }
+      el.setAttribute("autocapitalize","off");
+      el.setAttribute("autocorrect","off");
+      el.setAttribute("spellcheck","false");
+    }
+  }
+  try{ window.__kbdSelar = selar; }catch(x){}
+  if(TOUCH){
+    selar(document);
+    try{
+      var _spF=null;
+      new MutationObserver(function(){
+        if(_spF) return;
+        _spF=setTimeout(function(){ _spF=null; selar(document); },30);
+      }).observe(document.documentElement,{childList:true,subtree:true});
+    }catch(x){}
+    window.addEventListener('load',function(){ selar(document); });
+  }
+
+  document.addEventListener("focusin", function(e){
+    var el=e.target;
+    if(!el || !el.tagName) return;
+    if(el===campo || el===campoQt) return;
+    var solto = !!el.isContentEditable;   /* nome do item, nota, subitem, categoria */
+    if(!solto){
+      if(el.tagName!=="INPUT" && el.tagName!=="TEXTAREA") return;
+      if((el.getAttribute("data-kb")||"")==="off") return;  /* saida explicita, campo a campo */
+      if(el.readOnly && el.getAttribute("data-kbro")!=="1") return;
+      if(el.type==="file") return;                          /* nao e digitacao */
+      if(el.type==="date" || el.type==="month") return;     /* tem o calendario do app, mais abaixo */
+      /* e so. Qualquer outro campo, esteja onde estiver, usa o teclado do app. */
+    }
+    numerico = !solto && ehNumero(el);
+    if(TOUCH) el.setAttribute("inputmode","none");
+    target=el; show();
+  });
+  campo.addEventListener('focus', focusCampo); campo.addEventListener('click', focusCampo);
+  if(campoQt){ campoQt.addEventListener('focus', focusQt); campoQt.addEventListener('click', focusQt); }
+  document.addEventListener('pointerdown', function(e){
+    if(!kbd.classList.contains('on')) return;
+    if(kbd.contains(e.target) || e.target===campo || e.target===campoQt) return;
+    if(e.target.closest && e.target.closest(".fov")) return;
+    if(e.target===target || (target && target.contains && target.contains(e.target))) return;
+    hide();
+  }, true);
+})();
+</script>
+<script>window.__SYNC_CFG={app:'feito',keys:['afazeres-v3'],accent:'#2FD9C9',name:'Feito'};</script>
+<script src="../feito/supabase.js"></script>
+<script src="../feito/som.js"></script>
+<script src="../feito/sync.js"></script>
+<script src="../feito/icons.js"></script>
+<style>
+#__welcome{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:22px;font-family:system-ui,'Segoe UI',Arial,sans-serif}
+#__welcome.__on{display:flex}
+#__welcome .__wbg{position:absolute;inset:0;background:rgba(4,6,10,.66);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;animation:__wFade .28s ease forwards}
+#__welcome .__wcard{position:relative;max-width:360px;width:100%;border-radius:24px;padding:30px 26px 26px;text-align:center;background:linear-gradient(180deg,#151b23,#0c1117);border:1px solid color-mix(in srgb, var(--txt2) 9%, transparent);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 color-mix(in srgb, var(--txt2) 6%, transparent);transform:translateY(20px) scale(.93);opacity:0;animation:__wIn .5s cubic-bezier(.34,1.56,.64,1) .04s forwards}
+#__welcome .__wglow{position:absolute;top:-46px;left:50%;width:190px;height:190px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,color-mix(in srgb, var(--accent) 34%, transparent),transparent 70%);opacity:0;animation:__wFade .6s ease .16s forwards;pointer-events:none}
+#__welcome .__wemoji{position:relative;font-size:54px;line-height:1;display:inline-block;transform:scale(0);animation:__wPop .6s cubic-bezier(.2,1.5,.4,1) .12s forwards}
+#__welcome .__wtt{position:relative;font-size:22px;font-weight:800;color:#fff;margin-top:12px;letter-spacing:-.3px;opacity:0;animation:__wUp .45s ease .22s forwards}
+#__welcome .__wtx{position:relative;font-size:14.5px;color:#aeb8c0;margin-top:11px;line-height:1.55;opacity:0;animation:__wUp .45s ease .3s forwards}
+#__welcome .__wpr{position:relative;font-size:12px;color:#8090a0;margin-top:15px;opacity:0;animation:__wUp .45s ease .37s forwards}
+#__welcome .__wbtn{position:relative;overflow:hidden;margin-top:22px;width:100%;border:none;border-radius:14px;padding:15px;font-size:15.5px;font-weight:800;font-family:inherit;cursor:pointer;color:#04120a;background:linear-gradient(135deg,#2FD9C9,#1fb3a6);box-shadow:0 10px 26px color-mix(in srgb, var(--accent) 32%, transparent);opacity:0;animation:__wUp .45s ease .44s forwards;transition:transform .12s}
+#__welcome .__wbtn:active{transform:scale(.97)}
+#__welcome .__wbtn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(90deg,transparent,color-mix(in srgb, var(--txt2) 50%, transparent),transparent);transform:skewX(-20deg);animation:__wSheen 1.1s ease .62s}
+#__welcome.__leaving .__wcard{animation:__wOut .2s ease forwards}
+#__welcome.__leaving .__wbg{animation:__wFadeOut .2s ease forwards}
+@keyframes __wFade{to{opacity:1}}@keyframes __wFadeOut{to{opacity:0}}
+@keyframes __wIn{to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes __wOut{to{transform:translateY(12px) scale(.96);opacity:0}}
+@keyframes __wPop{0%{transform:scale(0)}70%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes __wUp{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
+@keyframes __wSheen{0%{left:-60%}100%{left:135%}}
+@media (prefers-reduced-motion:reduce){#__welcome *{animation-duration:.01s!important}}
+</style>
+<div id="__welcome" aria-hidden="true">
+  <div class="__wbg"></div>
+  <div class="__wcard" role="dialog">
+    <div class="__wglow"></div>
+    <div class="__wemoji">✅</div>
+    <div class="__wtt">Bem-vindo ao Feito</div>
+    <div class="__wtx">Suas listas de tarefas do jeito que você quiser — categorias, subitens, prazos e muito mais.</div>
+    <div class="__wpr">🔒 Seus dados ficam só neste aparelho — ninguém mais vê.</div>
+    <button class="__wbtn" id="__welcomeBtn">Começar &rarr;</button>
+  </div>
+</div>
+<script>(function(){try{var K="welcome-afazeres";if(localStorage.getItem(K))return;var w=document.getElementById("__welcome"),b=document.getElementById("__welcomeBtn");if(!w||!b)return;w.classList.add("__on");b.addEventListener("click",function(){try{localStorage.setItem(K,"1")}catch(e){}w.classList.add("__leaving");setTimeout(function(){w.classList.remove("__on","__leaving")},210)})}catch(e){}})();</script>
+
+<script>
+/* __manterTela — ao recarregar (banner de atualizacao), volta pra mesma aba e posicao */
+(function(){
+  var K = "keep-tela-" + location.pathname;
+  function abas(){
+    var sel = ["nav .navbar button", "nav button", ".tabs .tb"];
+    for (var i=0; i<sel.length; i++){
+      var el = document.querySelectorAll(sel[i]);
+      if (el && el.length > 1) return el;
+    }
+    return null;
+  }
+  function ativa(el){ return (" " + (el.className||"") + " ").indexOf(" on ") >= 0; }
+  function salvar(){
+    try{
+      var st = { y: window.scrollY || window.pageYOffset || 0 };
+      var a = abas();
+      if (a) for (var i=0; i<a.length; i++){ if (ativa(a[i])) { st.aba = i; break; } }
+      sessionStorage.setItem(K, JSON.stringify(st));
+    }catch(e){}
+  }
+  window.addEventListener("pagehide", salvar);
+  window.addEventListener("beforeunload", salvar);
+
+  function restaurar(){
+    var st = null;
+    try{ st = JSON.parse(sessionStorage.getItem(K) || "null"); }catch(e){}
+    if (!st) return;
+    try{ sessionStorage.removeItem(K); }catch(e){}
+    // a inicializacao de alguns apps roda depois; insiste ate a aba pegar
+    var tentativas = 6;
+    (function tentar(){
+      var a = abas();
+      if (a && typeof st.aba === "number" && a[st.aba] && !ativa(a[st.aba])) {
+        try{ a[st.aba].click(); }catch(e){}
+      }
+      if (--tentativas > 0) { setTimeout(tentar, 250); return; }
+      if (st.y) setTimeout(function(){ try{ window.scrollTo(0, st.y); }catch(e){} }, 120);
+    })();
+  }
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", function(){ setTimeout(restaurar, 80); });
+  else setTimeout(restaurar, 80);
+})();
+</script>
+<script>
+/* ===== calendario do app (troca o do sistema nos campos de data e mes) ===== */
+(function(){
+  var CFG2 = window.__SYNC_CFG || {};
+  var AC = CFG2.accent || '#2FD9C9';
+  function hx2(h){ h=h.replace('#',''); if(h.length===3){h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];} return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+  var r2 = hx2(AC);
+  var suave = 'rgba('+r2[0]+','+r2[1]+','+r2[2]+',.16)';
+  var tinta = (r2[0]*.299+r2[1]*.587+r2[2]*.114) > 150 ? '#06131a' : '#04181c';
+  var TOQUE = (function(){
+    /* So o teclado do app quando ha ponteiro GROSSO e NENHUM fino: celular
+       tem so o dedo; notebook com tela de toque tem tambem o trackpad, e la
+       quem escreve e o teclado fisico. */
+    try{
+      if(!window.matchMedia) return false;
+      /* a chave manual ganha da deteccao: nenhuma regra acerta todo aparelho */
+      var esc = null;
+      try{ esc = localStorage.getItem('apps-teclado'); }catch(x){}
+      if(esc === 'sim') return true;
+      if(esc === 'nao') return false;
+      return matchMedia('(pointer:coarse)').matches && !matchMedia('(any-pointer:fine)').matches;
+    }catch(e){ return false; }
+  })();
+
+  var MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var MESC = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var SEM = ['D','S','T','Q','Q','S','S'];
+
+  var css = ''
+    + '#cal{position:fixed;left:0;right:0;bottom:0;z-index:2000001;display:none;'
+    +   'background:linear-gradient(180deg,#0e1216,#070a0c);border-top:1px solid #20262b;'
+    +   'padding:12px 12px calc(12px + env(safe-area-inset-bottom));'
+    +   'box-shadow:0 -14px 36px rgba(0,0,0,.6);-webkit-user-select:none;user-select:none;'
+    +   'font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif}'
+    + '#cal.on{display:block}'
+    + '#cal .cw{max-width:400px;margin:0 auto}'
+    + '#cal .ch{display:flex;align-items:center;gap:8px;margin-bottom:10px}'
+    + '#cal .ct{flex:1;text-align:center;font-size:15px;font-weight:800;color:#f0f2f4;text-transform:capitalize}'
+    + '#cal .cn{width:40px;height:40px;flex:none;border:1px solid #262c32;background:#12171b;color:#9fb0b8;'
+    +   'border-radius:11px;font-size:17px;font-weight:800;cursor:pointer;display:grid;place-items:center;font-family:inherit}'
+    + '#cal .cn:active{transform:scale(.95)}'
+    + '#cal .cs{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}'
+    + '#cal .cs span{text-align:center;font-size:10.5px;font-weight:800;color:#5f6a71;padding:3px 0}'
+    + '#cal .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}'
+    + '#cal .cg button{height:42px;border:0;background:#12171b;color:#e6eaee;border-radius:10px;'
+    +   'font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:transform .1s,background .12s}'
+    + '#cal .cg button:active{transform:scale(.93)}'
+    + '#cal .cg button.fora{background:transparent;color:#3a4248}'
+    + '#cal .cg button.hoje{box-shadow:inset 0 0 0 1px ' + suave + '}'
+    + '#cal .cg button.sel{background:' + AC + ';color:' + tinta + '}'
+    + '#cal .cm{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}'
+    + '#cal .cm button{height:48px;border:0;background:#12171b;color:#e6eaee;border-radius:11px;'
+    +   'font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;text-transform:capitalize}'
+    + '#cal .cm button.sel{background:' + AC + ';color:' + tinta + '}'
+    + '#cal .cb{display:flex;gap:8px;margin-top:11px}'
+    + '#cal .cb button{flex:1;height:44px;border:1px solid #262c32;background:#12171b;color:#cfd6db;'
+    +   'border-radius:12px;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer}'
+    + '#cal .cb button.ok{background:' + AC + ';border-color:' + AC + ';color:' + tinta + '}';
+  var st2 = document.createElement('style'); st2.textContent = css; document.head.appendChild(st2);
+
+  var cal = document.createElement('div'); cal.id = 'cal';
+  var alvo = null, tipo = 'date', vendo = null, escolhido = null;
+
+  function doisD(n){ return (n<10?'0':'') + n; }
+  function leValor(el){
+    var v = (el.value || '').trim();
+    var m;
+    if (tipo === 'month') { m = v.match(/^(\d{4})-(\d{2})$/); return m ? new Date(+m[1], +m[2]-1, 1) : null; }
+    m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null;
+  }
+  function grava(d){
+    if (!alvo) return;
+    alvo.value = d ? (tipo === 'month'
+      ? (d.getFullYear() + '-' + doisD(d.getMonth()+1))
+      : (d.getFullYear() + '-' + doisD(d.getMonth()+1) + '-' + doisD(d.getDate()))) : '';
+    alvo.dispatchEvent(new Event('input', {bubbles:true}));
+    alvo.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+
+  function pinta(){
+    var hoje = new Date();
+    var h = '<div class="cw">';
+    if (tipo === 'month') {
+      h += '<div class="ch"><button class="cn" data-cn="-1">&#8249;</button>'
+        +  '<div class="ct">' + vendo.getFullYear() + '</div>'
+        +  '<button class="cn" data-cn="1">&#8250;</button></div><div class="cm">';
+      for (var m = 0; m < 12; m++) {
+        var sel = escolhido && escolhido.getFullYear() === vendo.getFullYear() && escolhido.getMonth() === m;
+        h += '<button class="' + (sel?'sel':'') + '" data-cm="' + m + '">' + MESC[m] + '</button>';
+      }
+      h += '</div>';
+    } else {
+      h += '<div class="ch"><button class="cn" data-cn="-1">&#8249;</button>'
+        +  '<div class="ct">' + MES[vendo.getMonth()] + ' ' + vendo.getFullYear() + '</div>'
+        +  '<button class="cn" data-cn="1">&#8250;</button></div><div class="cs">';
+      for (var s = 0; s < 7; s++) h += '<span>' + SEM[s] + '</span>';
+      h += '</div><div class="cg">';
+      var pri = new Date(vendo.getFullYear(), vendo.getMonth(), 1);
+      var ini = pri.getDay();
+      var dias = new Date(vendo.getFullYear(), vendo.getMonth()+1, 0).getDate();
+      var antes = new Date(vendo.getFullYear(), vendo.getMonth(), 0).getDate();
+      for (var i = ini - 1; i >= 0; i--) h += '<button class="fora" data-cd="' + (-i-0) + '" disabled>' + (antes-i) + '</button>';
+      for (var d = 1; d <= dias; d++) {
+        var cls = [];
+        if (hoje.getFullYear()===vendo.getFullYear() && hoje.getMonth()===vendo.getMonth() && hoje.getDate()===d) cls.push('hoje');
+        if (escolhido && escolhido.getFullYear()===vendo.getFullYear() && escolhido.getMonth()===vendo.getMonth() && escolhido.getDate()===d) cls.push('sel');
+        h += '<button class="' + cls.join(' ') + '" data-cd="' + d + '">' + d + '</button>';
+      }
+      h += '</div>';
+    }
+    h += '<div class="cb"><button data-cx="limpa">Limpar</button>'
+      +  '<button data-cx="hoje">Hoje</button>'
+      +  '<button class="ok" data-cx="fecha">Pronto</button></div></div>';
+    cal.innerHTML = h;
+  }
+
+  function altura(){
+    try {
+      var a = cal.offsetHeight;
+      if (a > 60) {
+        document.body.style.setProperty('padding-bottom', a+'px', 'important');
+        document.documentElement.style.setProperty('--kbh', a+'px');
+      }
+    } catch(e){}
+  }
+  function abre(el){
+    if (!cal.parentNode) document.body.appendChild(cal);
+    alvo = el;
+    tipo = (el.type === 'month') ? 'month' : 'date';
+    escolhido = leValor(el);
+    vendo = escolhido ? new Date(escolhido.getTime()) : new Date();
+    pinta();
+    cal.classList.add('on');
+    document.body.classList.add('kbdopen');
+    altura();
+  }
+  function fecha(){
+    cal.classList.remove('on');
+    document.body.classList.remove('kbdopen');
+    try { document.body.style.removeProperty('padding-bottom'); } catch(e){}
+    try { document.documentElement.style.removeProperty('--kbh'); } catch(e){}
+    alvo = null;
+  }
+  try { window.__calFecha = fecha; } catch(e){}
+
+  cal.addEventListener('pointerdown', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    e.preventDefault();
+    if (b.hasAttribute('data-cn')) {
+      var p = +b.getAttribute('data-cn');
+      vendo = (tipo === 'month')
+        ? new Date(vendo.getFullYear() + p, 0, 1)
+        : new Date(vendo.getFullYear(), vendo.getMonth() + p, 1);
+      pinta(); return;
+    }
+    if (b.hasAttribute('data-cm')) {
+      escolhido = new Date(vendo.getFullYear(), +b.getAttribute('data-cm'), 1);
+      grava(escolhido); pinta(); fecha(); return;
+    }
+    if (b.hasAttribute('data-cd')) {
+      if (b.disabled) return;
+      escolhido = new Date(vendo.getFullYear(), vendo.getMonth(), +b.getAttribute('data-cd'));
+      grava(escolhido); pinta(); fecha(); return;
+    }
+    var x = b.getAttribute('data-cx');
+    if (x === 'limpa') { escolhido = null; grava(null); fecha(); }
+    else if (x === 'hoje') { escolhido = new Date(); vendo = new Date(); grava(escolhido); pinta(); fecha(); }
+    else if (x === 'fecha') { fecha(); }
+  });
+
+  function ehData(el){
+    if (!el || el.tagName !== 'INPUT') return false;
+    if (el.getAttribute('data-kb') === 'off') return false;
+    var t = (el.type || '').toLowerCase();
+    return t === 'date' || t === 'month';
+  }
+  document.addEventListener('focusin', function(e){
+    if (!TOQUE && !ehData(e.target)) return;
+    if (!ehData(e.target)) return;
+    /* o campo continua guardando a data no formato de sempre; so quem
+       desenha muda. O readOnly e o que impede o painel do sistema de subir. */
+    e.target.readOnly = true;
+    e.target.blur();
+    abre(e.target);
+  });
+  document.addEventListener('pointerdown', function(e){
+    if (!cal.classList.contains('on')) return;
+    if (cal.contains(e.target) || e.target === alvo) return;
+    fecha();
+  }, true);
+})();
+
+/* ===== os temas =====
+   O tema vive numa chave so (stash-theme) e os cinco apps moram no mesmo
+   origin: trocar no Stash troca aqui, e a aba embutida acompanha. O iframe
+   ainda recebe aviso do pai por postMessage, que e o caminho que nao depende
+   de o evento storage chegar. */
+var TEMAS_F=["","editorial","cockpit"];
+var TNOME_F={"":"Padrao",editorial:"Cofre Editorial",cockpit:"Cockpit Data"};
+function aplicaTemaF(t){
+  if(t) document.documentElement.setAttribute("data-theme",t);
+  else document.documentElement.removeAttribute("data-theme");
+  var mc={"":"#000000",editorial:"#F4F0E6",cockpit:"#060f12"}[t||""];
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m&&mc) m.setAttribute("content",mc);
+}
+function temaAtualF(){ try{ return localStorage.getItem("stash-theme")||""; }catch(e){ return ""; } }
+function cicloTemaF(){
+  var t=TEMAS_F[(TEMAS_F.indexOf(temaAtualF())+1)%TEMAS_F.length];
+  try{ localStorage.setItem("stash-theme",t); }catch(e){}
+  aplicaTemaF(t);
+  try{ toast("Tema: "+TNOME_F[t]); }catch(e){}
+}
+aplicaTemaF(temaAtualF());
+/* a versao no rodape: sem ela nao da pra saber se o aparelho ja atualizou */
+try{ var _vn=document.getElementById("verNum"); if(_vn && window.__VER) _vn.textContent=window.__VER; }catch(e){}
+/* outra aba do mesmo app trocou */
+window.addEventListener("storage",function(e){ if(e.key==="stash-theme") aplicaTemaF(e.newValue||""); });
+/* o app de fora avisou a aba embutida */
+window.addEventListener("message",function(e){
+  if(e && e.data && typeof e.data==="object" && e.data.tema!==undefined) aplicaTemaF(e.data.tema||"");
+});
+</script>
+</body>
+</html>

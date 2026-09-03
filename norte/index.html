@@ -387,6 +387,11 @@
   .agrod{ display:flex; gap:9px; margin-top:15px; }
   /* alvo de toque de verdade: e o botao que se usa pra sair sem escolher */
   .agrod button{ flex:1; min-height:48px; padding:13px 16px; font-size:14.5px; border-radius:12px; }
+  /* a aba Listas: o Feito traz o proprio respiro, entao a area nao poe mais.
+     E ela PARA onde a nav do Norte comeca (88px): sem isso a barra de acoes do
+     Feito, que e fixa na base, ficaria por tras da nav — duas barras empilhadas. */
+  .listasview{ padding:0; max-width:none; bottom:calc(88px + env(safe-area-inset-bottom)); }
+  #feitoFrame{ display:block; width:100%; height:100%; border:0; background:var(--bg); }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -908,10 +913,13 @@
 <button class="fab" onclick="openAdd()" data-ic="plus"></button>
 
 <div id="progView" class="progview hidden"></div>
+<!-- o Feito, inteiro, dentro do Norte. Mesma origem: o dado e o mesmo do app solto. -->
+<div id="listasView" class="progview listasview hidden"><iframe id="feitoFrame" title="Listas" loading="lazy"></iframe></div>
 <nav>
   <div class="navbar">
     <button class="on" data-v="dia" onclick="switchView('dia')"><span class="ic" data-ic="day"></span>Meu dia</button>
     <button data-v="prog" onclick="switchView('prog')"><span class="ic" data-ic="trending"></span>Progresso</button>
+    <button data-v="listas" onclick="switchView('listas')"><span class="ic" data-ic="list"></span>Listas</button>
   </div>
 </nav>
 
@@ -923,7 +931,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v83';
+const VERSAO = 'v84';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2189,6 +2197,7 @@ const ICONS={
   /* mesmo tracado do Feito — o microfone e o mesmo desenho em todo app */
   pin:'<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v6.5L5 17z"/>',
   arrow:'<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/>',
+  list:'<line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.4"/><circle cx="4.5" cy="12" r="1.4"/><circle cx="4.5" cy="18" r="1.4"/>',
   mic:'<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
   bio:'<path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4"/><path d="M5 19.5C5.5 18 6 15 6 12c0-.7.12-1.37.34-2"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M21.8 16c.2-2 .13-5.35 0-6"/><path d="M9 6.8a6 6 0 0 1 9 5.2c0 .47 0 1.17-.02 2"/>',
   chevL:'<polyline points="15 18 9 12 15 6"/>',
@@ -2231,10 +2240,16 @@ function paintIcons(){ document.querySelectorAll('[data-ic]').forEach(function(e
 /* ================= ABA PROGRESSO (gráfico de linha do %) ================= */
 let _view='dia', _progMode='dia', _progOn={pct:true,count:true};
 function switchView(v){ _view=v;
-  const pv=document.getElementById('progView'), fab=document.querySelector('.fab');
+  const pv=document.getElementById('progView'), lv=document.getElementById('listasView'), fab=document.querySelector('.fab');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-v')===v));
-  if(v==='prog'){ renderProgress(); pv.classList.remove('hidden'); pv.scrollTop=0; if(fab)fab.style.display='none'; }
-  else { pv.classList.add('hidden'); if(fab)fab.style.display=''; }
+  pv.classList.toggle('hidden', v!=='prog');
+  lv.classList.toggle('hidden', v!=='listas');
+  /* o + e do dia: nas outras abas ele nao tem o que criar */
+  if(fab) fab.style.display = (v==='dia') ? '' : 'none';
+  if(v==='prog'){ renderProgress(); pv.scrollTop=0; }
+  /* so carrega quando alguem entra: quem nunca abrir Listas nao paga por ela */
+  if(v==='listas'){ const fr=document.getElementById('feitoFrame');
+    if(!fr.getAttribute('src')) fr.setAttribute('src','feito.html'); }
 }
 function setProgMode(m){ _progMode=m; renderProgress(); }
 function toggleMetric(m){ _progOn[m]=!_progOn[m]; if(!_progOn.pct && !_progOn.count) _progOn[m]=true; renderProgress(); }
