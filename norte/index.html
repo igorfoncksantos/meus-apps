@@ -358,6 +358,31 @@
               font-size:11px; font-weight:700; border-radius:7px; padding:5px 10px; cursor:pointer; }
   .cat .cadd:active{ transform:scale(.95); }
 
+  /* ===== fim de semana ===== */
+  :root{ --fdsc:#F0B45E; --fdsbg:#1b1108; --fdsln:#5a4620; }
+  .fds-dobra{ display:flex; align-items:center; gap:9px; background:var(--panel);
+              border:1px dashed var(--fdsln); border-radius:10px; padding:11px 13px;
+              color:var(--fdsc); font-size:12.5px; font-weight:700; cursor:pointer;
+              margin-top:14px; }
+  .fds-dobra:active{ transform:scale(.99); }
+  .fds-dobra .ic{ display:flex; }
+  .fds-dobra .n{ margin-left:auto; font-size:11px; color:var(--mut2); font-weight:600; }
+  .fds-barra{ margin:4px 0 13px; }
+  #fdsBar{ margin:0 0 10px; }
+  #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
+
+  .fds-barra .l{ display:flex; align-items:baseline; gap:8px; font-size:11px;
+                 color:var(--mut); margin-bottom:5px; }
+  .fds-barra .l b{ color:var(--fdsc); font-weight:800; font-size:12px; }
+  .fds-barra .l .pc{ margin-left:auto; font-variant-numeric:tabular-nums; }
+  .fds-barra .trilho{ height:5px; border-radius:4px; background:var(--panel); overflow:hidden; }
+  .fds-barra .cheio{ height:100%; border-radius:4px; background:var(--fdsc); transition:width .3s ease; }
+  /* ha quantos fins de semana ela e empurrada: e o numero que faz voce fazer */
+  .fds-tag{ display:inline-block; font-size:9.5px; font-weight:800; padding:2px 7px;
+            border-radius:20px; border:1px solid var(--fdsln); background:var(--fdsbg);
+            color:var(--fdsc); margin-left:6px; }
+  .fds-sh{ font-size:12.5px; color:var(--mut); line-height:1.55; margin-bottom:14px; }
+  .act-list button.fdsA{ color:var(--fdsc); }
   .item{ display:flex; align-items:flex-start; gap:12px; background:var(--panel); border:1px solid var(--line);
          border-left-width:4px; border-radius:12px; padding:13px 14px; margin-bottom:9px;
          box-shadow:0 3px 9px rgba(0,0,0,.34), 0 1px 2px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.06); }
@@ -841,6 +866,8 @@
   <h1 id="dateTitle">—</h1>
 </header>
 
+<!-- no sabado o fim de semana e o assunto: a barra dele vem primeiro -->
+<div class="fds-barra" id="fdsBar" style="display:none"></div>
 <div class="bar">
   <span class="count" id="count">—</span>
   <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
@@ -877,7 +904,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v76';
+const VERSAO = 'v77';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1060,6 +1087,7 @@ function render(){
   if(day()) activateSchedTasks(day().tasks, cur);   // ativa as agendadas cujo dia chegou
   document.getElementById('datepilltxt').textContent = fmtBR(cur) + (cur===todayISO()?' · hoje':'');
   document.getElementById('dateTitle').textContent = longDate(cur);
+  viraFDS();                 /* o que foi feito some quando o fim de semana vira */
   const s=stats();
   document.getElementById('count').textContent =
     `${s.doneN} de ${s.n} · ${s.pct}% do dia` + (s.blocked?` · ${s.blocked} bloqueada${s.blocked>1?'s':''}`:'') + (s.adia?` · ${s.adia} adiada${s.adia>1?'s':''}`:'');
@@ -1095,6 +1123,7 @@ function render(){
     ts.forEach(t=> div.appendChild(itemEl(t,c)));
     host.appendChild(div);
   });
+  pintaFDS(host); pintaBarraFDS();
   // tarefas cuja categoria nao existe mais: aparecem em vez de sumir
   const orfas = day().tasks.filter(t=>!CATS.some(c=>c.id===t.cat)).sort((a,b)=> sortKey(a)-sortKey(b));
   if(orfas.length && !_catFilter){
@@ -1222,7 +1251,147 @@ function tbarInner(d,tot,chave){ const pc=tot?Math.round(d/tot*100):0; return _b
 function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ============= interações ============= */
-function findTask(id){ return day().tasks.find(t=>t.id===id); }
+function findTask(id){
+  /* o balde do fim de semana tambem e casa de tarefa: sem isto, abrir uma
+     tarefa de sabado nao acharia nada e o menu nao faria nada. */
+  return day().tasks.find(t=>t.id===id) || (DB.fds&&DB.fds.itens||[]).find(t=>t.id===id); }
+
+/* ================= FIM DE SEMANA ================= */
+/* O balde vive FORA dos dias: e o que permite a tarefa nao cair na segunda. */
+function fds(){ if(!DB.fds) DB.fds={on:false,itens:[],ciclo:null}; return DB.fds; }
+function ehFDS(iso){ const d=new Date(iso+'T12:00:00').getDay(); return d===0||d===6; }
+/* o sabado daquele fim de semana: e a identidade do ciclo */
+function sabadoDe(iso){
+  const dt=new Date(iso+'T12:00:00'), d=dt.getDay();
+  if(d===6) return iso;
+  if(d===0){ dt.setDate(dt.getDate()-1); return dt.toISOString().slice(0,10); }
+  return null;
+}
+/* virou o fim de semana: o que foi FEITO some, o que nao foi espera o proximo */
+function viraFDS(){
+  const F=fds(); if(!F.on) return;
+  const sab=sabadoDe(cur); if(!sab) return;
+  if(F.ciclo===sab) return;
+  const antes=F.itens.length;
+  F.itens=F.itens.filter(t=>t.status!=='done');
+  F.ciclo=sab;
+  if(antes!==F.itens.length) save();
+}
+function statsFDS(){
+  const ts=fds().itens; let n=0,doneN=0;
+  ts.forEach(t=>{ if(t.status==='canc') return; n++; if(t.status==='done') doneN++; });
+  return {n,doneN,pct:n?Math.round(doneN/n*100):0};
+}
+/* quantos fins de semana esta tarefa ja atravessou */
+function fdsEspera(t){
+  if(!t.fdsDesde) return 0;
+  const a=new Date(t.fdsDesde+'T12:00:00'), b=new Date((sabadoDe(cur)||cur)+'T12:00:00');
+  return Math.max(0, Math.round((b-a)/(7*86400000)));
+}
+
+/* ---- a acao: existe mesmo sem a categoria ativa, e usar e o que ativa ---- */
+function mandarFDS(id){
+  const t=findTask(id); if(!t) return;
+  const F=fds(); const novo=!F.on;
+  F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+  const d=day(); d.tasks=d.tasks.filter(x=>x.id!==id);
+  t.status = (t.status==='done'||t.status==='canc') ? 'pend' : t.status;
+  t.fdsDesde = sabadoDe(cur) || proximoSabado();
+  F.itens.push(t);
+  save(); render();
+  if(novo) uiAlert('O que você mandar pro fim de semana some da lista da semana e volta no sábado. Se não fizer, ele espera o próximo — não cai na sua segunda.',{title:'Pronto — ela volta no sábado'});
+}
+function proximoSabado(){
+  const dt=new Date(cur+'T12:00:00');
+  while(dt.getDay()!==6) dt.setDate(dt.getDate()+1);
+  return dt.toISOString().slice(0,10);
+}
+function trazerFDS(id){
+  const F=fds(); const i=F.itens.findIndex(t=>t.id===id); if(i<0) return;
+  const t=F.itens.splice(i,1)[0];
+  delete t.fdsDesde;
+  day().tasks.push(t);
+  save(); render();
+}
+function ativaFDS(){
+  const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+  try{ localStorage.setItem('norte-fds-convite','1'); }catch(e){}
+  save(); render(); closeSheet();
+}
+function dispensaFDS(){ try{ localStorage.setItem('norte-fds-convite','1'); }catch(e){} render(); closeSheet(); }
+
+/* no sabado e no domingo o fim de semana e o assunto: vem primeiro, com barra
+   propria. No resto da semana ele e uma linha so, que some do caminho sem sair
+   de vista — e continua sendo destino de qualquer tarefa empurrada. */
+function pintaFDS(host){
+  const F=fds();
+  if(!F.on || _catFilter) return;
+  const noFDS = ehFDS(cur);
+  if(!noFDS){
+    const esperando=F.itens.filter(t=>t.status!=='done'&&t.status!=='canc').length;
+    if(!esperando) return;
+    const d=document.createElement('div'); d.className='fds-dobra';
+    d.onclick=abreFDS;
+    d.innerHTML='<span class="ic">'+svgIc('cal')+'</span>Fim de semana<span class="n">'+
+                esperando+' esperando</span>';
+    host.appendChild(d);
+    return;
+  }
+  const sf=statsFDS();
+  const div=document.createElement('div'); div.className='cat';
+  let h='<div class="chead"><span class="cbar" style="background:var(--fdsc);box-shadow:0 0 8px var(--fdsc)"></span>'+
+        '<span class="cname">Fim de semana</span>'+
+        '<button class="cadd" onclick="openAdd(\'__fds\')">+ tarefa</button></div>';
+  div.innerHTML=h;
+  F.itens.slice().sort((a,b)=> sortKey(a)-sortKey(b)).forEach(t=>{
+    /* a cor da categoria de ORIGEM fica: no sabado voce ainda ve o que e da
+       casa e o que e do trabalho */
+    const c = CATS.find(x=>x.id===t.cat) || {id:'__fds',name:'Fim de semana',color:'var(--fdsc)'};
+    const el=itemEl(t,c);
+    const esp=fdsEspera(t);
+    if(esp>0){
+      const tag=document.createElement('span'); tag.className='fds-tag';
+      tag.textContent='há '+esp+' fds';
+      const alvo=el.querySelector('.meio')||el;
+      alvo.appendChild(tag);
+    }
+    div.appendChild(el);
+  });
+  /* no sabado o fim de semana e o assunto: a secao dele vem ANTES das outras.
+     No resto da semana isso nem se aplica — la ele e a linha recolhida. */
+  if(host.firstChild) host.insertBefore(div, host.firstChild); else host.appendChild(div);
+}
+/* a barra do periodo, no alto: so existe no sabado e no domingo */
+function pintaBarraFDS(){
+  const el=document.getElementById('fdsBar'); if(!el) return;
+  const F=fds();
+  if(!F.on || !ehFDS(cur) || !F.itens.length){ el.style.display='none'; return; }
+  const sf=statsFDS();
+  el.style.display='';
+  el.innerHTML='<div class="l"><b>Fim de semana</b><span>'+sf.doneN+' de '+sf.n+'</span>'+
+               '<span class="pc">'+sf.pct+'%</span></div>'+
+               '<div class="trilho"><div class="cheio" style="width:'+sf.pct+'%"></div></div>';
+}
+function abreFDS(){
+  const F=fds();
+  const ts=F.itens.filter(t=>t.status!=='done'&&t.status!=='canc');
+  sheet('<h3>Fim de semana</h3><div class="fds-sh">Estas esperam o sábado. Se não forem feitas, esperam o próximo — não caem na sua segunda.</div>'+
+    '<div class="act-list">'+
+    ts.map(t=>'<button onclick="closeSheet();openActions(\''+t.id+'\')"><span class="ic">'+svgIc('cal')+'</span>'+escapeHtml(t.title)+'</button>').join('')+
+    '</div><div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>');
+}
+/* o convite da sexta: aparece quando a ideia se explica sozinha */
+function conviteFDS(){
+  try{ if(localStorage.getItem('norte-fds-convite')) return; }catch(e){}
+  if(fds().on) return;
+  if(cur!==todayISO()) return;
+  if(new Date(cur+'T12:00:00').getDay()!==5) return;   /* sexta */
+  sheet('<h3>Guardar coisas pro fim de semana?</h3>'+
+    '<div class="fds-sh">O que você marcar como fim de semana some da lista da semana e volta no sábado. Se não fizer, ele espera o próximo — não cai na sua segunda-feira.</div>'+
+    '<div class="actions"><button class="btn-ghost" onclick="dispensaFDS()">Agora não</button>'+
+    '<button class="btn-primary" onclick="ativaFDS()">Ativar</button></div>');
+}
+
 function flashFx(){ const f=document.getElementById('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); if(navigator.vibrate)navigator.vibrate(16);
   /* o som e a terceira camada: a tela ja piscava e o aparelho ja vibrava */
   try{ som('feito'); }catch(e){} }
@@ -1290,6 +1459,11 @@ function openActions(id){ const t=findTask(id);
     [svgIc('pen'),'Editar',`editTask('${id}')`],
     [svgIc('trash'),'Apagar',`delTask('${id}')`,'del'],
   ];
+  /* a porta do fim de semana, nos dois sentidos. Ela existe mesmo com a
+     categoria desligada: usar e o que a liga. */
+  const noBalde = (DB.fds&&DB.fds.itens||[]).some(x=>x.id===id);
+  if(noBalde) acts.splice(1,0,[svgIc('undo'),'Trazer pra hoje',`trazerFDS('${id}')`,'fdsA']);
+  else        acts.splice(1,0,[svgIc('cal'),'Mandar pro fim de semana',`mandarFDS('${id}')`,'fdsA']);
   sheet(`<h3>${escapeHtml(t.title)}</h3><div class="act-list">`+
     /* fecha ANTES de agir: se a acao abrir outra folha (Editar, Agendar), um
        closeSheet() depois mataria justamente a folha recem-aberta */
