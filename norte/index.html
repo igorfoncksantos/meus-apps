@@ -377,19 +377,6 @@
   .calpop .ch button.trava{ opacity:.25; pointer-events:none; }
   .schedlbl{ margin-top:9px; font-size:12px; color:var(--mut); text-align:center; }
   .schedlbl.on{ color:var(--accent); font-weight:700; }
-  /* a linha rapida: mesma altura de uma tarefa, pra nao empurrar a lista */
-  .qarow{ display:flex; gap:7px; align-items:center; margin-top:7px; }
-  .qarow input{ flex:1; min-width:0; background:var(--card); border:1px solid var(--line);
-    border-radius:9px; padding:10px 11px; color:var(--txt); font-size:13.5px; font-family:inherit; }
-  .qarow input:focus{ outline:none; border-color:var(--accent); }
-  .qarow .qaok{ flex:0 0 auto; width:38px; height:38px; border:none; border-radius:9px;
-    background:var(--accent); color:var(--onacc); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .qarow .qaok svg{ width:17px; height:17px; }
-  .qarow .qaok:active{ transform:scale(.92); }
-  .qamais{ display:flex; gap:14px; margin-top:6px; padding-left:2px; }
-  .qamais button{ background:none; border:none; padding:2px 0; color:var(--mut2);
-    font-size:11.5px; font-weight:700; font-family:inherit; cursor:pointer; }
-  .qamais button:first-child{ color:var(--accent); }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -926,7 +913,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v80';
+const VERSAO = 'v81';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1142,9 +1129,8 @@ function render(){
     const div=document.createElement('div'); div.className='cat';
     div.innerHTML=`<div class="chead"><span class="cbar" style="background:${c.color};box-shadow:0 0 8px ${c.color}99"></span>
       <span class="cname" style="cursor:pointer" onclick="openCatActions('${c.id}')">${escapeHtml(c.name)} <span class="cedit">${svgIc('pen')}</span></span>
-      <button class="cadd" onclick="quickAdd('${c.id}')">+ tarefa</button></div>`;
+      <button class="cadd" onclick="openAdd('${c.id}')">+ tarefa</button></div>`;
     ts.forEach(t=> div.appendChild(itemEl(t,c)));
-    if(_qaCat===c.id) div.insertAdjacentHTML('beforeend', quickRowHTML());
     host.appendChild(div);
   });
   pintaFDS(host); pintaBarraFDS();
@@ -1365,7 +1351,7 @@ function pintaFDS(host){
   const div=document.createElement('div'); div.className='cat';
   let h='<div class="chead"><span class="cbar" style="background:var(--fdsc);box-shadow:0 0 8px var(--fdsc)"></span>'+
         '<span class="cname">Fim de semana</span>'+
-        '<button class="cadd" onclick="quickAdd(\'__fds\')">+ tarefa</button></div>';
+        '<button class="cadd" onclick="openAdd(\'__fds\')">+ tarefa</button></div>';
   div.innerHTML=h;
   F.itens.slice().sort((a,b)=> sortKey(a)-sortKey(b)).forEach(t=>{
     /* a cor da categoria de ORIGEM fica: no sabado voce ainda ve o que e da
@@ -1383,7 +1369,6 @@ function pintaFDS(host){
   });
   /* no sabado o fim de semana e o assunto: a secao dele vem ANTES das outras.
      No resto da semana isso nem se aplica — la ele e a linha recolhida. */
-  if(_qaCat==='__fds') div.insertAdjacentHTML('beforeend', quickRowHTML());
   if(host.firstChild) host.insertBefore(div, host.firstChild); else host.appendChild(div);
 }
 /* a barra do periodo, no alto: so existe no sabado e no domingo */
@@ -1561,50 +1546,22 @@ async function delTask(id){ const t=findTask(id); if(!t)return;
 
 /* ---- add / edit ---- */
 let editing=null;
-/* ---- linha rapida: o "+ tarefa" de dentro de uma categoria ---- */
-let _qaCat=null;
-function quickRowHTML(){
-  /* form de verdade: e o submit que o teclado do app dispara no Enter */
-  return '<form class="qarow" onsubmit="return quickSave()">'+
-    '<input id="qaIn" autocomplete="off" placeholder="o que fazer">'+
-    '<button type="submit" class="qaok" title="Adicionar">'+svgIc('check')+'</button>'+
-    '</form><div class="qamais"><button type="button" onclick="quickMais()">mais opções</button>'+
-    '<button type="button" onclick="quickFecha()">fechar</button></div>';
-}
-function quickAdd(catId){
+function openAdd(catId){
   if(catId!=='__fds' && !CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; }
-  _qaCat=catId; render(); quickFoco();
+  editing=null; _formParaFDS = (catId==='__fds');
+  /* veio de dentro de uma categoria: ela ja esta respondida, o seletor sai */
+  showForm({ cat: (catId==='__fds' ? '__fds' : (catId||CATS[0].id)), semCat: !!catId });
 }
-function quickFoco(){ const el=document.getElementById('qaIn'); if(el){ el.focus(); el.scrollIntoView({block:'center'}); } }
-function quickFecha(){ _qaCat=null; render(); }
-function quickSave(){
-  const el=document.getElementById('qaIn'); const txt=el?el.value.trim():'';
-  if(!txt){ quickFecha(); return false; }
-  const t={ id:uid(), cat:(_qaCat==='__fds'?null:_qaCat), title:txt, meta:'', status:'pend', prio:null };
-  if(_qaCat==='__fds'){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
-    t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
-  else day().tasks.push(t);
-  save(); render();
-  /* a linha continua aberta: quem abre pra escrever uma costuma escrever tres */
-  quickFoco();
-  return false;
-}
-function quickMais(){
-  const el=document.getElementById('qaIn'); const txt=el?el.value.trim():'';
-  const alvo=_qaCat; _qaCat=null; render();
-  /* o que ja foi digitado vai junto — ninguem redigita por ter mudado de ideia */
-  if(alvo==='__fds'){ _formParaFDS=true; editing=null; showForm({cat:(CATS[0]&&CATS[0].id)||null, title:txt}); }
-  else { editing=null; showForm({cat:alvo, title:txt}); }
-}
-function openAdd(catId){ if(!CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; } editing=null; _formParaFDS=false; showForm({cat:catId||CATS[0].id}); }
 let _formParaFDS=false;
 function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
-  formCat=t.cat||(CATS[0]&&CATS[0].id)||null; formPrio=t.prio||null;
+  formCat = (t.cat==='__fds') ? null : (t.cat||(CATS[0]&&CATS[0].id)||null); formPrio=t.prio||null;
   formRecur = t.rec ? JSON.parse(JSON.stringify(t.rec)) : {type:'none',days:[],dom:20,date:''};
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
-  sheet(`<h3>${editing?'Editar tarefa':'Nova tarefa'}</h3>
-    <div class="field"><label>Categoria</label><div class="catrow" id="catrow"></div></div>
+  /* sem o seletor, o titulo e quem diz onde a tarefa vai cair */
+  const _dest = t.semCat ? (t.cat==='__fds' ? ' no fim de semana' : ' em '+((CATS.find(c=>c.id===t.cat)||{}).name||'')) : '';
+  sheet(`<h3>${editing?'Editar tarefa':'Nova tarefa'+_dest}</h3>
+    ${t.semCat ? '' : '<div class="field"><label>Categoria</label><div class="catrow" id="catrow"></div></div>'}
     <div class="field"><label>O que fazer</label><div class="linhamic"><input id="fTitle" value="${escapeAttr(t.title||'')}" placeholder="ex.: Editar 1 reel">${micHTML("fTitle")}</div></div>
     <div class="field"><label>Detalhe (opcional)</label><input id="fMeta" value="${escapeAttr(t.meta||'')}" placeholder="ex.: deadline 20/08"></div>
     <div class="field"><label>Prioridade</label><div class="prow">
