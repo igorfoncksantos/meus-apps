@@ -377,6 +377,15 @@
   .calpop .ch button.trava{ opacity:.25; pointer-events:none; }
   .schedlbl{ margin-top:9px; font-size:12px; color:var(--mut); text-align:center; }
   .schedlbl.on{ color:var(--accent); font-weight:700; }
+  /* Agendar no formulario: o calendario abre no centro, sobre a folha */
+  .recbtn .agic{ display:inline-flex; margin-right:8px; opacity:.75; }
+  .recbtn .agic svg{ width:15px; height:15px; }
+  .agov{ z-index:95; }
+  .agcard{ max-width:330px; }
+  .agcard h2{ margin:0 0 12px; }
+  .agcard .calpop.inline{ margin:0; }
+  .agrod{ display:flex; gap:9px; margin-top:13px; }
+  .agrod button{ flex:1; }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -913,7 +922,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v81';
+const VERSAO = 'v82';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1496,32 +1505,39 @@ function schedTask(id){ _schedId=id; const t=findTask(id);
     <div class="schedlbl" id="schedLbl"></div></div>
     <div class="actions"><button class="btn-danger" onclick="clearSched()">Tirar</button><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" onclick="saveSched()">Agendar</button></div>`);
   renderSchedCal(); }
-function schedCalShift(n){ const [y,m]=schedCalM.split('-').map(Number); const d=new Date(y,m-1+n,1);
-  const alvo=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';
-  /* nao ha o que ver atras do mes de hoje */
-  if(alvo < todayISO().slice(0,8)+'01') return;
-  schedCalM=alvo; renderSchedCal(); }
-function renderSchedCal(){ const host=document.getElementById('schedCalHost'); if(!host)return;
-  const [y,m]=schedCalM.split('-').map(Number);
+function schedCalShift(n){ schedCalM=mesAdiante(schedCalM,n); renderSchedCal(); }
+/* A GRADE, uma so: quem chama diz o mes visivel, o dia escolhido e o nome da
+   funcao que recebe o toque. Sempre de hoje em diante. */
+function htmlCalFuturo(mesISO, escolhido, aoTocar, aoTrocarMes){
+  const [y,m]=mesISO.split('-').map(Number);
   const hoje=todayISO();
-  const first=new Date(y,m-1,1), start=first.getDay(), dim=new Date(y,m,0).getDate();
+  const start=new Date(y,m-1,1).getDay(), dim=new Date(y,m,0).getDate();
   let cells='';
   function cel(dt,other){
     const iso=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-    const passado = iso < hoje;
-    let cls='cell'; if(other)cls+=' other'; if(iso===hoje)cls+=' today'; if(iso===_schedISO)cls+=' sel';
-    if(passado){ cls+=' off'; return `<div class="${cls}">${dt.getDate()}</div>`; }
-    return `<div class="${cls}" onclick="pickSchedDay('${iso}')">${dt.getDate()}</div>`;
+    let cls='cell'; if(other)cls+=' other'; if(iso===hoje)cls+=' today'; if(iso===escolhido)cls+=' sel';
+    /* o passado fica visivel pra grade nao desmontar, mas nao aceita toque */
+    if(iso < hoje) return `<div class="${cls} off">${dt.getDate()}</div>`;
+    return `<div class="${cls}" onclick="${aoTocar}('${iso}')">${dt.getDate()}</div>`;
   }
   for(let i=0;i<start;i++) cells+=cel(new Date(y,m-1,1-(start-i)),true);
   for(let d=1;d<=dim;d++) cells+=cel(new Date(y,m-1,d),false);
   const rest=(start+dim)%7; if(rest) for(let i=1;i<=7-rest;i++) cells+=cel(new Date(y,m,i),true);
-  const noComeco = schedCalM <= hoje.slice(0,8)+'01';
-  host.innerHTML=`<div class="calpop inline">
-    <div class="ch"><button type="button" class="${noComeco?'trava':''}" onclick="schedCalShift(-1)">‹</button>
-    <b>${MESSHORT[m-1]} ${y}</b><button type="button" onclick="schedCalShift(1)">›</button></div>
+  const noComeco = mesISO <= hoje.slice(0,8)+'01';
+  return `<div class="calpop inline">
+    <div class="ch"><button type="button" class="${noComeco?'trava':''}" onclick="${aoTrocarMes}(-1)">‹</button>
+    <b>${MESSHORT[m-1]} ${y}</b><button type="button" onclick="${aoTrocarMes}(1)">›</button></div>
     <div class="wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
     <div class="grid">${cells}</div></div>`;
+}
+/* avanca o mes sem deixar ir pra tras de hoje */
+function mesAdiante(mesISO, n){
+  const [y,m]=mesISO.split('-').map(Number); const d=new Date(y,m-1+n,1);
+  const alvo=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-01';
+  return (alvo < todayISO().slice(0,8)+'01') ? mesISO : alvo;
+}
+function renderSchedCal(){ const host=document.getElementById('schedCalHost'); if(!host)return;
+  host.innerHTML=htmlCalFuturo(schedCalM, _schedISO, 'pickSchedDay', 'schedCalShift');
   schedLabel(); }
 function schedLabel(){ const el=document.getElementById('schedLbl'); if(!el)return;
   if(!_schedISO){ el.textContent='Nenhuma data escolhida.'; el.classList.remove('on'); return; }
@@ -1557,6 +1573,9 @@ function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
   formCat = (t.cat==='__fds') ? null : (t.cat||(CATS[0]&&CATS[0].id)||null); formPrio=t.prio||null;
   formRecur = t.rec ? JSON.parse(JSON.stringify(t.rec)) : {type:'none',days:[],dom:20,date:''};
+  /* so vale data ainda a frente: agendamento vencido ja virou tarefa do dia */
+  const _ag = isoFromSched(t.sched);
+  formSched = (_ag && _ag >= todayISO()) ? _ag : '';
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
   /* sem o seletor, o titulo e quem diz onde a tarefa vai cair */
   const _dest = t.semCat ? (t.cat==='__fds' ? ' no fim de semana' : ' em '+((CATS.find(c=>c.id===t.cat)||{}).name||'')) : '';
@@ -1572,6 +1591,10 @@ function showForm(t){
     <div class="field"><label>Subtarefas (opcional)</label>
       <div id="subRows">${subRows}</div>
       <button type="button" class="cadd" style="margin-top:2px" onclick="addSubRow()">+ subtarefa</button></div>
+    <div class="field"><label>Agendar</label>
+      <button type="button" class="recbtn" onclick="abreAgenda()">
+        <span class="agic">${svgIc('cal')}</span><span id="agTxt">${agTexto()}</span>
+        <span style="margin-left:auto;opacity:.55">▾</span></button></div>
     <div class="field"><label>Recorrência</label>
       <button type="button" class="recbtn" onclick="toggleRecPanel()"><span id="recBtnTxt">Não se repete</span><span style="margin-left:auto;opacity:.55">▾</span></button>
       <div id="recPanel" class="recpanel hidden">
@@ -1661,6 +1684,37 @@ function syncRecurring(t){ DB.recurring=DB.recurring||[];
     const i=DB.recurring.findIndex(x=>x.rid===t.rid); if(i>=0)DB.recurring[i]=e; else DB.recurring.push(e);
   } else if(t.rid){ DB.recurring=DB.recurring.filter(x=>x.rid!==t.rid); delete t.rid; }
 }
+/* ---- Agendar de dentro do formulario ---- */
+let formSched='', agCalM='';
+function agTexto(){
+  if(!formSched) return 'Não agendada';
+  const d=new Date(formSched+'T12:00:00');
+  return WD[d.getDay()]+', '+d.getDate()+' de '+MES[d.getMonth()];
+}
+function agSync(){ const el=document.getElementById('agTxt'); if(el) el.textContent=agTexto(); }
+function abreAgenda(){
+  agCalM=(formSched||todayISO()).slice(0,8)+'01';
+  let ov=document.getElementById('agOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='agOv'; ov.className='authov agov';
+    /* tocar fora fecha; tocar dentro do cartao nao */
+    ov.onclick=function(e){ if(e.target===ov) fechaAgenda(); };
+    document.body.appendChild(ov); }
+  ov.classList.remove('hidden'); renderAgCal();
+}
+function fechaAgenda(){ const ov=document.getElementById('agOv'); if(ov) ov.classList.add('hidden'); }
+function agCalShift(n){ agCalM=mesAdiante(agCalM,n); renderAgCal(); }
+function renderAgCal(){
+  const ov=document.getElementById('agOv'); if(!ov)return;
+  ov.innerHTML='<div class="auth-card agcard">'+
+    '<h2>Agendar tarefa</h2>'+
+    htmlCalFuturo(agCalM, formSched, 'pickAgDay', 'agCalShift')+
+    '<div class="agrod">'+
+      (formSched ? '<button type="button" class="btn-danger" onclick="tiraAgenda()">Tirar</button>' : '')+
+      '<button type="button" class="btn-ghost" onclick="fechaAgenda()">Fechar</button>'+
+    '</div></div>';
+}
+function pickAgDay(iso){ if(iso<todayISO())return; formSched=iso; agSync(); fechaAgenda(); }
+function tiraAgenda(){ formSched=''; agSync(); fechaAgenda(); }
 function refreshCatrow(){ const row=document.getElementById('catrow'); if(!row)return;
   row.innerHTML = CATS.map(c=>`<div class="catopt ${formCat===c.id?'sel':''}" data-cat="${c.id}" onclick="pickCat(this)"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('')
     + `<div class="catopt" style="border-style:dashed" onclick="quickAddCat()"><span class="dot" style="background:var(--mut)"></span>+ nova</div>`;
@@ -1706,13 +1760,25 @@ function saveForm(){
         if(ns.qm>0){ o.qm=ns.qm; o.q=Math.min(ns.qm, (old&&old.q)||0); o.done=(o.q>=o.qm); }
         return o; }); }
     else delete t.subs;
+    aplicaAgenda(t);
     syncRecurring(t); }
   else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr;
+    aplicaAgenda(t);
     if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
       t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
     else { day().tasks.push(t); syncRecurring(t); } }
   _formParaFDS=false;
-  editing=null; closeSheet(); render();
+  editing=null; formSched=''; closeSheet(); render();
+}
+/* a data escolhida no formulario vira o agendamento da tarefa. Tirar a data
+   devolve ela pro dia; nao mexe em tarefa que nunca foi agendada. */
+function aplicaAgenda(t){
+  if(formSched){
+    const [y,m,d]=formSched.split('-');
+    t.status='sched'; t.sched=d+'/'+m;
+  } else if(t.status==='sched'){
+    t.status='pend'; t.sched=null;
+  }
 }
 function escapeAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
