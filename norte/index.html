@@ -384,8 +384,9 @@
   .agcard{ max-width:330px; }
   .agcard h2{ margin:0 0 12px; }
   .agcard .calpop.inline{ margin:0; }
-  .agrod{ display:flex; gap:9px; margin-top:13px; }
-  .agrod button{ flex:1; }
+  .agrod{ display:flex; gap:9px; margin-top:15px; }
+  /* alvo de toque de verdade: e o botao que se usa pra sair sem escolher */
+  .agrod button{ flex:1; min-height:48px; padding:13px 16px; font-size:14.5px; border-radius:12px; }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -922,7 +923,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v82';
+const VERSAO = 'v83';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
