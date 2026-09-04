@@ -793,6 +793,42 @@ document.getElementById('notaSalvo').textContent =
   'O progresso fica salvo neste navegador. Fechar e voltar mantém — limpar os dados do site apaga.';
 pinta(); desenha(0.016);
 requestAnimationFrame(laco);
-if('serviceWorker' in navigator) addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+/* ---- operador + aviso de versão nova ---- */
+(function(){
+  if(!('serviceWorker' in navigator) || location.protocol==='file:') return;
+  var recarregando=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(recarregando)return; recarregando=true; location.reload(); });
+
+  function aviso(reg){
+    if(document.getElementById('__upd')) return;
+    var b=document.createElement('div'); b.id='__upd';
+    b.style.cssText='position:fixed;left:50%;top:calc(160px + env(safe-area-inset-top));transform:translate(-50%,-10px);z-index:100000;display:flex;align-items:center;gap:11px;max-width:calc(100% - 28px);background:#1C160F;color:#F2E8D8;border:1px solid rgba(242,232,216,.16);border-radius:15px;padding:9px 9px 9px 14px;box-shadow:0 16px 40px rgba(0,0,0,.6);font-family:Barlow,system-ui,sans-serif;font-size:13.5px;font-weight:600;opacity:0;transition:opacity .28s ease,transform .28s cubic-bezier(.34,1.4,.5,1)';
+    b.innerHTML='<span>Nova versão da mina</span><button id="__updb" style="border:none;cursor:pointer;font:inherit;font-weight:800;color:#191206;background:#F2B441;border-radius:11px;padding:9px 14px">Atualizar</button>';
+    document.body.appendChild(b);
+    requestAnimationFrame(function(){ b.style.opacity='1'; b.style.transform='translate(-50%,0)'; });
+    document.getElementById('__updb').onclick=function(){
+      this.textContent='Atualizando…'; this.disabled=true;
+      try{ salva(); }catch(e){}          /* o progresso vai junto */
+      if(reg.waiting){ reg.waiting.postMessage('SKIP_WAITING'); } else { location.reload(); }
+    };
+  }
+
+  function vigia(reg){
+    if(reg.waiting && navigator.serviceWorker.controller) aviso(reg);
+    reg.addEventListener('updatefound',function(){
+      var nv=reg.installing; if(!nv) return;
+      nv.addEventListener('statechange',function(){
+        if(nv.state==='installed' && navigator.serviceWorker.controller) aviso(reg); }); });
+    setInterval(function(){ reg.update().catch(function(){}); }, 60000);
+    function confere(){ reg.update().catch(function(){}); }
+    document.addEventListener('visibilitychange',function(){ if(!document.hidden) confere(); });
+    addEventListener('focus', confere);
+    addEventListener('pageshow', confere);
+  }
+  addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(vigia).catch(function(){});
+  });
+})();
 addEventListener('visibilitychange', ()=>{ if(document.hidden) salva(); });
 </script>
