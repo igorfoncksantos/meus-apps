@@ -1,4 +1,5 @@
 <title>Escavação</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap">
 <style>
@@ -26,6 +27,9 @@ body{
   -webkit-font-smoothing:antialiased;
   -webkit-tap-highlight-color:transparent;
   user-select:none;
+  /* mata o zoom de toque duplo — num jogo de toque rápido ele dispara sozinho */
+  touch-action:manipulation;
+  overscroll-behavior:none;
 }
 #poco{position:fixed;inset:0;z-index:0}
 #veu{position:fixed;inset:0;z-index:1;pointer-events:none;
@@ -93,7 +97,7 @@ body{
 .item .q{float:right;font-size:11px;color:var(--osso2);font-weight:600}
 
 /* ---------- cavar ---------- */
-.cavar{width:100%;border:none;border-radius:16px;cursor:pointer;
+.cavar{width:100%;border:none;border-radius:16px;cursor:pointer;touch-action:none;
   font-family:Anton,sans-serif;font-size:26px;letter-spacing:.06em;
   background:var(--lampada);color:#191206;
   padding:20px 0;box-shadow:0 6px 0 var(--lampada-esc), 0 12px 26px rgba(0,0,0,.5);
