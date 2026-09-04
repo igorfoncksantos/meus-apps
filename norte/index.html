@@ -392,6 +392,9 @@
      Feito, que e fixa na base, ficaria por tras da nav — duas barras empilhadas. */
   .listasview{ padding:0; max-width:none; bottom:calc(88px + env(safe-area-inset-bottom)); }
   #feitoFrame{ display:block; width:100%; height:100%; border:0; background:var(--bg); }
+  /* a dica embaixo de um campo: explica o que o numero faz, sem virar aviso */
+  .field .dica{ margin-top:6px; font-size:11px; line-height:1.45; color:var(--mut2); }
+  .field .dica b{ color:var(--accent); font-weight:700; }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -931,7 +934,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v85';
+const VERSAO = 'v86';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1426,8 +1429,13 @@ function flashFx(){ const f=document.getElementById('flash'); f.classList.remove
   try{ som('feito'); }catch(e){} }
 
 function toggleDone(id){ const t=findTask(id);
-  if(t.status==='done'){ t.status='pend'; }
-  else{ t.status='done'; if(t.subs)t.subs.forEach(s=>s.done=true); if(t.goals)for(const k in t.goals)t.goals[k][0]=t.goals[k][1]; if(t.cota)t.cota[0]=t.cota[1]; flashFx(); }
+  /* marcar enche ate o alvo, desmarcar zera — o mesmo par das subtarefas.
+     Sem isso o contador ficava cheio com a tarefa pendente. */
+  if(t.status==='done'){ t.status='pend';
+    if(t.subs)t.subs.forEach(s=>{ s.done=false; if(s.qm>0)s.q=0; });
+    if(t.cota)t.cota[0]=0; }
+  else{ t.status='done';
+    if(t.subs)t.subs.forEach(s=>{ s.done=true; if(s.qm>0)s.q=s.qm; }); if(t.goals)for(const k in t.goals)t.goals[k][0]=t.goals[k][1]; if(t.cota)t.cota[0]=t.cota[1]; flashFx(); }
   render();
 }
 let _subTid=null, _subAnim='';
@@ -1598,6 +1606,9 @@ function showForm(t){
       <div class="popt ${t.prio==='star'?'sel':''}" data-p="star" onclick="pickPrio(this)">★</div>
       <div class="popt max ${t.prio==='max'?'sel':''}" data-p="max" onclick="pickPrio(this)">★★</div>
       <div class="popt urg ${t.prio==='urgente'?'sel':''}" data-p="urgente" onclick="pickPrio(this)">★★★</div></div></div>
+    <div class="field"><label>Quantidade (opcional)</label>
+      <input id="fQtd" type="number" inputmode="numeric" min="1" value="${t.cota?t.cota[1]:''}" placeholder="ex.: 5">
+      <div class="dica">A tarefa vira um contador <b>− 0/5 +</b> e anda no percentual do dia a cada toque, sem precisar estar concluída.</div></div>
     <div class="field"><label>Subtarefas (opcional)</label>
       <div id="subRows">${subRows}</div>
       <button type="button" class="cadd" style="margin-top:2px" onclick="addSubRow()">+ subtarefa</button></div>
@@ -1770,15 +1781,28 @@ function saveForm(){
         if(ns.qm>0){ o.qm=ns.qm; o.q=Math.min(ns.qm, (old&&old.q)||0); o.done=(o.q>=o.qm); }
         return o; }); }
     else delete t.subs;
-    aplicaAgenda(t);
+    aplicaAgenda(t); aplicaQtd(t);
     syncRecurring(t); }
   else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr;
-    aplicaAgenda(t);
+    aplicaAgenda(t); aplicaQtd(t);
     if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
       t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
     else { day().tasks.push(t); syncRecurring(t); } }
   _formParaFDS=false;
   editing=null; formSched=''; closeSheet(); render();
+}
+/* a quantidade vira a cota da tarefa. O quanto ja foi contado sobrevive a
+   edicao, limitado ao alvo novo — baixar o alvo abaixo do contado fecha. */
+function aplicaQtd(t){
+  const el = document.getElementById('fQtd');
+  const n = el ? Math.floor(Number(el.value) || 0) : 0;
+  if(n > 0){
+    const feito = t.cota ? t.cota[0] : 0;
+    t.cota = [Math.min(feito, n), n];
+    t.status = (t.cota[0] >= n) ? 'done' : (t.status === 'done' ? 'pend' : t.status);
+  } else if(t.cota){
+    delete t.cota;
+  }
 }
 /* a data escolhida no formulario vira o agendamento da tarefa. Tirar a data
    devolve ela pro dia; nao mexe em tarefa que nunca foi agendada. */
