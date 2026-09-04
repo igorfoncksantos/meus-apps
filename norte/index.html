@@ -977,7 +977,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v89';
+const VERSAO = 'v90';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2128,11 +2128,11 @@ function buildNewDay(iso, carrega){
 /* ---- preferencias do aparelho (nao sincronizam: sao daqui, nao da conta) ---- */
 /* duas respostas, nao tres estados: 'sim' e 'auto' sao o MESMO teclado —
    o do app — e so um deles faz sentido oferecer. */
-const TEC_ROT = { auto:'do aplicativo', sim:'do aplicativo', nao:'do celular' };
+const TEC_ROT = { auto:'do aplicativo', sim:'do aplicativo', nao:'do aparelho' };
 function tecEstado(){ try{ const e = localStorage.getItem('apps-teclado');
   return (e === 'sim' || e === 'nao') ? e : 'auto'; }catch(x){ return 'auto'; } }
 /* o que a pessoa escolheu, em duas caixas: 'sim' cai em 'app' junto com 'auto' */
-function tecEscolha(){ return tecEstado() === 'nao' ? 'celular' : 'app'; }
+function tecEscolha(){ return tecEstado() === 'nao' ? 'aparelho' : 'app'; }
 function pintaPrefs(){
   const a = document.getElementById('prefTec'); if(a) a.textContent = TEC_ROT[tecEstado()];
   const b = document.getElementById('prefSom');
@@ -2153,14 +2153,14 @@ function tecEscolher(e){ if(e) e.stopPropagation();
       '<span style="display:block;font-size:11.5px;color:var(--mut);font-weight:400;margin-top:2px">' + desc + '</span></span></button>';
   };
   sheet('<h3>Qual teclado deseja utilizar?</h3><div class="act-list">' +
-    opt('celular','Nativo do celular','O teclado padrão do seu aparelho, com autocorreção e emoji.') +
+    opt('aparelho','Nativo do aparelho','O teclado padrão do seu celular ou computador, com autocorreção e emoji.') +
     opt('app','Próprio do aplicativo','O teclado que vem no Norte, com os acentos na primeira camada.') +
-    '</div><p class="tecnota">No computador vale sempre o teclado físico — a escolha aqui muda o celular.</p>' +
+    '</div><p class="tecnota">A escolha vale onde se digita com o dedo. No computador, o teclado físico manda de qualquer jeito.</p>' +
     '<div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>');
 }
 function tecAplicar(qual){
   if(qual === tecEscolha()){ closeSheet(); return; }   /* ja e esse: nada a fazer */
-  try{ localStorage.setItem('apps-teclado', qual === 'celular' ? 'nao' : 'auto'); }catch(x){}
+  try{ localStorage.setItem('apps-teclado', qual === 'aparelho' ? 'nao' : 'auto'); }catch(x){}
   closeSheet();
   /* o recarregar e o que aplica; sem ele o teclado velho continua montado */
   location.reload();
