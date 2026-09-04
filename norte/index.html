@@ -265,7 +265,7 @@
   .navbtn.today{ color:var(--accent); border-color:#1e3a40; }
   .datepill{ flex:1; text-align:center; font-size:13px; font-weight:700; color:var(--mut2); }
   .menu-wrap{ position:relative; }
-  .menu{ position:absolute; right:0; top:48px; z-index:40; min-width:240px; padding:7px;
+  .menu{ position:absolute; right:0; top:48px; z-index:40; min-width:272px; padding:7px;
          background:rgba(18,21,25,.97); border:1px solid var(--line); border-radius:16px;
          box-shadow:0 20px 54px rgba(0,0,0,.62); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
          animation:menuPop .18s cubic-bezier(.2,.95,.3,1); transform-origin:top right; }
@@ -395,6 +395,44 @@
   /* a dica embaixo de um campo: explica o que o numero faz, sem virar aviso */
   .field .dica{ margin-top:6px; font-size:11px; line-height:1.45; color:var(--mut2); }
   .field .dica b{ color:var(--accent); font-weight:700; }
+  /* ===== Progresso: veredito, travadas, categorias, semanas ===== */
+  .pv{ background:rgba(47,217,201,.09); border:1px solid #1c4a45; border-left:3px solid var(--accent);
+       border-radius:12px; padding:13px 14px; margin-bottom:13px; }
+  .pv.amb{ background:rgba(240,180,94,.09); border-color:#5a4620; border-left-color:var(--star); }
+  .pv .t{ font-size:16px; font-weight:800; line-height:1.28; margin-bottom:5px; }
+  .pv .s{ font-size:12.5px; color:var(--mut); line-height:1.45; }
+  .pv .s b{ color:var(--txt); }
+  .pbox{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px; margin-bottom:11px; }
+  .pbt{ font-size:10.5px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--mut);
+        margin-bottom:10px; display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .pbt em{ font-style:normal; font-weight:600; letter-spacing:0; text-transform:none; font-size:10.5px; color:var(--mut2); }
+  .ptv{ display:flex; align-items:center; gap:10px; padding:10px 0; cursor:pointer;
+        border-bottom:1px solid rgba(255,255,255,.055); }
+  .ptv:last-child{ border-bottom:none; padding-bottom:2px; }
+  .ptv:active{ opacity:.6; }
+  .ptv .bar{ width:3px; align-self:stretch; border-radius:2px; flex:0 0 auto; min-height:30px; }
+  .ptv .tt{ flex:1; min-width:0; }
+  .ptv .tt b{ display:block; font-size:14px; font-weight:700; }
+  .ptv .tt span{ font-size:11.5px; color:var(--mut); }
+  .ptv .dias{ font-size:11px; font-weight:800; border-radius:99px; padding:3px 9px; white-space:nowrap;
+              background:rgba(240,180,94,.14); color:var(--star); border:1px solid #5a4620; }
+  .ptv .dias.q{ background:rgba(240,113,108,.14); color:var(--canc); border-color:#5c2a2f; }
+  .pcr{ display:grid; grid-template-columns:8px 1fr; gap:9px; align-items:start; margin-bottom:11px; }
+  .pcr:last-child{ margin-bottom:2px; }
+  .pcr .dot{ width:8px; height:8px; border-radius:50%; margin-top:5px; }
+  .pcr .nm{ font-size:13px; font-weight:700; display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .pcr .nm i{ font-style:normal; font-size:11px; color:var(--mut); font-weight:500; white-space:nowrap; }
+  .pcr .tk{ height:7px; border-radius:99px; background:var(--panel2); margin-top:5px; overflow:hidden; }
+  .pcr .tk i{ display:block; height:100%; border-radius:99px; }
+  .pspark{ display:flex; align-items:flex-end; gap:6px; height:46px; margin:2px 0 7px; }
+  /* a semana em curso vem apagada: meia semana nao se compara com semana fechada */
+  .pspark i{ flex:1; background:var(--accent); border-radius:3px 3px 0 0; opacity:.85; }
+  .pspark i.curso{ background:color-mix(in srgb, var(--accent) 30%, transparent); opacity:1; }
+  .peixo{ display:flex; justify-content:space-between; font-size:10px; color:var(--mut2); }
+  [data-theme="light"] .ptv .dias{ background:#FDF1DA; color:#7E5406; border-color:#E8CE9C; }
+  [data-theme="light"] .ptv .dias.q{ background:#FBE4E3; color:#9A2B26; border-color:#EBB9B6; }
+  [data-theme="miri"] .ptv .dias{ background:#F5E8CE; color:#6F4A0C; border-color:#DCC79B; }
+  [data-theme="miri"] .ptv .dias.q{ background:#F3DED9; color:#8E3226; border-color:#DCBAB1; }
   #fdsBar{ margin:0 0 10px; }
   #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
 
@@ -595,6 +633,7 @@
   .progview{ position:fixed; inset:0; z-index:15; background:var(--bg); overflow:auto;
              padding:16px 14px calc(96px + env(safe-area-inset-bottom)); max-width:820px; margin:0 auto; }
   .progview.hidden{ display:none; }
+  .progview{ padding-bottom:104px; }
   .prog-top{ display:flex; align-items:center; margin:2px 0 16px; }
   .prog-top h2{ font-size:21px; color:var(--txt2); font-weight:800; }
   .prog-seg{ display:flex; gap:8px; margin-bottom:15px; }
@@ -883,6 +922,9 @@
       <button onclick="document.getElementById('restoreFile').click()"><span class="mi" data-ic="download"></span>Restaurar backup</button>
       <input type="file" id="restoreFile" accept="application/json" class="hidden" onchange="restore(event)">
       <div class="mdiv"></div>
+      <button onclick="tecTrocar(event)"><span class="mi" data-ic="teclado"></span>Teclado do app <em id="prefTec">—</em></button>
+      <button onclick="somTrocar2(event)"><span class="mi" id="prefSomIc" data-ic="som"></span>Som <em id="prefSom">—</em></button>
+      <div class="mdiv"></div>
       <button class="mdel" onclick="wipeAll()"><span class="mi" data-ic="trash"></span>Zerar tudo</button>
     </div>
   </div>
@@ -934,7 +976,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v86';
+const VERSAO = 'v87';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2082,7 +2124,37 @@ function buildNewDay(iso, carrega){
 }
 
 /* ---- menu / sheet ---- */
-function toggleMenu(e){ e.stopPropagation(); document.getElementById('menu').classList.toggle('hidden'); }
+/* ---- preferencias do aparelho (nao sincronizam: sao daqui, nao da conta) ---- */
+const TEC_ROT = { auto:'automático', sim:'sempre', nao:'nunca' };
+function tecEstado(){ try{ const e = localStorage.getItem('apps-teclado');
+  return (e === 'sim' || e === 'nao') ? e : 'auto'; }catch(x){ return 'auto'; } }
+function pintaPrefs(){
+  const a = document.getElementById('prefTec'); if(a) a.textContent = TEC_ROT[tecEstado()];
+  const b = document.getElementById('prefSom');
+  const on = (typeof somLigado === 'function') ? somLigado() : true;
+  if(b) b.textContent = on ? 'ligado' : 'desligado';
+  const c = document.getElementById('prefSomIc');
+  if(c){ c.setAttribute('data-ic', on ? 'som' : 'mudo'); c.innerHTML = svgIc(on ? 'som' : 'mudo'); }
+}
+/* gira entre os tres e recarrega — o teclado se monta na abertura do app */
+function tecTrocar(e){ if(e) e.stopPropagation();
+  const at = tecEstado();
+  const prox = (at === 'auto') ? 'sim' : (at === 'sim') ? 'nao' : 'auto';
+  try{ localStorage.setItem('apps-teclado', prox); }catch(x){}
+  const msg = { auto:'Teclado automático: aparece só no celular.',
+                sim:'Teclado do app sempre — inclusive no computador.',
+                nao:'Teclado do app desligado: vale o do sistema.' }[prox];
+  toast(msg);
+  /* o recarregar e o que aplica; sem ele o teclado velho continua montado */
+  setTimeout(function(){ location.reload(); }, 900);
+}
+function somTrocar2(e){ if(e) e.stopPropagation();
+  if(typeof somTrocar !== 'function') return;
+  const on = somTrocar();
+  pintaPrefs();
+  toast(on ? 'Som ligado' : 'Som desligado');
+}
+function toggleMenu(e){ e.stopPropagation(); pintaPrefs(); document.getElementById('menu').classList.toggle('hidden'); }
 function closeMenu(){ document.getElementById('menu').classList.add('hidden'); }
 document.addEventListener('click',(e)=>{ closeMenu();
   const p=document.getElementById('calPop');
@@ -2240,6 +2312,9 @@ const ICONS={
   download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
   day:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="8.5 15 11 17.5 15.5 13"/>',
+  teclado:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
+  som:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+  mudo:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/>',
   trending:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
   plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
   pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
@@ -2263,7 +2338,7 @@ function svgIc(n){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentC
 function paintIcons(){ document.querySelectorAll('[data-ic]').forEach(function(e){ e.innerHTML=svgIc(e.getAttribute('data-ic')); }); }
 
 /* ================= ABA PROGRESSO (gráfico de linha do %) ================= */
-let _view='dia', _progMode='dia', _progOn={pct:true,count:true};
+let _view='dia', _progJanela=30;   /* a janela em dias: 7 ou 30 */
 function switchView(v){ _view=v;
   const pv=document.getElementById('progView'), lv=document.getElementById('listasView'), fab=document.querySelector('.fab');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-v')===v));
@@ -2276,10 +2351,7 @@ function switchView(v){ _view=v;
   if(v==='listas'){ const fr=document.getElementById('feitoFrame');
     if(!fr.getAttribute('src')) fr.setAttribute('src','feito.html'); }
 }
-function setProgMode(m){ _progMode=m; renderProgress(); }
-function toggleMetric(m){ _progOn[m]=!_progOn[m]; if(!_progOn.pct && !_progOn.count) _progOn[m]=true; renderProgress(); }
-function dayCount(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks)return null; const c=dd.tasks.filter(t=>t.status!=='canc').length; return c||null; }
-function dayValM(iso,metric){ return metric==='count'?dayCount(iso):dayPct(iso); }
+function setProgJanela(n){ _progJanela=n; renderProgress(); }
 function dayFrac(t,iso){
   if(t.status==='canc'||t.status==='adiado'||t.status==='sched') return null;
   if(t.rec && !recFiresOn(t.rec,iso)) return null;
@@ -2295,113 +2367,128 @@ function mondayOf(iso){ const [y,m,d]=iso.split('-').map(Number); const dt=new D
 function pad2(n){ return String(n).padStart(2,'0'); }
 /* a linha do grafico segue o teal do tema — no claro ele e mais fundo */
 function corAcento(){ return (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#2FD9C9').trim(); }
-const PCOL={ get pct(){ return corAcento(); }, count:'#22C55E' };
-const BCOL={done:'#3DDB84', und:'#EF4444'};
-function dayDoneUndone(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null; let done=0,und=0;
-  dd.tasks.forEach(t=>{ const f=dayFrac(t,iso); if(f===null)return; if(f>=1) done++; else und++; });
-  return {done:done,und:und}; }
-function progUnified(mode){
-  const days=Object.keys(DB.days).filter(iso=>dayPct(iso)!==null||dayCount(iso)!==null).sort();
-  if(!days.length) return [];
-  if(mode==='dia') return days.slice(-14).map(iso=>{ const du=dayDoneUndone(iso)||{done:0,und:0}; return {label:iso.slice(8,10)+'/'+iso.slice(5,7), pct:dayPct(iso), count:dayCount(iso), done:du.done, und:du.und}; });
-  const groups={};
-  days.forEach(iso=>{ let key,label;
-    if(mode==='sem'){ const dt=mondayOf(iso); key=dt.getFullYear()+'-'+pad2(dt.getMonth()+1)+'-'+pad2(dt.getDate()); label=pad2(dt.getDate())+'/'+pad2(dt.getMonth()+1); }
-    else { key=iso.slice(0,7); label=MES[+iso.slice(5,7)-1].slice(0,3); }
-    if(!groups[key])groups[key]={pS:0,pN:0,cS:0,cN:0,dO:0,dU:0,label:label,key:key};
-    const gp=groups[key], p=dayPct(iso), c=dayCount(iso), du=dayDoneUndone(iso);
-    if(p!==null){ gp.pS+=p; gp.pN++; } if(c!==null){ gp.cS+=c; gp.cN++; } if(du){ gp.dO+=du.done; gp.dU+=du.und; } });
-  return Object.keys(groups).sort().map(k=>groups[k]).slice(mode==='sem'?-10:-8)
-    .map(g=>({label:g.label, pct:g.pN?Math.round(g.pS/g.pN):null, count:g.cN?Math.round(g.cS/g.cN):null, done:g.dO, und:g.dU}));
+/* ---- o que esta travado ----
+   O carriedFrom guarda so "veio de ontem", nao a data de origem — entao a
+   conta e caminhando pelos dias que EXISTEM (pular um fim de semana sem
+   registro nao pode quebrar a corrente). Casa por titulo+categoria porque o
+   carry-over cria id novo a cada dia. */
+function diasArrastando(t, iso){
+  const chaves = Object.keys(DB.days).filter(k => k < iso).sort().reverse();
+  let n = 0;
+  for(const k of chaves){
+    const achou = (DB.days[k].tasks||[]).some(x =>
+      x.title === t.title && x.cat === t.cat && x.status !== 'done' && x.status !== 'canc');
+    if(!achou) break;
+    n++;
+  }
+  return n;
 }
-function chartSVG2(pts,showPct,showCount){
-  const dual=showPct&&showCount;
-  const W=340,H=205,padL=28,padR=dual?32:14,padT=18,padB=26, iw=W-padL-padR, ih=H-padT-padB, n=pts.length;
-  const X=i=> n<=1? padL+iw/2 : padL+iw*i/(n-1);
-  const barMax=Math.max.apply(null,[1].concat(pts.map(p=>Math.max(p.done||0,p.und||0))));
-  const Yp=v=> padT+ih*(1-v/100), Yb=v=> padT+ih*(1-v/barMax);
-  let g='';
-  [0,.25,.5,.75,1].forEach(function(f){ var yy=padT+ih*(1-f);
-    g+='<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="var(--line)" stroke-width="1"/>';
-    var lc = showPct?PCOL.pct:BCOL.done, lv = showPct?Math.round(100*f):Math.round(barMax*f);
-    g+='<text x="'+(padL-6)+'" y="'+(yy+3)+'" fill="'+lc+'" font-size="8.5" text-anchor="end">'+lv+'</text>';
-    if(dual) g+='<text x="'+(W-padR+6)+'" y="'+(yy+3)+'" fill="'+BCOL.done+'" font-size="8.5" text-anchor="start">'+Math.round(barMax*f)+'</text>'; });
-  /* barras feitas / não feitas (= métrica "Nº de tarefas") */
-  if(showCount){
-    var slot = n>1? iw/(n-1) : iw;
-    var bw = Math.max(3, Math.min(11, slot*0.30));
-    var gap = Math.max(1.5, bw*0.30);
-    var op = dual?0.5:0.85;
-    var loX=padL+1, hiX=W-padR-1;
-    pts.forEach(function(p,i){ var cx=X(i), base=padT+ih;
-      var d=p.done||0, u=p.und||0;
-      var xd=cx-gap/2-bw, xu=cx+gap/2;
-      /* mantém o par dentro da área — não invade os eixos (primeira/última coluna) */
-      if(xd<loX){ var sh=loX-xd; xd+=sh; xu+=sh; }
-      if(xu+bw>hiX){ var sh2=(xu+bw)-hiX; xd-=sh2; xu-=sh2; }
-      var hd=base-Yb(d), hu=base-Yb(u);
-      g+='<rect x="'+xd+'" y="'+Yb(d)+'" width="'+bw+'" height="'+Math.max(0,hd)+'" rx="1.6" fill="'+BCOL.done+'" opacity="'+op+'"/>';
-      g+='<rect x="'+xu+'" y="'+Yb(u)+'" width="'+bw+'" height="'+Math.max(0,hu)+'" rx="1.6" fill="'+BCOL.und+'" opacity="'+op+'"/>';
-      if(n<=10){
-        if(d) g+='<text x="'+(xd+bw/2)+'" y="'+(Yb(d)-3)+'" fill="'+BCOL.done+'" font-size="8" font-weight="700" text-anchor="middle">'+d+'</text>';
-        if(u) g+='<text x="'+(xu+bw/2)+'" y="'+(Yb(u)-3)+'" fill="'+BCOL.und+'" font-size="8" font-weight="700" text-anchor="middle">'+u+'</text>';
-      }
-    });
-  }
-  pts.forEach((p,i)=>{ g+='<text x="'+X(i)+'" y="'+(padT+ih+15)+'" fill="var(--mut)" font-size="8" text-anchor="middle">'+p.label+'</text>'; });
-  function line(getV,Yf,color,area,labels){
-    const segs=[]; let seg=[];
-    pts.forEach((p,i)=>{ const v=getV(p); if(v===null||v===undefined){ if(seg.length){segs.push(seg);seg=[];} } else seg.push([X(i),Yf(v),v]); });
-    if(seg.length)segs.push(seg);
-    let s='';
-    if(area) segs.forEach(sg=>{ if(sg.length<2)return; let d='M '+sg[0][0]+' '+sg[0][1]; for(let k=1;k<sg.length;k++)d+=' L '+sg[k][0]+' '+sg[k][1]; d+=' L '+sg[sg.length-1][0]+' '+(padT+ih)+' L '+sg[0][0]+' '+(padT+ih)+' Z'; s+='<path d="'+d+'" fill="url(#pgrad)"/>'; });
-    segs.forEach(sg=>{ if(sg.length>1) s+='<polyline points="'+sg.map(q=>q[0]+','+q[1]).join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'; });
-    segs.forEach(sg=>sg.forEach(q=>{ s+='<circle cx="'+q[0]+'" cy="'+q[1]+'" r="3.2" fill="'+color+'" stroke="var(--panel)" stroke-width="1.5"/>'; if(labels && n<=10) s+='<text x="'+q[0]+'" y="'+(q[1]-8)+'" fill="var(--txt2)" font-size="9" font-weight="700" text-anchor="middle">'+q[2]+'</text>'; }));
-    return s;
-  }
-  if(showPct) g+=line(p=>p.pct, Yp, PCOL.pct, !showCount, !showCount);
-  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid meet"><defs><linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2FD9C9" stop-opacity="0.24"/><stop offset="1" stop-color="#2FD9C9" stop-opacity="0"/></linearGradient></defs>'+g+'</svg>';
+function travadas(iso){
+  const d = DB.days[iso]; if(!d) return [];
+  return (d.tasks||[])
+    /* recorrente NAO e travada: 'beber agua' aparece todo dia por desenho,
+       e contaria 30 dias de arrasto sendo habito, nao travamento. */
+    .filter(t => t.status !== 'done' && t.status !== 'canc' && !t.rid && !t.rec && !isBlocked(t))
+    .map(t => ({ t: t, dias: diasArrastando(t, iso) }))
+    .filter(x => x.dias >= 2)
+    .sort((a,b) => b.dias - a.dias);
 }
-function metricStats(key,pts){ const vals=pts.map(p=>p[key]).filter(v=>v!==null&&v!==undefined);
-  return { avg: vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0, best: vals.length?Math.max.apply(null,vals):0 }; }
-function progWords(mode){ return mode==='sem'?{u:'semana',us:'semanas',win:'nas últimas'}:mode==='mes'?{u:'mês',us:'meses',win:'nos últimos'}:{u:'dia',us:'dias',win:'nos últimos'}; }
-function progTrend(vals,thr){ const a=vals.filter(v=>v!==null&&v!==undefined); if(a.length<2)return null;
-  const h=Math.max(1,Math.floor(a.length/2)); const f=a.slice(0,h), s=a.slice(a.length-h);
-  const af=f.reduce((x,y)=>x+y,0)/f.length, as=s.reduce((x,y)=>x+y,0)/s.length; const d=as-af;
-  return d>thr?'up':(d<-thr?'down':'flat'); }
-function progSummary(pts,showPct,showCount,mode){
-  if(!pts.length) return '';
-  const W=progWords(mode); const n=pts.length; let ps=[];
-  const tw=(dir,up,down)=> dir==='up'?'<span class="up">'+up+'</span>':dir==='down'?'<span class="down">'+down+'</span>':'<span class="flat">estável</span>';
-  if(showPct){
-    const s=metricStats('pct',pts), vals=pts.map(p=>p.pct), t=progTrend(vals,3);
-    const last=vals.slice().reverse().find(v=>v!==null&&v!==undefined);
-    ps.push('<p>Conclusão média de <b>'+s.avg+'%</b> por '+W.u+' '+W.win+' '+n+' '+W.us+(t?' — desempenho '+tw(t,'em alta','em queda'):'')+'. Melhor: <b>'+s.best+'%</b>'+(last!=null?' · '+(mode==='dia'?'hoje':mode==='sem'?'atual':'atual')+' <b>'+last+'%</b>':'')+'.</p>');
+/* um veredito so, e ele muda de frase conforme o caso — nunca dois vereditos
+   sobre a mesma coisa, que era o defeito do resumo antigo. */
+function vereditoProg(tr){
+  if(!tr.length) return { t:'Nada arrastando.', s:'O que está aberto hoje nasceu hoje ou ontem.', amb:false };
+  const velhas = tr.filter(x => x.dias >= 5);
+  const soma = tr.reduce((a,x) => a + x.dias, 0);
+  if(velhas.length) return {
+    t: velhas.length + (velhas.length === 1 ? ' tarefa arrastando' : ' tarefas arrastando') + ' há mais de 5 dias.',
+    s: 'Juntas, as ' + tr.length + ' abertas atravessaram <b>' + soma + ' dias</b> da sua lista.', amb:true };
+  return { t:'A mais antiga está há ' + tr[0].dias + ' dias.', s:'Nenhuma passou de cinco — ainda dá pra virar.', amb:false };
+}
+/* ---- onde se concentra ---- */
+function porCategoria(dias){
+  const hoje = todayISO();
+  const chaves = Object.keys(DB.days).filter(k => k <= hoje).sort().slice(-dias);
+  const acc = {};
+  chaves.forEach(k => (DB.days[k].tasks||[]).forEach(t => {
+    if(t.status === 'canc') return;
+    const id = t.cat || '__sem';
+    if(!acc[id]) acc[id] = { n:0, done:0 };
+    acc[id].n++; if(t.status === 'done') acc[id].done++;
+  }));
+  const linhas = [];
+  CATS.forEach(c => { const a = acc[c.id]; if(a && a.n) linhas.push({ nome:c.name, cor:c.color, n:a.n, done:a.done }); });
+  if(acc['__sem'] && acc['__sem'].n) linhas.push({ nome:'Sem categoria', cor:'#8a97a0', n:acc['__sem'].n, done:acc['__sem'].done });
+  /* o balde do fim de semana nao vive nos dias: entra pelo proprio estado */
+  const F = (DB.fds && DB.fds.itens) || [];
+  if(F.length) linhas.push({ nome:'Fim de semana', cor:'var(--fdsc)', n:F.length,
+    done:F.filter(x => x.status === 'done').length });
+  return linhas.sort((a,b) => (b.done/b.n) - (a.done/a.n));
+}
+/* ---- estou melhorando ---- */
+function semanasProg(){
+  const hoje = todayISO(); const out = [];
+  for(let w = 4; w >= 0; w--){
+    const seg = mondayOf(hoje); seg.setDate(seg.getDate() - w*7);
+    let soma = 0, n = 0;
+    for(let i = 0; i < 7; i++){
+      const dt = new Date(seg); dt.setDate(dt.getDate() + i);
+      const iso = dt.getFullYear() + '-' + pad2(dt.getMonth()+1) + '-' + pad2(dt.getDate());
+      if(iso > hoje) break;
+      const p = dayPct(iso);
+      if(p !== null){ soma += p; n++; }
+    }
+    out.push({ pct: n ? Math.round(soma/n) : null, curso: (w === 0) });
   }
-  if(showCount){
-    const td=pts.reduce((a,p)=>a+(p.done||0),0), tu=pts.reduce((a,p)=>a+(p.und||0),0), tot=td+tu;
-    const rate=tot?Math.round(td/tot*100):0, t=progTrend(pts.map(p=>p.done),0.4);
-    ps.push('<p><b>'+td+'</b> feitas e <b>'+tu+'</b> não feitas '+W.win+' '+n+' '+W.us+' — <b>'+rate+'%</b> de conclusão'+(t?', feitas '+tw(t,'em alta','em queda'):'')+'.</p>');
-  }
-  return '<div class="prog-sum"><div class="sh">'+svgIc('trending')+'Resumo</div>'+ps.join('')+'</div>';
+  return out;
 }
 function renderProgress(){
-  const modes=[['dia','Diário'],['sem','Semanal'],['mes','Mensal']];
-  const metrics=[['pct','% do dia'],['count','Feitas / não feitas']];
-  const pts=progUnified(_progMode); const showPct=_progOn.pct, showCount=_progOn.count;
-  let legend='';
-  if(pts.length){
-    if(showPct){ const s=metricStats('pct',pts); legend+='<span class="pl"><i style="background:'+PCOL.pct+'"></i>% do dia <b>média '+s.avg+'%</b> · melhor '+s.best+'%</span>'; }
-    if(showCount){ const td=pts.reduce((a,p)=>a+(p.done||0),0), tu=pts.reduce((a,p)=>a+(p.und||0),0); legend+='<span class="pl"><i style="background:'+BCOL.done+'"></i>Feitas <b>'+td+'</b> <i style="background:'+BCOL.und+';margin-left:8px"></i>Não feitas <b>'+tu+'</b></span>'; }
+  const hoje = cur;
+  const tr = travadas(hoje);
+  const vd = vereditoProg(tr);
+  const cats = porCategoria(_progJanela);
+  const sem = semanasProg();
+  const fechadas = sem.filter(s => !s.curso && s.pct !== null);
+  const media = fechadas.length ? Math.round(fechadas.reduce((a,s) => a + s.pct, 0) / fechadas.length) : null;
+
+  let h = '<div class="prog-top"><h2><span class="prog-hic">' + svgIc('trending') + '</span>Progresso</h2></div>';
+  h += '<div class="prog-seg">' + [[7,'7 dias'],[30,'30 dias']]
+       .map(j => '<button class="' + (_progJanela === j[0] ? 'on' : '') + '" onclick="setProgJanela(' + j[0] + ')">' + j[1] + '</button>').join('') + '</div>';
+
+  h += '<div class="pv' + (vd.amb ? ' amb' : '') + '"><div class="t">' + vd.t + '</div><div class="s">' + vd.s + '</div></div>';
+
+  if(tr.length){
+    h += '<div class="pbox"><div class="pbt">Travadas<em>toque para abrir o dia</em></div>';
+    tr.slice(0,6).forEach(x => {
+      const c = CATS.find(k => k.id === x.t.cat) || { name:'Sem categoria', color:'#8a97a0' };
+      h += '<div class="ptv" onclick="switchView(\'dia\')">' +
+           '<span class="bar" style="background:' + c.color + '"></span>' +
+           '<span class="tt"><b>' + escapeHtml(x.t.title) + '</b><span>' + escapeHtml(c.name) + '</span></span>' +
+           '<span class="dias' + (x.dias >= 5 ? ' q' : '') + '">' + x.dias + ' dias</span></div>';
+    });
+    h += '</div>';
   }
-  const chart = pts.length ? chartSVG2(pts,showPct,showCount) : '<div class="prog-empty">'+svgIc('trending')+'Ainda não há dados.</div>';
-  document.getElementById('progView').innerHTML =
-    '<div class="prog-top"><h2><span class="prog-hic">'+svgIc('trending')+'</span>Progresso</h2></div>'+
-    '<div class="prog-seg prog-metric">'+metrics.map(mt=>'<button class="'+(mt[0]==='count'?'count ':'')+(_progOn[mt[0]]?'on':'')+'" onclick="toggleMetric(\''+mt[0]+'\')">'+mt[1]+'</button>').join('')+'</div>'+
-    '<div class="prog-seg">'+modes.map(m=>'<button class="'+(_progMode===m[0]?'on':'')+'" onclick="setProgMode(\''+m[0]+'\')">'+m[1]+'</button>').join('')+'</div>'+
-    (legend?'<div class="prog-legend">'+legend+'</div>':'')+
-    '<div class="prog-chart">'+chart+'</div>'+
-    progSummary(pts,showPct,showCount,_progMode);
+
+  if(cats.length){
+    h += '<div class="pbox"><div class="pbt">Por categoria<em>fechadas de recebidas</em></div>';
+    cats.forEach(c => {
+      const p = Math.round(c.done / c.n * 100);
+      h += '<div class="pcr"><span class="dot" style="background:' + c.cor + '"></span><div>' +
+           '<div class="nm">' + escapeHtml(c.nome) + ' <i>' + c.done + ' de ' + c.n + ' · ' + p + '%</i></div>' +
+           '<div class="tk"><i style="width:' + p + '%;background:' + c.cor + '"></i></div></div></div>';
+    });
+    h += '</div>';
+  }
+
+  const temSem = sem.some(s => s.pct !== null);
+  if(temSem){
+    h += '<div class="pbox"><div class="pbt">Semana a semana' + (media !== null ? '<em>média ' + media + '%</em>' : '') + '</div>';
+    h += '<div class="pspark">' + sem.map(s =>
+      '<i class="' + (s.curso ? 'curso' : '') + '" style="height:' + Math.max(4, s.pct || 0) + '%" title="' + (s.pct === null ? 'sem dados' : s.pct + '%') + '"></i>').join('') + '</div>';
+    h += '<div class="peixo"><span>4 semanas atrás</span><span>esta, em curso</span></div></div>';
+  }
+
+  if(!tr.length && !cats.length && !temSem) h += '<div class="prog-empty">' + svgIc('trending') + 'Ainda não há dados.</div>';
+  document.getElementById('progView').innerHTML = h;
 }
 
 /* ================= CONTA + SINCRONIZAÇÃO (Supabase) ================= */
