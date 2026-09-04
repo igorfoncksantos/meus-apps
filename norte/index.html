@@ -429,6 +429,7 @@
   .pspark i{ flex:1; background:var(--accent); border-radius:3px 3px 0 0; opacity:.85; }
   .pspark i.curso{ background:color-mix(in srgb, var(--accent) 30%, transparent); opacity:1; }
   .peixo{ display:flex; justify-content:space-between; font-size:10px; color:var(--mut2); }
+  .tecnota{ font-size:11.5px; color:var(--mut2); line-height:1.5; margin:10px 2px 0; }
   [data-theme="light"] .ptv .dias{ background:#FDF1DA; color:#7E5406; border-color:#E8CE9C; }
   [data-theme="light"] .ptv .dias.q{ background:#FBE4E3; color:#9A2B26; border-color:#EBB9B6; }
   [data-theme="miri"] .ptv .dias{ background:#F5E8CE; color:#6F4A0C; border-color:#DCC79B; }
@@ -922,7 +923,7 @@
       <button onclick="document.getElementById('restoreFile').click()"><span class="mi" data-ic="download"></span>Restaurar backup</button>
       <input type="file" id="restoreFile" accept="application/json" class="hidden" onchange="restore(event)">
       <div class="mdiv"></div>
-      <button onclick="tecTrocar(event)"><span class="mi" data-ic="teclado"></span>Teclado do app <em id="prefTec">—</em></button>
+      <button onclick="tecEscolher(event)"><span class="mi" data-ic="teclado"></span>Teclado <em id="prefTec">—</em></button>
       <button onclick="somTrocar2(event)"><span class="mi" id="prefSomIc" data-ic="som"></span>Som <em id="prefSom">—</em></button>
       <div class="mdiv"></div>
       <button class="mdel" onclick="wipeAll()"><span class="mi" data-ic="trash"></span>Zerar tudo</button>
@@ -976,7 +977,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v88';
+const VERSAO = 'v89';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2125,9 +2126,13 @@ function buildNewDay(iso, carrega){
 
 /* ---- menu / sheet ---- */
 /* ---- preferencias do aparelho (nao sincronizam: sao daqui, nao da conta) ---- */
-const TEC_ROT = { auto:'automático', sim:'sempre', nao:'nunca' };
+/* duas respostas, nao tres estados: 'sim' e 'auto' sao o MESMO teclado —
+   o do app — e so um deles faz sentido oferecer. */
+const TEC_ROT = { auto:'do aplicativo', sim:'do aplicativo', nao:'do celular' };
 function tecEstado(){ try{ const e = localStorage.getItem('apps-teclado');
   return (e === 'sim' || e === 'nao') ? e : 'auto'; }catch(x){ return 'auto'; } }
+/* o que a pessoa escolheu, em duas caixas: 'sim' cai em 'app' junto com 'auto' */
+function tecEscolha(){ return tecEstado() === 'nao' ? 'celular' : 'app'; }
 function pintaPrefs(){
   const a = document.getElementById('prefTec'); if(a) a.textContent = TEC_ROT[tecEstado()];
   const b = document.getElementById('prefSom');
@@ -2136,23 +2141,27 @@ function pintaPrefs(){
   const c = document.getElementById('prefSomIc');
   if(c){ c.setAttribute('data-ic', on ? 'som' : 'mudo'); c.innerHTML = svgIc(on ? 'som' : 'mudo'); }
 }
-/* gira entre os tres, mas PERGUNTA antes: e o unico item do menu que recarrega
-   o app, e o botao sozinho nao diz pra qual dos tres estados vai. */
-const TEC_OQUE = {
-  auto:'aparece só no celular, e some no computador.',
-  sim:'aparece sempre, inclusive no computador.',
-  nao:'nunca aparece — vale o teclado do sistema.'
-};
-async function tecTrocar(e){ if(e) e.stopPropagation();
-  const at = tecEstado();
-  const prox = (at === 'auto') ? 'sim' : (at === 'sim') ? 'nao' : 'auto';
+/* Uma pergunta com as duas respostas, em vez de um botao que gira sem dizer
+   pra onde vai. Escolher o que ja esta marcado nao recarrega nada. */
+function tecEscolher(e){ if(e) e.stopPropagation();
   closeMenu();
-  const ok = await uiConfirm(
-    'De <b>' + TEC_ROT[at] + '</b> para <b>' + TEC_ROT[prox] + '</b>: o teclado do app ' + TEC_OQUE[prox] +
-    '<br><span style="opacity:.72">O app recarrega pra aplicar — nada se perde.</span>',
-    { title:'Trocar o teclado?', ok:'Trocar' });
-  if(!ok) return;
-  try{ localStorage.setItem('apps-teclado', prox); }catch(x){}
+  const at = tecEscolha();
+  const opt = function(qual, titulo, desc){
+    return '<button onclick="tecAplicar(\'' + qual + '\')">' +
+      '<span class="ic">' + (at === qual ? '✅' : '　') + '</span>' +
+      '<span style="text-align:left"><b>' + titulo + '</b>' +
+      '<span style="display:block;font-size:11.5px;color:var(--mut);font-weight:400;margin-top:2px">' + desc + '</span></span></button>';
+  };
+  sheet('<h3>Qual teclado deseja utilizar?</h3><div class="act-list">' +
+    opt('celular','Nativo do celular','O teclado padrão do seu aparelho, com autocorreção e emoji.') +
+    opt('app','Próprio do aplicativo','O teclado que vem no Norte, com os acentos na primeira camada.') +
+    '</div><p class="tecnota">No computador vale sempre o teclado físico — a escolha aqui muda o celular.</p>' +
+    '<div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>');
+}
+function tecAplicar(qual){
+  if(qual === tecEscolha()){ closeSheet(); return; }   /* ja e esse: nada a fazer */
+  try{ localStorage.setItem('apps-teclado', qual === 'celular' ? 'nao' : 'auto'); }catch(x){}
+  closeSheet();
   /* o recarregar e o que aplica; sem ele o teclado velho continua montado */
   location.reload();
 }
