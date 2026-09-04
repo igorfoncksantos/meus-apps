@@ -367,6 +367,10 @@
   .fds-dobra:active{ transform:scale(.99); }
   .fds-dobra .ic{ display:flex; }
   .fds-dobra .n{ margin-left:auto; font-size:11px; color:var(--mut2); font-weight:600; }
+  /* a de criar se separa das que ja existem: e acao, nao item da lista */
+  .act-list button.fdsnova{ color:var(--fdsc); border-style:dashed; border-color:var(--fdsc);
+        background:transparent; margin-top:2px; }
+  .act-list button.fdsnova .ic svg{ stroke:var(--fdsc); }
   .fds-barra{ margin:4px 0 13px; }
   /* o fim de semana no seletor de destino: cor propria, pra nao se confundir
      com uma categoria sua */
@@ -977,7 +981,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v90';
+const VERSAO = 'v91';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1453,6 +1457,8 @@ function abreFDS(){
   sheet('<h3>Fim de semana</h3><div class="fds-sh">Estas esperam o sábado. Se não forem feitas, esperam o próximo — não caem na sua segunda.</div>'+
     '<div class="act-list">'+
     ts.map(t=>'<button onclick="closeSheet();openActions(\''+t.id+'\')"><span class="ic">'+svgIc('cal')+'</span>'+escapeHtml(t.title)+'</button>').join('')+
+    /* a porta de criar mora aqui: e onde a decisao "isso e de sabado" acontece */
+    '<button class="fdsnova" onclick="closeSheet();openAdd(\'__fds\')"><span class="ic">'+svgIc('plus')+'</span>Nova tarefa pro fim de semana</button>'+
     '</div><div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>');
 }
 /* o convite da sexta: aparece quando a ideia se explica sozinha */
