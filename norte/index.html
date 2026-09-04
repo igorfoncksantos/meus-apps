@@ -931,7 +931,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v84';
+const VERSAO = 'v85';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1372,9 +1372,10 @@ function pintaFDS(host){
         '<button class="cadd" onclick="openAdd(\'__fds\')">+ tarefa</button></div>';
   div.innerHTML=h;
   F.itens.slice().sort((a,b)=> sortKey(a)-sortKey(b)).forEach(t=>{
-    /* a cor da categoria de ORIGEM fica: no sabado voce ainda ve o que e da
-       casa e o que e do trabalho */
-    const c = CATS.find(x=>x.id===t.cat) || {id:'__fds',name:'Fim de semana',color:'var(--fdsc)'};
+    /* cor unica: o fim de semana e uma categoria, e a cor E a categoria.
+       A tarefa aqui saiu da lista da semana — vestir a cor antiga insinuaria
+       uma filiacao que ja nao opera. */
+    const c = {id:'__fds', name:'Fim de semana', color:'var(--fdsc)'};
     const el=itemEl(t,c);
     const esp=fdsEspera(t);
     if(esp>0){
