@@ -976,7 +976,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v87';
+const VERSAO = 'v88';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2136,17 +2136,25 @@ function pintaPrefs(){
   const c = document.getElementById('prefSomIc');
   if(c){ c.setAttribute('data-ic', on ? 'som' : 'mudo'); c.innerHTML = svgIc(on ? 'som' : 'mudo'); }
 }
-/* gira entre os tres e recarrega — o teclado se monta na abertura do app */
-function tecTrocar(e){ if(e) e.stopPropagation();
+/* gira entre os tres, mas PERGUNTA antes: e o unico item do menu que recarrega
+   o app, e o botao sozinho nao diz pra qual dos tres estados vai. */
+const TEC_OQUE = {
+  auto:'aparece só no celular, e some no computador.',
+  sim:'aparece sempre, inclusive no computador.',
+  nao:'nunca aparece — vale o teclado do sistema.'
+};
+async function tecTrocar(e){ if(e) e.stopPropagation();
   const at = tecEstado();
   const prox = (at === 'auto') ? 'sim' : (at === 'sim') ? 'nao' : 'auto';
+  closeMenu();
+  const ok = await uiConfirm(
+    'De <b>' + TEC_ROT[at] + '</b> para <b>' + TEC_ROT[prox] + '</b>: o teclado do app ' + TEC_OQUE[prox] +
+    '<br><span style="opacity:.72">O app recarrega pra aplicar — nada se perde.</span>',
+    { title:'Trocar o teclado?', ok:'Trocar' });
+  if(!ok) return;
   try{ localStorage.setItem('apps-teclado', prox); }catch(x){}
-  const msg = { auto:'Teclado automático: aparece só no celular.',
-                sim:'Teclado do app sempre — inclusive no computador.',
-                nao:'Teclado do app desligado: vale o do sistema.' }[prox];
-  toast(msg);
   /* o recarregar e o que aplica; sem ele o teclado velho continua montado */
-  setTimeout(function(){ location.reload(); }, 900);
+  location.reload();
 }
 function somTrocar2(e){ if(e) e.stopPropagation();
   if(typeof somTrocar !== 'function') return;
