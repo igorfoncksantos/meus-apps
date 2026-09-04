@@ -1,6 +1,6 @@
 /* Rede primeiro, cache de reserva: o jogo tem que atualizar sozinho quando eu
    mexo nos números, senão calibrar não chega no aparelho. */
-const CACHE = 'escavacao-v3';
+const CACHE = 'escavacao-v4';
 const ARQ = ['./', './index.html', './manifest.json', './icone-192.png', './icone-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQ)).catch(()=>{}));

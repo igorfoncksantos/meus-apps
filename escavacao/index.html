@@ -278,14 +278,14 @@ const MAQUINAS = [
 
 /* --- os achados: o jogo produz OPINIÃO, e opinião junta gente --- */
 const ACHADOS = [
-  {m:8.5,  t:'Uma moeda antiga',            p:'Não é de nenhum país que você conheça.'},
-  {m:22,   t:'Uma raiz',                    p:'Grossa demais pra profundidade em que está.'},
-  {m:34,   t:'Um capacete',                 p:'Sem ninguém por perto. Sem túnel por perto.'},
-  {m:110,  t:'A água está morna',           p:'Devia estar gelada.'},
-  {m:300,  t:'Uma porta',                   p:'Fechada. As dobradiças são do lado de lá.'},
-  {m:560,  t:'O eco volta antes da hora',   p:'Como se a parede estivesse mais perto do que está.'},
-  {m:880,  t:'Marcas de ferramenta',        p:'Alguém cavou daqui pra cima.'},
-  {m:1050, t:'O cristal responde à lâmpada',p:'Você apagou a lâmpada. Ele continuou.'}
+  {m:8.5,  d:'moeda',   t:'Uma moeda antiga',            p:'Não é de nenhum país que você conheça.'},
+  {m:22,   d:'raiz',    t:'Uma raiz',                    p:'Grossa demais pra profundidade em que está.'},
+  {m:34,   d:'capacete',t:'Um capacete',                 p:'Sem ninguém por perto. Sem túnel por perto.'},
+  {m:110,  d:'onda',    t:'A água está morna',           p:'Devia estar gelada.'},
+  {m:300,  d:'porta',   t:'Uma porta',                   p:'Fechada. As dobradiças são do lado de lá.'},
+  {m:560,  d:'eco',     t:'O eco volta antes da hora',   p:'Como se a parede estivesse mais perto do que está.'},
+  {m:880,  d:'marcas',  t:'Marcas de ferramenta',        p:'Alguém cavou daqui pra cima.'},
+  {m:1050, d:'cristal', t:'O cristal responde à lâmpada',p:'Você apagou a lâmpada. Ele continuou.'}
 ];
 
 /* --- a vibração: cada evento com assinatura, pro dedo reconhecer sem olhar --- */
@@ -369,6 +369,7 @@ function confereAchados(){
       S.achados.push(i);
       if(i===0){ S.frag += cfg.achado1F; }
       mostraAchado('ACHADO A '+fmt(alvo,1)+' M', a.t, a.p);
+      revelado = {i:i, t:1};
       pisca(); vibra('achado');
     }
   });
@@ -441,15 +442,88 @@ function mostraAchado(q,t,p){
 /* ---------------- o poço (canvas) ---------------- */
 const cv = document.getElementById('poco'), cx = cv.getContext('2d');
 let L=0, A=0, R=1;
-let cacos=[], rachas=[], ganhos=[], ganhoN=0;
+let cacos=[], rachas=[], ganhos=[], ganhoN=0, motas=[];
 let tremor=0, picoT=1, brilho=0;
 let ROCHA=0;              /* onde a picareta bate — a boca do poço */
+let LAD=null, LADT=0;     /* o ladrilho de rocha, e o lado dele */
+
+/* ---- o ladrilho: desenhado UMA vez, rolado pra sempre ----
+   Cinza de propósito: entra em 'overlay' e recebe a cor da camada, então uma
+   textura só serve terra, pedra, água, magma e cristal. */
+function fazLadrilho(){
+  const T = 320;
+  const c = document.createElement('canvas'); c.width=T; c.height=T;
+  const g = c.getContext('2d');
+  g.fillStyle='#808080'; g.fillRect(0,0,T,T);
+
+  function pedra(px,py,raio,tom){
+    const n = 7 + ((raio*7)|0)%4;
+    g.beginPath();
+    for(let i=0;i<=n;i++){
+      const a = i/n*Math.PI*2;
+      const rr = raio*(0.66 + ((Math.sin(a*3+px)*0.5+0.5)*0.5));
+      const x = px+Math.cos(a)*rr, y = py+Math.sin(a)*rr;
+      i===0 ? g.moveTo(x,y) : g.lineTo(x,y);
+    }
+    g.closePath();
+    g.fillStyle = 'rgb('+tom+','+tom+','+tom+')'; g.fill();
+    g.strokeStyle = 'rgba(40,40,40,.30)'; g.lineWidth=1.4; g.stroke();
+    /* aresta iluminada: é o que dá volume à pedra */
+    g.strokeStyle = 'rgba(230,230,230,.20)'; g.lineWidth=1;
+    g.beginPath(); g.arc(px,py,raio*0.72,Math.PI*1.05,Math.PI*1.75); g.stroke();
+  }
+
+  /* cada pedra é desenhada nas 9 posições: é o que faz o ladrilho emendar */
+  for(let k=0;k<70;k++){
+    const px = Math.random()*T, py = Math.random()*T;
+    const raio = 12 + Math.random()*36;
+    const tom = 108 + ((Math.random()*44)|0);
+    for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) pedra(px+dx*T, py+dy*T, raio, tom);
+  }
+
+  /* fissuras */
+  g.lineCap='round';
+  for(let k=0;k<16;k++){
+    const x0=Math.random()*T, y0=Math.random()*T;
+    for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++){
+      g.strokeStyle='rgba(38,38,38,.34)'; g.lineWidth=1+Math.random()*1.6;
+      g.beginPath(); g.moveTo(x0+dx*T, y0+dy*T);
+      let x=x0+dx*T, y=y0+dy*T;
+      for(let s=0;s<4;s++){ x+=(Math.random()-.5)*46; y+=(Math.random()-.35)*40; g.lineTo(x,y); }
+      g.stroke();
+    }
+  }
+
+  /* salpico: o que impede a pedra de parecer plástico */
+  for(let k=0;k<900;k++){
+    const x=Math.random()*T, y=Math.random()*T;
+    g.fillStyle = Math.random()<.5 ? 'rgba(50,50,50,.22)' : 'rgba(220,220,220,.16)';
+    g.fillRect(x,y,1.6,1.6);
+  }
+
+  /* veios de quartzo */
+  for(let k=0;k<5;k++){
+    const y0=Math.random()*T;
+    for(let dy=-1;dy<=1;dy++){
+      g.strokeStyle='rgba(238,238,238,.30)'; g.lineWidth=2+Math.random()*3;
+      g.beginPath(); g.moveTo(-10, y0+dy*T);
+      let y=y0+dy*T;
+      for(let x=0;x<=T+10;x+=40){ y += (Math.random()-.5)*22; g.lineTo(x,y); }
+      g.stroke();
+    }
+  }
+  LAD = c; LADT = T;
+}
 
 function tamanho(){
   R = Math.min(devicePixelRatio||1, 2);
   L = cv.width = innerWidth*R; A = cv.height = innerHeight*R;
   cv.style.width=innerWidth+'px'; cv.style.height=innerHeight+'px';
   ROCHA = A*0.60;
+  if(!LAD) fazLadrilho();
+  motas = [];
+  for(let i=0;i<28;i++) motas.push({x:Math.random()*L, y:Math.random()*A,
+    v:(6+Math.random()*16)*R, s:(1+Math.random()*2.2)*R, o:.10+Math.random()*.22});
 }
 addEventListener('resize', tamanho); tamanho();
 
@@ -468,9 +542,6 @@ function coresAgora(){
   return { a: mistura(at.a, prox.a, t), b: mistura(at.b, prox.b, t) };
 }
 
-/* o golpe: tudo dispara no MESMO quadro do toque. A picareta é decoração —
-   esperar a animação chegar na pedra atrasaria o retorno em 100 ms, e é isso
-   que faz um botão parecer morto. */
 function golpe(forca){
   picoT = 0;
   tremor = 3*forca;
@@ -489,7 +560,8 @@ function golpe(forca){
   if(rachas.length>5) rachas.shift();
 }
 /* a tela inteira balança — só no toque manual. Fica no body porque os três
-   planos (poço, véu, interface) são filhos fixos dele e viajam juntos. */
+   planos (poço, véu, interface) são filhos fixos dele e viajam juntos.
+   A máquina bate até 11x/s: tremer junto viraria enjoo. */
 let telaT = 0, telaAtiva = false;
 const REDUZ = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function sacode(){
@@ -512,7 +584,6 @@ function passoTela(){
 }
 
 function sobeGanho(txt){
-  /* escalonados: nove textos no mesmo ponto viram borrão */
   ganhoN = (ganhoN+1) % 3;
   ganhos.push({x:L/2+(Math.random()-.5)*74*R, y:ROCHA-26*R-ganhoN*22*R, t:1, txt:txt});
   if(ganhos.length>3) ganhos.shift();
@@ -521,6 +592,7 @@ function sobeGanho(txt){
 function desenha(dt){
   const c = coresAgora();
   cx.setTransform(1,0,0,1,0,0);
+  cx.globalCompositeOperation='source-over'; cx.globalAlpha=1;
   cx.clearRect(0,0,L,A);
 
   /* tremor: só o mundo balança. Sacudir a interface moveria o botão sob o dedo. */
@@ -533,25 +605,32 @@ function desenha(dt){
   g.addColorStop(0, c.a); g.addColorStop(1, c.b);
   cx.fillStyle=g; cx.fillRect(-10*R,-10*R,L+20*R,A+20*R);
 
-  /* estratos: 26 px por metro. A 7 px o mundo não se mexia a olho nu —
-     era o que fazia o jogo parecer parado mesmo cavando. */
-  const passo = 52*R, desl = (S.prof*26*R) % passo;
-  cx.lineWidth=1*R;
-  for(let y=-passo+desl; y<A+passo; y+=passo){
-    cx.strokeStyle = 'rgba(0,0,0,.18)';
-    cx.beginPath();
-    for(let x=0;x<=L;x+=22*R){
-      const oy = Math.sin((x*0.0055/R)+(y*0.009/R))*3.4*R;
-      x===0 ? cx.moveTo(x,y+oy) : cx.lineTo(x,y+oy);
-    }
-    cx.stroke();
-    cx.strokeStyle='rgba(255,240,215,.05)';
-    cx.beginPath(); cx.moveTo(0,y+2*R); cx.lineTo(L,y+2*R); cx.stroke();
+  /* a rocha, em duas camadas: a de trás anda menos e vira profundidade */
+  if(LAD){
+    cx.globalCompositeOperation='overlay';
+    ladrilha(2.6*R, 0.34, 9*R);      /* fundo: lenta e grande */
+    ladrilha(1.0*R, 0.62, 0);        /* frente */
+    cx.globalCompositeOperation='source-over';
   }
 
-  /* a rocha: a picareta precisa de algo pra bater */
-  const rg = cx.createLinearGradient(0,ROCHA-30*R,0,A);
-  rg.addColorStop(0,'rgba(0,0,0,0)'); rg.addColorStop(.45,'rgba(0,0,0,.34)'); rg.addColorStop(1,'rgba(0,0,0,.60)');
+  /* as paredes do poço: você está DENTRO do buraco */
+  paredes();
+
+  /* poeira no ar: sem isso a tela morre quando ninguém toca */
+  cx.fillStyle='#FFF0D2';
+  for(const m of motas){
+    m.y -= m.v*dt;
+    if(m.y < -6*R){ m.y = A+6*R; m.x = Math.random()*L; }
+    cx.globalAlpha = m.o; cx.fillRect(m.x, m.y, m.s, m.s);
+  }
+  cx.globalAlpha=1;
+
+  regua();
+  desenhaAchados(dt);
+
+  /* a boca do poço, onde a picareta bate */
+  const rg = cx.createLinearGradient(0,ROCHA-34*R,0,A);
+  rg.addColorStop(0,'rgba(0,0,0,0)'); rg.addColorStop(.45,'rgba(0,0,0,.30)'); rg.addColorStop(1,'rgba(0,0,0,.58)');
   cx.fillStyle=rg;
   cx.beginPath();
   cx.moveTo(0, ROCHA+18*R);
@@ -560,16 +639,14 @@ function desenha(dt){
   }
   cx.lineTo(L,A); cx.lineTo(0,A); cx.closePath(); cx.fill();
 
-  /* clarão do impacto */
   if(brilho>0.01){
-    const b = cx.createRadialGradient(L/2,ROCHA,0,L/2,ROCHA,120*R);
-    b.addColorStop(0,'rgba(255,236,190,'+(brilho*.5)+')');
+    const b = cx.createRadialGradient(L/2,ROCHA,0,L/2,ROCHA,130*R);
+    b.addColorStop(0,'rgba(255,236,190,'+(brilho*.52)+')');
     b.addColorStop(1,'rgba(255,236,190,0)');
-    cx.fillStyle=b; cx.fillRect(L/2-130*R,ROCHA-130*R,260*R,260*R);
+    cx.fillStyle=b; cx.fillRect(L/2-140*R,ROCHA-140*R,280*R,280*R);
     brilho *= 0.86;
   } else brilho = 0;
 
-  /* rachaduras que se acumulam e apagam */
   cx.lineCap='round';
   for(let i=rachas.length-1;i>=0;i--){
     const k=rachas[i]; k.t -= dt*0.9;
@@ -581,22 +658,20 @@ function desenha(dt){
     cx.stroke();
   }
 
-  /* a picareta */
   desenhaPico(dt);
 
-  /* estilhaço com gravidade e rotação: peso é o que separa faísca de caco */
   for(let i=cacos.length-1;i>=0;i--){
     const p=cacos[i];
     p.x+=p.vx; p.y+=p.vy; p.vy+=p.g; p.rot+=p.vr; p.t-=dt*1.15;
     if(p.t<=0 || p.y>A+30*R){ cacos.splice(i,1); continue; }
     cx.save(); cx.translate(p.x,p.y); cx.rotate(p.rot);
     cx.globalAlpha = Math.min(p.t,1);
-    cx.fillStyle='#D9C4A2';                      /* a face iluminada */
+    cx.fillStyle='#D9C4A2';
     cx.beginPath();
     cx.moveTo(-p.s*.5,-p.s*.34); cx.lineTo(p.s*.5,-p.s*.5);
     cx.lineTo(p.s*.42,p.s*.4);   cx.lineTo(-p.s*.44,p.s*.3);
     cx.closePath(); cx.fill();
-    cx.fillStyle='rgba(40,26,12,.78)';           /* a face na sombra: volume */
+    cx.fillStyle='rgba(40,26,12,.78)';
     cx.beginPath();
     cx.moveTo(p.s*.5,-p.s*.5); cx.lineTo(p.s*.42,p.s*.4);
     cx.lineTo(-p.s*.05,p.s*.36); cx.lineTo(p.s*.02,-p.s*.42);
@@ -605,7 +680,6 @@ function desenha(dt){
   }
   cx.globalAlpha=1;
 
-  /* o quanto desceu, subindo do ponto do golpe */
   cx.textAlign='center';
   cx.font='700 '+(19*R)+'px "Barlow Condensed", Barlow, sans-serif';
   for(let i=ganhos.length-1;i>=0;i--){
@@ -619,43 +693,294 @@ function desenha(dt){
   cx.setTransform(1,0,0,1,0,0);
 }
 
+/* ---- os achados dentro da pedra ----
+   Silhueta fraca a 7 m de distância, ganhando luz até a descoberta. Depois
+   acende e sobe. É o único lugar do jogo onde o mundo entrega algo. */
+const JANELA = 7;          /* de quantos metros antes ele começa a aparecer */
+let revelado = null;       /* {i, t} — o que acabou de ser descoberto */
+
+function proximoAchado(){
+  for(let i=0;i<ACHADOS.length;i++){
+    if(S.achados.indexOf(i) >= 0) continue;
+    const alvo = (i===0) ? cfg.achado1 : ACHADOS[i].m;
+    const falta = alvo - S.prof;
+    if(falta >= 0 && falta <= JANELA) return {i:i, p:1 - falta/JANELA};
+    if(falta > JANELA) return null;      /* o próximo ainda está longe */
+  }
+  return null;
+}
+
+function desenhaAchados(dt){
+  /* 1. o que está emergindo */
+  const n = proximoAchado();
+  if(n){
+    const p = n.p;                                   /* 0 = longe, 1 = na hora */
+    const y = ROCHA - 168*R + p*44*R;                /* vem subindo até a boca */
+    cx.save();
+    cx.translate(L/2, y);
+    cx.scale(0.72 + p*0.28, 0.72 + p*0.28);
+    /* enterrado: escuro e sem contorno; conforme chega, ganha luz */
+    cx.globalAlpha = 0.10 + p*0.62;
+    formaAchado(ACHADOS[n.i].d, p, false);
+    cx.restore();
+    cx.globalAlpha = 1;
+  }
+
+  /* 2. o que acabou de ser descoberto: acende e sobe */
+  if(revelado){
+    revelado.t -= dt*0.30;
+    if(revelado.t <= 0){ revelado = null; }
+    else {
+      const k = revelado.t;                          /* 1 -> 0 */
+      const sobe = (1-k)*120*R;
+      cx.save();
+      cx.translate(L/2, ROCHA - 124*R - sobe);
+      const esc = 1 + (1-k)*0.22;
+      cx.scale(esc, esc);
+      /* halo: a única vez que o jogo brilha de verdade */
+      const h = cx.createRadialGradient(0,0,0,0,0,110*R);
+      h.addColorStop(0,'rgba(255,226,160,'+(k*0.42)+')');
+      h.addColorStop(1,'rgba(255,226,160,0)');
+      cx.fillStyle=h; cx.fillRect(-120*R,-120*R,240*R,240*R);
+      cx.globalAlpha = Math.min(k*1.6, 1);
+      formaAchado(ACHADOS[revelado.i].d, 1, true);
+      cx.restore();
+      cx.globalAlpha = 1;
+    }
+  }
+}
+
+/* aceso = descoberto (cor cheia); apagado = ainda na pedra (silhueta) */
+function formaAchado(qual, p, aceso){
+  const U = 34*R;                                    /* a unidade do desenho */
+  const corpo  = aceso ? '#F2D9A0' : '#2A1E10';
+  const escuro = aceso ? '#8A6A2E' : '#1A1208';
+  const luz    = aceso ? 'rgba(255,246,214,.9)' : 'rgba(255,240,214,'+(0.10+p*0.30)+')';
+  cx.lineJoin='round'; cx.lineCap='round';
+  cx.strokeStyle = luz; cx.lineWidth = 2.2*R;
+
+  if(qual==='moeda'){
+    cx.beginPath(); cx.arc(0,0,U*0.62,0,6.29);
+    cx.fillStyle=corpo; cx.fill(); cx.stroke();
+    cx.beginPath(); cx.arc(0,0,U*0.42,0,6.29); cx.stroke();
+    cx.beginPath(); cx.moveTo(-U*0.16,-U*0.16); cx.lineTo(U*0.16,U*0.16);
+    cx.moveTo(U*0.16,-U*0.16); cx.lineTo(-U*0.16,U*0.16); cx.stroke();
+
+  } else if(qual==='raiz'){
+    cx.strokeStyle=corpo; cx.lineWidth=U*0.20;
+    cx.beginPath(); cx.moveTo(-U*0.7,-U*0.9);
+    cx.bezierCurveTo(U*0.1,-U*0.3, -U*0.4, U*0.3, U*0.5, U*0.95); cx.stroke();
+    cx.lineWidth=U*0.10;
+    cx.beginPath(); cx.moveTo(-U*0.12,-U*0.28); cx.lineTo(-U*0.85, U*0.05); cx.stroke();
+    cx.beginPath(); cx.moveTo(-U*0.22, U*0.28); cx.lineTo( U*0.62, U*0.14); cx.stroke();
+    cx.strokeStyle=luz; cx.lineWidth=1.6*R;
+    cx.beginPath(); cx.moveTo(-U*0.6,-U*0.78);
+    cx.bezierCurveTo(U*0.05,-U*0.26, -U*0.34, U*0.28, U*0.42, U*0.84); cx.stroke();
+
+  } else if(qual==='capacete'){
+    cx.beginPath(); cx.arc(0, U*0.16, U*0.66, Math.PI, 0);
+    cx.lineTo(U*0.86, U*0.34); cx.lineTo(-U*0.86, U*0.34); cx.closePath();
+    cx.fillStyle=corpo; cx.fill(); cx.stroke();
+    /* a lâmpada da frente */
+    cx.beginPath(); cx.arc(0,-U*0.30,U*0.17,0,6.29);
+    cx.fillStyle=escuro; cx.fill(); cx.stroke();
+
+  } else if(qual==='onda'){
+    for(let i=0;i<4;i++){
+      cx.globalAlpha *= 1;
+      cx.beginPath();
+      cx.ellipse(0, 0, U*(0.28+i*0.24), U*(0.10+i*0.085), 0, 0, 6.29);
+      cx.stroke();
+    }
+    cx.beginPath(); cx.arc(U*0.30,-U*0.42,U*0.09,0,6.29); cx.stroke();
+    cx.beginPath(); cx.arc(-U*0.42,-U*0.24,U*0.06,0,6.29); cx.stroke();
+
+  } else if(qual==='porta'){
+    cx.beginPath(); cx.rect(-U*0.52,-U*0.95, U*1.04, U*1.90);
+    cx.fillStyle=corpo; cx.fill(); cx.stroke();
+    cx.beginPath();
+    cx.moveTo(-U*0.30,-U*0.72); cx.lineTo(-U*0.30, U*0.72); cx.stroke();
+    /* as dobradiças do lado de lá: só o vinco aparece deste lado */
+    cx.strokeStyle=escuro; cx.lineWidth=U*0.10;
+    cx.beginPath(); cx.moveTo(U*0.40,-U*0.56); cx.lineTo(U*0.40,-U*0.30); cx.stroke();
+    cx.beginPath(); cx.moveTo(U*0.40, U*0.30); cx.lineTo(U*0.40, U*0.56); cx.stroke();
+
+  } else if(qual==='eco'){
+    for(let i=0;i<5;i++){
+      cx.beginPath();
+      cx.arc(-U*0.55, 0, U*(0.3+i*0.30), -0.85, 0.85);
+      cx.stroke();
+    }
+
+  } else if(qual==='marcas'){
+    cx.strokeStyle=corpo; cx.lineWidth=U*0.13;
+    for(let i=-1;i<=1;i++){
+      cx.beginPath();
+      cx.moveTo(-U*0.72 + i*U*0.06, U*0.85 + i*U*0.08);
+      cx.lineTo( U*0.66 + i*U*0.06, -U*0.72 + i*U*0.08);
+      cx.stroke();
+    }
+    cx.strokeStyle=luz; cx.lineWidth=1.8*R;
+    for(let i=-1;i<=1;i++){
+      cx.beginPath();
+      cx.moveTo(-U*0.66 + i*U*0.06, U*0.80 + i*U*0.08);
+      cx.lineTo( U*0.60 + i*U*0.06, -U*0.66 + i*U*0.08);
+      cx.stroke();
+    }
+
+  } else if(qual==='cristal'){
+    cx.beginPath();
+    cx.moveTo(0,-U*1.05); cx.lineTo(U*0.52,-U*0.18);
+    cx.lineTo(U*0.30, U*0.92); cx.lineTo(-U*0.30, U*0.92);
+    cx.lineTo(-U*0.52,-U*0.18); cx.closePath();
+    cx.fillStyle=corpo; cx.fill(); cx.stroke();
+    cx.beginPath();
+    cx.moveTo(0,-U*1.05); cx.lineTo(0, U*0.92);
+    cx.moveTo(-U*0.52,-U*0.18); cx.lineTo(U*0.52,-U*0.18); cx.stroke();
+  }
+}
+
+/* rola o ladrilho. 'vel' é quanto ele anda por metro — a de trás anda menos,
+   e é essa diferença que o olho lê como distância. */
+function ladrilha(vel, alfa, folga){
+  const T = LADT*(1 + folga/100);
+  const desl = (S.prof*vel*10) % T;
+  cx.globalAlpha = alfa;
+  for(let y=-T+desl; y<A+T; y+=T)
+    for(let x=0; x<L+T; x+=T)
+      cx.drawImage(LAD, x, y, T, T);
+  cx.globalAlpha = 1;
+}
+
+/* as paredes: escurecem as bordas com um contorno irregular que também rola */
+function paredes(){
+  const larg = L*0.19;
+  const desl = (S.prof*10) % (90*R);
+  for(const lado of [0,1]){
+    cx.save();
+    if(lado){ cx.translate(L,0); cx.scale(-1,1); }
+    const g = cx.createLinearGradient(0,0,larg,0);
+    g.addColorStop(0,'rgba(0,0,0,.62)'); g.addColorStop(.62,'rgba(0,0,0,.22)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    cx.fillStyle=g;
+    cx.beginPath(); cx.moveTo(0,-10*R);
+    for(let y=-10*R; y<=A+10*R; y+=30*R){
+      const k = (y+desl)/(70*R);
+      cx.lineTo(larg*(0.62 + Math.sin(k)*0.20 + Math.sin(k*2.7)*0.12), y);
+    }
+    cx.lineTo(0,A+10*R); cx.closePath(); cx.fill();
+    cx.restore();
+  }
+}
+
+/* a régua: marca a cada 5 m, número a cada 25 m. Reforça a descida e informa. */
+function regua(){
+  const ppm = 26*R;                        /* mesmos pixels por metro dos estratos */
+  const x = L - 16*R;
+  const base = Math.floor(S.prof/5)*5;
+  cx.textAlign='right';
+  cx.font='600 '+(11*R)+'px "Barlow Condensed", Barlow, sans-serif';
+  for(let k=-6;k<=14;k++){
+    const m = base + k*5;
+    if(m < 0) continue;
+    const y = ROCHA - (m - S.prof)*ppm;
+    /* a régua não invade a faixa do cabeçalho nem a da loja: ela é fundo */
+    if(y < 150*R || y > A-190*R) continue;
+    const grande = (m % 25 === 0);
+    cx.strokeStyle='rgba(255,240,214,'+(grande?.30:.14)+')';
+    cx.lineWidth=1*R;
+    cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x - (grande?16*R:8*R), y); cx.stroke();
+    if(grande){
+      cx.fillStyle='rgba(255,240,214,.34)';
+      cx.fillText(m+' m', x - 20*R, y + 4*R);
+    }
+  }
+  cx.textAlign='center';
+}
+
 /* A picareta: o pivô fica onde estariam as MÃOS (fora do quadro, baixo-direita),
    o cabo sai dali e a CABEÇA fica na ponta. O comprimento do cabo não é
    escolhido no olho — é a distância exata das mãos até o ponto da rocha, então
    no quadro do impacto a cabeça aterrissa onde o estilhaço nasce.
-   Descida rápida (30% do tempo), volta lenta: é o que dá peso. Simétrico
-   pareceria elástico, não ferramenta. */
+   Descida rápida (30% do tempo), volta lenta: é o que dá peso. */
 function desenhaPico(dt){
   if(picoT < 1) picoT = Math.min(picoT + dt*3.4, 1);
 
-  const px = L/2 + 132*R, py = ROCHA + 96*R;      /* as mãos */
+  /* as mãos ficam FORA do quadro: quem joga está segurando a ferramenta,
+     então só a cabeça e um pedaço do cabo entram na cena. */
+  const px = L/2 + L*0.52, py = ROCHA + A*0.20;
   const dx = (L/2) - px, dy = ROCHA - py;
   const cabo = Math.hypot(dx, dy);
-  const aBate = Math.atan2(dy, dx);               /* onde a cabeça toca */
-  const aAlto = aBate - 1.05;                     /* de onde ela vem */
+  const aBate = Math.atan2(dy, dx);
+  const aAlto = aBate - 1.05;
 
   const t = picoT;
   let ang;
   if(t < .3){ const k=t/.3; ang = aAlto + (aBate-aAlto)*(k*k); }
   else { const k=(t-.3)/.7; const e=1-Math.pow(1-k,2.4); ang = aBate + (aAlto-aBate)*e; }
 
+  const H = cabo*0.13;          /* a cabeça acompanha o tamanho da ferramenta */
+  const E = cabo*0.028;         /* meia-espessura do cabo */
+
   cx.save(); cx.translate(px,py); cx.rotate(ang);
-  cx.lineCap='round';
-  /* cabo: da mão até a cabeça */
-  cx.strokeStyle='rgba(0,0,0,.35)'; cx.lineWidth=11*R;
-  cx.beginPath(); cx.moveTo(4*R,3*R); cx.lineTo(cabo+2*R,3*R); cx.stroke();
-  cx.strokeStyle='#7A5426'; cx.lineWidth=8*R;
-  cx.beginPath(); cx.moveTo(0,0); cx.lineTo(cabo,0); cx.stroke();
-  cx.strokeStyle='rgba(255,230,190,.22)'; cx.lineWidth=2.4*R;
-  cx.beginPath(); cx.moveTo(10*R,-2*R); cx.lineTo(cabo-12*R,-2*R); cx.stroke();
-  /* cabeça: barra curva atravessada na ponta do cabo */
+  cx.lineJoin='round'; cx.lineCap='round';
+
+  /* CABO: afina da mão pra ponta */
+  cx.beginPath();
+  cx.moveTo(0,-E*1.35); cx.lineTo(cabo,-E*0.8);
+  cx.lineTo(cabo, E*0.8); cx.lineTo(0, E*1.35);
+  cx.closePath();
+  const gc = cx.createLinearGradient(0,-E*1.4,0,E*1.4);
+  gc.addColorStop(0,'#B0803F'); gc.addColorStop(.40,'#7E5426'); gc.addColorStop(1,'#452B11');
+  cx.fillStyle=gc; cx.fill();
+  cx.strokeStyle='rgba(30,18,6,.5)'; cx.lineWidth=1.2*R; cx.stroke();
+  /* veio da madeira, contido dentro do cabo */
+  cx.save(); cx.clip();
+  cx.strokeStyle='rgba(58,36,14,.42)'; cx.lineWidth=1.1*R;
+  for(let i=-1;i<=1;i++){
+    cx.beginPath(); cx.moveTo(0, i*E*0.55);
+    cx.quadraticCurveTo(cabo*.5, i*E*0.55 + E*0.25, cabo, i*E*0.5); cx.stroke();
+  }
+  cx.restore();
+
+  /* CABEÇA — três peças separadas: caminho único com dois braços é o que
+     produzia o zigue-zague. */
   cx.translate(cabo, 0);
-  cx.strokeStyle='rgba(0,0,0,.4)'; cx.lineWidth=13*R;
-  cx.beginPath(); cx.moveTo(2*R,-30*R); cx.quadraticCurveTo(-11*R,0,2*R,30*R); cx.stroke();
-  cx.strokeStyle='#B9BFC6'; cx.lineWidth=10*R;
-  cx.beginPath(); cx.moveTo(0,-30*R); cx.quadraticCurveTo(-13*R,0,0,30*R); cx.stroke();
-  cx.strokeStyle='#F0F4F7'; cx.lineWidth=3.2*R;
-  cx.beginPath(); cx.moveTo(-2*R,-26*R); cx.quadraticCurveTo(-14*R,0,-2*R,26*R); cx.stroke();
+  const met = cx.createLinearGradient(0,-H*1.5,0,H*1.5);
+  met.addColorStop(0,'#EDF1F5'); met.addColorStop(.40,'#AEB6BE'); met.addColorStop(1,'#59636C');
+  const traco = 'rgba(18,24,30,.6)';
+
+  /* bico: braço longo que recua conforme sobe, terminando em ponta */
+  cx.beginPath();
+  cx.moveTo(-H*0.10, -H*0.55);
+  cx.lineTo(-H*0.92, -H*1.95);
+  cx.lineTo(-H*0.40, -H*2.12);
+  cx.lineTo( H*0.52, -H*0.62);
+  cx.closePath();
+  cx.fillStyle=met; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.5*R; cx.stroke();
+
+  /* enxó: braço curto do lado oposto, terminando chato */
+  cx.beginPath();
+  cx.moveTo(-H*0.10,  H*0.55);
+  cx.lineTo(-H*0.62,  H*1.30);
+  cx.lineTo( H*0.20,  H*1.55);
+  cx.lineTo( H*0.52,  H*0.62);
+  cx.closePath();
+  cx.fillStyle=met; cx.fill(); cx.strokeStyle=traco; cx.stroke();
+
+  /* fio: a luz bate na aresta de ataque das duas pontas */
+  cx.strokeStyle='rgba(255,255,255,.6)'; cx.lineWidth=2.2*R;
+  cx.beginPath(); cx.moveTo(-H*0.92,-H*1.95); cx.lineTo(-H*0.40,-H*2.12); cx.stroke();
+  cx.beginPath(); cx.moveTo(-H*0.62, H*1.30); cx.lineTo( H*0.20, H*1.55); cx.stroke();
+
+  /* anel de metal onde o cabo atravessa a cabeça */
+  cx.beginPath();
+  cx.moveTo(-H*0.34,-H*0.72); cx.lineTo( H*0.62,-H*0.60);
+  cx.lineTo( H*0.62, H*0.60); cx.lineTo(-H*0.34, H*0.72);
+  cx.closePath();
+  const anel = cx.createLinearGradient(0,-H*0.72,0,H*0.72);
+  anel.addColorStop(0,'#D6DCE2'); anel.addColorStop(.5,'#8E979F'); anel.addColorStop(1,'#4B545C');
+  cx.fillStyle=anel; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.4*R; cx.stroke();
+
   cx.restore();
 }
 
