@@ -634,16 +634,17 @@ function golpe(forca){
   camV += 1.15*forca;        /* o tranco: o golpe empurra o mundo pra baixo */
   tremor = 3*forca;
   brilho = 1;
+  const bp = pontoImpacto();      /* mesma fonte da ferramenta */
   const n = Math.round(7*forca);
   for(let i=0;i<n;i++){
     const a = -Math.PI/2 + (Math.random()-.5)*2.0;
     const v = (4.2+Math.random()*6.4)*R*forca;
-    cacos.push({x:L/2+(Math.random()-.5)*96*R, y:ROCHA-4*R,
+    cacos.push({x:bp.x+(Math.random()-.5)*70*R, y:bp.y,
       vx:Math.cos(a)*v, vy:Math.sin(a)*v,
       g:(.34+Math.random()*.20)*R, t:1, s:(4.5+Math.random()*5.5)*R,
       rot:Math.random()*6.28, vr:(Math.random()-.5)*.42});
   }
-  rachas.push({x:L/2+(Math.random()-.5)*150*R, y:ROCHA+(Math.random()-.5)*40*R,
+  rachas.push({x:bp.x+(Math.random()-.5)*120*R, y:bp.y+(Math.random()-.5)*34*R,
     a:Math.random()*6.28, c:(14+Math.random()*20)*R, t:1});
   if(rachas.length>5) rachas.shift();
 }
@@ -673,7 +674,8 @@ function passoTela(){
 
 function sobeGanho(txt){
   ganhoN = (ganhoN+1) % 3;
-  ganhos.push({x:L/2+(Math.random()-.5)*74*R, y:ROCHA-26*R-ganhoN*22*R, t:1, txt:txt});
+  const bg = pontoImpacto();
+  ganhos.push({x:bg.x+(Math.random()-.5)*60*R, y:bg.y-30*R-ganhoN*22*R, t:1, txt:txt});
   if(ganhos.length>3) ganhos.shift();
 }
 
@@ -746,10 +748,11 @@ function desenha(dt){
   cx.lineTo(L,A); cx.lineTo(0,A); cx.closePath(); cx.fill();
 
   if(brilho>0.01){
-    const b = cx.createRadialGradient(L/2,ROCHA,0,L/2,ROCHA,130*R);
+    const bi = pontoImpacto();
+    const b = cx.createRadialGradient(bi.x,bi.y,0,bi.x,bi.y,130*R);
     b.addColorStop(0,'rgba(255,236,190,'+(brilho*.52)+')');
     b.addColorStop(1,'rgba(255,236,190,0)');
-    cx.fillStyle=b; cx.fillRect(L/2-140*R,ROCHA-140*R,280*R,280*R);
+    cx.fillStyle=b; cx.fillRect(bi.x-140*R,bi.y-140*R,280*R,280*R);
     brilho *= 0.86;
   } else brilho = 0;
 
@@ -823,8 +826,8 @@ function desenhaAchados(dt){
   if(n){
     const p = n.p;                                   /* 0 = longe, 1 = na hora */
     const alvo = (n.i===0) ? cfg.achado1 : ACHADOS[n.i].m;
-    /* ancorado na PROFUNDIDADE dele: sobe junto com a pedra, não flutua parado */
-    const y = ROCHA - (alvo - camY)*PPM*R - 30*R;
+    /* ancorado na PROFUNDIDADE dele: vem de baixo e sobe até a boca do poço */
+    const y = ROCHA + (alvo - camY)*PPM*R - 30*R;
     cx.save();
     cx.translate(L/2, y);
     cx.scale(0.72 + p*0.28, 0.72 + p*0.28);
@@ -953,7 +956,8 @@ function formaAchado(qual, p, aceso){
    e é essa diferença que o olho lê como distância. */
 function ladrilha(vel, alfa, folga){
   const T = LADT*(1 + folga/100);
-  const desl = (camY*vel*10) % T;
+  /* NEGATIVO: descer significa a pedra passando por você PRA CIMA */
+  const desl = (((-camY*vel*10) % T) + T) % T;
   cx.globalAlpha = alfa;
   for(let y=-T+desl; y<A+T; y+=T)
     for(let x=0; x<L+T; x+=T)
@@ -966,7 +970,7 @@ function ladrilha(vel, alfa, folga){
 function costura(){
   for(const k of CAMADAS){
     if(k.m <= 0) continue;
-    const y = ROCHA - (k.m - camY)*PPM*R;
+    const y = ROCHA + (k.m - camY)*PPM*R;  /* a fronteira sobe até você */
     if(y < -40*R || y > A+40*R) continue;
     cx.globalCompositeOperation='source-over';
     cx.strokeStyle='rgba(0,0,0,.5)'; cx.lineWidth=7*R;
@@ -1088,7 +1092,7 @@ function paredes(){
   const U = A*0.075;
   const abertura = Math.min(L*0.72, U*2.9);
   const larg = (L - abertura)/2;
-  const desl = (camY*10) % (90*R);
+  const desl = (((-camY*10) % (90*R)) + 90*R) % (90*R);
   for(const lado of [0,1]){
     cx.save();
     if(lado){ cx.translate(L,0); cx.scale(-1,1); }
@@ -1115,7 +1119,7 @@ function regua(){
   for(let k=-6;k<=14;k++){
     const m = base + k*5;
     if(m < 0) continue;
-    const y = ROCHA - (m - camY)*ppm;
+    const y = ROCHA + (m - camY)*ppm;      /* mais fundo = mais embaixo */
     /* a régua não invade a faixa do cabeçalho nem a da loja: ela é fundo */
     if(y < 150*R || y > A-190*R) continue;
     const grande = (m % 25 === 0);
@@ -1166,6 +1170,22 @@ function membro(x1,y1, x2,y2, r1,r2, claro, escuro){
   cx.fillStyle = g; cx.fill();
 }
 
+/* Onde o mineiro está e onde a picareta bate — UMA fonte para os dois, senão
+   o estilhaço nasce num lugar e a ferramenta chega noutro. */
+function poseBase(){
+  const UT = A*0.046;              /* unidade do TÚNEL (chão, teto, posição) */
+  const U  = UT*0.5;               /* unidade do CORPO */
+  const pe = { x: L/2 - UT*1.5, y: ROCHA + UT*0.9 };
+  const CABO = U*3.1;              /* o cabo é do tamanho do DONO, não do túnel */
+  return { UT:UT, U:U, pe:pe, CABO:CABO };
+}
+/* o ponto de impacto é DERIVADO do cabo: ferramenta e estilhaço não podem
+   discordar sobre onde a pedra foi atingida. */
+function pontoImpacto(){
+  const b = poseBase();
+  return { x: b.pe.x + b.U*0.30 + b.CABO*0.92, y: b.pe.y - b.U*1.35 };
+}
+
 /* ---- o mineiro ---- */
 function desenhaMineiro(dt){
   if(picoT < 1) picoT = Math.min(picoT + dt*3.4, 1);
@@ -1176,10 +1196,9 @@ function desenhaMineiro(dt){
      humana de referência, e o que corrige o boneco anterior (2,5 cabeças). */
   /* DUAS unidades: o corpo encolheu à metade, o túnel ficou do tamanho que
      estava. É essa diferença que dá a folga — antes ele ocupava o buraco todo. */
-  const UT = A*0.046;              /* a unidade do TÚNEL (chão, teto, posição) */
-  const U  = UT*0.5;               /* a unidade do CORPO */
-  const pe = { x: L/2 - UT*1.5, y: ROCHA + UT*0.9 };   /* os pés, no chão */
-  const alvo = { x: L/2 + UT*0.7, y: ROCHA + UT*0.6 };
+  const _b = poseBase();
+  const UT = _b.UT, U = _b.U, pe = _b.pe;
+  const alvo = pontoImpacto();
 
   /* esforço: pico no quadro do impacto, é o que move a expressão */
   const esf = (t < .30) ? (t/.30)*(t/.30) : Math.max(0, 1 - (t-.30)/.34);
@@ -1253,7 +1272,8 @@ function desenhaMineiro(dt){
   const pivo = { x: U*0.30, y: -TORSO+U*0.36 };
   const ax = (alvo.x - pe.x - quad.x)*Math.cos(-lean) - (alvo.y - pe.y - quad.y)*Math.sin(-lean);
   const ay = (alvo.x - pe.x - quad.x)*Math.sin(-lean) + (alvo.y - pe.y - quad.y)*Math.cos(-lean);
-  const cabo = Math.hypot(ax-pivo.x, ay-pivo.y);
+  /* o cabo tem tamanho PRÓPRIO; o ângulo é que aponta pra pedra */
+  const cabo = _b.CABO;
   const aBate = Math.atan2(ay-pivo.y, ax-pivo.x);
   const aAlto = aBate - 1.75;
   let ang;
@@ -1273,34 +1293,76 @@ function desenhaMineiro(dt){
 
   /* a ferramenta */
   cx.save(); cx.translate(pivo.x, pivo.y); cx.rotate(ang);
-  const E = U*0.115;
+
+  /* CABO: afina da mão pra cabeça, com um bojo no cabeçote e cepo no fim */
+  const E = U*0.098;
   cx.beginPath();
-  cx.moveTo(0,-E*1.25); cx.lineTo(cabo,-E*0.8);
-  cx.lineTo(cabo, E*0.8); cx.lineTo(0, E*1.25); cx.closePath();
-  const gc = cx.createLinearGradient(0,-E*1.3,0,E*1.3);
-  gc.addColorStop(0,'#C08B47'); gc.addColorStop(.42,'#7E5426'); gc.addColorStop(1,'#3C2410');
+  cx.moveTo(-U*0.16,-E*1.30);
+  cx.quadraticCurveTo(cabo*0.55,-E*0.95, cabo, -E*0.86);
+  cx.lineTo(cabo, E*0.86);
+  cx.quadraticCurveTo(cabo*0.55, E*0.95, -U*0.16, E*1.30);
+  cx.closePath();
+  const gc = cx.createLinearGradient(0,-E*1.35,0,E*1.35);
+  gc.addColorStop(0,'#D2A05A'); gc.addColorStop(.34,'#96662F');
+  gc.addColorStop(.72,'#6A4520'); gc.addColorStop(1,'#33200D');
   cx.fillStyle=gc; cx.fill();
+  /* veio da madeira, contido no cabo */
+  cx.save(); cx.clip();
+  cx.strokeStyle='rgba(50,30,12,.34)'; cx.lineWidth=Math.max(1, U*0.028);
+  for(let i=-1;i<=1;i++){
+    cx.beginPath(); cx.moveTo(0, i*E*0.5);
+    cx.quadraticCurveTo(cabo*0.5, i*E*0.5+E*0.2, cabo, i*E*0.42); cx.stroke();
+  }
+  cx.restore();
+  /* cepo do cabo */
+  cx.beginPath(); cx.ellipse(-U*0.16, 0, E*0.40, E*1.34, 0, 0, 6.29);
+  cx.fillStyle='#4A2F13'; cx.fill();
+
+  /* CABEÇA: silhueta curva. O bico afina até a ponta; o enxó alarga até o fio. */
   cx.translate(cabo, 0);
-  const H = U*0.95;
-  const met = cx.createLinearGradient(0,-H*1.4,0,H*1.4);
-  met.addColorStop(0,'#F2F6FA'); met.addColorStop(.38,'#AEB6BE'); met.addColorStop(1,'#4E5860');
-  const traco='rgba(16,22,28,.62)';
+  const H = U*0.72;
+  const met = cx.createLinearGradient(-H*0.5,-H*1.6, H*0.4, H*1.4);
+  met.addColorStop(0,'#FAFDFF'); met.addColorStop(.26,'#C7D0D8');
+  met.addColorStop(.60,'#8B959E'); met.addColorStop(1,'#3E464E');
+  const traco='rgba(14,20,26,.55)';
+
+  /* bico */
   cx.beginPath();
-  cx.moveTo(-H*0.10,-H*0.55); cx.lineTo(-H*0.92,-H*1.95);
-  cx.lineTo(-H*0.40,-H*2.12); cx.lineTo( H*0.52,-H*0.62); cx.closePath();
-  cx.fillStyle=met; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.4*R; cx.stroke();
+  cx.moveTo( H*0.06,-H*0.46);
+  cx.quadraticCurveTo(-H*0.16,-H*1.16, -H*0.60,-H*1.76);
+  cx.lineTo(-H*0.34,-H*1.92);
+  cx.quadraticCurveTo( H*0.20,-H*1.14, H*0.46,-H*0.52);
+  cx.closePath();
+  cx.fillStyle=met; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.2*R; cx.stroke();
+
+  /* enxó */
   cx.beginPath();
-  cx.moveTo(-H*0.10, H*0.55); cx.lineTo(-H*0.62, H*1.30);
-  cx.lineTo( H*0.20, H*1.55); cx.lineTo( H*0.52, H*0.62); cx.closePath();
+  cx.moveTo( H*0.06, H*0.46);
+  cx.quadraticCurveTo(-H*0.12, H*0.92, -H*0.30, H*1.20);
+  cx.lineTo( H*0.18, H*1.38);
+  cx.quadraticCurveTo( H*0.34, H*0.94, H*0.46, H*0.52);
+  cx.closePath();
   cx.fillStyle=met; cx.fill(); cx.stroke();
-  cx.strokeStyle='rgba(255,255,255,.62)'; cx.lineWidth=2*R;
-  cx.beginPath(); cx.moveTo(-H*0.92,-H*1.95); cx.lineTo(-H*0.40,-H*2.12); cx.stroke();
+
+  /* olhal: onde o cabo atravessa, com chanfro */
   cx.beginPath();
-  cx.moveTo(-H*0.32,-H*0.68); cx.lineTo(H*0.58,-H*0.56);
-  cx.lineTo(H*0.58,H*0.56); cx.lineTo(-H*0.32,H*0.68); cx.closePath();
-  const anel = cx.createLinearGradient(0,-H*0.7,0,H*0.7);
-  anel.addColorStop(0,'#DDE3E9'); anel.addColorStop(.5,'#8E979F'); anel.addColorStop(1,'#454E56');
-  cx.fillStyle=anel; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.2*R; cx.stroke();
+  cx.moveTo(-H*0.20,-H*0.62); cx.lineTo( H*0.50,-H*0.50);
+  cx.lineTo( H*0.50, H*0.50); cx.lineTo(-H*0.20, H*0.62);
+  cx.closePath();
+  const anel = cx.createLinearGradient(0,-H*0.62,0,H*0.62);
+  anel.addColorStop(0,'#E8EEF4'); anel.addColorStop(.42,'#9AA3AB'); anel.addColorStop(1,'#3B434A');
+  cx.fillStyle=anel; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.1*R; cx.stroke();
+
+  /* o fio: a lâmpada bate na aresta de ataque das duas pontas */
+  cx.lineCap='round';
+  cx.strokeStyle='rgba(255,252,240,.85)'; cx.lineWidth=Math.max(1.4, U*0.05);
+  cx.beginPath(); cx.moveTo(-H*0.60,-H*1.76); cx.lineTo(-H*0.34,-H*1.92); cx.stroke();
+  cx.beginPath(); cx.moveTo(-H*0.30, H*1.20); cx.lineTo( H*0.18, H*1.38); cx.stroke();
+  /* e um lampejo correndo pelo dorso do bico */
+  cx.strokeStyle='rgba(255,255,255,.34)'; cx.lineWidth=Math.max(1, U*0.032);
+  cx.beginPath(); cx.moveTo(H*0.28,-H*0.60);
+  cx.quadraticCurveTo(-H*0.02,-H*1.12, -H*0.38,-H*1.70); cx.stroke();
+
   cx.restore();
 
   /* braço da frente, por cima da ferramenta */
