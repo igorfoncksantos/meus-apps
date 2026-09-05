@@ -709,8 +709,11 @@ function desenha(dt){
     cx.globalCompositeOperation='source-over';
   }
 
-  /* as paredes do poço: você está DENTRO do buraco */
+  /* o volume, de trás pra frente: teto, paredes, chão. O primeiro plano fica
+     pro fim, DEPOIS do mineiro — é ele que põe o corpo dentro da cena. */
+  teto();
   paredes();
+  chao();
 
   /* poeira no ar: sem isso a tela morre quando ninguém toca */
   cx.fillStyle='#FFF0D2';
@@ -723,6 +726,13 @@ function desenha(dt){
 
   regua();
   desenhaAchados(dt);
+
+  /* neblina de profundidade: o fundo do túnel perde contraste, e é assim que
+     o olho separa perto de longe quando não há perspectiva de verdade. */
+  const neb = cx.createRadialGradient(L/2, ROCHA-A*0.06, 0, L/2, ROCHA-A*0.06, A*0.42);
+  neb.addColorStop(0, 'rgba(10,6,3,0)');
+  neb.addColorStop(1, 'rgba(10,6,3,.42)');
+  cx.fillStyle = neb; cx.fillRect(0,0,L,A);
 
   /* a boca do poço, onde a picareta bate */
   const rg = cx.createLinearGradient(0,ROCHA-34*R,0,A);
@@ -755,6 +765,7 @@ function desenha(dt){
   }
 
   desenhaMineiro(dt);
+  primeiroPlano();          /* a oclusão: o que o coloca DENTRO do buraco */
 
   for(let i=cacos.length-1;i>=0;i--){
     const p=cacos[i];
@@ -976,6 +987,99 @@ function costura(){
   }
 }
 
+/* ---- o volume do túnel ----
+   Chão, teto e primeiro plano. É o conjunto que transforma uma parede pintada
+   num espaço em que alguém está de pé. */
+
+/* o chão: elipse achatada = plano visto de quase rente. Clara perto da lâmpada,
+   escura ao fundo — a luz é o que faz o plano existir. */
+function chao(){
+  const U = A*0.046;
+  const cy = ROCHA + U*0.9;
+  const larguraChao = Math.min(L*0.78, U*7.0);
+
+  cx.save();
+  cx.beginPath();
+  cx.ellipse(L/2, cy, larguraChao/2, U*1.5, 0, 0, 6.29);
+  cx.clip();
+  const g = cx.createLinearGradient(0, cy-U*1.5, 0, cy+U*1.5);
+  g.addColorStop(0, 'rgba(0,0,0,.55)');        /* fundo do chão: longe = escuro */
+  g.addColorStop(0.45, 'rgba(92,64,34,.34)');
+  g.addColorStop(1, 'rgba(150,108,58,.30)');   /* perto = batido pela lâmpada */
+  cx.fillStyle = g;
+  cx.fillRect(L/2-larguraChao/2, cy-U*1.6, larguraChao, U*3.2);
+  /* entulho no chão: pedra solta de quem acabou de cavar */
+  for(let i=0;i<26;i++){
+    const a = (i*2.399);
+    const rx = L/2 + Math.cos(a)*larguraChao*0.42*((i%7)/7+0.3);
+    const ry = cy + Math.sin(a)*U*1.1*((i%5)/5+0.3);
+    const s = U*(0.06 + (i%4)*0.035);
+    cx.fillStyle = (i%2) ? 'rgba(24,16,8,.55)' : 'rgba(190,152,104,.22)';
+    cx.beginPath(); cx.ellipse(rx, ry, s, s*0.62, a, 0, 6.29); cx.fill();
+  }
+  cx.restore();
+  /* a linha onde o chão encontra a parede: é ela que fecha o volume */
+  cx.strokeStyle='rgba(0,0,0,.5)'; cx.lineWidth=2.2*R;
+  cx.beginPath();
+  cx.ellipse(L/2, cy, larguraChao/2, U*1.5, 0, Math.PI*1.06, Math.PI*1.94);
+  cx.stroke();
+}
+
+/* o teto: o poço continua pra cima — é por onde ele desceu. */
+function teto(){
+  const U = A*0.046;
+  const abertura = Math.min(L*0.72, U*4.7);
+  const topo = ROCHA - U*7.6;
+  cx.save();
+  cx.beginPath();
+  cx.moveTo(-10*R, -10*R);
+  cx.lineTo(L+10*R, -10*R);
+  cx.lineTo(L+10*R, topo);
+  /* a boca do poço lá em cima, estreitando */
+  cx.quadraticCurveTo(L/2 + abertura*0.30, topo - U*1.2, L/2 + abertura*0.16, topo - U*2.4);
+  cx.lineTo(L/2 - abertura*0.16, topo - U*2.4);
+  cx.quadraticCurveTo(L/2 - abertura*0.30, topo - U*1.2, -10*R, topo);
+  cx.closePath();
+  const g = cx.createLinearGradient(0, topo - U*2.4, 0, topo + U*0.6);
+  g.addColorStop(0, 'rgba(0,0,0,.20)');
+  g.addColorStop(1, 'rgba(0,0,0,.72)');
+  cx.fillStyle = g; cx.fill();
+  cx.restore();
+}
+
+/* o que está NA FRENTE dele. É o sinal de profundidade mais forte que existe,
+   e era o que faltava pra ele deixar de parecer colado sobre a pedra. */
+function primeiroPlano(){
+  const U = A*0.046;
+  const base = ROCHA + U*2.6;
+  cx.save();
+  cx.beginPath();
+  cx.moveTo(-10*R, A+10*R);
+  cx.lineTo(-10*R, base + U*0.9);
+  for(let x=0; x<=L; x+=L/9){
+    const k = x/L;
+    cx.lineTo(x, base + Math.sin(k*7.1)*U*0.55 + Math.sin(k*17.3)*U*0.22);
+  }
+  cx.lineTo(L+10*R, base + U*0.9);
+  cx.lineTo(L+10*R, A+10*R);
+  cx.closePath();
+  const g = cx.createLinearGradient(0, base - U*0.6, 0, A);
+  g.addColorStop(0, 'rgba(8,5,2,.55)');
+  g.addColorStop(0.35, 'rgba(8,5,2,.92)');
+  g.addColorStop(1, 'rgba(4,3,1,1)');
+  cx.fillStyle = g; cx.fill();
+  /* uma aresta de luz na crista: a lâmpada bate na borda mais próxima */
+  cx.strokeStyle='rgba(255,222,160,.14)'; cx.lineWidth=2.4*R;
+  cx.beginPath();
+  for(let x=0; x<=L; x+=L/9){
+    const k = x/L;
+    const y = base + Math.sin(k*7.1)*U*0.55 + Math.sin(k*17.3)*U*0.22;
+    x===0 ? cx.moveTo(x,y) : cx.lineTo(x,y);
+  }
+  cx.stroke();
+  cx.restore();
+}
+
 /* as paredes: escurecem as bordas com um contorno irregular que também rola */
 function paredes(){
   /* o túnel tem o tamanho de quem o cavou: a abertura é ~2,9 vezes a largura
@@ -1031,128 +1135,156 @@ function regua(){
    escolhido no olho — é a distância exata das mãos até o ponto da rocha, então
    no quadro do impacto a cabeça aterrissa onde o estilhaço nasce.
    Descida rápida (30% do tempo), volta lenta: é o que dá peso. */
-/* ---- o mineiro ----
-   Tudo em torno de um pivô nos pés. O braço e a picareta são resolvidos por
-   geometria: o cabo tem o comprimento exato do punho até o ponto do impacto,
-   então no quadro do golpe a cabeça aterrissa onde o estilhaço nasce. */
+/* ---- ferramentas de corpo ---- */
+
+/* cinemática inversa de dois ossos: dado o ombro e a mão, acha o cotovelo.
+   É o que faz o braço DOBRAR em vez de girar inteiro como um ponteiro. */
+function ik(ax, ay, tx, ty, l1, l2, lado){
+  const dx = tx-ax, dy = ty-ay;
+  let d = Math.hypot(dx, dy);
+  d = Math.max(0.0001, Math.min(d, (l1+l2)*0.999));   /* não esticar além do osso */
+  const base = Math.atan2(dy, dx);
+  let cosA = (l1*l1 + d*d - l2*l2) / (2*l1*d);
+  cosA = Math.max(-1, Math.min(1, cosA));
+  const a1 = base + Math.acos(cosA)*lado;
+  return { x: ax + Math.cos(a1)*l1, y: ay + Math.sin(a1)*l1 };
+}
+
+/* um membro é um polígono que AFINA da raiz pra ponta, com face clara e face
+   escura. Espessura constante é o que faz um desenho parecer palito. */
+function membro(x1,y1, x2,y2, r1,r2, claro, escuro){
+  const a = Math.atan2(y2-y1, x2-x1), s = Math.sin(a), c = Math.cos(a);
+  cx.beginPath();
+  cx.moveTo(x1 - s*r1, y1 + c*r1);
+  cx.lineTo(x2 - s*r2, y2 + c*r2);
+  cx.arc(x2, y2, r2, a - Math.PI/2, a + Math.PI/2);
+  cx.lineTo(x1 + s*r1, y1 - c*r1);
+  cx.arc(x1, y1, r1, a + Math.PI/2, a + Math.PI*1.5);
+  cx.closePath();
+  const g = cx.createLinearGradient(x1 - s*r1, y1 + c*r1, x1 + s*r1, y1 - c*r1);
+  g.addColorStop(0, claro); g.addColorStop(0.62, escuro);
+  cx.fillStyle = g; cx.fill();
+}
+
+/* ---- o mineiro ---- */
 function desenhaMineiro(dt){
   if(picoT < 1) picoT = Math.min(picoT + dt*3.4, 1);
   const t = picoT;
-
-  const U  = A*0.075;                 /* a unidade do corpo (cabeça ≈ 1 U) */
-  const pe = { x: L/2 - U*1.45, y: ROCHA + U*0.52 };
-  const alvo = { x: L/2 + U*0.75, y: ROCHA + U*0.10 };   /* onde ele bate */
-
-  /* o corpo se arma e acompanha: peso vem da antecipação */
-  let lean;
-  if(t < .3){ const k=t/.3; lean = -0.30 + 0.52*(k*k); }
-  else { const k=(t-.3)/.7; const e=1-Math.pow(1-k,2.4); lean = 0.22 - 0.52*e; }
-
   const rp = roupaAtual(), ac = acessAtual();
-  const pele  = '#C98A52', peleE = '#8E5B2E';
-  const roupa = rp.cor, roupaE = rp.corE;
-  const bota  = '#2A2018';
-  const capa  = ac.capa, capaE = 'rgba(0,0,0,.34)';
+
+  /* U = altura da cabeça. Sete delas dão a figura inteira — a proporção
+     humana de referência, e o que corrige o boneco anterior (2,5 cabeças). */
+  /* DUAS unidades: o corpo encolheu à metade, o túnel ficou do tamanho que
+     estava. É essa diferença que dá a folga — antes ele ocupava o buraco todo. */
+  const UT = A*0.046;              /* a unidade do TÚNEL (chão, teto, posição) */
+  const U  = UT*0.5;               /* a unidade do CORPO */
+  const pe = { x: L/2 - UT*1.5, y: ROCHA + UT*0.9 };   /* os pés, no chão */
+  const alvo = { x: L/2 + UT*0.7, y: ROCHA + UT*0.6 };
+
+  /* esforço: pico no quadro do impacto, é o que move a expressão */
+  const esf = (t < .30) ? (t/.30)*(t/.30) : Math.max(0, 1 - (t-.30)/.34);
+  const resp = Math.sin(performance.now()/900) * U*0.035 * (1-esf);   /* respiração */
+
+  let lean;
+  if(t < .3){ const k=t/.3; lean = -0.26 + 0.46*(k*k); }
+  else { const k=(t-.3)/.7; const e=1-Math.pow(1-k,2.4); lean = 0.20 - 0.46*e; }
+
+  /* paleta: a luz vem da lâmpada, à frente e acima */
+  const peleC='#D8A171', peleE='#9A6538';
+  const roupaC=rp.cor, roupaE=rp.corE;
+  const botaC='#3A2E22', botaE='#1E1712';
 
   cx.save();
   cx.translate(pe.x, pe.y);
   cx.lineJoin='round'; cx.lineCap='round';
 
-  /* sombra no chão: sem ela ele flutua */
-  cx.fillStyle='rgba(0,0,0,.34)';
-  cx.beginPath(); cx.ellipse(U*0.25, U*0.06, U*0.95, U*0.19, 0, 0, 6.29); cx.fill();
+  cx.fillStyle='rgba(0,0,0,.38)';
+  cx.beginPath(); cx.ellipse(U*0.9, 0, U*2.1, U*0.30, 0, 0, 6.29); cx.fill();
 
-  /* pernas: a de trás firme, a da frente flexionada pro golpe */
-  cx.strokeStyle=roupaE; cx.lineWidth=U*0.30;
-  cx.beginPath(); cx.moveTo(-U*0.12,-U*0.92); cx.lineTo(-U*0.50, 0); cx.stroke();
-  cx.strokeStyle=roupa;
-  cx.beginPath(); cx.moveTo( U*0.06,-U*0.92); cx.lineTo( U*0.62,-U*0.10); cx.stroke();
-  cx.strokeStyle=bota; cx.lineWidth=U*0.20;
-  cx.beginPath(); cx.moveTo(-U*0.56,-U*0.03); cx.lineTo(-U*0.86,-U*0.03); cx.stroke();
-  cx.beginPath(); cx.moveTo( U*0.62,-U*0.10); cx.lineTo( U*0.92,-U*0.12); cx.stroke();
+  /* --- quadril e pernas ---
+     Pés fixos no chão; o quadril sobe e desce com o golpe. O joelho é
+     resolvido, então a perna agacha sozinha. */
+  const quadY = -U*3.5 + esf*U*0.30 + resp;
+  const quad  = { x: 0, y: quadY };
+  const peTras = { x: -U*1.15, y: 0 };
+  const peFrente = { x: U*1.65, y: -U*0.05 };
+  const COXA = U*1.75, CANELA = U*1.7;
 
-  /* daqui pra cima tudo gira com o tronco */
-  cx.translate(0,-U*0.92); cx.rotate(lean);
+  /* perna de trás primeiro: fica atrás do corpo */
+  let jo = ik(quad.x-U*0.22, quad.y, peTras.x, peTras.y, COXA, CANELA, 1);
+  membro(quad.x-U*0.22, quad.y, jo.x, jo.y, U*0.40, U*0.30, roupaE, '#000');
+  membro(jo.x, jo.y, peTras.x, peTras.y, U*0.30, U*0.20, roupaE, '#000');
+  membro(peTras.x+U*0.10, peTras.y-U*0.10, peTras.x-U*0.55, peTras.y-U*0.02, U*0.26, U*0.16, botaE, '#000');
 
-  cx.fillStyle=roupa;
+  jo = ik(quad.x+U*0.22, quad.y, peFrente.x, peFrente.y, COXA, CANELA, 1);
+  membro(quad.x+U*0.22, quad.y, jo.x, jo.y, U*0.44, U*0.32, roupaC, roupaE);
+  membro(jo.x, jo.y, peFrente.x, peFrente.y, U*0.32, U*0.21, roupaC, roupaE);
+  membro(peFrente.x-U*0.10, peFrente.y-U*0.10, peFrente.x+U*0.62, peFrente.y-U*0.03, U*0.27, U*0.17, botaC, botaE);
+
+  /* --- tronco: inclina a partir do quadril --- */
+  cx.save();
+  cx.translate(quad.x, quad.y); cx.rotate(lean);
+
+  const TORSO = U*2.05;
+  const peito = { x: 0, y: -TORSO };
+  /* o tronco é um trapézio: ombro largo, quadril estreito */
   cx.beginPath();
-  cx.moveTo(-U*0.34, 0); cx.lineTo(-U*0.42,-U*0.86);
-  cx.lineTo( U*0.40,-U*0.86); cx.lineTo( U*0.32, 0);
-  cx.closePath(); cx.fill();
-  /* a alça do macacão, e o que o torna uma pessoa e não um bloco */
-  cx.strokeStyle=roupaE; cx.lineWidth=U*0.09;
-  cx.beginPath(); cx.moveTo(-U*0.20,-U*0.80); cx.lineTo(-U*0.08,-U*0.12); cx.stroke();
+  cx.moveTo(-U*0.62, U*0.10); cx.lineTo(-U*0.92, -TORSO+U*0.10);
+  cx.quadraticCurveTo(0, -TORSO-U*0.30, U*0.92, -TORSO+U*0.10);
+  cx.lineTo( U*0.58, U*0.10);
+  cx.quadraticCurveTo(0, U*0.34, -U*0.62, U*0.10);
+  cx.closePath();
+  const gt = cx.createLinearGradient(-U*0.9, 0, U*0.9, 0);
+  gt.addColorStop(0, roupaE); gt.addColorStop(0.55, roupaC); gt.addColorStop(1, '#FFE7B4');
+  cx.fillStyle = gt; cx.fill();
+  /* vincos do tecido: onde o pano dobra no esforço */
+  cx.strokeStyle='rgba(0,0,0,.22)'; cx.lineWidth=U*0.055;
+  cx.beginPath(); cx.moveTo(-U*0.42,-U*0.30);
+  cx.quadraticCurveTo(0,-U*0.55+esf*U*0.2, U*0.40,-U*0.22); cx.stroke();
+  /* alça do macacão */
+  cx.strokeStyle=roupaE; cx.lineWidth=U*0.16;
+  cx.beginPath(); cx.moveTo(-U*0.28,-TORSO+U*0.22); cx.lineTo(-U*0.14,-U*0.30); cx.stroke();
   if(rp.faixa){
-    cx.strokeStyle='rgba(255,240,190,.72)'; cx.lineWidth=U*0.07;
-    cx.beginPath(); cx.moveTo(-U*0.38,-U*0.50); cx.lineTo(U*0.36,-U*0.50); cx.stroke();
+    cx.strokeStyle='rgba(255,242,196,.78)'; cx.lineWidth=U*0.13;
+    cx.beginPath(); cx.moveTo(-U*0.80,-U*0.85); cx.lineTo(U*0.78,-U*0.95); cx.stroke();
   }
 
-  /* pescoço e cabeça */
-  cx.fillStyle=pele;
-  cx.fillRect(-U*0.10,-U*1.02, U*0.22, U*0.20);
-  cx.beginPath(); cx.arc(U*0.02,-U*1.30, U*0.31, 0, 6.29); cx.fill();
-
-  /* capacete com aba, e a lâmpada */
-  cx.fillStyle=capa;
-  cx.beginPath(); cx.arc(U*0.02,-U*1.34, U*0.35, Math.PI*1.02, Math.PI*2.0); cx.fill();
-  cx.fillStyle=capaE;
-  cx.fillRect(U*0.06,-U*1.40, U*0.42, U*0.10);
-  cx.fillStyle='#FFF2C8';
-  cx.beginPath(); cx.arc(U*0.30,-U*1.44, U*0.10, 0, 6.29); cx.fill();
-
-  /* O FEIXE DA LÂMPADA: o poço passa a ser iluminado por ELE */
-  cx.save();
-  cx.globalCompositeOperation='lighter';
-  const fx = U*0.34, fy = -U*1.44;
-  /* o acessório manda na luz: é a melhoria que muda a CENA, não só o número */
-  const alc = U*3.4*ac.luz;
-  const fg = cx.createRadialGradient(fx,fy,0,fx,fy,alc);
-  fg.addColorStop(0,'rgba(255,232,170,'+(0.24+0.10*ac.luz)+')');
-  fg.addColorStop(1,'rgba(255,232,170,0)');
-  cx.fillStyle=fg;
-  cx.beginPath(); cx.moveTo(fx,fy);
-  cx.lineTo(fx+alc*0.95, fy-U*0.9*ac.luz); cx.lineTo(fx+alc*0.95, fy+U*2.0*ac.luz);
-  cx.closePath(); cx.fill();
-  cx.restore();
-
-  /* ---- o braço e a picareta ---- */
-  const ombro = { x: U*0.22, y: -U*0.78 };
-  /* o alvo, visto de dentro do tronco já girado */
-  const ax = (alvo.x - pe.x)*Math.cos(-lean) - (alvo.y - (pe.y-U*0.92))*Math.sin(-lean);
-  const ay = (alvo.x - pe.x)*Math.sin(-lean) + (alvo.y - (pe.y-U*0.92))*Math.cos(-lean);
-  const cabo = Math.hypot(ax-ombro.x, ay-ombro.y);
-  const aBate = Math.atan2(ay-ombro.y, ax-ombro.x);
-  const aAlto = aBate - 1.65;
+  /* --- a picareta: gira no peito; as mãos agarram o cabo --- */
+  const pivo = { x: U*0.30, y: -TORSO+U*0.36 };
+  const ax = (alvo.x - pe.x - quad.x)*Math.cos(-lean) - (alvo.y - pe.y - quad.y)*Math.sin(-lean);
+  const ay = (alvo.x - pe.x - quad.x)*Math.sin(-lean) + (alvo.y - pe.y - quad.y)*Math.cos(-lean);
+  const cabo = Math.hypot(ax-pivo.x, ay-pivo.y);
+  const aBate = Math.atan2(ay-pivo.y, ax-pivo.x);
+  const aAlto = aBate - 1.75;
   let ang;
   if(t < .3){ const k=t/.3; ang = aAlto + (aBate-aAlto)*(k*k); }
   else { const k=(t-.3)/.7; const e=1-Math.pow(1-k,2.4); ang = aBate + (aAlto-aBate)*e; }
+  const dirx = Math.cos(ang), diry = Math.sin(ang);
+  const mao1 = { x: pivo.x + dirx*cabo*0.30, y: pivo.y + diry*cabo*0.30 };
+  const mao2 = { x: pivo.x + dirx*cabo*0.50, y: pivo.y + diry*cabo*0.50 };
 
-  cx.save(); cx.translate(ombro.x, ombro.y); cx.rotate(ang);
+  const ombro = { x: U*0.10, y: -TORSO+U*0.28 };
+  const BRACO = U*1.35, ANTE = U*1.25;
 
-  const E = U*0.055;
-  /* cabo */
+  /* braço de trás, atrás da ferramenta */
+  let co = ik(ombro.x-U*0.30, ombro.y+U*0.10, mao2.x, mao2.y, BRACO, ANTE, 1);
+  membro(ombro.x-U*0.30, ombro.y+U*0.10, co.x, co.y, U*0.32, U*0.25, roupaE, '#000');
+  membro(co.x, co.y, mao2.x, mao2.y, U*0.25, U*0.19, peleE, '#4A2E14');
+
+  /* a ferramenta */
+  cx.save(); cx.translate(pivo.x, pivo.y); cx.rotate(ang);
+  const E = U*0.115;
   cx.beginPath();
-  cx.moveTo(0,-E*1.3); cx.lineTo(cabo,-E*0.85);
-  cx.lineTo(cabo, E*0.85); cx.lineTo(0, E*1.3);
-  cx.closePath();
-  const gc = cx.createLinearGradient(0,-E*1.4,0,E*1.4);
-  gc.addColorStop(0,'#B0803F'); gc.addColorStop(.4,'#7E5426'); gc.addColorStop(1,'#452B11');
+  cx.moveTo(0,-E*1.25); cx.lineTo(cabo,-E*0.8);
+  cx.lineTo(cabo, E*0.8); cx.lineTo(0, E*1.25); cx.closePath();
+  const gc = cx.createLinearGradient(0,-E*1.3,0,E*1.3);
+  gc.addColorStop(0,'#C08B47'); gc.addColorStop(.42,'#7E5426'); gc.addColorStop(1,'#3C2410');
   cx.fillStyle=gc; cx.fill();
-
-  /* as duas mãos, agarrando o cabo */
-  cx.fillStyle=pele;
-  cx.beginPath(); cx.arc(cabo*0.34, 0, U*0.115, 0, 6.29); cx.fill();
-  cx.beginPath(); cx.arc(cabo*0.52, 0, U*0.115, 0, 6.29); cx.fill();
-  /* o braço sai do ombro e vai até a mão */
-  cx.strokeStyle=pele; cx.lineWidth=U*0.15;
-  cx.beginPath(); cx.moveTo(0,0); cx.lineTo(cabo*0.40, 0); cx.stroke();
-
-  /* cabeça da picareta: bico e enxó, peças separadas */
   cx.translate(cabo, 0);
-  const H = U*0.46;
+  const H = U*0.95;
   const met = cx.createLinearGradient(0,-H*1.4,0,H*1.4);
-  met.addColorStop(0,'#EDF1F5'); met.addColorStop(.4,'#AEB6BE'); met.addColorStop(1,'#59636C');
-  const traco='rgba(18,24,30,.6)';
+  met.addColorStop(0,'#F2F6FA'); met.addColorStop(.38,'#AEB6BE'); met.addColorStop(1,'#4E5860');
+  const traco='rgba(16,22,28,.62)';
   cx.beginPath();
   cx.moveTo(-H*0.10,-H*0.55); cx.lineTo(-H*0.92,-H*1.95);
   cx.lineTo(-H*0.40,-H*2.12); cx.lineTo( H*0.52,-H*0.62); cx.closePath();
@@ -1161,16 +1293,103 @@ function desenhaMineiro(dt){
   cx.moveTo(-H*0.10, H*0.55); cx.lineTo(-H*0.62, H*1.30);
   cx.lineTo( H*0.20, H*1.55); cx.lineTo( H*0.52, H*0.62); cx.closePath();
   cx.fillStyle=met; cx.fill(); cx.stroke();
-  cx.strokeStyle='rgba(255,255,255,.6)'; cx.lineWidth=2*R;
+  cx.strokeStyle='rgba(255,255,255,.62)'; cx.lineWidth=2*R;
   cx.beginPath(); cx.moveTo(-H*0.92,-H*1.95); cx.lineTo(-H*0.40,-H*2.12); cx.stroke();
   cx.beginPath();
-  cx.moveTo(-H*0.34,-H*0.70); cx.lineTo(H*0.60,-H*0.58);
-  cx.lineTo(H*0.60,H*0.58); cx.lineTo(-H*0.34,H*0.70); cx.closePath();
+  cx.moveTo(-H*0.32,-H*0.68); cx.lineTo(H*0.58,-H*0.56);
+  cx.lineTo(H*0.58,H*0.56); cx.lineTo(-H*0.32,H*0.68); cx.closePath();
   const anel = cx.createLinearGradient(0,-H*0.7,0,H*0.7);
-  anel.addColorStop(0,'#D6DCE2'); anel.addColorStop(.5,'#8E979F'); anel.addColorStop(1,'#4B545C');
+  anel.addColorStop(0,'#DDE3E9'); anel.addColorStop(.5,'#8E979F'); anel.addColorStop(1,'#454E56');
   cx.fillStyle=anel; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.2*R; cx.stroke();
+  cx.restore();
 
-  cx.restore();   /* braço */
+  /* braço da frente, por cima da ferramenta */
+  co = ik(ombro.x, ombro.y, mao1.x, mao1.y, BRACO, ANTE, 1);
+  membro(ombro.x, ombro.y, co.x, co.y, U*0.36, U*0.27, roupaC, roupaE);
+  membro(co.x, co.y, mao1.x, mao1.y, U*0.27, U*0.20, peleC, peleE);
+  /* as duas mãos fechadas no cabo */
+  [mao1, mao2].forEach(function(m, i){
+    cx.beginPath(); cx.arc(m.x, m.y, U*0.24, 0, 6.29);
+    const gm = cx.createRadialGradient(m.x-U*0.08, m.y-U*0.08, U*0.03, m.x, m.y, U*0.26);
+    gm.addColorStop(0, i ? peleE : peleC); gm.addColorStop(1, peleE);
+    cx.fillStyle=gm; cx.fill();
+  });
+
+  /* --- pescoço, cabeça e rosto --- */
+  const cab = { x: U*0.16, y: -TORSO-U*0.62 };
+  membro(peito.x, peito.y-U*0.05, cab.x, cab.y+U*0.30, U*0.26, U*0.24, peleC, peleE);
+
+  cx.save(); cx.translate(cab.x, cab.y);
+  /* crânio + mandíbula: perfil olhando pra direita */
+  cx.beginPath();
+  cx.moveTo(-U*0.42,-U*0.10);
+  cx.bezierCurveTo(-U*0.44,-U*0.62, U*0.30,-U*0.66, U*0.40,-U*0.16);   /* testa */
+  cx.bezierCurveTo( U*0.50,-U*0.02, U*0.46, U*0.04, U*0.40, U*0.06);   /* nariz */
+  cx.lineTo(U*0.30, U*0.12);
+  cx.bezierCurveTo( U*0.34, U*0.34, U*0.06, U*0.50, -U*0.20, U*0.36);  /* queixo */
+  cx.bezierCurveTo(-U*0.40, U*0.26, -U*0.44, U*0.10, -U*0.42,-U*0.10);
+  cx.closePath();
+  const gr = cx.createLinearGradient(-U*0.4,0,U*0.45,0);
+  gr.addColorStop(0, peleE); gr.addColorStop(0.55, peleC); gr.addColorStop(1, '#FFE0B0');
+  cx.fillStyle=gr; cx.fill();
+  /* barba por fazer */
+  cx.save(); cx.clip();
+  cx.fillStyle='rgba(50,32,18,.30)';
+  cx.beginPath(); cx.ellipse(U*0.06, U*0.26, U*0.34, U*0.22, 0, 0, 6.29); cx.fill();
+  cx.restore();
+  /* orelha */
+  cx.beginPath(); cx.ellipse(-U*0.20, U*0.02, U*0.08, U*0.11, 0, 0, 6.29);
+  cx.fillStyle=peleE; cx.fill();
+  /* sobrancelha: desce com o esforço */
+  cx.strokeStyle='#4A3018'; cx.lineWidth=U*0.075; cx.lineCap='round';
+  cx.beginPath();
+  cx.moveTo(U*0.10,-U*0.26+esf*U*0.07);
+  cx.lineTo(U*0.33,-U*0.20+esf*U*0.10); cx.stroke();
+  /* olho: aperta no golpe */
+  const abre = (1-esf)*U*0.075 + U*0.012;
+  cx.beginPath(); cx.ellipse(U*0.24,-U*0.10, U*0.075, abre, 0, 0, 6.29);
+  cx.fillStyle='#FFFFFF'; cx.fill();
+  cx.beginPath(); cx.arc(U*0.26,-U*0.10, Math.min(abre,U*0.045), 0, 6.29);
+  cx.fillStyle='#2A1C10'; cx.fill();
+  /* boca: abre no esforço */
+  cx.beginPath();
+  cx.ellipse(U*0.20, U*0.18, U*0.10, U*0.02 + esf*U*0.075, 0, 0, 6.29);
+  cx.fillStyle='#5A2A22'; cx.fill();
+
+  /* capacete: calota + aba pra frente + lâmpada */
+  cx.beginPath();
+  cx.moveTo(-U*0.50,-U*0.16);
+  cx.bezierCurveTo(-U*0.54,-U*0.86, U*0.42,-U*0.90, U*0.48,-U*0.18);
+  cx.closePath();
+  const gcap = cx.createLinearGradient(-U*0.5,-U*0.9,U*0.5,-U*0.1);
+  gcap.addColorStop(0, 'rgba(0,0,0,.45)'); gcap.addColorStop(0.45, ac.capa); gcap.addColorStop(1,'#FFF0C0');
+  cx.fillStyle=gcap; cx.fill();
+  cx.fillStyle=ac.capa;
+  cx.beginPath();
+  cx.moveTo(U*0.30,-U*0.24); cx.lineTo(U*0.86,-U*0.30);
+  cx.lineTo(U*0.86,-U*0.16); cx.lineTo(U*0.30,-U*0.12); cx.closePath(); cx.fill();
+  cx.fillStyle='rgba(0,0,0,.28)'; cx.fillRect(-U*0.52,-U*0.22, U*1.0, U*0.07);
+  cx.beginPath(); cx.arc(U*0.44,-U*0.42, U*0.15, 0, 6.29);
+  cx.fillStyle='#3A3020'; cx.fill();
+  cx.beginPath(); cx.arc(U*0.44,-U*0.42, U*0.10, 0, 6.29);
+  cx.fillStyle='#FFF6D2'; cx.fill();
+
+  /* O FEIXE: o acessório manda no alcance — a melhoria muda a CENA */
+  cx.save();
+  cx.globalCompositeOperation='lighter';
+  const fx = U*0.56, fy = -U*0.42;
+  const alc = U*7.5*ac.luz;
+  const fg = cx.createRadialGradient(fx,fy,0,fx,fy,alc);
+  fg.addColorStop(0,'rgba(255,232,170,'+(0.20+0.09*ac.luz)+')');
+  fg.addColorStop(1,'rgba(255,232,170,0)');
+  cx.fillStyle=fg;
+  cx.beginPath(); cx.moveTo(fx,fy);
+  cx.lineTo(fx+alc*0.95, fy-alc*0.30); cx.lineTo(fx+alc*0.95, fy+alc*0.55);
+  cx.closePath(); cx.fill();
+  cx.restore();
+
+  cx.restore();   /* cabeça */
+  cx.restore();   /* tronco */
   cx.restore();   /* mineiro */
 }
 
