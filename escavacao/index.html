@@ -113,6 +113,9 @@ body{
   .trocar .tn{ display:block; font-family:Anton,sans-serif; font-size:17px; letter-spacing:.02em; }
   .trocar:not(:disabled) .tn{ color:var(--lampada); }
   .trocar .td{ display:block; font-size:11.5px; color:var(--osso2); margin-top:1px; }
+  .trocar .tn b{ color:var(--osso); }
+  .trocar .td i{ display:inline-block; width:7px; height:7px; border-radius:2px;
+      margin-right:3px; vertical-align:middle; }
   .lojabt{ flex:0 0 auto; cursor:pointer; font-family:Anton,sans-serif; font-size:17px;
       letter-spacing:.06em; color:#191206; background:var(--lampada); border:none;
       border-radius:13px; padding:0 20px; }
@@ -120,6 +123,8 @@ body{
   /* ---------- a loja ---------- */
   .lojatopo{ display:flex; align-items:baseline; gap:10px; margin-bottom:12px; }
   .lojatopo h2{ margin:0; }
+  .lojanota{ font-size:12.5px; color:var(--osso2); margin:-4px 2px 10px; }
+  .lojanota b{ color:var(--lampada); }
   .moedas{ margin-left:auto; font-family:Anton,sans-serif; font-size:20px; color:var(--lampada);
       font-variant-numeric:tabular-nums; }
   .moedas em{ font-family:"Barlow Condensed",sans-serif; font-style:normal; font-size:11px;
@@ -193,6 +198,11 @@ body{
 
 :focus-visible{outline:2px solid var(--lampada);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* durante a chegada só existe a paisagem: painel e mochila são ruído aqui */
+body.chegando .topo, body.chegando .meio{ opacity:0; pointer-events:none; }
+body.chegando .topo, body.chegando .meio, body.chegando .cavar{ transition:opacity .45s ease; }
+body.chegando .cavar{ background:rgba(20,24,28,.55); border:1px solid rgba(242,233,218,.30);
+  color:#F2E9DA; backdrop-filter:blur(6px); }
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -320,6 +330,28 @@ const EQUIP = [
   {id:'perf',   n:'Perfuratriz',      d:'+170 m/s',      base:9000,   mps:170},
   {id:'tunel',  n:'Tuneladora',       d:'+1.100 m/s',    base:60000,  mps:1100}
 ];
+/* o que se arranca da pedra. 'de' é a partir de que metro ele começa a sair;
+   'raro' é o peso na hora do sorteio (menor = mais raro). */
+const ITENS = [
+  {id:'cascalho', n:'Cascalho',  de:0,    val:1,    raro:100, cor:'#8A7C6A'},
+  {id:'ferro',    n:'Ferro',     de:18,   val:4,    raro:60,  cor:'#9B6A46'},
+  {id:'carvao',   n:'Carvão',    de:60,   val:9,    raro:45,  cor:'#3A3A3E'},
+  {id:'cobre',    n:'Cobre',     de:140,  val:22,   raro:30,  cor:'#C87F42'},
+  {id:'prata',    n:'Prata',     de:320,  val:70,   raro:16,  cor:'#C9D2DA'},
+  {id:'ouro',     n:'Ouro',      de:620,  val:240,  raro:8,   cor:'#E7B54A'},
+  {id:'esmeralda',n:'Esmeralda', de:900,  val:900,  raro:3,   cor:'#3FBF86'},
+  {id:'diamante', n:'Diamante',  de:1150, val:3200, raro:1,   cor:'#9BE4F2'}
+];
+
+/* a equipe: cada função faz algo diferente, não '+X m/s' com nome novo */
+const EQUIPE = [
+  {id:'cavador',    n:'Cavador',    d:'+2,2 m/s cada',        base:180,   mps:2.2,  cor:'#4A6478'},
+  {id:'carregador', n:'Carregador', d:'+18% de minério',      base:600,   min:0.18, cor:'#6B5136'},
+  {id:'escorador',  n:'Escorador',  d:'rende mais quanto mais fundo', base:2400, fundo:0.115, cor:'#3F5A44'},
+  {id:'lampeiro',   n:'Lampeiro',   d:'ilumina e vê o achado antes',  base:5000, luz:0.55, cor:'#7A5F2A'},
+  {id:'capataz',    n:'Capataz',    d:'compra sozinho por você',      base:22000, auto:1, cor:'#5A4152', max:1}
+];
+
 /* roupa e acessório mudam o DESENHO — é onde o crescimento fica visível */
 const ROUPAS = [
   {id:'r0', n:'Macacão puído',   d:'o que você já tem', base:0,     cor:'#3E5A6B', corE:'#2A3E4B'},
@@ -371,8 +403,9 @@ function vibra(qual){
 let S, cfg, ultimo = performance.now(), salvoEm = 0;
 
 function novo(){
-  return { prof:0, frag:0, moedas:0, tot:0, colapsos:0, comprado:{}, achados:[],
-           visto:false, roupa:'r0', acess:'a0', tem:{r0:1,a0:1}, t:Date.now() };
+  return { prof:0, frag:0, moedas:0, tot:0, colapsos:0, comprado:{}, achados:[], chegou:false,
+           visto:false, roupa:'r0', acess:'a0', tem:{r0:1,a0:1}, equipe:{},
+           mochila:{}, t:Date.now() };
 }
 function carrega(){
   cfg = Object.assign({}, PADRAO);
@@ -386,10 +419,10 @@ function carrega(){
   /* o tempo de app fechado: teto de 4h, que é a forma recomendada */
   const fora = Math.min((Date.now() - (S.t||Date.now()))/1000, 4*3600);
   if(fora > 60 && mps() > 0){
-    const ganho = fora * mps();
-    S.prof += ganho; S.tot += ganho; S.frag += ganho * cfg.fragM;
+    const ganho = fora * forca();   /* trabalho, que o cava() converte */
+    cava(ganho);   /* pelo funil: respeita a dureza como o resto */
     setTimeout(()=>mostraAchado('DE VOLTA', 'A broca não parou',
-      fmt(ganho,1)+' m enquanto o app esteve fechado.'), 400);
+      fmt(ganho/dureza(),1)+' m enquanto o app esteve fechado.'), 400);
   }
 }
 function salva(){
@@ -409,23 +442,100 @@ function taxa(){
   EQUIP.forEach(function(m){ if(m.troca) v += m.troca * qtd(m.id); });
   return v;
 }
+/* o que a camada atual pode dar */
+function itensAqui(){
+  return ITENS.filter(function(o){ return S.prof >= o.de; });
+}
+/* sorteio por peso: o raro é raro porque pesa menos, não porque tem um 'if' */
+function sorteiaItem(){
+  const l = itensAqui();
+  let soma = 0; l.forEach(function(o){ soma += o.raro; });
+  let r = Math.random()*soma;
+  for(let i=0;i<l.length;i++){ r -= l[i].raro; if(r<=0) return l[i]; }
+  return l[0];
+}
+function naMochila(id){ return (S.mochila && S.mochila[id]) || 0; }
+/* o valor da mochila inteira, que é o que a troca paga */
+function valorMochila(){
+  let v = 0;
+  ITENS.forEach(function(o){ v += naMochila(o.id) * o.val; });
+  return v;
+}
+function pecasMochila(){
+  let n = 0;
+  ITENS.forEach(function(o){ n += naMochila(o.id); });
+  return n;
+}
+/* cada peça arrancada entra na mochila e cai visível na tela */
+function arranca(qtdPecas){
+  if(!S.mochila) S.mochila = {};
+  for(let i=0;i<qtdPecas;i++){
+    const o = sorteiaItem();
+    S.mochila[o.id] = naMochila(o.id) + 1;
+    if(o.val >= 70) achouRaro(o);      /* prata pra cima vale um anúncio */
+  }
+}
+let raroFlash = null;
+function achouRaro(o){
+  raroFlash = { cor:o.cor, t:1, n:o.n };
+  vibra('achado');
+}
+
+/* quantos de cada função */
+function nEq(id){ return (S.equipe && S.equipe[id]) || 0; }
+function custoEq(e){ return Math.ceil(e.base * Math.pow(1.18, nEq(e.id))); }
+/* quanta gente há no total — é o número que o jogador sente crescer */
+function povo(){ let n = 1; EQUIPE.forEach(function(e){ n += nEq(e.id); }); return n; }
+/* O escorador cresce com a mina — mas LOGARITMICAMENTE e com teto.
+   ⚠️ Linear era realimentação sem freio: render mais leva a mais fundo, que
+   leva a render mais. O simulador chegou a Infinity em 4 minutos. */
+function fatorFundo(){
+  let f = 0;
+  EQUIPE.forEach(function(e){ if(e.fundo) f += e.fundo * nEq(e.id); });
+  return 1 + f * Math.min(Math.log(1 + S.prof/40)/Math.LN10, 4.5);
+}
+function fatorMinerio(){
+  let f = 1;
+  EQUIPE.forEach(function(e){ if(e.min) f += e.min * nEq(e.id); });
+  return f;
+}
+function fatorLuz(){
+  let f = 0;
+  EQUIPE.forEach(function(e){ if(e.luz) f += e.luz * nEq(e.id); });
+  return 1 + f;
+}
+
 function roupaAtual(){ return ROUPAS.find(function(r){ return r.id===S.roupa; }) || ROUPAS[0]; }
 function acessAtual(){ return ACESS.find(function(a){ return a.id===S.acess; }) || ACESS[0]; }
 function troca(){
-  const q = Math.floor(S.frag);
-  if(q <= 0) return;
-  const ganho = Math.floor(q * taxa());
-  S.frag -= q; S.moedas += ganho;
+  const pecas = pecasMochila();
+  if(pecas <= 0) return;
+  const ganho = Math.floor(valorMochila() * taxa());
+  /* o que mais pesou na mochila: é o que a pessoa quer ler de volta */
+  let melhor = null, melhorV = 0;
+  ITENS.forEach(function(o){
+    const v = naMochila(o.id) * o.val;
+    if(v > melhorV){ melhorV = v; melhor = o; }
+  });
+  S.mochila = {}; S.moedas += ganho;
   vibra('compra'); salva(); pinta();
   mostraAchado('TROCA', ganho.toLocaleString('pt-BR') + ' moedas',
-    q.toLocaleString('pt-BR') + ' de minério, a ' + taxa().toFixed(2).replace('.',',') + ' por peça.');
+    pecas.toLocaleString('pt-BR') + ' peças' +
+    (melhor ? ' — o grosso veio de ' + melhor.n.toLowerCase() + '.' : '.'));
 }
-function bonus(){ return 1 + cfg.colapso * S.colapsos; }
-function mps(){
+/* COMPOSTO, não somado: é o colapso que sustenta o jogo longo */
+function bonus(){ return Math.pow(1 + cfg.colapso, S.colapsos); }
+/* a parede desce a cada volta: cada corrida vai mais fundo que a anterior */
+function paredeAtual(){ return cfg.parede * Math.pow(1.55, S.colapsos); }
+/* FORÇA: rocha quebrada por segundo. Não é metro — metro é força/dureza. */
+function forca(){
   let v = 0;
   EQUIP.forEach(m=>{ if(m.mps){ const q=qtd(m.id); v += (m.id==='broca' ? cfg.brocaM : m.mps) * q; } });
-  return v * bonus();
+  EQUIPE.forEach(e=>{ if(e.mps) v += e.mps * nEq(e.id); });
+  return v * bonus() * fatorFundo();
 }
+/* o que a mina realmente anda por segundo */
+function mps(){ return forca() / dureza(); }
 function porToque(){
   let t = cfg.tap;
   EQUIP.forEach(m=>{ if(m.tap) t *= Math.pow(m.tap, qtd(m.id)); });
@@ -441,9 +551,24 @@ function fmt(n, casas){
   return n.toLocaleString('pt-BR',{minimumFractionDigits:c, maximumFractionDigits:c});
 }
 
-function cava(metros){
+/* Dureza da rocha: 0,22% a mais por metro. Parece pouco e não é —
+   a 1.000 m a pedra já custa 8x mais, a 3.000 m custa 700x. É esse número
+   que faz a mina descer num ritmo humano enquanto a força explode. */
+function dureza(){ return Math.pow(1.0022, S.prof); }
+
+let acumPeca = 0;
+/* ⚠️ o argumento é TRABALHO (rocha quebrada), não metro.
+   metro = trabalho / dureza · minério = trabalho */
+function cava(trabalho){
+  const metros = trabalho / dureza();
   S.prof += metros; S.tot += metros;
-  S.frag += metros * cfg.fragM;
+  /* S.frag deixa de ser dinheiro e vira o CONTADOR de peças a arrancar */
+  acumPeca += trabalho * cfg.fragM * fatorMinerio();
+  if(acumPeca >= 1){
+    const n = Math.floor(acumPeca);
+    acumPeca -= n;
+    arranca(Math.min(n, 40));          /* teto: 38 m/s não pode virar 4000 peças */
+  }
   if(!S.visto && S.frag > 0){ S.visto = true; }
   confereAchados();
 }
@@ -472,7 +597,10 @@ function pinta(){
   const c = camada();
   elCam.textContent = c.nome;
   const v = mps();
-  elTaxa.textContent = v > 0 ? fmt(v,2).replace(/,00$/,'')+' m/s' : '';
+  const p = povo();
+  elTaxa.textContent = (v > 0 ? fmt(v,2).replace(/,00$/,'')+' m/s' +
+      (forca() >= 10 ? '  ·  força ' + fmt(forca(),0) : '') : '') +
+    (p > 1 ? (v>0?'  ·  ':'') + p + ' na mina' : '');
   elFragBox.style.display = S.visto ? 'flex' : 'none';
   elFrag.textContent = fmt(S.frag,0);
   elCavar.classList.toggle('menor', v > 0);
@@ -480,24 +608,30 @@ function pinta(){
   /* a barra: mochila, troca e a porta da loja. Só nasce depois do 1º achado. */
   if(!S.visto){ elLoja.innerHTML=''; }
   else {
-    const q = Math.floor(S.frag);
+    const q = pecasMochila();
+    /* as três pedras mais valiosas da mochila, com a cor de cada uma: a
+       composição diz mais do que a contagem */
+    const top = ITENS.filter(function(o){ return naMochila(o.id) > 0; })
+      .sort(function(a,b){ return naMochila(b.id)*b.val - naMochila(a.id)*a.val; }).slice(0,3);
     elLoja.innerHTML =
       '<div class="barra">' +
         '<button class="trocar"'+(q>0?'':' disabled')+' onclick="troca()">' +
-          '<span class="tn">Trocar</span>' +
-          '<span class="td">'+fmt(q,0)+' minério · '+fmt(Math.floor(q*taxa()),0)+' moedas</span>' +
+          '<span class="tn">Trocar <b>'+fmt(Math.floor(valorMochila()*taxa()),0)+'</b></span>' +
+          '<span class="td">' + (q ? top.map(function(o){
+            return '<i style="background:'+o.cor+'"></i>'+fmt(naMochila(o.id),0)+' '+o.n.toLowerCase();
+          }).join(' · ') : 'mochila vazia') + '</span>' +
         '</button>' +
         '<button class="lojabt" onclick="abreLoja()">LOJA</button>' +
       '</div>';
   }
 
   /* a parede é convite, não castigo */
-  if(S.prof >= cfg.parede){
+  if(S.prof >= paredeAtual()){
     if(!elParede.dataset.on){
       elParede.dataset.on='1';
       elParede.innerHTML='<div class="parede"><h3>A rocha-mãe</h3>'+
         '<p>A broca não passa daqui. Mas o que você aprendeu passa: colapsar devolve '+
-        '<b>+'+Math.round(cfg.colapso*100)+'% permanentes</b> em tudo que vier depois.</p>'+
+        '<b>x'+fmt(1+cfg.colapso,2).replace(/,00$/,'')+' permanente</b> em tudo que vier depois — e a próxima parede fica mais funda.</p>'+
         '<button id="btColapso">Colapsar a mina</button></div>';
       document.getElementById('btColapso').onclick = colapsa;
     }
@@ -635,6 +769,9 @@ function golpe(forca){
   tremor = 3*forca;
   brilho = 1;
   const bp = pontoImpacto();      /* mesma fonte da ferramenta */
+  /* o caco sai na cor da camada — o que voa é o que você está arrancando */
+  const iAqui = itensAqui();
+  const corCaco = iAqui.length ? iAqui[Math.floor(Math.random()*Math.min(iAqui.length,3))].cor : '#D9C4A2';
   const n = Math.round(7*forca);
   for(let i=0;i<n;i++){
     const a = -Math.PI/2 + (Math.random()-.5)*2.0;
@@ -642,7 +779,7 @@ function golpe(forca){
     cacos.push({x:bp.x+(Math.random()-.5)*70*R, y:bp.y,
       vx:Math.cos(a)*v, vy:Math.sin(a)*v,
       g:(.34+Math.random()*.20)*R, t:1, s:(4.5+Math.random()*5.5)*R,
-      rot:Math.random()*6.28, vr:(Math.random()-.5)*.42});
+      rot:Math.random()*6.28, vr:(Math.random()-.5)*.42, cor:corCaco});
   }
   rachas.push({x:bp.x+(Math.random()-.5)*120*R, y:bp.y+(Math.random()-.5)*34*R,
     a:Math.random()*6.28, c:(14+Math.random()*20)*R, t:1});
@@ -680,6 +817,7 @@ function sobeGanho(txt){
 }
 
 function desenha(dt){
+  if(!S.chegou){ desenhaChegada(dt); return; }
   /* mola: puxa pro alvo, o atrito segura. Sem o atrito ela oscilaria pra sempre. */
   camV += (S.prof - camY) * 130 * dt;
   camV *= Math.pow(0.0009, dt);
@@ -729,6 +867,24 @@ function desenha(dt){
   regua();
   desenhaAchados(dt);
 
+  /* achou coisa boa: a tela inteira pisca na cor da pedra. É o único momento
+     em que a raridade se anuncia sozinha. */
+  if(raroFlash){
+    raroFlash.t -= dt*1.5;
+    if(raroFlash.t <= 0) raroFlash = null;
+    else {
+      cx.save(); cx.globalCompositeOperation='lighter';
+      const bp = pontoImpacto();
+      const g = cx.createRadialGradient(bp.x,bp.y,0,bp.x,bp.y,A*0.5);
+      g.addColorStop(0, raroFlash.cor.replace(')', '')+'');
+      cx.globalAlpha = raroFlash.t*0.30;
+      const gg = cx.createRadialGradient(bp.x,bp.y,0,bp.x,bp.y,A*0.45);
+      gg.addColorStop(0, raroFlash.cor); gg.addColorStop(1, 'rgba(0,0,0,0)');
+      cx.fillStyle=gg; cx.fillRect(0,0,L,A);
+      cx.restore(); cx.globalAlpha=1;
+    }
+  }
+
   /* neblina de profundidade: o fundo do túnel perde contraste, e é assim que
      o olho separa perto de longe quando não há perspectiva de verdade. */
   const neb = cx.createRadialGradient(L/2, ROCHA-A*0.06, 0, L/2, ROCHA-A*0.06, A*0.42);
@@ -767,6 +923,7 @@ function desenha(dt){
     cx.stroke();
   }
 
+  desenhaEquipe();          /* atrás dele: ele é quem está na frente */
   desenhaMineiro(dt);
   primeiroPlano();          /* a oclusão: o que o coloca DENTRO do buraco */
 
@@ -776,7 +933,7 @@ function desenha(dt){
     if(p.t<=0 || p.y>A+30*R){ cacos.splice(i,1); continue; }
     cx.save(); cx.translate(p.x,p.y); cx.rotate(p.rot);
     cx.globalAlpha = Math.min(p.t,1);
-    cx.fillStyle='#D9C4A2';
+    cx.fillStyle = p.cor || '#D9C4A2';   /* o caco sai na cor do que se arranca */
     cx.beginPath();
     cx.moveTo(-p.s*.5,-p.s*.34); cx.lineTo(p.s*.5,-p.s*.5);
     cx.lineTo(p.s*.42,p.s*.4);   cx.lineTo(-p.s*.44,p.s*.3);
@@ -814,12 +971,188 @@ function proximoAchado(){
     if(S.achados.indexOf(i) >= 0) continue;
     const alvo = (i===0) ? cfg.achado1 : ACHADOS[i].m;
     const falta = alvo - S.prof;
-    if(falta >= 0 && falta <= JANELA) return {i:i, p:1 - falta/JANELA};
-    if(falta > JANELA) return null;      /* o próximo ainda está longe */
+    const jan = JANELA * fatorLuz();   /* o lampeiro enxerga mais longe */
+    if(falta >= 0 && falta <= jan) return {i:i, p:1 - falta/jan};
+    if(falta > jan) return null;      /* o próximo ainda está longe */
   }
   return null;
 }
 
+
+/* ====================== A CHEGADA (superfície) ====================== */
+let cena = { t:0, fim:false };
+const CENA_DUR = 5.4;
+
+/* A picape. "Moderna" aqui quer dizer ANGULAR: cintura alta, vidro estreito,
+   farol em fio de LED, caçamba reta. É o oposto do carrinho arredondado de
+   1990 — que foi exatamente a queixa dele sobre o boneco. */
+function picape(x, y, e, dir){
+  cx.save(); cx.translate(x,y); cx.scale(dir*e, e);
+
+  cx.save(); cx.scale(1,0.17);
+  const sg = cx.createRadialGradient(0,0,4,0,0,120);
+  sg.addColorStop(0,"rgba(0,0,0,.42)"); sg.addColorStop(1,"rgba(0,0,0,0)");
+  cx.fillStyle=sg; cx.beginPath(); cx.arc(0,0,120,0,7); cx.fill(); cx.restore();
+
+  const RODA = 24;
+  /* rodas primeiro: o corpo cobre a parte de cima delas */
+  [[-62,-RODA],[58,-RODA]].forEach(function(r){
+    cx.fillStyle="#15161A"; cx.beginPath(); cx.arc(r[0],r[1],RODA,0,7); cx.fill();
+    cx.fillStyle="#3B4048"; cx.beginPath(); cx.arc(r[0],r[1],RODA*0.52,0,7); cx.fill();
+    cx.fillStyle="#8B939C"; cx.beginPath(); cx.arc(r[0],r[1],RODA*0.30,0,7); cx.fill();
+  });
+
+  /* o corpo num traço só: caçamba reta atrás, cabine, capô caído na frente */
+  const cor = cx.createLinearGradient(0,-64,0,-8);
+  cor.addColorStop(0,"#2E6E63"); cor.addColorStop(0.55,"#1F4F49"); cor.addColorStop(1,"#16332F");
+  cx.fillStyle = cor;
+  cx.beginPath();
+  cx.moveTo(-92,-16); cx.lineTo(-92,-44); cx.lineTo(-40,-44);
+  cx.lineTo(-34,-70); cx.lineTo(16,-72); cx.lineTo(34,-46);
+  cx.lineTo(86,-42); cx.lineTo(92,-20); cx.lineTo(92,-14);
+  cx.lineTo(-92,-14); cx.closePath(); cx.fill();
+
+  /* vidro estreito e inclinado */
+  cx.fillStyle="rgba(178,222,232,.55)";
+  cx.beginPath(); cx.moveTo(-30,-66); cx.lineTo(13,-67); cx.lineTo(27,-48);
+  cx.lineTo(-30,-48); cx.closePath(); cx.fill();
+  cx.strokeStyle="rgba(255,255,255,.20)"; cx.lineWidth=1.4;
+  cx.beginPath(); cx.moveTo(-6,-66); cx.lineTo(-6,-48); cx.stroke();
+
+  /* barra de LED no teto: o detalhe que diz "moderna" sem precisar de texto */
+  cx.fillStyle="#0E1113"; cx.fillRect(-32,-79,50,6);
+  cx.fillStyle="#F2E7B8";
+  for(let i=0;i<5;i++) cx.fillRect(-28+i*10,-77.5,6,3);
+
+  cx.fillStyle="#F6EDCB"; cx.fillRect(78,-36,13,4.5);
+  cx.strokeStyle="rgba(0,0,0,.28)"; cx.lineWidth=1.6;
+  cx.beginPath(); cx.moveTo(36,-44); cx.lineTo(86,-40); cx.stroke();
+  cx.fillStyle="#22262B"; cx.fillRect(-46,-14,84,5); cx.fillRect(86,-24,8,11);
+
+  cx.restore();
+}
+
+function desenhaChegada(dt){
+  cena.t = Math.min(cena.t + dt, CENA_DUR + 3);
+  const t = cena.t;
+
+  cx.setTransform(1,0,0,1,0,0); cx.globalAlpha=1;
+  cx.globalCompositeOperation="source-over"; cx.clearRect(0,0,L,A);
+
+  /* fim de tarde: é a hora em que se chega pra abrir uma mina */
+  /* chão alto: com 72% de céu a cena inteira virava miniatura no horizonte */
+  const CHAO = A*0.60;
+  const ceu = cx.createLinearGradient(0,0,0,CHAO);
+  ceu.addColorStop(0,"#1B2A3A"); ceu.addColorStop(0.55,"#40506B");
+  ceu.addColorStop(1,"#B9855C");
+  cx.fillStyle=ceu; cx.fillRect(0,0,L,CHAO);
+
+  cx.fillStyle="rgba(255,214,150,.85)";
+  cx.beginPath(); cx.arc(L*0.16, CHAO-56*R, 34*R, 0, 7); cx.fill();
+  cx.fillStyle="#26313F";
+  cx.beginPath(); cx.moveTo(0,CHAO);
+  const pts=[[0,34],[0.13,78],[0.26,40],[0.38,96],[0.52,54],[0.66,112],[0.79,58],[0.91,88],[1,44]];
+  pts.forEach(function(p){ cx.lineTo(L*p[0], CHAO - p[1]*R); });
+  cx.lineTo(L,CHAO); cx.closePath(); cx.fill();
+
+  const ch = cx.createLinearGradient(0,CHAO,0,A);
+  ch.addColorStop(0,"#6B5637"); ch.addColorStop(1,"#3A2E1F");
+  cx.fillStyle=ch; cx.fillRect(0,CHAO,L,A-CHAO);
+  cx.strokeStyle="rgba(0,0,0,.30)"; cx.lineWidth=2*R;
+  cx.beginPath(); cx.moveTo(0,CHAO); cx.lineTo(L,CHAO); cx.stroke();
+
+  /* ---- a picape entra da direita e freia ---- */
+  const alvoX = L*0.62;   /* recuada: a 0,70 a caçamba encostava na borda */
+  const fchega = Math.min(t/2.0, 1);
+  const ease = 1 - Math.pow(1-fchega, 3);
+  const px = L + 140*R - (L + 140*R - alvoX)*ease;
+  /* a suspensão mergulha na freada e volta: sem isso ela desliza como adesivo */
+  const freia = (fchega>0.72 && fchega<1) ? Math.sin((fchega-0.72)/0.28*Math.PI)*4*R : 0;
+  picape(px, CHAO + freia*0.3, 1.15*R, -1);
+
+  if(fchega < 1){
+    for(let i=0;i<7;i++){
+      const q = (i/7 + t*0.7) % 1;
+      cx.globalAlpha = (1-q)*0.30*(1-fchega*0.4);
+      cx.fillStyle="#C6AC84";
+      cx.beginPath(); cx.arc(px + (44+q*90)*R, CHAO - q*26*R, (5+q*16)*R, 0, 7); cx.fill();
+    }
+    cx.globalAlpha=1;
+  }
+
+  /* ---- o mineiro desce e caminha até o ponto ---- */
+  if(t > 2.1){
+    const fw = Math.min((t-2.1)/2.4, 1);
+    const mx = px - 96*R - (px - 96*R - L*0.26)*(1-Math.pow(1-fw,2));
+    const passo = fw<1 ? Math.sin(t*9)*3*R : 0;
+    mineiroChegada(mx, CHAO + passo*0.15, 1.05*R, fw>=1, t);
+  }
+
+  /* ---- o convite ---- */
+  if(t > CENA_DUR - 0.9){
+    const fa = Math.min((t-(CENA_DUR-0.9))/0.6, 1);
+    cx.globalAlpha = fa;
+    cx.textAlign="center"; cx.fillStyle="#F2E9DA";
+    cx.font = "bold " + (13*R) + "px Inter, system-ui, sans-serif";
+    cx.letterSpacing = (2.4*R)+"px";
+    cx.fillText("A MINA COMEÇA AQUI", L/2, A*0.155);
+    cx.letterSpacing = "0px";
+    cx.font = (11.5*R) + "px Inter, system-ui, sans-serif";
+    cx.fillStyle="rgba(242,233,218,.62)";
+    cx.fillText("toque para abrir o primeiro metro", L/2, A*0.155 + 21*R);
+    cx.globalAlpha = 1;
+    cena.fim = true;
+  }
+}
+
+/* O mesmo mineiro do túnel, de corpo inteiro e de perfil. Aqui ele aparece
+   GRANDE — é a única vez em que dá pra vê-lo direito, então é aqui que o
+   capacete, a faixa refletiva e a picareta precisam ler. */
+function mineiroChegada(x, chao, e, parado, t){
+  cx.save(); cx.translate(x, chao); cx.scale(e, e);
+
+  cx.save(); cx.scale(1,0.16); cx.fillStyle="rgba(0,0,0,.36)";
+  cx.beginPath(); cx.arc(0,0,34,0,7); cx.fill(); cx.restore();
+
+  const bal = parado ? 0 : Math.sin(t*9)*10;
+  cx.strokeStyle="#2C3A4A"; cx.lineWidth=9; cx.lineCap="round";
+  cx.beginPath(); cx.moveTo(0,-34); cx.lineTo(bal*0.5,-2); cx.stroke();
+  cx.beginPath(); cx.moveTo(0,-34); cx.lineTo(-bal*0.5,-2); cx.stroke();
+
+  const tr = cx.createLinearGradient(0,-66,0,-30);
+  tr.addColorStop(0,"#C9762E"); tr.addColorStop(1,"#8E4E1C");
+  cx.fillStyle=tr;
+  cx.beginPath(); cx.moveTo(-12,-32); cx.lineTo(-13,-64); cx.lineTo(13,-64);
+  cx.lineTo(12,-32); cx.closePath(); cx.fill();
+  cx.fillStyle="rgba(240,232,190,.80)"; cx.fillRect(-13,-50,26,4);
+
+  cx.strokeStyle="#B5691F"; cx.lineWidth=7;
+  cx.beginPath(); cx.moveTo(-11,-60); cx.lineTo(-16-bal*0.35,-38); cx.stroke();
+  cx.beginPath(); cx.moveTo(11,-60); cx.lineTo(17+bal*0.35,-38); cx.stroke();
+
+  cx.fillStyle="#D9A87A"; cx.beginPath(); cx.arc(0,-73,9,0,7); cx.fill();
+  cx.fillStyle="#E8B534";
+  cx.beginPath(); cx.arc(0,-76,10.5,Math.PI,0); cx.fill();
+  cx.fillRect(-13,-77,26,3.4);
+  cx.fillStyle="#FFF3C4"; cx.beginPath(); cx.arc(8,-77,2.6,0,7); cx.fill();
+  if(parado){
+    const lg = cx.createRadialGradient(24,-40,2,24,-40,42);
+    lg.addColorStop(0,"rgba(255,240,190,.28)"); lg.addColorStop(1,"rgba(255,240,190,0)");
+    cx.fillStyle=lg; cx.beginPath(); cx.arc(24,-40,42,0,7); cx.fill();
+  }
+
+  /* a picareta no ombro: a mesma silhueta robusta do túnel */
+  cx.save(); cx.translate(14,-58); cx.rotate(parado ? -0.55 : -0.95);
+  cx.strokeStyle="#6A4A28"; cx.lineWidth=4.4; cx.lineCap="round";
+  cx.beginPath(); cx.moveTo(0,0); cx.lineTo(34,0); cx.stroke();
+  cx.fillStyle="#A9B3BC";
+  cx.beginPath(); cx.moveTo(30,-3); cx.lineTo(46,-11); cx.lineTo(49,-6);
+  cx.lineTo(38,0); cx.lineTo(49,6); cx.lineTo(46,11); cx.lineTo(30,3);
+  cx.closePath(); cx.fill();
+  cx.restore();
+
+  cx.restore();
+}
 function desenhaAchados(dt){
   /* 1. o que está emergindo */
   const n = proximoAchado();
@@ -1186,6 +1519,81 @@ function pontoImpacto(){
   return { x: b.pe.x + b.U*0.30 + b.CABO*0.92, y: b.pe.y - b.U*1.35 };
 }
 
+/* Um ajudante: corpo simples, sem esqueleto nem rosto. Nove corpos completos a
+   60 fps não cabem — e a distância pede simplificação de qualquer jeito. */
+function ajudante(x, y, esc, fase, cor, luz){
+  const U = A*0.023*esc;
+  const t = (performance.now()/1000 + fase) % 1.15 / 1.15;
+  const sw = (t < .3) ? (t/.3)*(t/.3) : 1 - (t-.3)/.7;
+
+  cx.save(); cx.translate(x, y);
+  cx.fillStyle='rgba(0,0,0,.30)';
+  cx.beginPath(); cx.ellipse(0, 0, U*1.7, U*0.26, 0, 0, 6.29); cx.fill();
+
+  /* pernas em V, sem articulação: à distância ninguém lê joelho */
+  cx.strokeStyle='rgba(0,0,0,.55)'; cx.lineWidth=U*0.42; cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(-U*0.1,-U*1.5); cx.lineTo(-U*0.8,-U*0.05); cx.stroke();
+  cx.beginPath(); cx.moveTo( U*0.1,-U*1.5); cx.lineTo( U*0.8,-U*0.05); cx.stroke();
+
+  /* tronco, inclinado no ritmo do golpe */
+  cx.save(); cx.translate(0,-U*1.5); cx.rotate(-0.22 + sw*0.44);
+  cx.fillStyle=cor;
+  cx.beginPath();
+  cx.moveTo(-U*0.62,U*0.1); cx.lineTo(-U*0.78,-U*1.5);
+  cx.quadraticCurveTo(0,-U*1.8, U*0.78,-U*1.5);
+  cx.lineTo(U*0.58,U*0.1); cx.closePath(); cx.fill();
+  /* cabeça e capacete */
+  cx.fillStyle='#C08A58';
+  cx.beginPath(); cx.arc(U*0.1,-U*2.0,U*0.52,0,6.29); cx.fill();
+  cx.fillStyle='#D9982F';
+  cx.beginPath(); cx.arc(U*0.1,-U*2.1,U*0.58,Math.PI,0); cx.fill();
+  cx.fillRect(U*0.1,-U*2.2,U*0.9,U*0.16);
+  /* a ferramenta, um traço só */
+  cx.strokeStyle='#7E5426'; cx.lineWidth=U*0.22;
+  const a = -1.5 + sw*1.9;
+  cx.beginPath(); cx.moveTo(U*0.3,-U*1.2);
+  cx.lineTo(U*0.3+Math.cos(a)*U*2.6, -U*1.2+Math.sin(a)*U*2.6); cx.stroke();
+  cx.strokeStyle='#B9C0C7'; cx.lineWidth=U*0.34;
+  cx.beginPath();
+  cx.moveTo(U*0.3+Math.cos(a)*U*2.3, -U*1.2+Math.sin(a)*U*2.3);
+  cx.lineTo(U*0.3+Math.cos(a)*U*3.0, -U*1.2+Math.sin(a)*U*3.0); cx.stroke();
+  cx.restore();
+
+  /* a luz de cada lâmpada: é o que faz a equipe aparecer no escuro */
+  if(luz){
+    cx.save(); cx.globalCompositeOperation='lighter';
+    const g = cx.createRadialGradient(U*0.6,-U*3.5,0,U*0.6,-U*3.5,U*7*luz);
+    g.addColorStop(0,'rgba(255,228,166,.16)'); g.addColorStop(1,'rgba(255,228,166,0)');
+    cx.fillStyle=g; cx.fillRect(-U*8,-U*10,U*16,U*14);
+    cx.restore();
+  }
+  cx.restore();
+}
+
+/* a equipe espalhada pelo túnel: quem está mais longe é MENOR e mais apagado.
+   É perspectiva de pobre, e funciona porque é como o olho já lê distância. */
+function desenhaEquipe(){
+  const b = poseBase();
+  const total = povo() - 1;
+  if(total <= 0) return;
+  const n = Math.min(total, 8);         /* teto: além disso vira sopa, não equipe */
+  const lz = fatorLuz();
+  for(let i=0;i<n;i++){
+    /* alterna esquerda e direita, afastando */
+    const lado = (i%2) ? 1 : -1;
+    const dist = 1 + Math.floor(i/2);
+    const esc = Math.max(0.42, 1 - dist*0.17);
+    /* DENTRO do túnel: antes eles caíam nas bordas escuras, fora do buraco.
+       Quem está mais atrás fica mais ALTO e menor — a perspectiva do poço. */
+    const meia = Math.min(L*0.72, b.UT*4.7) * 0.40;
+    const x = L/2 + lado * meia * (0.30 + dist*0.22);
+    const y = b.pe.y - dist*b.UT*0.30;
+    cx.globalAlpha = 0.30 + esc*0.55;
+    ajudante(x, y, esc, i*0.37, EQUIPE[i % EQUIPE.length].cor, (i%3===0) ? lz*0.7 : 0);
+  }
+  cx.globalAlpha = 1;
+}
+
 /* ---- o mineiro ---- */
 function desenhaMineiro(dt){
   if(picoT < 1) picoT = Math.min(picoT + dt*3.4, 1);
@@ -1466,10 +1874,40 @@ function pisca(){
 }
 
 /* ---------------- laço ---------------- */
+/* o capataz: compra a coisa mais barata que der, de tempos em tempos.
+   Ele compra ATENÇÃO, não poder — nada que você não pudesse comprar. */
+let acumCapataz = 0;
+function capatazTrabalha(dt){
+  if(!nEq('capataz')) return;
+  acumCapataz += dt;
+  if(acumCapataz < 4) return;
+  acumCapataz = 0;
+  if(S.frag >= 1) troca();
+  let alvo = null;
+  EQUIP.forEach(function(m){
+    if(m.max && qtd(m.id) >= m.max) return;
+    const c = custo(m);
+    if(S.moedas >= c && (!alvo || c < alvo.c)) alvo = {m:m, c:c};
+  });
+  if(alvo){ S.moedas -= alvo.c; S.comprado[alvo.m.id] = qtd(alvo.m.id)+1; }
+}
+
+/* Durante a chegada, qualquer toque avança: o primeiro pula pro convite, o
+   segundo entra na mina. Quem já viu a cena não é obrigado a assistir. */
+function tocaChegada(){
+  if(S.chegou) return false;
+  /* ⚠️ o teste do cena.fim sozinho dependia de um QUADRO ter desenhado:
+     dois toques rápidos e o segundo era engolido. O tempo não depende de quadro. */
+  if(cena.fim || cena.t >= CENA_DUR - 0.9){ S.chegou = true; document.body.classList.remove("chegando");
+    elCavar.textContent = 'CAVAR'; salva(); }
+  else cena.t = CENA_DUR - 0.9;
+  return true;
+}
+
 let acumMaq = 0;
 function laco(agora){
   const dt = Math.min((agora-ultimo)/1000, .25); ultimo = agora;
-  const v = mps();
+  const v = forca();
   if(v>0){
     cava(v*dt);
     /* a máquina bate sozinha: sem isso, "a broca assumiu" também fica invisível.
@@ -1481,6 +1919,7 @@ function laco(agora){
       golpe(Math.min(0.28 + v*0.02, 0.7));
     }
   }
+  capatazTrabalha(dt);
   desenha(dt); pinta();
   if(agora - salvoEm > 3000){ salvoEm = agora; salva(); }
   requestAnimationFrame(laco);
@@ -1488,6 +1927,7 @@ function laco(agora){
 
 /* ---------------- entrada ---------------- */
 function tocouCavar(){
+  if(tocaChegada()) return;   /* na cena de chegada o toque avança a cena */
   const m = porToque();
   cava(m);
   golpe(1);
@@ -1499,24 +1939,40 @@ function tocouCavar(){
   pinta();
 }
 elCavar.addEventListener('pointerdown', e=>{ e.preventDefault(); tocouCavar(); });
+/* na chegada o toque vale na tela toda: numa cena de abertura a pessoa toca
+   onde está olhando, não no botão */
+cv.addEventListener('pointerdown', e=>{ if(!S.chegou){ e.preventDefault(); tocaChegada(); atualiza(); } });
+
 
 /* a compra agora mora na loja */
 
 /* ---------------- a loja ---------------- */
-let lojaAba = 'eq';
+let lojaAba = 'pe';   /* abre na Equipe: e a prateleira que muda a cena */
 function abreLoja(){ lojaAba = lojaAba || 'eq'; pintaLoja(); document.getElementById('lojaFundo').classList.remove('off'); }
 function fechaLoja(){ document.getElementById('lojaFundo').classList.add('off'); }
 function abaLoja(a){ lojaAba = a; pintaLoja(); }
 
 function pintaLoja(){
-  const abas = [['eq','Equipamentos'],['ro','Roupas'],['ac','Acessórios']];
+  const abas = [['pe','Equipe'],['eq','Equipamentos'],['ro','Roupas'],['ac','Acessórios']];
   let h = '<div class="lojatopo"><h2>Loja</h2>' +
     '<span class="moedas">'+fmt(S.moedas,0)+' <em>moedas</em></span></div>' +
     '<div class="abas">' + abas.map(function(a){
       return '<button class="'+(lojaAba===a[0]?'on':'')+'" onclick="abaLoja(\''+a[0]+'\')">'+a[1]+'</button>';
     }).join('') + '</div><div class="prateleira">';
 
-  if(lojaAba === 'eq'){
+  if(lojaAba === 'pe'){
+    h += '<p class="lojanota">Há <b>'+povo()+'</b> '+(povo()===1?'pessoa':'pessoas')+' na operação.</p>';
+    EQUIPE.forEach(function(e, idx){
+      const q = nEq(e.id), cu = custoEq(e);
+      if(idx > 0 && nEq(EQUIPE[idx-1].id) === 0 && q === 0) return;
+      const cheio = e.max && q >= e.max;
+      const pode = !cheio && S.moedas >= cu;
+      h += '<button class="pit'+(pode?'':' off')+'"'+(pode?' onclick="contrata(\''+e.id+'\')"':'')+'>' +
+        '<span class="pn">'+e.n+(q?' <i>x'+q+'</i>':'')+'</span>' +
+        '<span class="pd">'+e.d+'</span>' +
+        '<span class="pc">'+(cheio?'já contratado':fmt(cu,0)+' moedas')+'</span></button>';
+    });
+  } else if(lojaAba === 'eq'){
     EQUIP.forEach(function(m, idx){
       const q = qtd(m.id), cu = custo(m);
       /* o item só aparece quando o anterior já foi comprado: cardápio grande
@@ -1545,6 +2001,18 @@ function pintaLoja(){
   h += '</div><div class="acoes"><button id="lojaFecha" onclick="fechaLoja()">Voltar a cavar</button></div>';
   document.getElementById('lojaPainel').innerHTML = h;
 }
+function contrata(id){
+  const e = EQUIPE.find(function(x){ return x.id===id; }); if(!e) return;
+  const cu = custoEq(e);
+  if(S.moedas < cu) return;
+  if(e.max && nEq(id) >= e.max) return;
+  S.moedas -= cu;
+  if(!S.equipe) S.equipe = {};
+  S.equipe[id] = nEq(id)+1;
+  vibra('compra'); salva(); pintaLoja(); pinta();
+  mostraAchado('CONTRATADO', e.n, 'A operação tem '+povo()+' pessoas agora.');
+}
+
 function compraEquip(id){
   const m = EQUIP.find(function(x){ return x.id===id; }); if(!m) return;
   const cu = custo(m);
@@ -1640,6 +2108,8 @@ document.getElementById('btZerar').onclick = ()=>{
 
 /* ---------------- começa ---------------- */
 carrega();
+/* a cena só existe pra quem nunca chegou */
+if(!S.chegou){ document.body.classList.add('chegando'); elCavar.textContent = 'CHEGAR'; }
 EQUIP[0].base = cfg.brocaC;
 document.getElementById('notaSalvo').textContent =
   'O progresso fica salvo neste navegador. Fechar e voltar mantém — limpar os dados do site apaga.';
