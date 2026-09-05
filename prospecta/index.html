@@ -218,9 +218,11 @@
   /* caixa de opcao do app (no lugar do <select> do sistema) */
   .opx{width:100%;font-family:inherit;font-size:16px;padding:11px 13px;
       border:1px solid var(--line2);border-radius:11px;background:var(--bg);color:var(--txt);
-      text-align:left;display:flex;align-items:center;gap:10px;cursor:pointer}
+      text-align:left;display:flex;align-items:center;gap:10px;cursor:pointer;min-height:46px}
   .opx:active{border-color:var(--accent)}
-  .opx .cxv{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* quebra linha em vez de cortar: com vários serviços o "..." escondia justamente
+     o que se precisa ler */
+  .opx .cxv{flex:1;min-width:0;line-height:1.35}
   .opx .cxv.vaz{color:var(--mut2)}
   .opx .cxs{flex:0 0 auto;width:9px;height:9px;border-right:2px solid var(--mut);
            border-bottom:2px solid var(--mut);transform:rotate(45deg) translate(-2px,-2px)}
@@ -368,6 +370,31 @@
 .pct a:active{transform:scale(.92)}
 .pct a svg{width:14px;height:14px;display:block}
 @media (hover:hover){ .pct a:hover{background:rgba(188,139,99,.30)} }
+/* ---- cor por etapa: o funil esquentando (ver comentário no gerador) ---- */
+.e0{--ec:#5A6472}  /* Mapeado — ardósia: ainda não é lead, é anotação */
+.e1{--ec:#37699E}  /* Contato a fazer — azul */
+.e2{--ec:#1C6F85}  /* Contato realizado — petróleo */
+.e3{--ec:#137171}  /* Em conversa — ciano */
+.e4{--ec:#7F6211}  /* Reunião agendada — ouro: virou compromisso */
+.e5{--ec:#995510}  /* Proposta enviada — âmbar */
+.e6{--ec:#AF4319}  /* Negociação — laranja: quase lá */
+.e7{--ec:#2A7349}  /* Fechado — verde, e SÓ aqui */
+.e8{--ec:#A33B36}  /* Perdido — vermelho */
+.et{background:var(--panel2);border-color:var(--line2);color:var(--mut)}
+.et[class*="e"]{color:var(--ec);border-color:color-mix(in srgb,var(--ec) 34%,transparent);
+  background:color-mix(in srgb,var(--ec) 11%,transparent)}
+/* a barra do funil usa a MESMA cor da etiqueta: é o mesmo assunto em dois lugares */
+.fl .ff{background:var(--ec,var(--accent))}
+.fl.zero .ff{background:var(--line2)}
+/* pastilhas dos escolhidos, no espírito das categorias do Norte */
+.cxv.chips{display:flex;flex-wrap:wrap;gap:6px}
+.cxch{display:inline-block;font-size:12.5px;line-height:1.25;padding:4px 9px;border-radius:20px;
+  background:rgba(188,139,99,.16);border:1px solid rgba(188,139,99,.34);color:var(--txt)}
+/* serviços no cartão: menores que as do formulário — aqui são contexto,
+   não o assunto da tela */
+.psv{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.psv span{font-size:10.5px;line-height:1.25;padding:3px 8px;border-radius:20px;
+  background:rgba(188,139,99,.13);border:1px solid rgba(188,139,99,.30);color:var(--mut)}
 </style>
 </head>
 <body>
@@ -497,7 +524,8 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "Prospecta v4";   /* mesma versão do sw.js — mexeu num, mexe no outro */
+var VERSAO = "v10";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+                        ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
 
@@ -665,7 +693,7 @@ function pintaFunil(){
   ETAPAS.forEach(function(_,i){ var n=D.pros.filter(function(p){ return p.etapa===i; }).length; if(n>maior) maior=n; });
   document.getElementById("funil").innerHTML = ETAPAS.map(function(e,i){
     var n = D.pros.filter(function(p){ return p.etapa===i; }).length;
-    var cls = "fl" + (n===0?" zero":"") + (i===FECHADO?" fechado":"") + (i===PERDIDO?" perdido":"");
+    var cls = "fl e" + i + (n===0?" zero":"") + (i===FECHADO?" fechado":"") + (i===PERDIDO?" perdido":"");
     return '<div class="'+cls+'" onclick="verEtapa('+i+')"><span class="fn">'+esc(e)+'</span>'
          + '<span class="fb"><span class="ff" style="width:'+(n/maior*100)+'%"></span></span>'
          + '<span class="fq">'+n+'</span></div>';
@@ -724,20 +752,33 @@ function botoesContato(p){
   });
   return b.length ? '<span class="pct">'+b.join("")+'</span>' : "";
 }
+
+/* as pastilhas de serviço do cartão. "Ainda não definido" não vira pastilha:
+   ela existe pra contar o que se sabe, não pra dizer que não se sabe. */
+function servicosDoCartao(p){
+  var l = String(p.servico||"").split(CXSEP).map(function(x){ return x.trim(); })
+          .filter(function(x){ return x && x.toLowerCase().indexOf("ainda n") !== 0; });
+  if(!l.length) return "";
+  return '<div class="psv">' + l.map(function(x){ return '<span>'+esc(x)+'</span>'; }).join("") + '</div>';
+}
 /* ===================== cartão ===================== */
 function cartao(p){
   var a = alerta(p);
   var cls = "p " + (p.temp||"frio")
           + (a.k==="atr"||a.k==="hoje" ? " atrasado" : "")
           + (ativo(p) ? "" : " encerrado");
-  var etc = p.etapa===FECHADO ? "et ok" : (p.etapa===PERDIDO ? "et perdeu" : (p.etapa>=5 ? "et quase" : "et"));
+  /* a classe É a etapa: cada uma tem a sua cor (ver o bloco --ec na folha) */
+  var etc = "et e" + p.etapa;
   var linha2 = [p.segmento, p.cidade, p.resp].filter(Boolean).join(" · ");
   var pond = ponderado(p);
   var h = '<div class="'+cls+'" onclick="abre(\''+p.id+'\')">'
         + '<div class="ph"><div class="pn"><b>'+esc(p.nome)+'</b>'
         + (linha2?'<div class="pm">'+esc(linha2)+'</div>':'')
-        + botoesContato(p)
-        + '</div><span class="'+etc+'">'+esc(ETAPAS[p.etapa])+'</span></div>';
+        + '</div><span class="'+etc+'">'+esc(ETAPAS[p.etapa])+'</span></div>'
+        /* ⚠️ FORA do .pn: lá dentro sobram 207 px (a etiqueta divide a linha) e
+           as pastilhas empilhavam uma por linha em vez de ficarem lado a lado */
+        + servicosDoCartao(p)
+        + botoesContato(p);
   if(ativo(p) && (p.acao || a.txt)){
     h += '<div class="pnx"><span class="d '+a.cls+'">'+esc(a.txt||"—")+'</span>'
        + '<span class="oq">'+esc(p.acao||"sem próxima ação definida")+'</span>'
@@ -851,7 +892,7 @@ function pinta(){
   if(window.paintIcons) window.paintIcons();
   aplicaPriv();
   document.getElementById("rodape").textContent =
-    VERSAO + " · Klix Mídia · " + D.pros.length + " lead" + (D.pros.length===1?"":"s") + " · salvo no aparelho.";
+    "Prospecta " + VERSAO + " · Klix Mídia · " + D.pros.length + " lead" + (D.pros.length===1?"":"s") + " · salvo no aparelho.";
   grava();
 }
 
@@ -982,8 +1023,14 @@ function cxRotulo(id){
   var lista = _cxOpts[id] || [], val = e.value, nome = val;
   if(_cxMulti[id]){
     var sel = cxLista(val);
-    /* ate 2 cabem por extenso; a partir dai o numero informa mais que o corte */
-    nome = !sel.length ? "" : (sel.length <= 2 ? sel.join(CXSEP) : sel.length + " serviços");
+    /* uma PASTILHA por escolhido: dois objetos se contam de relance, uma frase
+       separada por vírgula se lê. E "3 serviços" obrigava a abrir a caixa. */
+    if(sel.length){
+      r.innerHTML = sel.map(function(x){ return '<span class="cxch">'+esc(x)+'</span>'; }).join("");
+      r.className = "cxv chips";
+      return;
+    }
+    nome = "";
   } else {
     for(var i=0;i<lista.length;i++){ if(lista[i].v === val){ nome = lista[i].n; break; } }
   }
