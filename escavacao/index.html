@@ -104,6 +104,45 @@ body{
   transition:padding .45s cubic-bezier(.2,.9,.3,1), font-size .45s, box-shadow .12s, transform .06s}
 .cavar:active{transform:translateY(4px);box-shadow:0 2px 0 var(--lampada-esc), 0 6px 14px rgba(0,0,0,.5)}
 /* quando a broca assume, o botão encolhe: ainda dá pra cavar, mas não precisa */
+  /* ---------- barra da mochila e loja ---------- */
+  .barra{ display:flex; gap:8px; width:100%; }
+  .trocar{ flex:1; text-align:left; cursor:pointer; font-family:inherit; color:var(--osso);
+      background:rgba(0,0,0,.36); border:1px solid rgba(242,180,65,.42); border-radius:13px; padding:9px 13px; }
+  .trocar:disabled{ opacity:.42; border-color:var(--linha); cursor:default; }
+  .trocar:not(:disabled):active{ transform:scale(.98); }
+  .trocar .tn{ display:block; font-family:Anton,sans-serif; font-size:17px; letter-spacing:.02em; }
+  .trocar:not(:disabled) .tn{ color:var(--lampada); }
+  .trocar .td{ display:block; font-size:11.5px; color:var(--osso2); margin-top:1px; }
+  .lojabt{ flex:0 0 auto; cursor:pointer; font-family:Anton,sans-serif; font-size:17px;
+      letter-spacing:.06em; color:#191206; background:var(--lampada); border:none;
+      border-radius:13px; padding:0 20px; }
+  .lojabt:active{ transform:scale(.97); }
+  /* ---------- a loja ---------- */
+  .lojatopo{ display:flex; align-items:baseline; gap:10px; margin-bottom:12px; }
+  .lojatopo h2{ margin:0; }
+  .moedas{ margin-left:auto; font-family:Anton,sans-serif; font-size:20px; color:var(--lampada);
+      font-variant-numeric:tabular-nums; }
+  .moedas em{ font-family:"Barlow Condensed",sans-serif; font-style:normal; font-size:11px;
+      font-weight:600; letter-spacing:.16em; text-transform:uppercase; color:var(--osso2); }
+  .abas{ display:flex; gap:6px; margin-bottom:12px; }
+  .abas button{ flex:1; cursor:pointer; font-family:"Barlow Condensed",sans-serif; font-size:12px;
+      font-weight:700; letter-spacing:.10em; text-transform:uppercase; padding:9px 4px;
+      border-radius:10px; border:1px solid var(--linha); background:rgba(0,0,0,.3); color:var(--osso2); }
+  .abas button.on{ background:var(--lampada); color:#191206; border-color:var(--lampada); }
+  .prateleira{ display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+  .pit{ display:grid; grid-template-columns:1fr auto; gap:2px 12px; text-align:left; cursor:pointer;
+      font-family:inherit; color:var(--osso); background:rgba(0,0,0,.32);
+      border:1px solid rgba(242,180,65,.34); border-radius:12px; padding:11px 13px; }
+  .pit.off{ opacity:.40; border-color:var(--linha); cursor:default; }
+  .pit.usando{ border-color:var(--lampada); background:rgba(242,180,65,.10); }
+  .pit:not(.off):active{ transform:scale(.985); }
+  .pn{ font-size:14.5px; font-weight:700; }
+  .pn i{ font-style:normal; font-size:11.5px; color:var(--osso2); font-weight:600; }
+  .pd{ font-size:11.5px; color:var(--osso2); }
+  .pc{ grid-column:2; grid-row:1 / span 2; align-self:center; font-family:"Barlow Condensed",sans-serif;
+      font-size:13px; font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .pit:not(.off) .pc{ color:var(--lampada); }
+  #lojaPainel .acoes button{ background:rgba(0,0,0,.3); }
 .cavar.menor{padding:11px 0;font-size:17px}
 
 /* ---------- parede / colapso ---------- */
@@ -190,6 +229,10 @@ body{
   <button class="cavar" id="btCavar">CAVAR</button>
 </div>
 
+<div class="fundo off" id="lojaFundo" onclick="fechaLoja()">
+  <div class="painel" id="lojaPainel" onclick="event.stopPropagation()"></div>
+</div>
+
 <div class="fundo off" id="fundo">
   <div class="painel" onclick="event.stopPropagation()">
     <h2>Painel de ajuste</h2>
@@ -267,8 +310,32 @@ const CAMADAS = [
   {m:1000, nome:'CRISTAL',         a:'#150B26', b:'#6E4FA8'}
 ];
 
+/* --- o que se compra na loja, em três prateleiras --- */
+const EQUIP = [
+  {id:'broca',  n:'Broca a manivela', d:'+0,6 m/s',      base:40,     mps:0.6},
+  {id:'ponta',  n:'Ponta de aço',     d:'dobra o golpe', base:120,    tap:2, max:6},
+  {id:'balanca',n:'Balança aferida',  d:'+30% na troca', base:200,    troca:0.30, max:8},
+  {id:'vapor',  n:'Motor a vapor',    d:'+4 m/s',        base:260,    mps:4},
+  {id:'guin',   n:'Guincho',          d:'+26 m/s',       base:1500,   mps:26},
+  {id:'perf',   n:'Perfuratriz',      d:'+170 m/s',      base:9000,   mps:170},
+  {id:'tunel',  n:'Tuneladora',       d:'+1.100 m/s',    base:60000,  mps:1100}
+];
+/* roupa e acessório mudam o DESENHO — é onde o crescimento fica visível */
+const ROUPAS = [
+  {id:'r0', n:'Macacão puído',   d:'o que você já tem', base:0,     cor:'#3E5A6B', corE:'#2A3E4B'},
+  {id:'r1', n:'Macacão reforçado', d:'costura dupla',   base:400,   cor:'#5B4636', corE:'#3E2F23'},
+  {id:'r2', n:'Traje de mineração', d:'listra refletiva', base:3500, cor:'#2F5B45', corE:'#1E3B2C', faixa:true},
+  {id:'r3', n:'Traje pressurizado', d:'pro fundo',      base:26000, cor:'#3A3F5C', corE:'#262A3E', faixa:true}
+];
+const ACESS = [
+  {id:'a0', n:'Capacete simples', d:'lanterna fraca',   base:0,     capa:'#E0A23A', luz:1.0},
+  {id:'a1', n:'Lampião de carbureto', d:'luz mais larga', base:900,  capa:'#E0A23A', luz:1.7},
+  {id:'a2', n:'Capacete de aço',  d:'e um facho branco', base:7000,  capa:'#B9C0C7', luz:2.4},
+  {id:'a3', n:'Farol de expedição', d:'ilumina a câmara', base:48000, capa:'#D8DEE4', luz:3.4}
+];
+
 /* --- as máquinas --- */
-const MAQUINAS = [
+const _MAQ_VELHO = [
   {id:'broca',  n:'Broca a manivela', d:'+0,22 m/s',  base:16,    mps:0.22},
   {id:'ponta',  n:'Ponta de aço',     d:'toque x2',   base:55,    tap:2},
   {id:'vapor',  n:'Motor a vapor',    d:'+1,4 m/s',   base:240,   mps:1.4},
@@ -304,7 +371,8 @@ function vibra(qual){
 let S, cfg, ultimo = performance.now(), salvoEm = 0;
 
 function novo(){
-  return { prof:0, frag:0, tot:0, colapsos:0, comprado:{}, achados:[], visto:false, t:Date.now() };
+  return { prof:0, frag:0, moedas:0, tot:0, colapsos:0, comprado:{}, achados:[],
+           visto:false, roupa:'r0', acess:'a0', tem:{r0:1,a0:1}, t:Date.now() };
 }
 function carrega(){
   cfg = Object.assign({}, PADRAO);
@@ -335,15 +403,32 @@ function salva(){
 /* ---------------- regras ---------------- */
 function qtd(id){ return S.comprado[id]||0; }
 function custo(m){ return Math.ceil(m.base * Math.pow(cfg.curva, qtd(m.id))); }
+/* quanto vale cada minério na troca — a balança é o upgrade que pousa aqui */
+function taxa(){
+  let v = 1;
+  EQUIP.forEach(function(m){ if(m.troca) v += m.troca * qtd(m.id); });
+  return v;
+}
+function roupaAtual(){ return ROUPAS.find(function(r){ return r.id===S.roupa; }) || ROUPAS[0]; }
+function acessAtual(){ return ACESS.find(function(a){ return a.id===S.acess; }) || ACESS[0]; }
+function troca(){
+  const q = Math.floor(S.frag);
+  if(q <= 0) return;
+  const ganho = Math.floor(q * taxa());
+  S.frag -= q; S.moedas += ganho;
+  vibra('compra'); salva(); pinta();
+  mostraAchado('TROCA', ganho.toLocaleString('pt-BR') + ' moedas',
+    q.toLocaleString('pt-BR') + ' de minério, a ' + taxa().toFixed(2).replace('.',',') + ' por peça.');
+}
 function bonus(){ return 1 + cfg.colapso * S.colapsos; }
 function mps(){
   let v = 0;
-  MAQUINAS.forEach(m=>{ if(m.mps){ const q=qtd(m.id); v += (m.id==='broca' ? cfg.brocaM : m.mps) * q; } });
+  EQUIP.forEach(m=>{ if(m.mps){ const q=qtd(m.id); v += (m.id==='broca' ? cfg.brocaM : m.mps) * q; } });
   return v * bonus();
 }
 function porToque(){
   let t = cfg.tap;
-  MAQUINAS.forEach(m=>{ if(m.tap) t *= Math.pow(m.tap, qtd(m.id)); });
+  EQUIP.forEach(m=>{ if(m.tap) t *= Math.pow(m.tap, qtd(m.id)); });
   return t * bonus();
 }
 function camada(){
@@ -392,21 +477,18 @@ function pinta(){
   elFrag.textContent = fmt(S.frag,0);
   elCavar.classList.toggle('menor', v > 0);
 
-  /* loja: só nasce quando há motivo — o 1º achado é quem a revela */
+  /* a barra: mochila, troca e a porta da loja. Só nasce depois do 1º achado. */
   if(!S.visto){ elLoja.innerHTML=''; }
   else {
-    elLoja.innerHTML = MAQUINAS.map(m=>{
-      const q=qtd(m.id), cu=custo(m), pode = S.frag >= cu;
-      /* a próxima máquina só aparece quando a anterior já foi comprada:
-         cardápio grande cedo demais paralisa em vez de convidar */
-      const idx = MAQUINAS.indexOf(m);
-      if(idx > 0 && qtd(MAQUINAS[idx-1].id) === 0 && q === 0) return '';
-      const d = (m.id==='broca') ? '+'+fmt(cfg.brocaM,2)+' m/s' : m.d;
-      return '<button class="item" data-m="'+m.id+'"'+(pode?'':' disabled')+'>'+
-        (q?'<span class="q">x'+q+'</span>':'')+
-        '<div class="n">'+m.n+'</div><div class="d">'+d+'</div>'+
-        '<div class="c">'+fmt(cu,0)+' frag</div></button>';
-    }).join('');
+    const q = Math.floor(S.frag);
+    elLoja.innerHTML =
+      '<div class="barra">' +
+        '<button class="trocar"'+(q>0?'':' disabled')+' onclick="troca()">' +
+          '<span class="tn">Trocar</span>' +
+          '<span class="td">'+fmt(q,0)+' minério · '+fmt(Math.floor(q*taxa()),0)+' moedas</span>' +
+        '</button>' +
+        '<button class="lojabt" onclick="abreLoja()">LOJA</button>' +
+      '</div>';
   }
 
   /* a parede é convite, não castigo */
@@ -444,6 +526,11 @@ const cv = document.getElementById('poco'), cx = cv.getContext('2d');
 let L=0, A=0, R=1;
 let cacos=[], rachas=[], ganhos=[], ganhoN=0, motas=[];
 let tremor=0, picoT=1, brilho=0;
+/* a câmera: persegue a profundidade com mola e atrito. É ela que faz o mundo
+   CONTINUAR descendo depois que o dedo sai, e passar um tico do alvo antes de
+   assentar — o que o corpo lê como peso. */
+let camY=0, camV=0;
+const PPM = 44;            /* pixels por metro (x R). A escala do mundo. */
 let ROCHA=0;              /* onde a picareta bate — a boca do poço */
 let LAD=null, LADT=0;     /* o ladrilho de rocha, e o lado dele */
 
@@ -535,15 +622,16 @@ function mistura(a,b,t){
 function coresAgora(){
   /* interpola entre a camada atual e a próxima: a cor muda ANTES da fronteira,
      então a transição é sentida como descida, não como um corte */
-  let i=0; for(let k=0;k<CAMADAS.length;k++) if(S.prof>=CAMADAS[k].m) i=k;
+  let i=0; for(let k=0;k<CAMADAS.length;k++) if(camY>=CAMADAS[k].m) i=k;
   const at=CAMADAS[i], prox=CAMADAS[Math.min(i+1,CAMADAS.length-1)];
   const faixa = prox.m - at.m;
-  const t = faixa>0 ? Math.min(Math.max((S.prof-at.m)/faixa,0),1) : 0;
+  const t = faixa>0 ? Math.min(Math.max((camY-at.m)/faixa,0),1) : 0;
   return { a: mistura(at.a, prox.a, t), b: mistura(at.b, prox.b, t) };
 }
 
 function golpe(forca){
   picoT = 0;
+  camV += 1.15*forca;        /* o tranco: o golpe empurra o mundo pra baixo */
   tremor = 3*forca;
   brilho = 1;
   const n = Math.round(7*forca);
@@ -590,6 +678,13 @@ function sobeGanho(txt){
 }
 
 function desenha(dt){
+  /* mola: puxa pro alvo, o atrito segura. Sem o atrito ela oscilaria pra sempre. */
+  camV += (S.prof - camY) * 130 * dt;
+  camV *= Math.pow(0.0009, dt);
+  camY += camV * dt;
+  /* se ficar longe demais (voltar de horas fechado, colapso), corta a viagem */
+  if(Math.abs(S.prof - camY) > 60){ camY = S.prof; camV = 0; }
+
   const c = coresAgora();
   cx.setTransform(1,0,0,1,0,0);
   cx.globalCompositeOperation='source-over'; cx.globalAlpha=1;
@@ -608,8 +703,9 @@ function desenha(dt){
   /* a rocha, em duas camadas: a de trás anda menos e vira profundidade */
   if(LAD){
     cx.globalCompositeOperation='overlay';
-    ladrilha(2.6*R, 0.34, 9*R);      /* fundo: lenta e grande */
-    ladrilha(1.0*R, 0.62, 0);        /* frente */
+    ladrilha(PPM*0.38/10*R, 0.34, 9*R);   /* fundo: anda menos = distância */
+    ladrilha(PPM/10*R, 0.62, 0);          /* frente: a escala do mundo */
+    costura();                            /* a fronteira entre camadas, passando */
     cx.globalCompositeOperation='source-over';
   }
 
@@ -658,7 +754,7 @@ function desenha(dt){
     cx.stroke();
   }
 
-  desenhaPico(dt);
+  desenhaMineiro(dt);
 
   for(let i=cacos.length-1;i>=0;i--){
     const p=cacos[i];
@@ -715,7 +811,9 @@ function desenhaAchados(dt){
   const n = proximoAchado();
   if(n){
     const p = n.p;                                   /* 0 = longe, 1 = na hora */
-    const y = ROCHA - 168*R + p*44*R;                /* vem subindo até a boca */
+    const alvo = (n.i===0) ? cfg.achado1 : ACHADOS[n.i].m;
+    /* ancorado na PROFUNDIDADE dele: sobe junto com a pedra, não flutua parado */
+    const y = ROCHA - (alvo - camY)*PPM*R - 30*R;
     cx.save();
     cx.translate(L/2, y);
     cx.scale(0.72 + p*0.28, 0.72 + p*0.28);
@@ -844,7 +942,7 @@ function formaAchado(qual, p, aceso){
    e é essa diferença que o olho lê como distância. */
 function ladrilha(vel, alfa, folga){
   const T = LADT*(1 + folga/100);
-  const desl = (S.prof*vel*10) % T;
+  const desl = (camY*vel*10) % T;
   cx.globalAlpha = alfa;
   for(let y=-T+desl; y<A+T; y+=T)
     for(let x=0; x<L+T; x+=T)
@@ -852,20 +950,51 @@ function ladrilha(vel, alfa, folga){
   cx.globalAlpha = 1;
 }
 
+/* A fronteira entre camadas passando pela tela. Antes a cor trocava sem que
+   nada CRUZASSE o quadro — a transição existia no gradiente e não no mundo. */
+function costura(){
+  for(const k of CAMADAS){
+    if(k.m <= 0) continue;
+    const y = ROCHA - (k.m - camY)*PPM*R;
+    if(y < -40*R || y > A+40*R) continue;
+    cx.globalCompositeOperation='source-over';
+    cx.strokeStyle='rgba(0,0,0,.5)'; cx.lineWidth=7*R;
+    cx.beginPath();
+    for(let x=0;x<=L;x+=20*R){
+      const oy = Math.sin(x*0.011/R)*7*R + Math.sin(x*0.031/R)*3*R;
+      x===0 ? cx.moveTo(x,y+oy) : cx.lineTo(x,y+oy);
+    }
+    cx.stroke();
+    cx.strokeStyle='rgba(255,238,205,.16)'; cx.lineWidth=2*R;
+    cx.beginPath();
+    for(let x=0;x<=L;x+=20*R){
+      const oy = Math.sin(x*0.011/R)*7*R + Math.sin(x*0.031/R)*3*R;
+      x===0 ? cx.moveTo(x,y+oy-4*R) : cx.lineTo(x,y+oy-4*R);
+    }
+    cx.stroke();
+    cx.globalCompositeOperation='overlay';
+  }
+}
+
 /* as paredes: escurecem as bordas com um contorno irregular que também rola */
 function paredes(){
-  const larg = L*0.19;
-  const desl = (S.prof*10) % (90*R);
+  /* o túnel tem o tamanho de quem o cavou: a abertura é ~2,9 vezes a largura
+     do mineiro, não uma fração da tela. Antes sobravam 62% de vão — largo
+     demais pra um homem com uma picareta. */
+  const U = A*0.075;
+  const abertura = Math.min(L*0.72, U*2.9);
+  const larg = (L - abertura)/2;
+  const desl = (camY*10) % (90*R);
   for(const lado of [0,1]){
     cx.save();
     if(lado){ cx.translate(L,0); cx.scale(-1,1); }
     const g = cx.createLinearGradient(0,0,larg,0);
-    g.addColorStop(0,'rgba(0,0,0,.62)'); g.addColorStop(.62,'rgba(0,0,0,.22)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    g.addColorStop(0,'rgba(0,0,0,.80)'); g.addColorStop(.55,'rgba(0,0,0,.52)'); g.addColorStop(1,'rgba(0,0,0,0)');
     cx.fillStyle=g;
     cx.beginPath(); cx.moveTo(0,-10*R);
     for(let y=-10*R; y<=A+10*R; y+=30*R){
       const k = (y+desl)/(70*R);
-      cx.lineTo(larg*(0.62 + Math.sin(k)*0.20 + Math.sin(k*2.7)*0.12), y);
+      cx.lineTo(larg*(0.84 + Math.sin(k)*0.10 + Math.sin(k*2.7)*0.06), y);
     }
     cx.lineTo(0,A+10*R); cx.closePath(); cx.fill();
     cx.restore();
@@ -874,15 +1003,15 @@ function paredes(){
 
 /* a régua: marca a cada 5 m, número a cada 25 m. Reforça a descida e informa. */
 function regua(){
-  const ppm = 26*R;                        /* mesmos pixels por metro dos estratos */
+  const ppm = PPM*R;                       /* a MESMA escala do mundo */
   const x = L - 16*R;
-  const base = Math.floor(S.prof/5)*5;
+  const base = Math.floor(camY/5)*5;
   cx.textAlign='right';
   cx.font='600 '+(11*R)+'px "Barlow Condensed", Barlow, sans-serif';
   for(let k=-6;k<=14;k++){
     const m = base + k*5;
     if(m < 0) continue;
-    const y = ROCHA - (m - S.prof)*ppm;
+    const y = ROCHA - (m - camY)*ppm;
     /* a régua não invade a faixa do cabeçalho nem a da loja: ela é fundo */
     if(y < 150*R || y > A-190*R) continue;
     const grande = (m % 25 === 0);
@@ -902,86 +1031,147 @@ function regua(){
    escolhido no olho — é a distância exata das mãos até o ponto da rocha, então
    no quadro do impacto a cabeça aterrissa onde o estilhaço nasce.
    Descida rápida (30% do tempo), volta lenta: é o que dá peso. */
-function desenhaPico(dt){
+/* ---- o mineiro ----
+   Tudo em torno de um pivô nos pés. O braço e a picareta são resolvidos por
+   geometria: o cabo tem o comprimento exato do punho até o ponto do impacto,
+   então no quadro do golpe a cabeça aterrissa onde o estilhaço nasce. */
+function desenhaMineiro(dt){
   if(picoT < 1) picoT = Math.min(picoT + dt*3.4, 1);
-
-  /* as mãos ficam FORA do quadro: quem joga está segurando a ferramenta,
-     então só a cabeça e um pedaço do cabo entram na cena. */
-  const px = L/2 + L*0.52, py = ROCHA + A*0.20;
-  const dx = (L/2) - px, dy = ROCHA - py;
-  const cabo = Math.hypot(dx, dy);
-  const aBate = Math.atan2(dy, dx);
-  const aAlto = aBate - 1.05;
-
   const t = picoT;
+
+  const U  = A*0.075;                 /* a unidade do corpo (cabeça ≈ 1 U) */
+  const pe = { x: L/2 - U*1.45, y: ROCHA + U*0.52 };
+  const alvo = { x: L/2 + U*0.75, y: ROCHA + U*0.10 };   /* onde ele bate */
+
+  /* o corpo se arma e acompanha: peso vem da antecipação */
+  let lean;
+  if(t < .3){ const k=t/.3; lean = -0.30 + 0.52*(k*k); }
+  else { const k=(t-.3)/.7; const e=1-Math.pow(1-k,2.4); lean = 0.22 - 0.52*e; }
+
+  const rp = roupaAtual(), ac = acessAtual();
+  const pele  = '#C98A52', peleE = '#8E5B2E';
+  const roupa = rp.cor, roupaE = rp.corE;
+  const bota  = '#2A2018';
+  const capa  = ac.capa, capaE = 'rgba(0,0,0,.34)';
+
+  cx.save();
+  cx.translate(pe.x, pe.y);
+  cx.lineJoin='round'; cx.lineCap='round';
+
+  /* sombra no chão: sem ela ele flutua */
+  cx.fillStyle='rgba(0,0,0,.34)';
+  cx.beginPath(); cx.ellipse(U*0.25, U*0.06, U*0.95, U*0.19, 0, 0, 6.29); cx.fill();
+
+  /* pernas: a de trás firme, a da frente flexionada pro golpe */
+  cx.strokeStyle=roupaE; cx.lineWidth=U*0.30;
+  cx.beginPath(); cx.moveTo(-U*0.12,-U*0.92); cx.lineTo(-U*0.50, 0); cx.stroke();
+  cx.strokeStyle=roupa;
+  cx.beginPath(); cx.moveTo( U*0.06,-U*0.92); cx.lineTo( U*0.62,-U*0.10); cx.stroke();
+  cx.strokeStyle=bota; cx.lineWidth=U*0.20;
+  cx.beginPath(); cx.moveTo(-U*0.56,-U*0.03); cx.lineTo(-U*0.86,-U*0.03); cx.stroke();
+  cx.beginPath(); cx.moveTo( U*0.62,-U*0.10); cx.lineTo( U*0.92,-U*0.12); cx.stroke();
+
+  /* daqui pra cima tudo gira com o tronco */
+  cx.translate(0,-U*0.92); cx.rotate(lean);
+
+  cx.fillStyle=roupa;
+  cx.beginPath();
+  cx.moveTo(-U*0.34, 0); cx.lineTo(-U*0.42,-U*0.86);
+  cx.lineTo( U*0.40,-U*0.86); cx.lineTo( U*0.32, 0);
+  cx.closePath(); cx.fill();
+  /* a alça do macacão, e o que o torna uma pessoa e não um bloco */
+  cx.strokeStyle=roupaE; cx.lineWidth=U*0.09;
+  cx.beginPath(); cx.moveTo(-U*0.20,-U*0.80); cx.lineTo(-U*0.08,-U*0.12); cx.stroke();
+  if(rp.faixa){
+    cx.strokeStyle='rgba(255,240,190,.72)'; cx.lineWidth=U*0.07;
+    cx.beginPath(); cx.moveTo(-U*0.38,-U*0.50); cx.lineTo(U*0.36,-U*0.50); cx.stroke();
+  }
+
+  /* pescoço e cabeça */
+  cx.fillStyle=pele;
+  cx.fillRect(-U*0.10,-U*1.02, U*0.22, U*0.20);
+  cx.beginPath(); cx.arc(U*0.02,-U*1.30, U*0.31, 0, 6.29); cx.fill();
+
+  /* capacete com aba, e a lâmpada */
+  cx.fillStyle=capa;
+  cx.beginPath(); cx.arc(U*0.02,-U*1.34, U*0.35, Math.PI*1.02, Math.PI*2.0); cx.fill();
+  cx.fillStyle=capaE;
+  cx.fillRect(U*0.06,-U*1.40, U*0.42, U*0.10);
+  cx.fillStyle='#FFF2C8';
+  cx.beginPath(); cx.arc(U*0.30,-U*1.44, U*0.10, 0, 6.29); cx.fill();
+
+  /* O FEIXE DA LÂMPADA: o poço passa a ser iluminado por ELE */
+  cx.save();
+  cx.globalCompositeOperation='lighter';
+  const fx = U*0.34, fy = -U*1.44;
+  /* o acessório manda na luz: é a melhoria que muda a CENA, não só o número */
+  const alc = U*3.4*ac.luz;
+  const fg = cx.createRadialGradient(fx,fy,0,fx,fy,alc);
+  fg.addColorStop(0,'rgba(255,232,170,'+(0.24+0.10*ac.luz)+')');
+  fg.addColorStop(1,'rgba(255,232,170,0)');
+  cx.fillStyle=fg;
+  cx.beginPath(); cx.moveTo(fx,fy);
+  cx.lineTo(fx+alc*0.95, fy-U*0.9*ac.luz); cx.lineTo(fx+alc*0.95, fy+U*2.0*ac.luz);
+  cx.closePath(); cx.fill();
+  cx.restore();
+
+  /* ---- o braço e a picareta ---- */
+  const ombro = { x: U*0.22, y: -U*0.78 };
+  /* o alvo, visto de dentro do tronco já girado */
+  const ax = (alvo.x - pe.x)*Math.cos(-lean) - (alvo.y - (pe.y-U*0.92))*Math.sin(-lean);
+  const ay = (alvo.x - pe.x)*Math.sin(-lean) + (alvo.y - (pe.y-U*0.92))*Math.cos(-lean);
+  const cabo = Math.hypot(ax-ombro.x, ay-ombro.y);
+  const aBate = Math.atan2(ay-ombro.y, ax-ombro.x);
+  const aAlto = aBate - 1.65;
   let ang;
   if(t < .3){ const k=t/.3; ang = aAlto + (aBate-aAlto)*(k*k); }
   else { const k=(t-.3)/.7; const e=1-Math.pow(1-k,2.4); ang = aBate + (aAlto-aBate)*e; }
 
-  const H = cabo*0.13;          /* a cabeça acompanha o tamanho da ferramenta */
-  const E = cabo*0.028;         /* meia-espessura do cabo */
+  cx.save(); cx.translate(ombro.x, ombro.y); cx.rotate(ang);
 
-  cx.save(); cx.translate(px,py); cx.rotate(ang);
-  cx.lineJoin='round'; cx.lineCap='round';
-
-  /* CABO: afina da mão pra ponta */
+  const E = U*0.055;
+  /* cabo */
   cx.beginPath();
-  cx.moveTo(0,-E*1.35); cx.lineTo(cabo,-E*0.8);
-  cx.lineTo(cabo, E*0.8); cx.lineTo(0, E*1.35);
+  cx.moveTo(0,-E*1.3); cx.lineTo(cabo,-E*0.85);
+  cx.lineTo(cabo, E*0.85); cx.lineTo(0, E*1.3);
   cx.closePath();
   const gc = cx.createLinearGradient(0,-E*1.4,0,E*1.4);
-  gc.addColorStop(0,'#B0803F'); gc.addColorStop(.40,'#7E5426'); gc.addColorStop(1,'#452B11');
+  gc.addColorStop(0,'#B0803F'); gc.addColorStop(.4,'#7E5426'); gc.addColorStop(1,'#452B11');
   cx.fillStyle=gc; cx.fill();
-  cx.strokeStyle='rgba(30,18,6,.5)'; cx.lineWidth=1.2*R; cx.stroke();
-  /* veio da madeira, contido dentro do cabo */
-  cx.save(); cx.clip();
-  cx.strokeStyle='rgba(58,36,14,.42)'; cx.lineWidth=1.1*R;
-  for(let i=-1;i<=1;i++){
-    cx.beginPath(); cx.moveTo(0, i*E*0.55);
-    cx.quadraticCurveTo(cabo*.5, i*E*0.55 + E*0.25, cabo, i*E*0.5); cx.stroke();
-  }
-  cx.restore();
 
-  /* CABEÇA — três peças separadas: caminho único com dois braços é o que
-     produzia o zigue-zague. */
+  /* as duas mãos, agarrando o cabo */
+  cx.fillStyle=pele;
+  cx.beginPath(); cx.arc(cabo*0.34, 0, U*0.115, 0, 6.29); cx.fill();
+  cx.beginPath(); cx.arc(cabo*0.52, 0, U*0.115, 0, 6.29); cx.fill();
+  /* o braço sai do ombro e vai até a mão */
+  cx.strokeStyle=pele; cx.lineWidth=U*0.15;
+  cx.beginPath(); cx.moveTo(0,0); cx.lineTo(cabo*0.40, 0); cx.stroke();
+
+  /* cabeça da picareta: bico e enxó, peças separadas */
   cx.translate(cabo, 0);
-  const met = cx.createLinearGradient(0,-H*1.5,0,H*1.5);
-  met.addColorStop(0,'#EDF1F5'); met.addColorStop(.40,'#AEB6BE'); met.addColorStop(1,'#59636C');
-  const traco = 'rgba(18,24,30,.6)';
-
-  /* bico: braço longo que recua conforme sobe, terminando em ponta */
+  const H = U*0.46;
+  const met = cx.createLinearGradient(0,-H*1.4,0,H*1.4);
+  met.addColorStop(0,'#EDF1F5'); met.addColorStop(.4,'#AEB6BE'); met.addColorStop(1,'#59636C');
+  const traco='rgba(18,24,30,.6)';
   cx.beginPath();
-  cx.moveTo(-H*0.10, -H*0.55);
-  cx.lineTo(-H*0.92, -H*1.95);
-  cx.lineTo(-H*0.40, -H*2.12);
-  cx.lineTo( H*0.52, -H*0.62);
-  cx.closePath();
-  cx.fillStyle=met; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.5*R; cx.stroke();
-
-  /* enxó: braço curto do lado oposto, terminando chato */
+  cx.moveTo(-H*0.10,-H*0.55); cx.lineTo(-H*0.92,-H*1.95);
+  cx.lineTo(-H*0.40,-H*2.12); cx.lineTo( H*0.52,-H*0.62); cx.closePath();
+  cx.fillStyle=met; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.4*R; cx.stroke();
   cx.beginPath();
-  cx.moveTo(-H*0.10,  H*0.55);
-  cx.lineTo(-H*0.62,  H*1.30);
-  cx.lineTo( H*0.20,  H*1.55);
-  cx.lineTo( H*0.52,  H*0.62);
-  cx.closePath();
-  cx.fillStyle=met; cx.fill(); cx.strokeStyle=traco; cx.stroke();
-
-  /* fio: a luz bate na aresta de ataque das duas pontas */
-  cx.strokeStyle='rgba(255,255,255,.6)'; cx.lineWidth=2.2*R;
+  cx.moveTo(-H*0.10, H*0.55); cx.lineTo(-H*0.62, H*1.30);
+  cx.lineTo( H*0.20, H*1.55); cx.lineTo( H*0.52, H*0.62); cx.closePath();
+  cx.fillStyle=met; cx.fill(); cx.stroke();
+  cx.strokeStyle='rgba(255,255,255,.6)'; cx.lineWidth=2*R;
   cx.beginPath(); cx.moveTo(-H*0.92,-H*1.95); cx.lineTo(-H*0.40,-H*2.12); cx.stroke();
-  cx.beginPath(); cx.moveTo(-H*0.62, H*1.30); cx.lineTo( H*0.20, H*1.55); cx.stroke();
-
-  /* anel de metal onde o cabo atravessa a cabeça */
   cx.beginPath();
-  cx.moveTo(-H*0.34,-H*0.72); cx.lineTo( H*0.62,-H*0.60);
-  cx.lineTo( H*0.62, H*0.60); cx.lineTo(-H*0.34, H*0.72);
-  cx.closePath();
-  const anel = cx.createLinearGradient(0,-H*0.72,0,H*0.72);
+  cx.moveTo(-H*0.34,-H*0.70); cx.lineTo(H*0.60,-H*0.58);
+  cx.lineTo(H*0.60,H*0.58); cx.lineTo(-H*0.34,H*0.70); cx.closePath();
+  const anel = cx.createLinearGradient(0,-H*0.7,0,H*0.7);
   anel.addColorStop(0,'#D6DCE2'); anel.addColorStop(.5,'#8E979F'); anel.addColorStop(1,'#4B545C');
-  cx.fillStyle=anel; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.4*R; cx.stroke();
+  cx.fillStyle=anel; cx.fill(); cx.strokeStyle=traco; cx.lineWidth=1.2*R; cx.stroke();
 
-  cx.restore();
+  cx.restore();   /* braço */
+  cx.restore();   /* mineiro */
 }
 
 function pisca(){
@@ -1029,14 +1219,70 @@ function tocouCavar(){
 }
 elCavar.addEventListener('pointerdown', e=>{ e.preventDefault(); tocouCavar(); });
 
-elLoja.addEventListener('click', e=>{
-  const b = e.target.closest('[data-m]'); if(!b) return;
-  const m = MAQUINAS.find(x=>x.id===b.dataset.m); if(!m) return;
-  const cu = custo(m); if(S.frag < cu) return;
-  S.frag -= cu; S.comprado[m.id] = qtd(m.id)+1;
-  vibra('compra');
-  salva(); pinta();
-});
+/* a compra agora mora na loja */
+
+/* ---------------- a loja ---------------- */
+let lojaAba = 'eq';
+function abreLoja(){ lojaAba = lojaAba || 'eq'; pintaLoja(); document.getElementById('lojaFundo').classList.remove('off'); }
+function fechaLoja(){ document.getElementById('lojaFundo').classList.add('off'); }
+function abaLoja(a){ lojaAba = a; pintaLoja(); }
+
+function pintaLoja(){
+  const abas = [['eq','Equipamentos'],['ro','Roupas'],['ac','Acessórios']];
+  let h = '<div class="lojatopo"><h2>Loja</h2>' +
+    '<span class="moedas">'+fmt(S.moedas,0)+' <em>moedas</em></span></div>' +
+    '<div class="abas">' + abas.map(function(a){
+      return '<button class="'+(lojaAba===a[0]?'on':'')+'" onclick="abaLoja(\''+a[0]+'\')">'+a[1]+'</button>';
+    }).join('') + '</div><div class="prateleira">';
+
+  if(lojaAba === 'eq'){
+    EQUIP.forEach(function(m, idx){
+      const q = qtd(m.id), cu = custo(m);
+      /* o item só aparece quando o anterior já foi comprado: cardápio grande
+         cedo demais paralisa em vez de convidar */
+      if(idx > 0 && qtd(EQUIP[idx-1].id) === 0 && q === 0) return;
+      const cheio = m.max && q >= m.max;
+      const pode = !cheio && S.moedas >= cu;
+      h += '<button class="pit'+(pode?'':' off')+'"'+(pode?' onclick="compraEquip(\''+m.id+'\')"':'')+'>' +
+        '<span class="pn">'+m.n+(q?' <i>x'+q+'</i>':'')+'</span>' +
+        '<span class="pd">'+m.d+'</span>' +
+        '<span class="pc">'+(cheio?'no máximo':fmt(cu,0)+' moedas')+'</span></button>';
+    });
+  } else {
+    const lista = (lojaAba==='ro') ? ROUPAS : ACESS;
+    const campo = (lojaAba==='ro') ? 'roupa' : 'acess';
+    lista.forEach(function(o){
+      const tem = !!S.tem[o.id], usando = (S[campo] === o.id);
+      const pode = !tem && S.moedas >= o.base;
+      const acao = tem ? 'vesteItem' : (pode ? 'compraItem' : null);
+      h += '<button class="pit'+(usando?' usando':'')+(acao?'':' off')+'"' +
+        (acao?' onclick="'+acao+'(\''+campo+'\',\''+o.id+'\')"':'') + '>' +
+        '<span class="pn">'+o.n+'</span><span class="pd">'+o.d+'</span>' +
+        '<span class="pc">'+(usando?'em uso':(tem?'vestir':fmt(o.base,0)+' moedas'))+'</span></button>';
+    });
+  }
+  h += '</div><div class="acoes"><button id="lojaFecha" onclick="fechaLoja()">Voltar a cavar</button></div>';
+  document.getElementById('lojaPainel').innerHTML = h;
+}
+function compraEquip(id){
+  const m = EQUIP.find(function(x){ return x.id===id; }); if(!m) return;
+  const cu = custo(m);
+  if(S.moedas < cu) return;
+  if(m.max && qtd(id) >= m.max) return;
+  S.moedas -= cu; S.comprado[id] = qtd(id)+1;
+  vibra('compra'); salva(); pintaLoja(); pinta();
+}
+function compraItem(campo, id){
+  const lista = (campo==='roupa') ? ROUPAS : ACESS;
+  const o = lista.find(function(x){ return x.id===id; }); if(!o) return;
+  if(S.moedas < o.base) return;
+  S.moedas -= o.base; S.tem[id] = 1; S[campo] = id;
+  vibra('compra'); salva(); pintaLoja(); pinta();
+}
+function vesteItem(campo, id){
+  if(!S.tem[id]) return;
+  S[campo] = id; vibra('toque'); salva(); pintaLoja();
+}
 
 /* ---------------- painel ---------------- */
 const fundo=document.getElementById('fundo');
@@ -1046,7 +1292,7 @@ const campos = {tap:'aTap', fragM:'aFrag', brocaC:'aBroca', brocaM:'aBrocaM',
 function abrePainel(){
   for(const k in campos) document.getElementById(campos[k]).value = cfg[k];
   btVib.setAttribute('aria-pressed', cfg.vib ? 'true' : 'false');
-  MAQUINAS[0].base = cfg.brocaC;
+  EQUIP[0].base = cfg.brocaC;
   previa(); fundo.classList.remove('off');
 }
 function fechaPainel(){
@@ -1054,7 +1300,7 @@ function fechaPainel(){
     const v = parseFloat(document.getElementById(campos[k]).value);
     if(!isNaN(v)) cfg[k] = v;
   }
-  MAQUINAS[0].base = cfg.brocaC;
+  EQUIP[0].base = cfg.brocaC;
   salva(); pinta(); fundo.classList.add('off');
 }
 
@@ -1113,7 +1359,7 @@ document.getElementById('btZerar').onclick = ()=>{
 
 /* ---------------- começa ---------------- */
 carrega();
-MAQUINAS[0].base = cfg.brocaC;
+EQUIP[0].base = cfg.brocaC;
 document.getElementById('notaSalvo').textContent =
   'O progresso fica salvo neste navegador. Fechar e voltar mantém — limpar os dados do site apaga.';
 pinta(); desenha(0.016);
