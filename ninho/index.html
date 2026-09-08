@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E4C5A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-192.png">
+<title>Ninho</title>
+<style>
+/* ===== paleta: a que ele já aprovou no protótipo de 25/08 ===== */
+:root{
+  --bg:#FBF3E9; --card:#FFFFFF; --ink:#2A2422; --mut:#8A7E76;
+  --prim:#0E4C5A; --prim2:#16697A; --accent:#F2704B; --green:#5BAE7B;
+  --line:#EDE2D4; --soft:#FDF7EF;
+  --madeira:#a9754a; --madeira2:#7a4a26; --madeira3:#5f3c1f;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; background:var(--bg); color:var(--ink)}
+body{
+  font:15px/1.5 system-ui,"Segoe UI",Arial,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom);
+  overscroll-behavior-y:none;
+}
+h1,h2,h3{font-family:Georgia,serif; font-weight:600; margin:0}
+button{font:inherit; color:inherit; border:none; background:none; cursor:pointer}
+input,select{font:inherit; color:inherit}
+
+/* ===== cabeçalho ===== */
+header{
+  position:sticky; top:0; z-index:20; background:var(--bg);
+  padding:calc(12px + env(safe-area-inset-top)) 16px 10px;
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:12px;
+}
+.marca{display:flex; align-items:center; gap:8px; font-family:Georgia,serif;
+  font-size:19px; color:var(--prim); font-weight:600}
+.marca svg{width:24px; height:24px; display:block}
+
+/* seletor de filho — sem presumir que cabem todos (decisão 1.4) */
+.filhos{margin-left:auto; display:flex; gap:6px; overflow-x:auto; max-width:58%;
+  scrollbar-width:none; padding:2px}
+.filhos::-webkit-scrollbar{display:none}
+.fch{flex:0 0 auto; padding:6px 12px; border-radius:20px; font-size:12.5px;
+  background:var(--soft); border:1px solid var(--line); color:var(--mut); white-space:nowrap}
+.fch.on{background:var(--prim); border-color:var(--prim); color:#fff; font-weight:600}
+
+main{padding:16px 16px 96px; max-width:560px; margin:0 auto}
+
+/* ===== a estante ===== */
+.prat{margin-bottom:26px}
+.prat h2{font-size:16.5px; display:flex; align-items:baseline; gap:9px; margin-bottom:10px}
+.prat h2 span{font-family:system-ui,sans-serif; font-size:12px; color:var(--mut);
+  font-weight:400; font-variant-numeric:tabular-nums}
+
+/* a madeira: é ela que faz parecer prateleira e não lista */
+.tabua{
+  background:linear-gradient(180deg,#fdfaf5 0%,#fdfaf5 82%,transparent 82%);
+  border-radius:8px; padding:0;
+}
+.livros{
+  display:flex; gap:6px; align-items:flex-end; overflow-x:auto; padding:12px 12px 0;
+  min-height:132px; scrollbar-width:none;
+}
+.livros::-webkit-scrollbar{display:none}
+.madeira{
+  height:12px; border-radius:0 0 8px 8px;
+  background:linear-gradient(180deg,var(--madeira) 0%,var(--madeira2) 55%,var(--madeira3) 100%);
+  box-shadow:0 3px 7px rgba(95,60,31,.30);
+}
+
+/* a lombada */
+.lomb{
+  flex:0 0 auto; width:34px; height:112px; border-radius:3px 3px 2px 2px;
+  position:relative; display:flex; align-items:center; justify-content:center;
+  box-shadow:inset -3px 0 6px rgba(0,0,0,.16), inset 2px 0 0 rgba(255,255,255,.22),
+             0 2px 4px rgba(95,60,31,.22);
+  transition:transform .14s ease;
+}
+.lomb:active{transform:translateY(-4px)}
+.lomb .tit{
+  writing-mode:vertical-rl; transform:rotate(180deg);
+  font-family:Georgia,serif; font-size:11px; line-height:1.1; color:#fff;
+  max-height:96px; overflow:hidden; text-shadow:0 1px 2px rgba(0,0,0,.35);
+  padding:6px 0;
+}
+.lomb .estrela{position:absolute; top:4px; left:50%; transform:translateX(-50%);
+  font-size:10px; filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.lomb.capa{background-size:cover; background-position:center}
+.lomb.capa .tit{display:none}
+
+/* o botão de pôr livro, na própria prateleira */
+.por{
+  flex:0 0 auto; width:34px; height:112px; border-radius:3px;
+  border:1.5px dashed var(--line); color:var(--mut); font-size:20px;
+  display:flex; align-items:center; justify-content:center; background:transparent;
+}
+
+.vazia{
+  padding:22px 14px; text-align:center; color:var(--mut); font-size:13.5px; line-height:1.5;
+}
+
+/* ===== folha que sobe ===== */
+.veu{position:fixed; inset:0; background:rgba(42,36,34,.42); z-index:40;
+  display:flex; align-items:flex-end; backdrop-filter:blur(2px)}
+.folha{
+  width:100%; background:var(--card); border-radius:18px 18px 0 0;
+  padding:18px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:88vh; overflow-y:auto;
+  animation:sobe .22s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes sobe{from{transform:translateY(22px); opacity:.6} to{transform:none; opacity:1}}
+@media (prefers-reduced-motion:reduce){ .folha{animation:none} .lomb{transition:none} }
+.folha h3{font-size:17.5px; margin-bottom:4px}
+.folha .sub{color:var(--mut); font-size:13px; margin-bottom:16px}
+
+.campo{margin-bottom:14px}
+.campo label{display:block; font-size:12px; color:var(--mut); margin-bottom:5px;
+  letter-spacing:.02em}
+.campo input, .campo select{
+  width:100%; padding:12px 13px; border-radius:11px; border:1px solid var(--line);
+  background:var(--soft); font-size:16px;   /* 16px: abaixo disso o iOS dá zoom */
+}
+.campo input:focus, .campo select:focus{outline:2px solid var(--prim2); outline-offset:1px}
+.dupla{display:flex; gap:10px}
+.dupla > *{flex:1}
+
+.bt{
+  width:100%; padding:14px; border-radius:12px; background:var(--prim); color:#fff;
+  font-weight:600; font-size:15.5px; margin-top:6px;
+}
+.bt:active{background:var(--prim2)}
+.bt.fraco{background:transparent; color:var(--mut); font-weight:400; font-size:14px; margin-top:2px}
+.bt.laranja{background:var(--accent)}
+
+/* as três portas de adicionar (decisão 2.2) */
+.portas{display:flex; flex-direction:column; gap:10px; margin-bottom:4px}
+.porta{
+  display:flex; align-items:center; gap:13px; padding:14px;
+  border:1px solid var(--line); border-radius:13px; background:var(--soft); text-align:left;
+}
+.porta.principal{border-color:var(--prim); background:#fff;
+  box-shadow:0 2px 10px rgba(14,76,90,.09)}
+.porta .ic{width:38px; height:38px; border-radius:11px; display:grid; place-items:center;
+  background:var(--prim); color:#fff; flex:0 0 auto}
+.porta.sec .ic{background:var(--line); color:var(--mut)}
+.porta .txt b{display:block; font-size:14.5px; margin-bottom:1px}
+.porta .txt span{font-size:12.5px; color:var(--mut); line-height:1.4}
+
+/* onboarding */
+.ob{min-height:100dvh; display:flex; flex-direction:column; justify-content:center;
+  padding:28px 22px calc(28px + env(safe-area-inset-bottom)); max-width:480px; margin:0 auto}
+.ob .passo{font-size:11.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--mut); font-weight:700; margin-bottom:10px}
+.ob h1{font-size:27px; line-height:1.22; margin-bottom:8px; text-wrap:balance}
+.ob p.exp{color:var(--mut); font-size:14px; margin:0 0 22px; line-height:1.55}
+.ninho-logo{display:flex; justify-content:center; margin-bottom:20px}
+.ninho-logo svg{width:76px; height:76px}
+
+/* os motivos da 3ª tela do onboarding */
+.motivos{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px}
+.motivo{padding:15px 12px; border:1px solid var(--line); border-radius:13px;
+  background:var(--soft); text-align:left}
+.motivo.on{border-color:var(--prim); background:#fff; box-shadow:0 2px 10px rgba(14,76,90,.10)}
+.motivo b{display:block; font-size:14px; margin-bottom:2px}
+.motivo span{font-size:11.5px; color:var(--mut); line-height:1.35}
+
+/* ficha do livro */
+.ficha-capa{width:100%; height:150px; border-radius:12px; margin-bottom:14px;
+  background-size:cover; background-position:center; background-color:var(--soft)}
+.acoes{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px}
+.acoes button{flex:1 1 46%; padding:12px; border-radius:11px; border:1px solid var(--line);
+  background:var(--soft); font-size:13.5px; font-weight:600}
+.acoes button.on{background:var(--prim); color:#fff; border-color:var(--prim)}
+
+/* o convite da Experiência (decisão 2.6) */
+.convite{border:1px solid var(--green); background:#eef7f1; border-radius:14px;
+  padding:15px; margin-top:14px}
+.convite b{display:block; font-family:Georgia,serif; font-size:15.5px; margin-bottom:4px}
+.convite p{margin:0 0 12px; font-size:13px; color:#4a6b57; line-height:1.5}
+
+footer{padding:22px 16px calc(22px + env(safe-area-inset-bottom)); text-align:center;
+  color:var(--mut); font-size:11px; border-top:1px solid var(--line); margin-top:10px}
+
+/* aviso de versão nova (mesmo padrão dos outros apps) */
+#novaVersao{position:fixed; left:12px; right:12px; bottom:12px; z-index:60;
+  background:var(--prim); color:#fff; border-radius:13px; padding:13px 15px;
+  display:none; align-items:center; gap:12px; box-shadow:0 6px 20px rgba(0,0,0,.22)}
+#novaVersao span{flex:1; font-size:13.5px}
+#novaVersao button{background:#fff; color:var(--prim); font-weight:700; font-size:13px;
+  padding:8px 14px; border-radius:9px}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<div id="novaVersao"><span>Tem uma versão nova do Ninho.</span><button onclick="__atualiza()">Atualizar</button></div>
+
+<script>
+/* ============================================================
+   NINHO — construído sobre as decisões 1.1 a 2.6
+   (documento "NINHO - Decisões de Produto", fechadas em 31/08).
+   Cada trecho marcado com o número da decisão que o justifica.
+   ============================================================ */
+
+var VERSAO = "v1";
+var CHAVE = "ninho-v1";
+
+/* ---------- estado ---------- */
+var D = null;
+
+function novo(){
+  return {
+    adulto: "",              /* 1.1 — a conta é de uma PESSOA, com apelido */
+    filhos: [],              /* 1.2/1.4 — {id, nome, mes, ano}; sem teto */
+    filhoAtivo: null,        /* 2.5 — uma estante só, com filtro por filho */
+    livros: [],
+    motivo: "",
+    ob: 0                    /* 1.5 — onboarding de 3 telas */
+  };
+}
+function carrega(){
+  try{ D = JSON.parse(localStorage.getItem(CHAVE) || "null") || novo(); }
+  catch(e){ D = novo(); }
+}
+function grava(){ try{ localStorage.setItem(CHAVE, JSON.stringify(D)); }catch(e){} }
+
+/* ---------- utilidades ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function id(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+/* 1.2 — guardamos mês/ano, não a idade: idade digitada envelhece errado e em
+   seis meses o app recomendaria livro de bebê pra uma criança de 3 anos. */
+function idadeDe(f){
+  if(!f || !f.ano) return null;
+  var hoje = new Date();
+  var m = (hoje.getFullYear() - f.ano) * 12 + (hoje.getMonth() + 1 - f.mes);
+  return { anos: Math.floor(m/12), meses: m };
+}
+function idadeTexto(f){
+  var i = idadeDe(f);
+  if(!i) return "";
+  if(i.meses < 24) return i.meses + " meses";
+  return i.anos + " anos";
+}
+
+/* cores de lombada: derivadas do título, então o mesmo livro tem sempre a mesma */
+var LOMBADAS = ["#0E4C5A","#16697A","#F2704B","#5BAE7B","#8a5a33","#5a4a7a",
+                "#2f7d55","#b07a45","#8a4b3a","#38566a"];
+function corDe(t){
+  var n = 0;
+  for(var i=0;i<t.length;i++) n = (n*31 + t.charCodeAt(i)) % 9973;
+  return LOMBADAS[n % LOMBADAS.length];
+}
+
+var PRATELEIRAS = [
+  { k:"lendo",  n:"Lendo",     d:"O livro da vez — o que se relê toda noite" },
+  { k:"lemos",  n:"Já lemos",  d:"O que já foi lido com ele" },
+  { k:"quero",  n:"Quero ler", d:"A fila — o que você quer ler ainda" }
+];
+
+var MOTIVOS = [
+  { k:"sono",   n:"Sono",       d:"Histórias que ajudam a dormir" },
+  { k:"birra",  n:"Birras",     d:"Nomear o que ele sente" },
+  { k:"escola", n:"Escola",     d:"Chegando a hora de encarar a turma" },
+  { k:"medo",   n:"Medos",      d:"Do escuro, do novo, do sozinho" },
+  { k:"irmao",  n:"Irmãozinho", d:"Quando a casa vai mudar" },
+  { k:"nada",   n:"Só ler",     d:"Sem tema — quero é ler junto" }
+];
+
+/* 1.5 — a terceira tela é a que importa: o app abre com uma estante montada,
+   útil no primeiro minuto, sem ter cadastrado livro nenhum. */
+var SEMENTE = {
+  sono:   [["A Casa Sonolenta","Audrey Wood"],["Boa noite, Lua","Margaret Wise Brown"],["O Livro do Sono","Todd Parr"]],
+  birra:  [["O Monstro das Cores","Anna Llenas"],["Quando estou com raiva","Trace Moroney"],["A Birra do Dragão","Kelly DiPucchio"]],
+  escola: [["O Beijo da Saudade","Audrey Penn"],["Primeiro dia de aula","Adam Rex"],["A Escola dos Bichos","Ruth Rocha"]],
+  medo:   [["Do Outro Lado tem Segredos","Ana Maria Machado"],["Não tenho medo do escuro","Trace Moroney"],["O Grúfalo","Julia Donaldson"]],
+  irmao:  [["Meu irmãozinho chegou","Rachel Fuller"],["Nina virou irmã","Cláudia Bielinsky"],["O Nascimento","Ruth Rocha"]],
+  nada:   [["A Cesta da Dona Maricota","Tatiana Belinky"],["Bruna e a Galinha d'Angola","Gercilga de Almeida"],["Marcelo, Marmelo, Martelo","Ruth Rocha"]]
+};
+
+/* ============================================================
+   DESENHO
+   ============================================================ */
+var app = document.getElementById("app");
+
+function pinta(){
+  if(D.ob < 3){ pintaOnboarding(); return; }
+  pintaEstante();
+}
+
+/* ---------- o mascote, desenhado (nada de emoji como ícone) ---------- */
+function nino(tam){
+  return '<svg viewBox="0 0 64 64" width="'+tam+'" height="'+tam+'" aria-hidden="true">' +
+    '<path d="M32 6C19 6 9 16 9 30v12c0 9 10 16 23 16s23-7 23-16V30C55 16 45 6 32 6z" fill="#0E4C5A"/>' +
+    '<path d="M32 12c-9 0-16 7-16 17v11c0 6 7 11 16 11s16-5 16-11V29c0-10-7-17-16-17z" fill="#16697A"/>' +
+    '<circle cx="24" cy="30" r="7.5" fill="#FDF7EF"/><circle cx="40" cy="30" r="7.5" fill="#FDF7EF"/>' +
+    '<circle cx="24.5" cy="30.5" r="3.6" fill="#2A2422"/><circle cx="39.5" cy="30.5" r="3.6" fill="#2A2422"/>' +
+    '<circle cx="26" cy="29" r="1.2" fill="#fff"/><circle cx="41" cy="29" r="1.2" fill="#fff"/>' +
+    '<path d="M32 36l-3.4 4.6h6.8L32 36z" fill="#F2704B"/>' +
+    '<path d="M14 16l7 5-6 3zM50 16l-7 5 6 3z" fill="#0E4C5A"/>' +
+    '</svg>';
+}
+
+/* ---------- onboarding (1.5) ---------- */
+function pintaOnboarding(){
+  var h = '<div class="ob">';
+
+  if(D.ob === 0){
+    h += '<div class="ninho-logo">' + nino(76) + '</div>' +
+      '<div class="passo">Passo 1 de 3</div>' +
+      '<h1>Como você quer ser chamado?</h1>' +
+      '<p class="exp">A conta é sua, não da casa — o que você escrever aqui assina as ' +
+      'experiências de leitura que você compartilhar.</p>' +
+      '<div class="campo"><label>Seu apelido</label>' +
+      '<input id="cAdulto" placeholder="Mariana" autocomplete="given-name" value="'+esc(D.adulto)+'"></div>' +
+      '<button class="bt" onclick="ob1()">Continuar</button>';
+  }
+
+  if(D.ob === 1){
+    h += '<div class="passo">Passo 2 de 3</div>' +
+      '<h1>Quem vai ouvir as histórias?</h1>' +
+      '<p class="exp">Só o primeiro nome e quando nasceu. Nada além disso — ' +
+      'e o nome dele nunca sai deste aparelho.</p>' +
+      '<div class="campo"><label>Primeiro nome</label>' +
+      '<input id="cNome" placeholder="Alice" autocomplete="off"></div>' +
+      '<div class="dupla">' +
+        '<div class="campo"><label>Mês de nascimento</label><select id="cMes">' + mesesHTML() + '</select></div>' +
+        '<div class="campo"><label>Ano</label><select id="cAno">' + anosHTML() + '</select></div>' +
+      '</div>' +
+      '<button class="bt" onclick="ob2()">Continuar</button>';
+  }
+
+  if(D.ob === 2){
+    var f = D.filhos[0];
+    h += '<div class="passo">Passo 3 de 3</div>' +
+      '<h1>O que te trouxe ao Ninho?</h1>' +
+      '<p class="exp">Escolha um e a estante já abre montada — com livros que ' +
+      'costumam funcionar' + (f ? ' com ' + esc(idadeTexto(f)) : '') + '.</p>' +
+      '<div class="motivos">';
+    MOTIVOS.forEach(function(m){
+      h += '<button class="motivo'+(D.motivo===m.k?' on':'')+'" onclick="escolheMotivo(\''+m.k+'\')">' +
+           '<b>'+m.n+'</b><span>'+m.d+'</span></button>';
+    });
+    h += '</div>' +
+      '<button class="bt" onclick="ob3()">Abrir minha estante</button>';
+  }
+
+  h += '</div>';
+  app.innerHTML = h;
+  var foco = document.getElementById("cAdulto") || document.getElementById("cNome");
+  if(foco) setTimeout(function(){ foco.focus(); }, 120);
+}
+
+function mesesHTML(){
+  var m = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto",
+           "setembro","outubro","novembro","dezembro"], h = "";
+  var atual = new Date().getMonth() + 1;
+  for(var i=0;i<12;i++) h += '<option value="'+(i+1)+'"'+((i+1)===atual?' selected':'')+'>'+m[i]+'</option>';
+  return h;
+}
+function anosHTML(){
+  var a = new Date().getFullYear(), h = "";
+  for(var y=a; y>=a-12; y--) h += '<option value="'+y+'"'+(y===a-3?' selected':'')+'>'+y+'</option>';
+  return h;
+}
+
+function ob1(){
+  var v = (document.getElementById("cAdulto").value||"").trim();
+  if(!v){ document.getElementById("cAdulto").focus(); return; }
+  D.adulto = v; D.ob = 1; grava(); pinta();
+}
+function ob2(){
+  var n = (document.getElementById("cNome").value||"").trim();
+  if(!n){ document.getElementById("cNome").focus(); return; }
+  var f = { id:id(), nome:n,
+            mes:+document.getElementById("cMes").value,
+            ano:+document.getElementById("cAno").value };
+  D.filhos.push(f); D.filhoAtivo = f.id; D.ob = 2; grava(); pinta();
+}
+function escolheMotivo(k){ D.motivo = k; grava(); pinta(); }
+function ob3(){
+  /* semeia a estante em "Quero ler": é a fila, não algo que já foi lido */
+  var sem = SEMENTE[D.motivo || "nada"] || SEMENTE.nada;
+  var f = D.filhos[0];
+  sem.forEach(function(x){
+    D.livros.push({ id:id(), titulo:x[0], autor:x[1], prat:"quero",
+                    fav:false, capa:"", quem:[], semente:true });
+  });
+  D.ob = 3; grava(); pinta();
+  buscaCapas();
+}
+
+/* ---------- estante (2.1, 2.5) ---------- */
+function pintaEstante(){
+  var h = '<header><div class="marca">' + nino(24) + 'Ninho</div>';
+
+  /* 1.4 — sem teto de filhos: a tira rola em vez de presumir que cabem */
+  h += '<div class="filhos">';
+  D.filhos.forEach(function(f){
+    h += '<button class="fch'+(D.filhoAtivo===f.id?' on':'')+'" onclick="trocaFilho(\''+f.id+'\')">' +
+         esc(f.nome) + '</button>';
+  });
+  h += '<button class="fch" onclick="abreNovoFilho()" aria-label="Adicionar filho">+</button>';
+  h += '</div></header><main>';
+
+  var doFilho = D.livros.filter(function(l){
+    if(!D.filhoAtivo) return true;
+    /* 2.5 — o livro está na casa; o filho é quem leu. Sem etiqueta = de todos. */
+    return !l.quem || l.quem.length === 0 || l.quem.indexOf(D.filhoAtivo) >= 0;
+  });
+
+  PRATELEIRAS.forEach(function(p){
+    var livros = doFilho.filter(function(l){ return l.prat === p.k; });
+    h += '<section class="prat"><h2>'+p.n+' <span>'+livros.length+'</span></h2>';
+    h += '<div class="tabua"><div class="livros">';
+    if(livros.length === 0){
+      h += '<div class="vazia">'+ (p.k==="lendo"
+            ? "Nenhum livro em leitura agora.<br>Toque num da fila pra começar."
+            : p.k==="lemos"
+            ? "Aqui vai ficar o que vocês já leram juntos."
+            : "A fila está vazia.") + '</div>';
+    }
+    livros.forEach(function(l){ h += lombada(l); });
+    h += '<button class="por" onclick="abreAdicionar(\''+p.k+'\')" aria-label="Adicionar livro">+</button>';
+    h += '</div><div class="madeira"></div></div></section>';
+  });
+
+  h += '</main><footer>Ninho ' + VERSAO + ' · salvo neste aparelho</footer>';
+  app.innerHTML = h;
+}
+
+function lombada(l){
+  var estilo = l.capa
+    ? 'background-image:url('+esc(l.capa)+')'
+    : 'background:linear-gradient(180deg,'+corDe(l.titulo)+' 0%,'+corDe(l.titulo)+'dd 100%)';
+  return '<button class="lomb'+(l.capa?' capa':'')+'" style="'+estilo+'" ' +
+         'onclick="abreLivro(\''+l.id+'\')" title="'+esc(l.titulo)+'">' +
+         (l.fav ? '<span class="estrela">★</span>' : '') +
+         '<span class="tit">'+esc(l.titulo)+'</span></button>';
+}
+
+function trocaFilho(fid){ D.filhoAtivo = (D.filhoAtivo === fid ? null : fid); grava(); pinta(); }
+
+/* ---------- folha ---------- */
+function folha(html){
+  fechaFolha();
+  var v = document.createElement("div");
+  v.className = "veu"; v.id = "veu";
+  v.innerHTML = '<div class="folha" onclick="event.stopPropagation()">' + html + '</div>';
+  v.onclick = fechaFolha;
+  document.body.appendChild(v);
+}
+function fechaFolha(){
+  var v = document.getElementById("veu");
+  if(v) v.remove();
+}
+
+/* ---------- adicionar livro: as três portas (2.2) ---------- */
+function abreAdicionar(prat){
+  folha(
+    '<h3>Pôr um livro na estante</h3>' +
+    '<div class="sub">O livro provavelmente está na sua mão agora.</div>' +
+    '<div class="portas">' +
+      '<button class="porta principal" onclick="portaCamera(\''+prat+'\')">' +
+        '<span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a2 2 0 0 1 2-2h2.5l1.2-2h6.6l1.2 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.6"/></svg></span>' +
+        '<span class="txt"><b>Apontar a câmera</b><span>Código de barras ou a própria capa</span></span></button>' +
+      '<button class="porta sec" onclick="portaBusca(\''+prat+'\')">' +
+        '<span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>' +
+        '<span class="txt"><b>Buscar pelo título</b><span>No catálogo do Ninho</span></span></button>' +
+      '<button class="porta sec" onclick="portaMao(\''+prat+'\')">' +
+        '<span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>' +
+        '<span class="txt"><b>Escrever à mão</b><span>Sempre funciona — e alimenta o catálogo</span></span></button>' +
+    '</div>' +
+    '<button class="bt fraco" onclick="fechaFolha()">Agora não</button>'
+  );
+}
+
+/* 2.4 — a câmera não é plano B, é o seguro. Ainda não implementada de verdade:
+   dizer isso é melhor que fingir que funciona. */
+function portaCamera(prat){
+  folha(
+    '<h3>Apontar a câmera</h3>' +
+    '<div class="sub">Esta porta ainda não está construída — ela precisa de leitura ' +
+    'de código de barras no navegador, que é a próxima etapa.</div>' +
+    '<p style="font-size:13.5px;color:var(--mut);line-height:1.55;margin:0 0 14px">' +
+    'Quando estiver pronta: você aponta pro código de barras, o ISBN traz título e autor, ' +
+    'e o título busca a capa. Se o código não estiver legível, a mesma câmera vira pra capa ' +
+    'e a foto do seu exemplar vira a lombada.</p>' +
+    '<button class="bt" onclick="portaMao(\''+prat+'\')">Escrever à mão por enquanto</button>' +
+    '<button class="bt fraco" onclick="fechaFolha()">Voltar</button>'
+  );
+}
+
+function portaBusca(prat){
+  folha(
+    '<h3>Buscar pelo título</h3>' +
+    '<div class="sub">Digite o nome do livro como está na capa.</div>' +
+    '<div class="campo"><input id="qBusca" placeholder="O Monstro das Cores" ' +
+    'onkeydown="if(event.key===\'Enter\')fazBusca(\''+prat+'\')"></div>' +
+    '<button class="bt" onclick="fazBusca(\''+prat+'\')">Buscar</button>' +
+    '<div id="resBusca" style="margin-top:14px"></div>' +
+    '<button class="bt fraco" onclick="portaMao(\''+prat+'\')">Não achei — escrever à mão</button>'
+  );
+  setTimeout(function(){ var e=document.getElementById("qBusca"); if(e) e.focus(); }, 140);
+}
+
+/* 2.4 — Open Library por TÍTULO (acertou 8 de 10 no teste de 31/08).
+   ⚠️ a capa vem por ?default=false: sem isso um ISBN inexistente devolve
+   200 com uma imagem branca de 43 bytes e a lombada sai vazia sem ninguém ver. */
+function fazBusca(prat){
+  var q = (document.getElementById("qBusca").value||"").trim();
+  var alvo = document.getElementById("resBusca");
+  if(!q){ return; }
+  alvo.innerHTML = '<div style="color:var(--mut);font-size:13px">Procurando…</div>';
+  fetch("https://openlibrary.org/search.json?limit=6&fields=title,author_name,cover_i&q=" + encodeURIComponent(q))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      var docs = (j && j.docs) || [];
+      if(!docs.length){
+        alvo.innerHTML = '<div style="color:var(--mut);font-size:13px">Não achei nada. ' +
+          'Escrever à mão funciona sempre.</div>';
+        return;
+      }
+      var h = "";
+      docs.forEach(function(d){
+        var capa = d.cover_i ? ("https://covers.openlibrary.org/b/id/" + d.cover_i + "-M.jpg?default=false") : "";
+        var aut = (d.author_name && d.author_name[0]) || "";
+        h += '<button class="porta sec" style="width:100%;margin-bottom:8px" ' +
+             'onclick="poeLivro(' + JSON.stringify(JSON.stringify({t:d.title,a:aut,c:capa,p:prat})).slice(1,-1).replace(/"/g,'&quot;') + ')">' +
+             (capa ? '<span style="width:34px;height:48px;border-radius:3px;background:url('+capa+') center/cover;flex:0 0 auto"></span>'
+                   : '<span class="ic">📖</span>') +
+             '<span class="txt"><b>' + esc(d.title) + '</b><span>' + esc(aut) + '</span></span></button>';
+      });
+      alvo.innerHTML = h;
+    })
+    .catch(function(){
+      alvo.innerHTML = '<div style="color:var(--mut);font-size:13px">' +
+        'A busca não respondeu. Sem internet, escrever à mão continua funcionando.</div>';
+    });
+}
+
+function portaMao(prat){
+  folha(
+    '<h3>Escrever à mão</h3>' +
+    '<div class="sub">O que você cadastrar entra no catálogo e ajuda o próximo pai.</div>' +
+    '<div class="campo"><label>Título</label><input id="mTit" placeholder="O Monstro das Cores"></div>' +
+    '<div class="campo"><label>Autor <span style="color:var(--mut)">(opcional)</span></label>' +
+    '<input id="mAut" placeholder="Anna Llenas"></div>' +
+    '<button class="bt" onclick="salvaMao(\''+prat+'\')">Pôr na estante</button>' +
+    '<button class="bt fraco" onclick="fechaFolha()">Cancelar</button>'
+  );
+  setTimeout(function(){ var e=document.getElementById("mTit"); if(e) e.focus(); }, 140);
+}
+function salvaMao(prat){
+  var t = (document.getElementById("mTit").value||"").trim();
+  if(!t){ document.getElementById("mTit").focus(); return; }
+  poeLivro(JSON.stringify({ t:t, a:(document.getElementById("mAut").value||"").trim(), c:"", p:prat }));
+}
+
+function poeLivro(json){
+  var o = typeof json === "string" ? JSON.parse(json) : json;
+  D.livros.push({ id:id(), titulo:o.t, autor:o.a||"", prat:o.p||"quero",
+                  fav:false, capa:o.c||"",
+                  quem: D.filhoAtivo ? [D.filhoAtivo] : [] });
+  grava(); fechaFolha(); pinta();
+}
+
+/* busca capa das sementes em segundo plano — a estante nasce com cara de estante */
+function buscaCapas(){
+  D.livros.filter(function(l){ return !l.capa; }).slice(0,8).forEach(function(l){
+    fetch("https://openlibrary.org/search.json?limit=1&fields=cover_i&q=" + encodeURIComponent(l.titulo))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var d = j && j.docs && j.docs[0];
+        if(d && d.cover_i){
+          l.capa = "https://covers.openlibrary.org/b/id/" + d.cover_i + "-M.jpg?default=false";
+          grava();
+          if(D.ob >= 3 && !document.getElementById("veu")) pinta();
+        }
+      }).catch(function(){});
+  });
+}
+
+/* ---------- ficha do livro ---------- */
+function abreLivro(lid){
+  var l = D.livros.filter(function(x){ return x.id === lid; })[0];
+  if(!l) return;
+  var h = "";
+  if(l.capa) h += '<div class="ficha-capa" style="background-image:url('+esc(l.capa)+')"></div>';
+  h += '<h3>' + esc(l.titulo) + '</h3>';
+  h += '<div class="sub">' + (l.autor ? esc(l.autor) : "sem autor cadastrado") + '</div>';
+
+  h += '<div class="acoes">';
+  PRATELEIRAS.forEach(function(p){
+    h += '<button class="'+(l.prat===p.k?'on':'')+'" onclick="movePara(\''+l.id+'\',\''+p.k+'\')">'+p.n+'</button>';
+  });
+  /* 2.1 — favorito é estrela na lombada, marcada pela criança; atravessa as três */
+  h += '<button class="'+(l.fav?'on':'')+'" onclick="favorita(\''+l.id+'\')">'+(l.fav?'★ Favorito':'☆ Favoritar')+'</button>';
+  h += '</div>';
+
+  h += '<button class="bt fraco" onclick="tiraLivro(\''+l.id+'\')" style="color:#b5453a">Tirar da estante</button>';
+  h += '<button class="bt fraco" onclick="fechaFolha()">Fechar</button>';
+  folha(h);
+}
+
+function movePara(lid, prat){
+  var l = D.livros.filter(function(x){ return x.id === lid; })[0];
+  if(!l) return;
+  var virouLido = (prat === "lemos" && l.prat !== "lemos");
+  l.prat = prat;
+  if(D.filhoAtivo && l.quem.indexOf(D.filhoAtivo) < 0) l.quem.push(D.filhoAtivo);
+  grava();
+  /* 2.6 — o convite da Experiência nasce AQUI, no instante em que ele acabou de
+     ler. Se depender de ele lembrar de ir escrever, não acontece. */
+  if(virouLido) convidaExperiencia(l);
+  else { fechaFolha(); pinta(); }
+}
+
+function convidaExperiencia(l){
+  folha(
+    '<h3>' + esc(l.titulo) + '</h3>' +
+    '<div class="sub">Foi pra “Já lemos”.</div>' +
+    '<div class="convite">' +
+      '<b>Como foi com ' + esc(nomeFilho()) + '?</b>' +
+      '<p>Duas linhas bastam. É isso que vira a parte do Ninho que nenhum ' +
+      'outro app tem — e o nome dele nunca aparece: só “funcionou com uma criança de ' +
+      esc(idadeAtiva()) + '”.</p>' +
+      '<button class="bt" onclick="fechaFolha();pinta()">Contar agora</button>' +
+      '<button class="bt fraco" onclick="fechaFolha();pinta()">Depois</button>' +
+    '</div>'
+  );
+}
+function nomeFilho(){
+  var f = D.filhos.filter(function(x){ return x.id === D.filhoAtivo; })[0] || D.filhos[0];
+  return f ? f.nome : "ele";
+}
+function idadeAtiva(){
+  var f = D.filhos.filter(function(x){ return x.id === D.filhoAtivo; })[0] || D.filhos[0];
+  return f ? idadeTexto(f) : "3 anos";
+}
+
+function favorita(lid){
+  var l = D.livros.filter(function(x){ return x.id === lid; })[0];
+  if(l){ l.fav = !l.fav; grava(); abreLivro(lid); pinta(); }
+}
+function tiraLivro(lid){
+  D.livros = D.livros.filter(function(x){ return x.id !== lid; });
+  grava(); fechaFolha(); pinta();
+}
+
+/* ---------- filho novo (1.4 — sem teto) ---------- */
+function abreNovoFilho(){
+  folha(
+    '<h3>Mais uma criança</h3>' +
+    '<div class="sub">Primeiro nome e quando nasceu. Nada além.</div>' +
+    '<div class="campo"><label>Primeiro nome</label><input id="nfNome" placeholder="Bento"></div>' +
+    '<div class="dupla">' +
+      '<div class="campo"><label>Mês</label><select id="nfMes">'+mesesHTML()+'</select></div>' +
+      '<div class="campo"><label>Ano</label><select id="nfAno">'+anosHTML()+'</select></div>' +
+    '</div>' +
+    '<button class="bt" onclick="salvaFilho()">Adicionar</button>' +
+    '<button class="bt fraco" onclick="fechaFolha()">Cancelar</button>'
+  );
+  setTimeout(function(){ var e=document.getElementById("nfNome"); if(e) e.focus(); }, 140);
+}
+function salvaFilho(){
+  var n = (document.getElementById("nfNome").value||"").trim();
+  if(!n){ document.getElementById("nfNome").focus(); return; }
+  var f = { id:id(), nome:n, mes:+document.getElementById("nfMes").value,
+            ano:+document.getElementById("nfAno").value };
+  D.filhos.push(f); D.filhoAtivo = f.id; grava(); fechaFolha(); pinta();
+}
+
+/* ---------- operador / versão nova ---------- */
+var _reg = null;
+function __atualiza(){
+  if(_reg && _reg.waiting) _reg.waiting.postMessage("SKIP_WAITING");
+}
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").then(function(r){
+    _reg = r;
+    if(r.waiting) document.getElementById("novaVersao").style.display = "flex";
+    r.addEventListener("updatefound", function(){
+      var n = r.installing;
+      if(!n) return;
+      n.addEventListener("statechange", function(){
+        if(n.state === "installed" && navigator.serviceWorker.controller){
+          document.getElementById("novaVersao").style.display = "flex";
+        }
+      });
+    });
+    setInterval(function(){ r.update(); }, 60000);
+    ["visibilitychange","focus","pageshow"].forEach(function(ev){
+      addEventListener(ev, function(){ if(!document.hidden) r.update(); });
+    });
+  }).catch(function(){});
+  var recarregou = false;
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if(recarregou) return; recarregou = true; location.reload();
+  });
+}
+
+/* ⚠️ carrega() por último: qualquer linha que leia D antes disso quebra o
+   arranque inteiro — foi exatamente o erro do jogo em 05/09. */
+carrega();
+pinta();
+</script>
+</body>
+</html>
