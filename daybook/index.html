@@ -796,21 +796,21 @@ var SEED = {"tasks":{},"notes":{}};
 </script>
 <style>
   /* o numero da versao: e como se sabe, num relance, se o app atualizou */
-  .verapp{ text-align:center; font-size:10.5px; color:#6b7378; letter-spacing:.05em;
-           padding:14px 0 calc(26px + env(safe-area-inset-bottom)); }
+  .verapp{ text-align:center; font-size:11px; font-weight:600; letter-spacing:.06em;
+           color:var(--ink);
+           padding:16px 0 calc(26px + env(safe-area-inset-bottom)); }
 </style>
 <div class="verapp">Daybook <span id="verApp">&mdash;</span></div>
 <script>
-/* le do operador do APARELHO, nao do servidor: e ele que diz o que voce esta
-   rodando de fato */
+/* A versao vem de uma CONSTANTE no proprio HTML, nao da rede: buscar sw.js
+   trazia a versao do SERVIDOR (o operador vai a rede primeiro), entao o
+   rodape mostrava a versao nova com o aparelho preso na velha — o pior tipo
+   de indicador, o que voce confere e ele confirma o que nao e.
+   O HTML e o que o operador guardou; pagina velha, constante velha. */
+var VERSAO = "v36";   /* mesma versao do sw.js — mexeu num, mexe no outro:
+                       node _fixsync/sobe-versao.js daybook */
 (function(){
-  try{
-    fetch("sw.js?cb=" + Date.now(), {cache:"no-store"}).then(function(r){ return r.text(); }).then(function(t){
-      var m = t.match(/-v([0-9]+)/);
-      var el = document.getElementById("verApp");
-      if(m && el) el.textContent = "v" + m[1];
-    }).catch(function(){});
-  }catch(e){}
+  try{ var el=document.getElementById("verApp"); if(el) el.textContent = VERSAO; }catch(e){}
 })();
 </script>
 </body>
