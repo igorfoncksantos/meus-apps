@@ -310,19 +310,19 @@
   /* ⚠️ NAO chamar de .kpi: essa classe ja e dos cards do Painel (linha ~74) e
      a regra daqui, por vir depois, atropelaria os seis de la */
   .nums{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
-  .nums div{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  .nums > div{background:var(--panel);border:1px solid var(--line);border-radius:11px;
       padding:9px 8px;text-align:center;min-width:0}
-  .nums div:nth-child(3){grid-column:1 / -1;display:flex;align-items:center;
+  .nums > div:nth-child(3){grid-column:1 / -1;display:flex;align-items:center;
       justify-content:center;gap:9px;padding:11px 12px}
-  .nums div:nth-child(3) .v{font-size:26px}
-  .nums div:nth-child(3) .l{margin-top:0;text-align:left}
+  .nums > div:nth-child(3) .v{font-size:26px}
+  .nums > div:nth-child(3) .l{margin-top:0;text-align:left}
   .nums .v{font-family:"DM Serif Display",Georgia,serif;font-size:19px;line-height:1.1;color:var(--txt)}
   .nums .l{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
       color:var(--mut2);margin-top:3px}
-  .nums div.baixo{background:var(--alertabg);border-color:var(--alertaline)}
-  .nums div.baixo .v{color:var(--alerta)}
-  .nums div.bom{background:var(--okbg);border-color:var(--okline)}
-  .nums div.bom .v{color:var(--ok)}
+  .nums > div.baixo{background:var(--alertabg);border-color:var(--alertaline)}
+  .nums > div.baixo .v{color:var(--alerta)}
+  .nums > div.bom{background:var(--okbg);border-color:var(--okline)}
+  .nums > div.bom .v{color:var(--ok)}
 
   .sig{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--alerta);
        border-radius:0 11px 11px 0;padding:10px 13px;margin-bottom:8px}
@@ -667,7 +667,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v14";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v15";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
