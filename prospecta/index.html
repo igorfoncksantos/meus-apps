@@ -361,6 +361,34 @@
       color:var(--accent);margin-bottom:4px}
   .pl .pv{font-size:13px;color:var(--txt2);line-height:1.55}
   .pl .pv b{color:var(--txt)}
+  /* ---------- orçamento modular ---------- */
+  .ortot{background:var(--accbg);border:1px solid var(--accline);border-radius:12px;
+      padding:13px 15px;margin-bottom:12px;text-align:center}
+  .ortot .v{font-family:"DM Serif Display",Georgia,serif;font-size:31px;line-height:1.05;color:var(--txt)}
+  .ortot .l{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+      color:var(--mut2);margin-top:3px}
+  .ortot .f{font-size:11.5px;color:var(--mut);margin-top:7px;padding-top:7px;
+      border-top:1px solid var(--accline)}
+  .orl{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+      padding:11px 13px 4px;margin-bottom:9px}
+  .orh{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .orh .ord{flex:1;min-width:0;font-family:inherit;font-size:14px;font-weight:700;color:var(--txt);
+      background:transparent;border:none;border-bottom:1px dashed var(--line2);padding:3px 0}
+  .orh .ord:focus{outline:none;border-bottom-color:var(--accent)}
+  .orh .orv{font-family:"DM Serif Display",Georgia,serif;font-size:16px;color:var(--accent);flex:0 0 auto}
+  .orh .orx{flex:0 0 auto;width:26px;height:26px;border-radius:8px;cursor:pointer;
+      background:transparent;border:1px solid var(--line);color:var(--mut2);
+      font-size:15px;line-height:1;position:relative;padding:0;
+      display:flex;align-items:center;justify-content:center}
+  .orh .orx::before{content:"";position:absolute;inset:-9px}   /* alvo de 44px */
+  .orh .orx:active{background:var(--naobg);border-color:var(--naoline);color:var(--nao)}
+  .orl .orn{font-size:10.5px;color:var(--mut2);line-height:1.5;padding-bottom:8px}
+  .orl .dupla .campo label{min-height:24px}   /* rotulo de 2 linhas nao desalinha o vizinho */
+  .orcadd{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .orcadd button{font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer;
+      background:var(--panel);border:1px solid var(--line);border-radius:20px;
+      padding:9px 13px;color:var(--txt2)}
+  .orcadd button:active{background:var(--accbg);border-color:var(--accline);color:var(--accent)}
   .voltar{font-size:11px;font-weight:700;color:var(--mut);cursor:pointer;
       display:inline-block;
       /* alvo de 44px sem mexer no desenho: o padding cresce, a margem devolve */
@@ -607,7 +635,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v12";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v13";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
@@ -1120,10 +1148,13 @@ function cxRotulo(id){
   r.textContent = nome || "—";
   r.className = "cxv" + (val ? "" : " vaz");
 }
+/* quem quiser reagir a uma escolha registra aqui: _cxAoMudar["id"] = fn */
+var _cxAoMudar = {};
 /* troca por codigo (o scorecard sugere a temperatura) — mexe nos DOIS lados */
 function cxSet(id, val){
   var e = document.getElementById(id); if(!e) return;
   e.value = val; cxRotulo(id);
+  if(_cxAoMudar[id]){ try{ _cxAoMudar[id](val); }catch(err){} }
 }
 function cxAbre(id){
   var e = document.getElementById(id); if(!e) return;
@@ -1268,7 +1299,8 @@ function et3HTML(p){
      +'<span class="s">'+(sg? sg+" brecha"+(sg===1?"":"s") : "sem estudo")+'</span></button>'
    +'<button class="'+(temPlano?"ok":"")+'" onclick="abreConteudo()">'
      +'<span class="n">3</span><span class="t">Conteúdo</span>'
-     +'<span class="s">'+(temPlano?"plano feito":(temReu?"a fechar":"a montar"))+'</span></button>'
+     +'<span class="s">'+(p.orc&&p.orc.length ? brlCurto(totalOrc(p.orc))
+                                : (temPlano?"plano feito":(temReu?"a fechar":"a montar")))+'</span></button>'
    +'</div>';
 }
 function pintaModelos(){
@@ -1751,6 +1783,253 @@ function copiaSpeech(b){
   var o=b.textContent; b.textContent="Copiado ✓"; setTimeout(function(){ b.textContent=o; },1400);
 }
 
+/* =========== O ORÇAMENTO ===========
+   Tabela oficial da Klix (10/08/2026). Mexeu no PDF, mexe aqui. */
+var DURACOES = ["Até 30s","31 a 60s","1 a 3 min","3 a 5 min","Acima de 5 min"];
+var PACOTES  = ["Essencial","Plus","Premium"];
+var TAB_ED = {
+  "Até 30s":        { Essencial:250, Plus:380,  Premium:550  },
+  "31 a 60s":       { Essencial:350, Plus:520,  Premium:780  },
+  "1 a 3 min":      { Essencial:500, Plus:800,  Premium:1200 },
+  "3 a 5 min":      { Essencial:750, Plus:1150, Premium:1700 },
+  "Acima de 5 min": { Essencial:0,   Plus:0,    Premium:0    }  /* sob consulta */
+};
+var CAP_HORA=280, CAP_DIARIA=1500, CAP_DIARIA_H=6, CAP_MIN=2;
+var TAB_FOTO={ "15":200, "30":350, "50":550 }, FOTO_ADIC=15;
+var FOTO_PKS=["15","30","50"];
+var TAB_PLANO={ "4":1768, "8":3536 }, PLANO_NS=["4","8"];
+var ADAPT=0.5;   /* cada desdobramento de formato = +50% da peça original */
+
+/* o que cada finalidade pede — decisões do Igor, 10/09/2026 */
+var PECAS = {
+  inst:     { d:"Institucional",        dur:"1 a 3 min", pac:"Premium"   },
+  linkedin: { d:"Vídeo para LinkedIn",  dur:"31 a 60s",  pac:"Plus"      },
+  feira:    { d:"Vídeo para feira",     dur:"31 a 60s",  pac:"Premium"   },
+  interno:  { d:"Vídeo interno",        dur:"1 a 3 min", pac:"Essencial" },
+  redes:    { d:"Vídeo para redes",     dur:"Até 30s",   pac:"Plus"      }
+};
+/* qual sinal pede qual peça */
+function pecaDoSinal(k){
+  if(k==="instvelho" || k==="semsite") return "inst";
+  if(k==="linkedin") return "linkedin";
+  return "redes";
+}
+
+function valorLinha(l){
+  if(!l) return 0;
+  if(l.t==="ed"){
+    var t=TAB_ED[l.dur]; if(!t) return 0;
+    return (t[l.pac]||0) * (Number(l.q)||1) * (1 + ADAPT*(Number(l.ad)||0));
+  }
+  if(l.t==="cap"){
+    var h=Number(l.h)||0; if(!h) return 0;
+    /* a diária de 6h custa menos que 6 horas avulsas — o app pega o menor */
+    return Math.min(Math.max(CAP_MIN,h)*CAP_HORA,
+                    CAP_DIARIA + Math.max(0,h-CAP_DIARIA_H)*CAP_HORA);
+  }
+  if(l.t==="fot") return (TAB_FOTO[l.pk]||0) + (Number(l.ad)||0)*FOTO_ADIC;
+  if(l.t==="pla") return TAB_PLANO[l.n]||0;
+  if(l.t==="liv") return Number(l.v)||0;
+  return 0;
+}
+function totalOrc(a){ var s=0; (a||[]).forEach(function(l){ s+=valorLinha(l); }); return s; }
+function temSobConsulta(a){
+  for(var i=0;i<(a||[]).length;i++) if(a[i].t==="ed" && a[i].dur==="Acima de 5 min") return true;
+  return false;
+}
+
+/* horas de captação sugeridas pelo nicho — chute honesto, e editável */
+function horasSugeridas(p){ return /meio per/i.test(lacunaDe(p.segmento).tempo) ? 6 : 4; }
+
+/* pre-montagem a partir do que ja foi levantado */
+function orcSugerido(p){
+  var sg=sinaisDe(p), usos=cxLista(p.ruso||""), linhas=[], vistos={};
+  linhas.push({ t:"cap", d:"Captação", h:horasSugeridas(p) });
+
+  /* adaptações: cada lugar a mais onde o vídeo vai rodar é um desdobramento */
+  var adap = Math.max(0, Math.min(3, usos.length-1));
+
+  for(var i=0;i<sg.length && Object.keys(vistos).length<3;i++){
+    var k=pecaDoSinal(sg[i].k);
+    if(vistos[k]) continue;
+    vistos[k]=1;
+    var pc=PECAS[k];
+    linhas.push({ t:"ed", d:pc.d, dur:pc.dur, pac:pc.pac, q:1,
+                  ad: (k==="inst" ? adap : 0) });
+  }
+  if(!linhas.some(function(l){ return l.t==="ed"; })){
+    var r=PECAS.redes;
+    linhas.push({ t:"ed", d:r.d, dur:r.dur, pac:r.pac, q:1, ad:0 });
+  }
+  usos.forEach(function(u){
+    if(/treinamento/i.test(u)){ var it=PECAS.interno;
+      linhas.push({ t:"ed", d:it.d, dur:it.dur, pac:it.pac, q:1, ad:0 }); }
+  });
+  if(/^sim/i.test(p.feira||"") || usos.some(function(u){ return /feira/i.test(u); })){
+    var f=PECAS.feira;
+    if(!linhas.some(function(l){ return l.d===f.d; }))
+      linhas.push({ t:"ed", d:f.d, dur:f.dur, pac:f.pac, q:1, ad:0 });
+    linhas.push({ t:"fot", d:"Fotos do evento", pk:"30", ad:0 });
+  }
+  return linhas;
+}
+/* com frequência recorrente o plano mensal sai 15% mais barato que o avulso */
+function cabePlano(p){
+  var f=(planoDe(p).freq||"");
+  var m=f.match(/(\d+)\s*(por semana|publica)/i);
+  return m ? Number(m[1])>=2 : /manter o ritmo/i.test(f);
+}
+
+var _orc=[];
+function abreOrcamento(){
+  var p=acha(_atual); if(!p) return;
+  if(!p.orc || !p.orc.length) p.orc = orcSugerido(p);
+  _orc = p.orc;
+  folhaOrc();
+}
+function folhaOrc(){
+  var p=acha(_atual); if(!p) return;
+  folha(
+    '<div class="voltar" onclick="abreConteudo()">← Etapa 3 · Conteúdo</div>'
+   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">Estimativa interna</div>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">O orçamento</div>'
+   +'<div class="sub">Montado pelo que você levantou. Mexa à vontade durante a reunião — o total acompanha.</div>'
+   +'<div id="orcTopo"></div>'
+   +'<div id="orcLista"></div>'
+   +'<div class="orcadd">'
+   +'<button onclick="orcAdd(\'ed\')">+ vídeo</button>'
+   +'<button onclick="orcAdd(\'cap\')">+ captação</button>'
+   +'<button onclick="orcAdd(\'fot\')">+ fotos</button>'
+   +'<button onclick="orcAdd(\'pla\')">+ plano mensal</button>'
+   +'<button onclick="orcAdd(\'liv\')">+ item livre</button>'
+   +'</div>'
+   +(cabePlano(p) ? '<div class="aviso">Na frequência que você propôs, o <b>plano mensal</b> sai 15% abaixo do avulso (4 vídeos R$ 1.768 · 8 vídeos R$ 3.536, fidelidade de 3 meses). Toque em <b>+ plano mensal</b> pra comparar.</div>' : '')
+   +'<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Isto <b>não é proposta</b>. Serve pra você saber se cabe no bolso dele e pro Igor receber a conta pronta — quem passa valor é ele.</div>'
+   +'<div class="acoes"><button class="bt" onclick="orcRefaz()">Refazer sugestão</button>'
+   +'<button class="bt pri" onclick="orcCopia(this)">Copiar pro Igor</button></div>'
+   +'<div class="acoes" style="margin-top:6px"><button class="bt" style="flex:1" onclick="orcViraValor(this)">Usar como valor potencial do lead</button></div>');
+  pintaOrc();
+}
+function pintaOrc(){
+  var box=document.getElementById("orcLista"); if(!box) return;
+  box.innerHTML = _orc.map(function(l,i){ return linhaHTML(l,i); }).join("")
+    || '<div class="aviso">Nenhum item. Use os botões abaixo ou <b>Refazer sugestão</b>.</div>';
+  if(typeof cxPinta === "function") cxPinta();
+  /* as caixas desta folha avisam o total quando mudam */
+  _orc.forEach(function(l,i){
+    if(l.t==="ed"){ _cxAoMudar["oDur"+i]=function(v){ orcSet(i,"dur",v); };
+                    _cxAoMudar["oPac"+i]=function(v){ orcSet(i,"pac",v); }; }
+    if(l.t==="fot") _cxAoMudar["oPk"+i]=function(v){ orcSet(i,"pk",v); };
+    if(l.t==="pla") _cxAoMudar["oN"+i] =function(v){ orcSet(i,"n",v); };
+  });
+  pintaOrcTot();
+}
+function linhaHTML(l,i){
+  var h='<div class="orl"><div class="orh">'
+   +'<input class="ord" value="'+escA(l.d||"")+'" oninput="orcSet('+i+',\'d\',this.value)">'
+   +'<span class="orv" id="orv'+i+'"></span>'
+   +'<button class="orx" onclick="orcDel('+i+')" aria-label="Remover">×</button></div>';
+  if(l.t==="ed"){
+    h+='<div class="dupla">'
+     +'<div class="campo"><label>Duração</label>'+cx("oDur"+i,DURACOES,l.dur||"",false)+'</div>'
+     +'<div class="campo"><label>Pacote</label>'+cx("oPac"+i,PACOTES,l.pac||"",false)+'</div></div>'
+     +'<div class="dupla">'
+     +'<div class="campo"><label>Quantidade</label><input type="number" inputmode="numeric" min="1" value="'+(l.q||1)+'" oninput="orcSet('+i+',\'q\',this.value)"></div>'
+     +'<div class="campo"><label>Outros formatos</label><input type="number" inputmode="numeric" min="0" value="'+(l.ad||0)+'" oninput="orcSet('+i+',\'ad\',this.value)"></div></div>'
+     + (l.dur==="Acima de 5 min" ? '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Acima de 5 min é <b>sob consulta</b> — a tabela não fecha preço. Entra como zero até o Igor definir.</div>' : '');
+  } else if(l.t==="cap"){
+    h+='<div class="campo"><label>Horas de captação</label>'
+     +'<input type="number" inputmode="decimal" min="0" step="0.5" value="'+(l.h||0)+'" oninput="orcSet('+i+',\'h\',this.value)"></div>'
+     +'<div class="orn">R$ '+CAP_HORA+'/h (mínimo 2h) · diária até 6h R$ '+milhar(CAP_DIARIA)+'. O app cobra o que sair menor.</div>';
+  } else if(l.t==="fot"){
+    h+='<div class="dupla">'
+     +'<div class="campo"><label>Pacote de fotos</label>'+cx("oPk"+i,FOTO_PKS.map(function(k){ return {v:k,n:k+" fotos"}; }),l.pk||"30",false)+'</div>'
+     +'<div class="campo"><label>Fotos adicionais</label><input type="number" inputmode="numeric" min="0" value="'+(l.ad||0)+'" oninput="orcSet('+i+',\'ad\',this.value)"></div></div>'
+     +'<div class="orn">15 fotos '+brl(TAB_FOTO["15"])+' · 30 '+brl(TAB_FOTO["30"])+' · 50 '+brl(TAB_FOTO["50"])+' · adicional R$ '+FOTO_ADIC+' cada.</div>';
+  } else if(l.t==="pla"){
+    h+='<div class="campo"><label>Vídeos por mês</label>'+cx("oN"+i,PLANO_NS.map(function(k){ return {v:k,n:k+" vídeos por mês"}; }),l.n||"4",false)+'</div>'
+     +'<div class="orn">4 vídeos '+brl(TAB_PLANO["4"])+'/mês · 8 vídeos '+brl(TAB_PLANO["8"])+'/mês. Base Plus · 9:16 · 15% abaixo do avulso · fidelidade mínima de 3 meses.</div>';
+  } else {
+    h+='<div class="campo"><label>Valor (R$)</label>'
+     +'<input type="number" inputmode="decimal" min="0" value="'+(l.v||0)+'" oninput="orcSet('+i+',\'v\',this.value)"></div>'
+     +'<div class="orn">Pro que a tabela não prevê: deslocamento, diária extra, hora de estúdio.</div>';
+  }
+  return h+'</div>';
+}
+function pintaOrcTot(){
+  var t=totalOrc(_orc), topo=document.getElementById("orcTopo");
+  _orc.forEach(function(l,i){
+    var e=document.getElementById("orv"+i); if(e) e.textContent=brl(valorLinha(l));
+  });
+  if(!topo) return;
+  var min=Math.round(t*0.9), max=Math.round(t*1.15);
+  topo.innerHTML =
+    '<div class="ortot"><div class="v">'+brl(t)+'</div>'
+   +'<div class="l">'+_orc.length+' iten'+(_orc.length===1?"":"s")+'</div>'
+   + (t>0 ? '<div class="f">faixa de negociação · '+brl(min)+' a '+brl(max)+'</div>' : '')
+   +'</div>'
+   + (temSobConsulta(_orc) ? '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Tem peça <b>acima de 5 min</b> na lista: a tabela manda pedir orçamento. O total está incompleto.</div>' : '');
+}
+function orcSet(i,campo,val){
+  if(!_orc[i]) return;
+  _orc[i][campo]=val;
+  var p=acha(_atual); if(p){ p.orc=_orc; grava(); }
+  if(campo==="dur" || campo==="d"){ if(campo==="dur"){ pintaOrc(); return; } }
+  pintaOrcTot();
+}
+function orcAdd(t){
+  var novo = t==="ed"  ? { t:"ed", d:"Vídeo", dur:"Até 30s", pac:"Plus", q:1, ad:0 }
+           : t==="cap" ? { t:"cap", d:"Captação", h:4 }
+           : t==="fot" ? { t:"fot", d:"Fotos", pk:"30", ad:0 }
+           : t==="pla" ? { t:"pla", d:"Plano mensal", n:"4" }
+           :             { t:"liv", d:"Item", v:0 };
+  _orc.push(novo);
+  var p=acha(_atual); if(p){ p.orc=_orc; grava(); }
+  pintaOrc();
+}
+function orcDel(i){
+  _orc.splice(i,1);
+  var p=acha(_atual); if(p){ p.orc=_orc; grava(); }
+  pintaOrc();
+}
+function orcRefaz(){
+  var p=acha(_atual); if(!p) return;
+  if(_orc.length && !confirm("Refazer a sugestão apaga o que você ajustou aqui. Seguir?")) return;
+  p.orc = orcSugerido(p); _orc = p.orc; grava(); pintaOrc();
+}
+function textoOrc(){
+  var p=acha(_atual); if(!p) return "";
+  var l=[ p.nome + (p.segmento?" · "+p.segmento:""), "" ];
+  if((p.ruso||"").trim()) l.push("Onde vai ser usado: " + p.ruso);
+  if((p.raprova||"").trim()) l.push("Quem aprova: " + p.raprova);
+  if((p.rnao||"").trim()) l.push("Não pode aparecer: " + p.rnao);
+  if((p.rverba||"").trim()) l.push("Verba: " + p.rverba);
+  l.push("");
+  _orc.forEach(function(x){
+    var det = x.t==="ed"  ? (x.dur+" · "+x.pac+" · "+(x.q||1)+"x"+((x.ad||0)>0?" · +"+x.ad+" formato(s)":""))
+            : x.t==="cap" ? ((x.h||0)+"h")
+            : x.t==="fot" ? ((x.pk||"")+" fotos"+((x.ad||0)>0?" + "+x.ad+" adicionais":""))
+            : x.t==="pla" ? ((x.n||"")+" vídeos/mês")
+            : "";
+    l.push("- " + (x.d||"") + (det?" ("+det+")":"") + " — " + brl(valorLinha(x)));
+  });
+  l.push("");
+  l.push("Total: " + brl(totalOrc(_orc)));
+  if(temSobConsulta(_orc)) l.push("(tem peça acima de 5 min = sob consulta)");
+  return l.join("\n");
+}
+function orcCopia(b){
+  try{ navigator.clipboard.writeText(textoOrc()); }catch(e){}
+  var o=b.textContent; b.textContent="Copiado ✓"; setTimeout(function(){ b.textContent=o; },1400);
+}
+function orcViraValor(b){
+  var p=acha(_atual); if(!p) return;
+  p.valor = Math.round(totalOrc(_orc)); grava();
+  try{ som('salvo'); }catch(e){}
+  var o=b.textContent; b.textContent="Valor do lead atualizado ✓";
+  setTimeout(function(){ b.textContent=o; },1600);
+}
+
 /* =========== ETAPA 3 · CONTEÚDO =========== */
 /* o plano nasce dos MESMOS sinais que abriram a conversa — por isso a proposta
    nunca contradiz o que foi falado na abordagem */
@@ -1828,16 +2107,17 @@ function abreConteudo(){
    +'<div class="aviso">Nada de preço aqui. Você fecha o <b>escopo</b>; quem fecha o <b>valor</b> é o Igor, na call. Plano fechado é o que faz o orçamento sair certo de primeira.</div>'
 
    +'<div class="acoes"><button class="bt" onclick="abre(_atual)">Voltar</button>'
-   +'<button class="bt pri" onclick="salvaConteudo()">Salvar plano</button></div>');
+   +'<button class="bt pri" onclick="salvaConteudo()">Salvar plano</button></div>'
+   +'<div class="acoes" style="margin-top:6px"><button class="bt" style="flex:1" onclick="salvaConteudo(1)">Montar o orçamento →</button></div>');
 }
-function salvaConteudo(){
+function salvaConteudo(irPraOrc){
   var p=acha(_atual); if(!p) return;
   p.rdor=v("rDor"); p.rquer=v("rQuer"); p.rtentou=v("rTentou"); p.rprazo=v("rPrazo");
   p.raprova=v("rAprova"); p.ruso=v("rUso"); p.rnao=v("rNao");
   p.rverba=v("rVerba"); p.rmat=v("rMat");
   p.cobj=v("cObj"); p.cpil=v("cPil"); p.cent=v("cEnt");
   grava(); try{ som('salvo'); }catch(e){}
-  abre(_atual);
+  if(irPraOrc) abreOrcamento(); else abre(_atual);
 }
 function copiaMsg(b){
   try{ navigator.clipboard.writeText(montaMsg()); }catch(e){}
