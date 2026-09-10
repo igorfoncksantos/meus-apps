@@ -283,6 +283,72 @@
   .tq .dt{flex-shrink:0;width:52px;color:var(--mut2);font-weight:700;font-variant-numeric:tabular-nums}
   .tq .oq{flex:1;color:var(--txt2)}
 
+  /* ---------- as 3 etapas da abordagem ---------- */
+  .et3{display:flex;gap:6px;margin-bottom:4px}
+  .et3 button{flex:1;min-width:0;font-family:inherit;text-align:left;cursor:pointer;
+      background:var(--panel);border:1px solid var(--line);border-radius:11px;
+      padding:9px 10px;color:var(--txt);display:block}
+  .et3 button:active{transform:scale(.985)}
+  .et3 .n{display:block;font-size:9px;font-weight:800;letter-spacing:.09em;
+      text-transform:uppercase;color:var(--mut2);margin-bottom:2px}
+  .et3 .t{display:block;font-size:12.5px;font-weight:700;line-height:1.2}
+  .et3 .s{display:block;font-size:10px;color:var(--mut);margin-top:3px;line-height:1.3}
+  .et3 button.ok{background:var(--okbg);border-color:var(--okline)}
+  .et3 button.ok .s{color:var(--ok)}
+  .et3 button.falta{background:var(--alertabg);border-color:var(--alertaline)}
+  .et3 button.falta .s{color:var(--alerta)}
+
+  .kpi{display:flex;gap:7px;margin-bottom:10px}
+  .kpi div{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:11px;
+      padding:9px 8px;text-align:center;min-width:0}
+  .kpi .v{font-family:"DM Serif Display",Georgia,serif;font-size:19px;line-height:1.1;color:var(--txt)}
+  .kpi .l{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--mut2);margin-top:3px}
+  .kpi div.baixo{background:var(--alertabg);border-color:var(--alertaline)}
+  .kpi div.baixo .v{color:var(--alerta)}
+  .kpi div.bom{background:var(--okbg);border-color:var(--okline)}
+  .kpi div.bom .v{color:var(--ok)}
+
+  .sig{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--alerta);
+       border-radius:0 11px 11px 0;padding:10px 13px;margin-bottom:8px}
+  .sig .sl{font-size:13.5px;font-weight:700;color:var(--txt);line-height:1.45}
+  .sig .sp{font-size:11.5px;color:var(--mut);line-height:1.5;margin-top:4px}
+  .sig .sc{font-size:11.5px;color:var(--txt2);line-height:1.5;margin-top:8px;
+       background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:7px 10px}
+  .sig .sc i{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.09em;
+       text-transform:uppercase;color:var(--mut2);margin-bottom:2px}
+  .sig.forte{border-left-color:var(--accent);background:var(--accbg);border-color:var(--accline)}
+  .sig.res{border-left-color:var(--line2);padding:8px 12px;margin-bottom:6px}
+  .sig.res .sl{font-size:12.5px;font-weight:600;color:var(--mut)}
+
+  .spb{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);
+       border-radius:0 11px 11px 0;padding:11px 14px;margin-bottom:9px}
+  .spb .sph{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .spb .spn{width:19px;height:19px;border-radius:50%;background:var(--accent);color:var(--onacc);
+            font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .spb .spt{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--txt)}
+  .spb .sps{margin-left:auto;font-size:9.5px;font-weight:700;color:var(--mut2)}
+  .spb .spf{font-size:13.5px;line-height:1.62;color:var(--txt2)}
+  .spb .spf em{font-style:normal;background:var(--accbg);border-bottom:1.5px solid var(--accline);
+               padding:0 3px;border-radius:2px;color:var(--txt)}
+  .spb .spf em.sug{background:var(--alertabg);border-bottom-color:var(--alertaline);
+                   color:var(--alerta);font-style:italic}
+  .spb .spf em.fal{background:var(--naobg);border-bottom-color:var(--naoline);
+                   color:var(--nao);font-style:italic}
+  .spq{background:var(--bg);border:1px dashed var(--line2);border-radius:10px;
+       padding:9px 12px;margin-bottom:7px}
+  .spq .qq{font-size:13px;font-style:italic;font-weight:700;color:var(--txt);line-height:1.5}
+  .spq .qp{font-size:11px;color:var(--mut);line-height:1.5;margin-top:3px}
+
+  .pl{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+      padding:10px 13px;margin-bottom:8px}
+  .pl .pt{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+      color:var(--accent);margin-bottom:4px}
+  .pl .pv{font-size:13px;color:var(--txt2);line-height:1.55}
+  .pl .pv b{color:var(--txt)}
+  .voltar{font-size:11px;font-weight:700;color:var(--mut);cursor:pointer;
+      display:inline-block;margin-bottom:9px}
+  .voltar:active{color:var(--accent)}
   .aviso{font-size:11.5px;color:var(--mut);line-height:1.6;margin-top:10px;
          padding:10px 12px;background:var(--accbg);border-radius:10px;border:1px solid var(--accline)}
   .aviso b{color:var(--accent)}
@@ -524,7 +590,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v10";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v11";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
@@ -564,9 +630,9 @@ var SCORE = [
 
 var MODELOS = [
   { k:"escola", nome:"Escola",
-    txt:"Oi {nome}! Acompanho o {negocio} e vi que {gancho} 👀. Trabalho com vídeo pra educação infantil (fiz o audiovisual da Unique) e tive 2 ideias de reels que ajudariam. Posso te mandar, sem compromisso?" },
+    txt:"Oi {nome}! Acompanho o {negocio} e vi que {gancho} 👀. A gente faz vídeo pra educação infantil (o audiovisual da Unique é nosso) e tive 2 ideias de reels que ajudariam. Posso te mandar, sem compromisso?" },
   { k:"local", nome:"Loja / restaurante",
-    txt:"Oi {nome}, o {negocio} tem uma cara linda 😍 mas quase não tem vídeo no feed — e é o que mais entrega alcance hoje. Faço isso pra negócios locais. Te mando um exemplo do que dá pra fazer com o espaço de vocês?" },
+    txt:"Oi {nome}, o {negocio} tem uma cara linda 😍 mas quase não tem vídeo no feed — e é o que mais entrega alcance hoje. A gente faz isso pra negócios locais. Te mando um exemplo do que dá pra fazer com o espaço de vocês?" },
   { k:"gatilho", nome:"Gatilho",
     txt:"Vi que {gancho}! Momento perfeito pra um vídeo que apresente isso direito. Tenho uma ideia de como mostrar em 20s que prende. Topa ver?" },
   { k:"indicacao", nome:"Indicação",
@@ -1128,6 +1194,10 @@ function abre(id){
 
    +(a.k==="atr"||a.k==="hoje" ? '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)"><b>'+esc(a.txt)+'</b> — '+esc(p.acao||"defina a próxima ação")+'</div>' : '')
 
+   +'<h3>Abordagem</h3>'
+   + et3HTML(p)
+   +'<div class="aviso">O estudo alimenta o speech; o speech e a reunião alimentam o conteúdo. <b>É uma coisa só</b> — por isso a proposta não contradiz o que foi falado na ligação.</div>'
+
    +'<h3>Mensagem pronta</h3>'
    +'<div class="modelos" id="mods"></div><div class="msg" id="msgTxt"></div>'
    +'<div class="acoes"><button class="bt" onclick="copiaMsg(this)">Copiar</button>'
@@ -1168,6 +1238,22 @@ function abre(id){
    +'<button class="bt pri" onclick="salvaFicha()">Salvar</button></div>');
   pintaModelos();
 }
+function et3HTML(p){
+  var n=estudoFeito(p), tot=CAMPOS_EST.length, sg=sinaisDe(p).length;
+  var temPlano = (p.cobj||p.cpil||p.cent||"").toString().trim() !== "";
+  var temReu   = (p.rdor||p.rquer||"").toString().trim() !== "";
+  return '<div class="et3">'
+   +'<button class="'+(n>=tot?"ok":(n>0?"":"falta"))+'" onclick="abreEstudo()">'
+     +'<span class="n">1</span><span class="t">Estudo</span>'
+     +'<span class="s">'+n+' de '+tot+' campos</span></button>'
+   +'<button class="'+(sg?"ok":"falta")+'" onclick="abreSpeech()">'
+     +'<span class="n">2</span><span class="t">Speech</span>'
+     +'<span class="s">'+(sg? sg+" brecha"+(sg===1?"":"s") : "sem estudo")+'</span></button>'
+   +'<button class="'+(temPlano?"ok":"")+'" onclick="abreConteudo()">'
+     +'<span class="n">3</span><span class="t">Conteúdo</span>'
+     +'<span class="s">'+(temPlano?"plano feito":(temReu?"a fechar":"a montar"))+'</span></button>'
+   +'</div>';
+}
 function pintaModelos(){
   document.getElementById("mods").innerHTML = MODELOS.map(function(m){
     return '<button class="'+(m.k===_modelo?"on":"")+'" onclick="trocaModelo(\''+m.k+'\')">'+m.nome+'</button>'; }).join("");
@@ -1182,6 +1268,472 @@ function montaMsg(){
               .replace(/\{nicho\}/g, p.segmento || "negócios locais")
               .replace(/\{gancho\}/g, p.gatilho || "…")
               .replace(/ +/g," ").replace(/Oi ,/,"Oi,");
+}
+/* =====================================================================
+   ABORDAGEM EM 3 ETAPAS — estudo -> speech -> conteudo
+   ===================================================================== */
+
+/* ---- listas do estudo ---- */
+var CANAIS   = ["Instagram","TikTok","YouTube","Facebook","LinkedIn","Site próprio","Google Meu Negócio","WhatsApp Business"];
+var FREQS    = ["Todo dia","3 a 5 por semana","1 a 2 por semana","Menos de 1 por semana","Parado há meses"];
+var PVIDEOS  = ["Nenhum","Quase nenhum","Metade","A maioria"];
+var QUEMAPS  = ["Ninguém aparece","Só o produto / o espaço","A equipe","O dono / o rosto da marca"];
+var QUALS    = ["Celular na mão","Editado simples","Profissional"];
+var SIMNAO   = ["Sim","Não","Não sei"];
+
+/* os campos que contam pra dizer se o estudo esta completo */
+var CAMPOS_EST = ["espec","canais","segui","curt","coment","comp","freq","pvideo","quemap","qual","viu","bem"];
+function estudoFeito(p){
+  var n=0; for(var i=0;i<CAMPOS_EST.length;i++){
+    var x=p[CAMPOS_EST[i]]; if(x!==undefined && x!==null && String(x).trim()!=="") n++; }
+  return n;
+}
+
+/* ---- engajamento: o unico numero objetivo que ela leva pra ligacao ---- */
+function engaj(p){
+  var s=Number(p.segui)||0; if(!s) return null;
+  var t=(Number(p.curt)||0)+(Number(p.coment)||0)+(Number(p.comp)||0);
+  return t/s*100;
+}
+/* conta pequena engaja mais que conta grande — comparar com o alvo errado
+   viraria acusacao falsa */
+function alvoEngaj(p){
+  var s=Number(p.segui)||0;
+  if(s < 5000) return 3;
+  if(s < 25000) return 1.5;
+  return 1;
+}
+function num1(v){ return (Math.round(Number(v)*10)/10).toString().replace(".",","); }
+function milhar(v){ return (Number(v)||0).toLocaleString("pt-BR"); }
+function nCanais(p){ return cxLista(p.canais||"").length; }
+function diasSemPostar(p){ var d=diasAte(p.ultpub||""); return d===null?null:-d; }
+
+/* ---- O MOTOR: os sinais.
+   Cada um e uma brecha observavel que a Klix resolve com video. O mesmo sinal
+   escreve a LACUNA do speech e o PILAR do conteudo — por isso a conversa e a
+   proposta nunca se contradizem. ---- */
+var SINAIS = [
+  { k:"video", peso:3,
+    teste:function(p){ return /nenhum/i.test(p.pvideo||""); },
+    lacuna:function(p){ return "o feed de vocês é quase todo foto"; },
+    porque:"foto mostra o que está parado, vídeo mostra o que acontece, e hoje é o vídeo que o Instagram entrega pra quem ainda não segue vocês",
+    conteudo:"Reels curtos de 15 a 30s — é o formato que alcança quem ainda não conhece" },
+
+  { k:"engaj", peso:3,
+    teste:function(p){ var e=engaj(p); return e!==null && e < alvoEngaj(p); },
+    lacuna:function(p){ return "vocês têm "+milhar(p.segui)+" seguidores e o engajamento está em "+num1(engaj(p))+"% — abaixo dos "+num1(alvoEngaj(p))+"% que uma conta desse tamanho costuma fazer"; },
+    porque:"audiência grande que não reage é audiência que parou de ver — o alcance cai junto",
+    conteudo:"Conteúdo que segura no primeiro segundo: rosto ou movimento na abertura, nunca a logo" },
+
+  { k:"parado", peso:3,
+    teste:function(p){ var d=diasSemPostar(p); return /parado|menos de 1/i.test(p.freq||"") || (d!==null && d>21); },
+    lacuna:function(p){ var d=diasSemPostar(p);
+      return d!==null && d>21 ? "o perfil está sem publicar há "+d+" dias" : "o perfil publica bem pouco"; },
+    porque:"quem chega e vê a última publicação antiga não sabe se vocês ainda estão abertos",
+    conteudo:"Um banco de vídeos gravado num dia só, publicado ao longo do mês — resolve a constância sem virar rotina" },
+
+  { k:"ninguem", peso:2,
+    teste:function(p){ return /ninguém|só o produto/i.test(p.quemap||""); },
+    lacuna:function(p){ return "não dá pra ver quem está por trás do negócio"; },
+    porque:"as pessoas fecham com pessoas — o rosto de quem atende encurta a decisão",
+    conteudo:"Uma série com o dono ou a equipe falando — é o que cria familiaridade antes do primeiro contato" },
+
+  { k:"umcanal", peso:1,
+    teste:function(p){ return nCanais(p)===1; },
+    lacuna:function(p){ return "hoje tudo depende de um canal só"; },
+    porque:"um vídeo bem feito rende em vários lugares — a gravação é a mesma, o corte é que muda",
+    conteudo:"Cada gravação sai em 3 formatos: reels, corte pro story e versão longa" },
+
+  { k:"ads", peso:3,
+    teste:function(p){ return /^sim/i.test(p.ads||"") && /nenhum|quase/i.test(p.pvideo||""); },
+    lacuna:function(p){ return "vocês já pagam por alcance, mas o criativo que roda é parado"; },
+    porque:"o dinheiro do anúncio já está saindo — trocar o criativo é o ajuste mais barato que existe",
+    conteudo:"Criativos de anúncio em vídeo, 2 a 3 variações do mesmo tema pra testar qual converte" },
+
+  { k:"circula", peso:2,
+    teste:function(p){ var c=Number(p.curt)||0, s=Number(p.comp)||0; return c>=30 && s>=0 && s < c*0.02; },
+    lacuna:function(p){ return "o conteúdo agrada mas quase não é compartilhado"; },
+    porque:"curtida é elogio, compartilhamento é indicação — é o compartilhamento que traz gente nova",
+    conteudo:"Conteúdo com utilidade clara (bastidor, como é feito, o antes e depois) — é o que a pessoa manda pra alguém" },
+
+  { k:"espec", peso:2,
+    teste:function(p){ return (p.espec||"").trim() && /nenhum|quase|metade/i.test(p.pvideo||""); },
+    lacuna:function(p){ return "a especialidade de vocês (" + (p.espec||"").trim() + ") quase não aparece em vídeo"; },
+    porque:"é justamente o que diferencia vocês que precisa ser visto em movimento pra convencer",
+    conteudo:"Uma série só sobre a especialidade — mostrar fazendo vale mais que dizer que faz" },
+
+  { k:"amador", peso:1,
+    teste:function(p){ return /celular na mão/i.test(p.qual||"") && !/nenhum/i.test(p.pvideo||""); },
+    lacuna:function(p){ return "os vídeos existem, mas o acabamento não acompanha o nível do trabalho"; },
+    porque:"conteúdo mal acabado faz parecer que o serviço também é — e não é o caso de vocês",
+    conteudo:"Mesmo conteúdo que já funciona, com captação, som e tratamento de cor" }
+];
+
+function sinaisDe(p){
+  var r=[]; for(var i=0;i<SINAIS.length;i++){
+    var s=SINAIS[i]; var ok=false;
+    try{ ok = !!s.teste(p); }catch(e){ ok=false; }
+    if(ok) r.push(s);
+  }
+  return r.sort(function(a,b){ return b.peso-a.peso; });
+}
+
+/* ---- banco por nicho: preenche o que o estudo ainda nao disse ---- */
+var LACUNAS = [
+  { re:/escola|educa|infantil|col[eé]gio|creche|ensino|pedag/i,
+    bem:"a comunicação de vocês com as famílias",
+    ganha:"mais pesa na hora da matrícula — pai escolhe escola por confiança, não por preço",
+    tempo:"meio período",
+    pilares:["A rotina do dia a dia","Quem cuida das crianças","O que a criança leva pra vida"] },
+  { re:/sa[uú]de|cl[ií]nic|consult[oó]rio|odonto|dent|m[eé]dic|est[eé]tic|fisio|psic/i,
+    bem:"a autoridade técnica de vocês",
+    ganha:"mais faz o paciente escolher quem ele sente que já conhece",
+    tempo:"algumas horas",
+    pilares:["Dúvida comum respondida","O rosto de quem atende","Como é a experiência aqui dentro"] },
+  { re:/aliment|restaurant|caf[eé]|bar|gastro|padar|pizzar|confeit|food/i,
+    bem:"a apresentação dos pratos de vocês",
+    ganha:"mais dá fome: foto dá vontade, vídeo enche mesa",
+    tempo:"algumas horas",
+    pilares:["O prato sendo feito","O clima da casa","Quem está na cozinha"] },
+  { re:/moda|loja|varejo|boutique|calçad|calcad|joalher|[oó]tica|vestu/i,
+    bem:"o cuidado que vocês têm com o produto e com a vitrine",
+    ganha:"mais faz a pessoa se imaginar usando — e isso encurta a decisão de compra",
+    tempo:"algumas horas",
+    pilares:["O produto em uso, não parado","Novidade da semana","Como escolher / combinar"] },
+  { re:/imobili|imóve|imove|corretor|construtor|incorporad/i,
+    bem:"as fotos e a descrição dos imóveis",
+    ganha:"mais filtra visita: só vai ver quem já gostou, e vocês perdem menos tempo",
+    tempo:"algumas horas",
+    pilares:["Tour pelo imóvel","O corretor explicando","O bairro / a região"] },
+  { re:/academ|est[uú]dio|pilates|crossfit|fitness|treino|box/i,
+    bem:"a estrutura e o equipamento de vocês",
+    ganha:"mais mostra o clima daí — e é pelo clima que a pessoa decide entrar",
+    tempo:"algumas horas",
+    pilares:["A energia do lugar","O professor ensinando","A transformação de quem treina"] },
+  { re:/ind[uú]stri|f[aá]bric|metal|log[ií]stic|atacad|b2b|corporat|tecnolog|software|engenh/i,
+    bem:"a seriedade da operação de vocês",
+    ganha:"mais sustenta a credibilidade numa proposta comercial, numa feira e até no recrutamento",
+    tempo:"meio período",
+    pilares:["Como é feito por dentro","Quem faz","O problema que vocês resolvem"] },
+  { re:/advoc|jur[ií]d|contab|arquitet|consultor|nutri|personal|coach/i,
+    bem:"o conteúdo que vocês publicam",
+    ganha:"mais faz o cliente chegar já sabendo quem é você — e aí ele fecha mais fácil",
+    tempo:"algumas horas",
+    pilares:["A dúvida que todo cliente traz","O erro que as pessoas cometem","Bastidor do trabalho"] }
+];
+var LAC_GEN = { bem:"o trabalho de vocês",
+  ganha:"mais aproxima quem ainda não conhece vocês",
+  tempo:"algumas horas",
+  pilares:["O que vocês fazem, mostrado","Quem faz","A dúvida mais comum do cliente"] };
+function lacunaDe(seg){
+  for(var i=0;i<LACUNAS.length;i++) if(LACUNAS[i].re.test(seg||"")) return LACUNAS[i];
+  return LAC_GEN;
+}
+/* o unico case real e a Unique — nao inventar prova que nao existe */
+function provaDe(seg){
+  return /escola|educa|infantil|col[eé]gio|creche/i.test(seg||"")
+    ? "o audiovisual da Unique, que é bem do universo de vocês"
+    : "o audiovisual da Unique — não é do seu ramo, mas o desafio era o mesmo: mostrar em vídeo uma coisa boa que as pessoas só conheciam de perto";
+}
+
+/* =========== ETAPA 1 · ESTUDO =========== */
+function abreEstudo(){
+  var p=acha(_atual); if(!p) return;
+  var e=engaj(p), alvo=alvoEngaj(p);
+  folha(
+    '<div class="voltar" onclick="abre(_atual)">← ' + esc(p.nome) + '</div>'
+   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">Etapa 1 · Estudo do cliente</div>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">O que dá pra ver de fora</div>'
+   +'<div class="sub">Preenchido antes de falar com ele. Cada campo aqui vira uma frase do speech — quanto mais completo, menos genérica a abordagem.</div>'
+
+   +'<div id="estKpi"></div>'
+
+   +'<h3>O negócio</h3>'
+   +'<div class="campo"><label>Nicho</label><input value="'+escA(p.segmento||"")+'" disabled '
+   +'style="opacity:.65"><div style="font-size:10px;color:var(--mut2);margin-top:4px">Vem da ficha do lead.</div></div>'
+   +'<div class="campo"><label>Especialização — o que ele faz que os outros do ramo não fazem</label>'
+   +'<input id="sEspec" value="'+escA(p.espec||"")+'" placeholder="ex.: alfabetização pelo método fônico"></div>'
+   +'<div class="campo"><label>Onde publica</label>'+cxm("sCanais",CANAIS,p.canais||"")+'</div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Referência do nicho</label><input id="sRef" value="'+escA(p.ref||"")+'" placeholder="quem faz melhor por aí"></div>'
+   +'<div class="campo"><label>Anuncia?</label>'+cx("sAds",SIMNAO,p.ads||"",false)+'</div></div>'
+
+   +'<h3>Os números <span>a média dos últimos posts</span></h3>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Seguidores</label><input id="sSegui" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.segui||"")+'"></div>'
+   +'<div class="campo"><label>Curtidas (média)</label><input id="sCurt" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.curt||"")+'"></div></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Comentários (média)</label><input id="sComent" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.coment||"")+'"></div>'
+   +'<div class="campo"><label>Compartilhamentos (média)</label><input id="sComp" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.comp||"")+'"></div></div>'
+   +'<div class="aviso">Não precisa ser exato: pegue os <b>últimos 6 posts</b> e faça a média de cabeça. Compartilhamento fica no ícone de avião, dentro do post.</div>'
+
+   +'<h3>Como publica</h3>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Frequência</label>'+cx("sFreq",FREQS,p.freq||"",false)+'</div>'
+   +'<div class="campo"><label>Última publicação</label><input id="sUltpub" type="date" value="'+escA(p.ultpub||"")+'"></div></div>'
+   +'<div class="campo"><label>Quanto do feed é vídeo</label>'+cx("sPvideo",PVIDEOS,p.pvideo||"",false)+'</div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Quem aparece</label>'+cx("sQuemap",QUEMAPS,p.quemap||"",false)+'</div>'
+   +'<div class="campo"><label>Acabamento</label>'+cx("sQual",QUALS,p.qual||"",false)+'</div></div>'
+
+   +'<h3>A leitura <span>com suas palavras</span></h3>'
+   +'<div class="campo comvoz"><label>O que eles já fazem bem — o elogio</label>'
+   +'<textarea id="sBem" placeholder="ex.: as fotos dos pratos são muito boas">'+esc(p.bem||"")+'</textarea>'+micHTML("sBem")+'</div>'
+   +'<div class="campo comvoz"><label>O que você viu — específico, o gancho da conversa</label>'
+   +'<textarea id="sViu" placeholder="ex.: o carrossel do lançamento da coleção nova">'+esc(p.viu||"")+'</textarea>'+micHTML("sViu")+'</div>'
+   +'<div class="aviso">O gancho tem que ser <b>uma coisa só, e verificável</b>. “Vi o carrossel da coleção” prova que você olhou; “adorei o perfil de vocês” prova o contrário.</div>'
+
+   +'<div class="acoes"><button class="bt" onclick="abre(_atual)">Voltar</button>'
+   +'<button class="bt pri" onclick="salvaEstudo(1)">Salvar e ver o speech</button></div>'
+   +'<div class="acoes" style="margin-top:6px"><button class="bt" style="flex:1" onclick="salvaEstudo(0)">Só salvar</button></div>');
+  pintaEstKpi();
+}
+function pintaEstKpi(){
+  var box=document.getElementById("estKpi"); if(!box) return;
+  var p=acha(_atual); if(!p) return;
+  var q={ segui:Number(v("sSegui"))||0, curt:Number(v("sCurt"))||0,
+          coment:Number(v("sComent"))||0, comp:Number(v("sComp"))||0 };
+  var t=q.curt+q.coment+q.comp;
+  var e=q.segui ? t/q.segui*100 : null;
+  var alvo = q.segui<5000?3:(q.segui<25000?1.5:1);
+  var cl = e===null ? "" : (e<alvo ? " class=\"baixo\"" : " class=\"bom\"");
+  box.innerHTML =
+    '<div class="kpi">'
+   +'<div><div class="v">'+(q.segui?milhar(q.segui):"—")+'</div><div class="l">seguidores</div></div>'
+   +'<div><div class="v">'+(t?milhar(t):"—")+'</div><div class="l">interações</div></div>'
+   +'<div'+cl+'><div class="v">'+(e===null?"—":num1(e)+"%")+'</div><div class="l">engajamento</div></div>'
+   +'</div>'
+   + (e===null ? '<div class="aviso">Preencha seguidores e as médias — o engajamento é o único número objetivo que você leva pra ligação.</div>'
+      : (e<alvo
+        ? '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Abaixo do esperado: uma conta com '+milhar(q.segui)+' seguidores costuma fazer <b>'+num1(alvo)+'%</b>. <b>Isso é uma lacuna</b> — e uma lacuna com número é mais difícil de discutir.</div>'
+        : '<div class="aviso" style="background:var(--okbg);border-color:var(--okline)">Engajamento saudável (esperado ~'+num1(alvo)+'%). Aqui a lacuna <b>não é audiência</b>, é o que ela vê — provavelmente formato.</div>'));
+}
+function salvaEstudo(irPraSpeech){
+  var p=acha(_atual); if(!p) return;
+  p.espec=v("sEspec"); p.canais=v("sCanais"); p.ref=v("sRef"); p.ads=v("sAds");
+  p.segui=Number(v("sSegui"))||0; p.curt=Number(v("sCurt"))||0;
+  p.coment=Number(v("sComent"))||0; p.comp=Number(v("sComp"))||0;
+  p.freq=v("sFreq"); p.ultpub=v("sUltpub"); p.pvideo=v("sPvideo");
+  p.quemap=v("sQuemap"); p.qual=v("sQual"); p.bem=v("sBem"); p.viu=v("sViu");
+  grava(); try{ som('salvo'); }catch(e){}
+  if(irPraSpeech) abreSpeech(); else abre(_atual);
+}
+
+/* =========== ETAPA 2 · SPEECH =========== */
+var _dur = "2min";
+/* devolve os blocos: {n,t,s,ps:[{txt,cls}]}  cls: ""=fixo "e"=do estudo "sug"=sugerido "fal"=falta */
+function blocosSpeech(p){
+  var L=lacunaDe(p.segmento), sg=sinaisDe(p);
+  var eu=quemSou()||"Mirielle", souIgor=/igor/i.test(eu);
+  var quem = souIgor ? (eu+", eu respondo pela produção aqui na Klix Mídia")
+                     : (eu+", eu cuido do atendimento aqui da Klix Mídia");
+  var serv=String(p.servico||"").split(",")[0].trim();
+  var temServ = serv && !/ainda n/i.test(serv);
+  var viu=(p.viu||"").trim() || (p.gatilho||"").trim();
+  var bem=(p.bem||"").trim();
+  var B=[];
+
+  B.push({ n:1, t:"Você", s:"~15s", ps:[
+    {txt:"Oi "+(p.contato||"")+", tudo bem? Meu nome é "+quem+". Vou ser direta no motivo de ter procurado vocês: "},
+    (viu ? {txt:viu, cls:(p.viu||"").trim()?"e":"sug"} : {txt:"[o que você viu no estudo]", cls:"fal"}),
+    {txt:"."} ]});
+
+  var ps2=[];
+  ps2.push({txt:bem||L.bem, cls:bem?"e":"sug"});
+  /* dois periodos: o elogio pode ser plural, feminino, o que for — juntar numa
+     frase so obrigaria a concordar com um sujeito que eu nao controlo */
+  ps2.push({txt:" — isso está muito bem feito. Só que "});
+  if(sg.length){
+    ps2.push({txt:sg[0].lacuna(p), cls:"e"});
+    ps2.push({txt:" — "+sg[0].porque+"."});
+  }else{
+    ps2.push({txt:"[preencha o estudo pra o app achar a lacuna]", cls:"fal"});
+    ps2.push({txt:" — e hoje é o vídeo que "+L.ganha+"."});
+  }
+  B.push({ n:2, t:"A lacuna", s:"~20s", ps:ps2 });
+
+  B.push({ n:3, t:"Nós", s:"~15s", ps:[
+    {txt:"A Klix Mídia faz vídeo pra empresa que já é boa no que faz e ainda não mostra isso direito. A gente cuida da parte de vídeo inteira, da ideia à entrega."} ]});
+
+  B.push({ n:4, t:"A prova", s:"~20s", ps:[
+    {txt:"A gente fez "+provaDe(p.segmento)+". Posso te mandar pra você ver?"} ]});
+
+  B.push({ n:5, t:"O caminho", s:"~20s", ps:[
+    {txt:"Na prática funciona assim: a gente conversa pra entender o que você quer mostrar, marca "+L.tempo+" de gravação aí no seu espaço, e "},
+    {txt: temServ ? ("entrega o que a gente combinar — no caso de vocês, provavelmente "+serv.toLowerCase()+".")
+                  : "entrega tudo pronto pra publicar."},
+    {txt:" Você não precisa preparar nada além de estar aí no dia."} ]});
+
+  B.push({ n:6, t:"O convite", s:"~10s", ps:[
+    {txt:"Faz sentido pra vocês? Se quiser, eu te mando duas ideias de vídeo pensadas pro "+(p.nome||"seu negócio")+" — sem compromisso. Ou, se preferir já ir direto, "},
+    {txt: souIgor ? "a gente marca 15 minutos pra eu te mostrar como ficaria."
+                  : "marco 15 minutos com o Igor, que é quem produz, pra ele te mostrar como ficaria."} ]});
+
+  if(_dur==="30s") B=[B[0],B[1],B[5]];
+  return B;
+}
+function blocosHTML(p){
+  return blocosSpeech(p).map(function(b){
+    var f=b.ps.map(function(x){
+      var t=esc(x.txt);
+      return x.cls ? '<em class="'+x.cls+'">'+t+'</em>' : t; }).join("");
+    return '<div class="spb"><div class="sph"><div class="spn">'+b.n+'</div><div class="spt">'+b.t
+         +'</div><div class="sps">'+b.s+'</div></div><div class="spf">'+f+'</div></div>'; });
+}
+function textoSpeech(p){
+  return blocosSpeech(p).map(function(b){
+    return b.ps.map(function(x){ return x.txt; }).join(""); }).join("\n\n");
+}
+/* as 5 perguntas de descoberta: nenhuma fala da Klix. Sao montadas pra que a
+   resposta sincera exponha sozinha o problema que a gente resolve. */
+var PERGUNTAS = [
+  ["Como as pessoas costumam descobrir vocês hoje?",
+   "Mapeia o canal — e mostra se ele depende só de indicação."],
+  ["Quando alguém acha vocês no Instagram, o que essa pessoa vê primeiro?",
+   "Ele mesmo conclui em voz alta que o perfil não representa o negócio. Você não apontou nada."],
+  ["Vocês já tentaram gravar alguma coisa? Como foi?",
+   "A mais rica das cinco: a dor sai inteira e sem provocação. A resposta dele já é a sua próxima frase."],
+  ["O que você gostaria que as pessoas soubessem de vocês e hoje elas não sabem?",
+   "Vale o briefing inteiro — é o roteiro do primeiro vídeo. Anote com as palavras exatas dele."],
+  ["Tem alguma coisa chegando? Lançamento, data, evento?",
+   "Descobre o gatilho e a urgência. Sem data, tudo vira “depois eu vejo”."]
+];
+function abreSpeech(){ _dur="2min"; folhaSpeech(); }
+function folhaSpeech(){
+  var p=acha(_atual); if(!p) return;
+  var n=estudoFeito(p), sg=sinaisDe(p);
+  var durs=[["30s","30 segundos"],["2min","2 minutos"],["reuniao","Reunião 15 min"]];
+  folha(
+    '<div class="voltar" onclick="abre(_atual)">← '+esc(p.nome)+'</div>'
+   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">Etapa 2 · Speech de abordagem</div>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">O que você fala</div>'
+   +'<div class="sub">'+[esc(p.segmento),esc(p.cidade)].filter(Boolean).join(" · ")+'</div>'
+
+   +(sg.length
+      ? '<h3>A brecha que entra na fala</h3>'
+        + '<div class="sig forte"><div class="sl">'+esc(sg[0].lacuna(p))+'</div>'
+        + '<div class="sp">'+esc(sg[0].porque)+'</div>'
+        + '<div class="sc"><i>Na etapa 3 isso vira</i>'+esc(sg[0].conteudo)+'</div></div>'
+        + (sg.length>1
+           ? '<h3>Reserva <span>'+(sg.length-1)+' guardadas</span></h3>'
+             + '<div class="sub" style="margin-bottom:8px">Não despeje na ligação. Elas servem pra quando ele disser “mas a gente já faz isso”.</div>'
+             + sg.slice(1).map(function(s){
+                 return '<div class="sig res"><div class="sl">'+esc(s.lacuna(p))+'</div></div>'; }).join("")
+           : '')
+      : '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Nenhuma brecha detectada ainda — o estudo está com <b>'+n+' de '+CAMPOS_EST.length+'</b> campos. <span class="voltar" onclick="abreEstudo()" style="margin:0;color:var(--alerta)">Preencher o estudo →</span></div>')
+
+   +'<h3>A fala</h3>'
+   +'<div class="modelos">'+durs.map(function(d){
+       return '<button class="'+(d[0]===_dur?"on":"")+'" onclick="trocaDur(\''+d[0]+'\')">'+d[1]+'</button>'; }).join("")+'</div>'
+   +'<div id="spBox"></div>'
+   +'<div class="acoes"><button class="bt" onclick="copiaSpeech(this)">Copiar</button>'
+   +'<button class="bt pri" onclick="registraToque()">Registrar toque</button></div>'
+   +'<div class="acoes" style="margin-top:6px"><button class="bt" style="flex:1" onclick="abreConteudo()">Etapa 3 · Conteúdo →</button></div>');
+  pintaSpeech(p);
+}
+function pintaSpeech(p){
+  var h;
+  if(_dur==="reuniao"){
+    h = '<div class="aviso" style="margin-top:0">Aqui você <b>inverte</b>: pergunta primeiro e só depois fala da Klix — usando as palavras que ele acabou de te dar.</div>'
+      + '<div class="spb"><div class="sph"><div class="spn">A</div><div class="spt">Quebra-gelo</div><div class="sps">0–2 min</div></div>'
+      + '<div class="spf"><em>Faz quanto tempo que vocês estão aqui?</em> · <em>Como é que tudo isso começou?</em><br>'
+      + '<span style="font-size:11px;color:var(--mut)">Gente adora contar a própria origem — é aí que a pessoa relaxa. Quem chega direto no assunto recebe resposta ensaiada.</span></div></div>'
+      + '<div class="spb"><div class="sph"><div class="spn">B</div><div class="spt">Descoberta — ele fala</div><div class="sps">2–7 min</div></div>'
+      + '<div class="spf" style="font-size:11.5px;color:var(--mut)">Nenhuma delas fala da Klix. São montadas pra que a resposta sincera exponha sozinha o problema que a gente resolve.</div></div>'
+      + PERGUNTAS.map(function(q,i){
+          return '<div class="spq"><div class="qq">'+(i+1)+'. '+esc(q[0])+'</div><div class="qp">'+esc(q[1])+'</div></div>'; }).join("")
+      + '<div class="aviso">Anote as <b>palavras dele</b>, não o resumo — é isso que vira a etapa 3 e o que o Igor usa pra montar a proposta.</div>'
+      + blocosHTML(p).slice(2).join("")
+      + '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Feche <b>com data</b>: “fico de te mandar as duas ideias até [dia]. A call com o Igor pode ser [A] ou [B]?” Reunião que acaba em “qualquer coisa eu aviso” morreu.</div>';
+  } else {
+    h = blocosHTML(p).join("")
+      + (_dur==="30s"
+          ? '<div class="aviso">Em 30 segundos ninguém decide contratar — decide se quer ouvir mais. Por isso aqui você <b>não vende</b>: desperta curiosidade e pede permissão.</div>'
+          : '');
+  }
+  var box=document.getElementById("spBox"); if(box) box.innerHTML=h;
+}
+function trocaDur(k){ _dur=k; folhaSpeech(); }
+function copiaSpeech(b){
+  var p=acha(_atual); if(!p) return;
+  try{ navigator.clipboard.writeText(textoSpeech(p)); }catch(e){}
+  var o=b.textContent; b.textContent="Copiado ✓"; setTimeout(function(){ b.textContent=o; },1400);
+}
+
+/* =========== ETAPA 3 · CONTEÚDO =========== */
+/* o plano nasce dos MESMOS sinais que abriram a conversa — por isso a proposta
+   nunca contradiz o que foi falado na abordagem */
+function planoDe(p){
+  var L=lacunaDe(p.segmento), sg=sinaisDe(p);
+  var pil=[], form=[];
+  /* so os 3 de maior peso: plano com 8 frentes nao se executa, se abandona */
+  for(var i=0;i<sg.length && form.length<3;i++){
+    if(form.indexOf(sg[i].conteudo)<0) form.push(sg[i].conteudo);
+  }
+  pil = L.pilares.slice(0,3);
+  if((p.espec||"").trim()) pil[0] = "A especialidade: " + (p.espec||"").trim();
+
+  var f=p.freq||"", prop;
+  if(/parado|menos de 1/i.test(f)) prop="2 publicações por semana, pra reativar o perfil sem sufoco";
+  else if(/1 a 2/i.test(f))        prop="3 por semana, sendo 2 em vídeo";
+  else if(/3 a 5/i.test(f))        prop="manter o ritmo e trocar metade por vídeo";
+  else if(/todo dia/i.test(f))     prop="manter o ritmo — o que muda é o formato, não a quantidade";
+  else                             prop="2 a 3 por semana";
+
+  var quem = /ninguém|só o produto/i.test(p.quemap||"")
+    ? "O dono ou alguém da equipe precisa aparecer — é a mudança que mais muda resultado"
+    : "Seguir com quem já aparece, com direção e captação melhores";
+
+  return { pilares:pil, formatos:form, freq:prop, quem:quem, tempo:L.tempo, sinais:sg };
+}
+function abreConteudo(){
+  var p=acha(_atual); if(!p) return;
+  var pl=planoDe(p);
+  folha(
+    '<div class="voltar" onclick="abre(_atual)">← '+esc(p.nome)+'</div>'
+   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">Etapa 3 · Construção do conteúdo</div>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">O que a gente vai produzir</div>'
+   +'<div class="sub">Depois da reunião. O app sugere pelo estudo; você ajusta com o que ele falou.</div>'
+
+   +'<h3>O que ele disse <span>com as palavras dele</span></h3>'
+   +'<div class="campo comvoz"><label>A dor que ele mesmo verbalizou</label>'
+   +'<textarea id="rDor" placeholder="ex.: “a gente grava e não sai nada que preste”">'+esc(p.rdor||"")+'</textarea>'+micHTML("rDor")+'</div>'
+   +'<div class="campo comvoz"><label>O que ele quer que as pessoas saibam</label>'
+   +'<textarea id="rQuer" placeholder="a resposta da pergunta 4 da reunião">'+esc(p.rquer||"")+'</textarea>'+micHTML("rQuer")+'</div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Já tentou gravar antes?</label><input id="rTentou" value="'+escA(p.rtentou||"")+'" placeholder="como foi"></div>'
+   +'<div class="campo"><label>Data / evento chegando</label><input id="rPrazo" value="'+escA(p.rprazo||"")+'" placeholder="o gatilho"></div></div>'
+
+   +'<h3>Sugestão do app <span>a partir do estudo</span></h3>'
+   +'<div class="pl"><div class="pt">Pilares de conteúdo</div><div class="pv">'
+   + pl.pilares.map(function(x,i){ return '<b>'+(i+1)+'.</b> '+esc(x); }).join("<br>")+'</div></div>'
+   +(pl.formatos.length
+      ? '<div class="pl"><div class="pt">Formatos que atacam as brechas</div><div class="pv">'
+        + pl.formatos.map(function(x){ return '• '+esc(x); }).join("<br>")+'</div></div>'
+      : '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Sem brechas detectadas — <span class="voltar" onclick="abreEstudo()" style="margin:0;color:var(--alerta)">complete o estudo</span> pra o app sugerir os formatos.</div>')
+   +'<div class="pl"><div class="pt">Frequência proposta</div><div class="pv">'+esc(pl.freq)+'</div></div>'
+   +'<div class="pl"><div class="pt">Quem aparece</div><div class="pv">'+esc(pl.quem)+'</div></div>'
+   +'<div class="pl"><div class="pt">Dia de gravação</div><div class="pv">'+esc(pl.tempo)
+   +' no espaço dele. Sai o material do mês inteiro numa ida só — é isso que segura o custo.</div></div>'
+
+   +'<h3>O plano fechado <span>o que vai pro Igor</span></h3>'
+   +'<div class="campo comvoz"><label>Objetivo — o que esse vídeo tem que fazer acontecer</label>'
+   +'<textarea id="cObj" placeholder="ex.: encher a agenda de visitas no período de matrícula">'+esc(p.cobj||"")+'</textarea>'+micHTML("cObj")+'</div>'
+   +'<div class="campo comvoz"><label>Pilares — ajuste os do app com o que ele falou</label>'
+   +'<textarea id="cPil" placeholder="1. … 2. … 3. …">'+esc(p.cpil||"")+'</textarea>'+micHTML("cPil")+'</div>'
+   +'<div class="campo comvoz"><label>Entrega por mês — quantidade e formato</label>'
+   +'<textarea id="cEnt" placeholder="ex.: 8 reels + 12 cortes de story, 1 dia de gravação">'+esc(p.cent||"")+'</textarea>'+micHTML("cEnt")+'</div>'
+   +'<div class="aviso">Nada de preço aqui. Você fecha o <b>escopo</b>; quem fecha o <b>valor</b> é o Igor, na call. Plano fechado é o que faz o orçamento sair certo de primeira.</div>'
+
+   +'<div class="acoes"><button class="bt" onclick="abre(_atual)">Voltar</button>'
+   +'<button class="bt pri" onclick="salvaConteudo()">Salvar plano</button></div>');
+}
+function salvaConteudo(){
+  var p=acha(_atual); if(!p) return;
+  p.rdor=v("rDor"); p.rquer=v("rQuer"); p.rtentou=v("rTentou"); p.rprazo=v("rPrazo");
+  p.cobj=v("cObj"); p.cpil=v("cPil"); p.cent=v("cEnt");
+  grava(); try{ som('salvo'); }catch(e){}
+  abre(_atual);
 }
 function copiaMsg(b){
   try{ navigator.clipboard.writeText(montaMsg()); }catch(e){}
