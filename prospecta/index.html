@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#F3ECE3">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icone-192.png">
@@ -41,7 +41,11 @@
     --navbg:rgba(251,247,238,.94); --sombra:rgba(70,60,40,.14); --veu:rgba(70,60,40,.38);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{background:var(--bg);min-height:100%}
+  html,body{background:var(--bg);min-height:100%;
+       /* o app se ajusta ao aparelho — o dedo nao reajusta por cima:
+          manipulation mata o zoom de toque duplo, text-size-adjust impede o
+          iOS de inflar a fonte sozinho ao girar a tela */
+       touch-action:manipulation; -webkit-text-size-adjust:100%; text-size-adjust:100%}
   body{font-family:"Montserrat",system-ui,-apple-system,Arial,sans-serif;color:var(--txt);
        font-size:14px;line-height:1.5;padding:14px 14px calc(96px + env(safe-area-inset-bottom));
        max-width:680px;margin:0 auto}
@@ -67,7 +71,8 @@
 
   /* ---------- painel: os indicadores ---------- */
   .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+       min-width:0}   /* sem isso o rotulo longo trava o encolhimento e a pagina rola em 320px */
   .kpi.larga{grid-column:1/-1}
   .kpi .v{font-family:"DM Serif Display",Georgia,serif;font-size:25px;line-height:1.05;color:var(--txt)}
   .kpi .r{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
@@ -78,6 +83,8 @@
   .kpi.pipe{background:var(--accbg);border-color:var(--accline)}
   .kpi.pipe .v{color:var(--accent);font-size:27px}
   .kpi.pipe .n{font-size:11px;color:var(--mut);margin-top:6px;line-height:1.5}
+  /* aparelho de 320px (SE 1a geracao e afins): palavra unica nao quebra */
+  @media (max-width:359px){ .kpi .r{font-size:8px;letter-spacing:0} }
 
   /* ---------- meta do dia ---------- */
   .meta{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
@@ -298,16 +305,24 @@
   .et3 button.falta{background:var(--alertabg);border-color:var(--alertaline)}
   .et3 button.falta .s{color:var(--alerta)}
 
-  .kpi{display:flex;gap:7px;margin-bottom:10px}
-  .kpi div{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  /* dois insumos em cima, o engajamento largo embaixo: e ele o numero que ela
+     leva pra ligacao, e era o unico rotulo que nao cabia em tela estreita */
+  /* ⚠️ NAO chamar de .kpi: essa classe ja e dos cards do Painel (linha ~74) e
+     a regra daqui, por vir depois, atropelaria os seis de la */
+  .nums{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
+  .nums div{background:var(--panel);border:1px solid var(--line);border-radius:11px;
       padding:9px 8px;text-align:center;min-width:0}
-  .kpi .v{font-family:"DM Serif Display",Georgia,serif;font-size:19px;line-height:1.1;color:var(--txt)}
-  .kpi .l{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  .nums div:nth-child(3){grid-column:1 / -1;display:flex;align-items:center;
+      justify-content:center;gap:9px;padding:11px 12px}
+  .nums div:nth-child(3) .v{font-size:26px}
+  .nums div:nth-child(3) .l{margin-top:0;text-align:left}
+  .nums .v{font-family:"DM Serif Display",Georgia,serif;font-size:19px;line-height:1.1;color:var(--txt)}
+  .nums .l{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
       color:var(--mut2);margin-top:3px}
-  .kpi div.baixo{background:var(--alertabg);border-color:var(--alertaline)}
-  .kpi div.baixo .v{color:var(--alerta)}
-  .kpi div.bom{background:var(--okbg);border-color:var(--okline)}
-  .kpi div.bom .v{color:var(--ok)}
+  .nums div.baixo{background:var(--alertabg);border-color:var(--alertaline)}
+  .nums div.baixo .v{color:var(--alerta)}
+  .nums div.bom{background:var(--okbg);border-color:var(--okline)}
+  .nums div.bom .v{color:var(--ok)}
 
   .sig{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--alerta);
        border-radius:0 11px 11px 0;padding:10px 13px;margin-bottom:8px}
@@ -347,7 +362,9 @@
   .pl .pv{font-size:13px;color:var(--txt2);line-height:1.55}
   .pl .pv b{color:var(--txt)}
   .voltar{font-size:11px;font-weight:700;color:var(--mut);cursor:pointer;
-      display:inline-block;margin-bottom:9px}
+      display:inline-block;
+      /* alvo de 44px sem mexer no desenho: o padding cresce, a margem devolve */
+      padding:13px 6px;margin:-13px 0 -4px -6px}
   .voltar:active{color:var(--accent)}
   .aviso{font-size:11.5px;color:var(--mut);line-height:1.6;margin-top:10px;
          padding:10px 12px;background:var(--accbg);border-radius:10px;border:1px solid var(--accline)}
@@ -590,7 +607,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v11";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v12";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
@@ -1241,7 +1258,7 @@ function abre(id){
 function et3HTML(p){
   var n=estudoFeito(p), tot=CAMPOS_EST.length, sg=sinaisDe(p).length;
   var temPlano = (p.cobj||p.cpil||p.cent||"").toString().trim() !== "";
-  var temReu   = (p.rdor||p.rquer||"").toString().trim() !== "";
+  var temReu   = (p.rdor||p.rquer||p.raprova||p.ruso||p.rnao||"").toString().trim() !== "";
   return '<div class="et3">'
    +'<button class="'+(n>=tot?"ok":(n>0?"":"falta"))+'" onclick="abreEstudo()">'
      +'<span class="n">1</span><span class="t">Estudo</span>'
@@ -1281,8 +1298,19 @@ var QUEMAPS  = ["Ninguém aparece","Só o produto / o espaço","A equipe","O don
 var QUALS    = ["Celular na mão","Editado simples","Profissional"];
 var SIMNAO   = ["Sim","Não","Não sei"];
 
+var PORTES   = ["Até 10 pessoas","11 a 50","51 a 200","Mais de 200"];
+var VENDEPRA = ["Empresa (B2B)","Consumidor final (B2C)","Os dois"];
+var DECIDEM  = ["Decide","É ponte pra quem decide","Não sei"];
+var INSTITUC = ["Não tem","Tem, de até 2 anos","Tem, de 3 anos ou mais","Não consegui achar"];
+var SITEVID  = ["Sim, tem vídeo na home","Não tem vídeo","Não tem site"];
+var USOS     = ["Site","Proposta comercial","Feira / evento","Redes sociais","YouTube","Treinamento interno","Anúncio pago","Recrutamento"];
+var VERBAS   = ["Sim, já tem verba","Não, seria do zero","Não perguntei"];
+var MATERIAL = ["Sim, tem tudo","Parcial","Não tem nada"];
+
 /* os campos que contam pra dizer se o estudo esta completo */
-var CAMPOS_EST = ["espec","canais","segui","curt","coment","comp","freq","pvideo","quemap","qual","viu","bem"];
+var CAMPOS_EST = ["espec","porte","b2b","decide","canais","segui","curt","coment","comp",
+                  "lkseg","lkativo","inst","sitevideo","pvideo","quemap","qual",
+                  "freq","ultpub","ads","feira","contrata","agencia","ref","bem","viu"];
 function estudoFeito(p){
   var n=0; for(var i=0;i<CAMPOS_EST.length;i++){
     var x=p[CAMPOS_EST[i]]; if(x!==undefined && x!==null && String(x).trim()!=="") n++; }
@@ -1362,6 +1390,26 @@ var SINAIS = [
     porque:"é justamente o que diferencia vocês que precisa ser visto em movimento pra convencer",
     conteudo:"Uma série só sobre a especialidade — mostrar fazendo vale mais que dizer que faz" },
 
+  { k:"instvelho", peso:3,
+    teste:function(p){ return /3 anos ou mais/i.test(p.inst||""); },
+    lacuna:function(p){ return "o institucional de vocês já tem alguns anos"; },
+    porque:"vídeo antigo mostra o que a empresa era, não o que ela é hoje — e quem assiste não sabe a diferença",
+    conteudo:"Institucional novo, curto (60 a 90s), que sirva no site, na proposta e na feira" },
+
+  { k:"semsite", peso:3,
+    teste:function(p){ return /não tem vídeo/i.test(p.sitevideo||"") || /^não tem$/i.test(p.inst||""); },
+    lacuna:function(p){ return /^não tem$/i.test(p.inst||"")
+        ? "vocês não têm um vídeo institucional"
+        : "o site de vocês não tem nenhum vídeo na home"; },
+    porque:"quem chega no site já está decidindo — é ali que o vídeo trabalha, não no feed",
+    conteudo:"Um institucional na home + cortes dele pras redes: uma gravação, várias peças" },
+
+  { k:"linkedin", peso:2,
+    teste:function(p){ return /B2B|Os dois/i.test(p.b2b||"") && /^não/i.test(p.lkativo||""); },
+    lacuna:function(p){ return "vocês vendem pra empresa e o LinkedIn está parado"; },
+    porque:"no B2B a decisão passa pelo LinkedIn — é lá que quem assina o contrato procura vocês",
+    conteudo:"Vídeo curto de autoridade pro LinkedIn: o problema que vocês resolvem, dito por quem resolve" },
+
   { k:"amador", peso:1,
     teste:function(p){ return /celular na mão/i.test(p.qual||"") && !/nenhum/i.test(p.pvideo||""); },
     lacuna:function(p){ return "os vídeos existem, mas o acabamento não acompanha o nível do trabalho"; },
@@ -1369,13 +1417,33 @@ var SINAIS = [
     conteudo:"Mesmo conteúdo que já funciona, com captação, som e tratamento de cor" }
 ];
 
+/* ---- o peso muda conforme pra quem o cliente vende ----
+   B2B decide no site, na proposta e no LinkedIn; B2C decide no feed. O mesmo
+   sinal pesa diferente nos dois mundos, e e isso que evita ligar pra uma
+   industria falando de reels. */
+var PESO_B2B = { instvelho:2, semsite:2, linkedin:2, video:-1, engaj:-1, circula:-1 };
+var PESO_B2C = { video:1, engaj:1, circula:1, linkedin:-3, instvelho:-1 };
+function pesoDe(s, p){
+  var b=p.b2b||"", d=0;
+  if(/B2B/i.test(b))       d = PESO_B2B[s.k] || 0;
+  else if(/B2C/i.test(b))  d = PESO_B2C[s.k] || 0;
+  else if(/Os dois/i.test(b)) d = Math.round(((PESO_B2B[s.k]||0) + (PESO_B2C[s.k]||0)) / 2);
+  return s.peso + d;
+}
+function contextoDe(p){
+  var b=p.b2b||"";
+  if(/B2B/i.test(b))     return "Lendo como B2B: o que pesa é site, institucional e LinkedIn — não o feed.";
+  if(/B2C/i.test(b))     return "Lendo como B2C: o que pesa é o feed — é lá que a pessoa decide.";
+  if(/Os dois/i.test(b)) return "Vende pros dois: as brechas de feed e de site pesam parecido.";
+  return "Sem saber pra quem ele vende, o app não consegue dizer qual brecha pesa mais. Preencha “vende pra quem” no estudo.";
+}
 function sinaisDe(p){
   var r=[]; for(var i=0;i<SINAIS.length;i++){
     var s=SINAIS[i]; var ok=false;
     try{ ok = !!s.teste(p); }catch(e){ ok=false; }
     if(ok) r.push(s);
   }
-  return r.sort(function(a,b){ return b.peso-a.peso; });
+  return r.sort(function(a,b){ return pesoDe(b,p)-pesoDe(a,p); });
 }
 
 /* ---- banco por nicho: preenche o que o estudo ainda nao disse ---- */
@@ -1453,12 +1521,23 @@ function abreEstudo(){
    +'style="opacity:.65"><div style="font-size:10px;color:var(--mut2);margin-top:4px">Vem da ficha do lead.</div></div>'
    +'<div class="campo"><label>Especialização — o que ele faz que os outros do ramo não fazem</label>'
    +'<input id="sEspec" value="'+escA(p.espec||"")+'" placeholder="ex.: alfabetização pelo método fônico"></div>'
-   +'<div class="campo"><label>Onde publica</label>'+cxm("sCanais",CANAIS,p.canais||"")+'</div>'
    +'<div class="dupla">'
-   +'<div class="campo"><label>Referência do nicho</label><input id="sRef" value="'+escA(p.ref||"")+'" placeholder="quem faz melhor por aí"></div>'
-   +'<div class="campo"><label>Anuncia?</label>'+cx("sAds",SIMNAO,p.ads||"",false)+'</div></div>'
+   +'<div class="campo"><label>Porte</label>'+cx("sPorte",PORTES,p.porte||"",false)+'</div>'
+   +'<div class="campo"><label>Vende pra quem</label>'+cx("sB2b",VENDEPRA,p.b2b||"",false)+'</div></div>'
+   +'<div class="campo"><label>Seu contato decide?</label>'+cx("sDecide",DECIDEM,p.decide||"",false)+'</div>'
+   +'<div class="aviso">No corporativo quase sempre tem porteiro. Se ele <b>é ponte</b>, a meta da ligação muda: não é vender, é conseguir a conversa com quem assina.</div>'
 
-   +'<h3>Os números <span>a média dos últimos posts</span></h3>'
+   +'<h3>O que já existe em vídeo <span>o argumento mais forte</span></h3>'
+   +'<div class="campo"><label>Institucional atual</label>'+cx("sInst",INSTITUC,p.inst||"",false)+'</div>'
+   +'<div class="campo"><label>O site tem vídeo na home?</label>'+cx("sSitevideo",SITEVID,p.sitevideo||"",false)+'</div>'
+   +'<div class="campo"><label>Quanto do feed é vídeo</label>'+cx("sPvideo",PVIDEOS,p.pvideo||"",false)+'</div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Quem aparece</label>'+cx("sQuemap",QUEMAPS,p.quemap||"",false)+'</div>'
+   +'<div class="campo"><label>Acabamento</label>'+cx("sQual",QUALS,p.qual||"",false)+'</div></div>'
+   +'<div class="aviso">“O institucional de vocês é de 2019 e mostra um galpão que nem existe mais” é o argumento que <b>não se discute</b> — vale mais que qualquer métrica de feed.</div>'
+
+   +'<h3>Presença <span>a média dos últimos posts</span></h3>'
+   +'<div class="campo"><label>Onde publica</label>'+cxm("sCanais",CANAIS,p.canais||"")+'</div>'
    +'<div class="dupla">'
    +'<div class="campo"><label>Seguidores</label><input id="sSegui" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.segui||"")+'"></div>'
    +'<div class="campo"><label>Curtidas (média)</label><input id="sCurt" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.curt||"")+'"></div></div>'
@@ -1466,15 +1545,22 @@ function abreEstudo(){
    +'<div class="campo"><label>Comentários (média)</label><input id="sComent" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.coment||"")+'"></div>'
    +'<div class="campo"><label>Compartilhamentos (média)</label><input id="sComp" type="number" inputmode="numeric" oninput="pintaEstKpi()" value="'+(p.comp||"")+'"></div></div>'
    +'<div class="aviso">Não precisa ser exato: pegue os <b>últimos 6 posts</b> e faça a média de cabeça. Compartilhamento fica no ícone de avião, dentro do post.</div>'
-
-   +'<h3>Como publica</h3>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>LinkedIn — seguidores</label><input id="sLkseg" type="number" inputmode="numeric" value="'+(p.lkseg||"")+'"></div>'
+   +'<div class="campo"><label>LinkedIn — publica?</label>'+cx("sLkativo",SIMNAO,p.lkativo||"",false)+'</div></div>'
    +'<div class="dupla">'
    +'<div class="campo"><label>Frequência</label>'+cx("sFreq",FREQS,p.freq||"",false)+'</div>'
    +'<div class="campo"><label>Última publicação</label><input id="sUltpub" type="date" value="'+escA(p.ultpub||"")+'"></div></div>'
-   +'<div class="campo"><label>Quanto do feed é vídeo</label>'+cx("sPvideo",PVIDEOS,p.pvideo||"",false)+'</div>'
+
+   +'<h3>Sinais de oportunidade</h3>'
    +'<div class="dupla">'
-   +'<div class="campo"><label>Quem aparece</label>'+cx("sQuemap",QUEMAPS,p.quemap||"",false)+'</div>'
-   +'<div class="campo"><label>Acabamento</label>'+cx("sQual",QUALS,p.qual||"",false)+'</div></div>'
+   +'<div class="campo"><label>Anuncia?</label>'+cx("sAds",SIMNAO,p.ads||"",false)+'</div>'
+   +'<div class="campo"><label>Faz feira ou evento?</label>'+cx("sFeira",SIMNAO,p.feira||"",false)+'</div></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Está contratando?</label>'+cx("sContrata",SIMNAO,p.contrata||"",false)+'</div>'
+   +'<div class="campo"><label>Já tem agência?</label>'+cx("sAgencia",SIMNAO,p.agencia||"",false)+'</div></div>'
+   +'<div class="campo"><label>Referência do nicho</label><input id="sRef" value="'+escA(p.ref||"")+'" placeholder="quem faz melhor por aí"></div>'
+   +'<div class="aviso">Feira e vaga aberta são as vendas mais fáceis que existem: <b>têm data</b>. E saber que ele já tem agência antes da ligação evita levar a objeção de surpresa.</div>'
 
    +'<h3>A leitura <span>com suas palavras</span></h3>'
    +'<div class="campo comvoz"><label>O que eles já fazem bem — o elogio</label>'
@@ -1498,7 +1584,7 @@ function pintaEstKpi(){
   var alvo = q.segui<5000?3:(q.segui<25000?1.5:1);
   var cl = e===null ? "" : (e<alvo ? " class=\"baixo\"" : " class=\"bom\"");
   box.innerHTML =
-    '<div class="kpi">'
+    '<div class="nums">'
    +'<div><div class="v">'+(q.segui?milhar(q.segui):"—")+'</div><div class="l">seguidores</div></div>'
    +'<div><div class="v">'+(t?milhar(t):"—")+'</div><div class="l">interações</div></div>'
    +'<div'+cl+'><div class="v">'+(e===null?"—":num1(e)+"%")+'</div><div class="l">engajamento</div></div>'
@@ -1511,6 +1597,10 @@ function pintaEstKpi(){
 function salvaEstudo(irPraSpeech){
   var p=acha(_atual); if(!p) return;
   p.espec=v("sEspec"); p.canais=v("sCanais"); p.ref=v("sRef"); p.ads=v("sAds");
+  p.porte=v("sPorte"); p.b2b=v("sB2b"); p.decide=v("sDecide");
+  p.inst=v("sInst"); p.sitevideo=v("sSitevideo");
+  p.lkseg=Number(v("sLkseg"))||0; p.lkativo=v("sLkativo");
+  p.feira=v("sFeira"); p.contrata=v("sContrata"); p.agencia=v("sAgencia");
   p.segui=Number(v("sSegui"))||0; p.curt=Number(v("sCurt"))||0;
   p.coment=Number(v("sComent"))||0; p.comp=Number(v("sComp"))||0;
   p.freq=v("sFreq"); p.ultpub=v("sUltpub"); p.pvideo=v("sPvideo");
@@ -1611,6 +1701,7 @@ function folhaSpeech(){
 
    +(sg.length
       ? '<h3>A brecha que entra na fala</h3>'
+        + '<div class="sub" style="margin:-2px 0 8px">'+esc(contextoDe(p))+'</div>'
         + '<div class="sig forte"><div class="sl">'+esc(sg[0].lacuna(p))+'</div>'
         + '<div class="sp">'+esc(sg[0].porque)+'</div>'
         + '<div class="sc"><i>Na etapa 3 isso vira</i>'+esc(sg[0].conteudo)+'</div></div>'
@@ -1704,6 +1795,17 @@ function abreConteudo(){
    +'<div class="campo"><label>Já tentou gravar antes?</label><input id="rTentou" value="'+escA(p.rtentou||"")+'" placeholder="como foi"></div>'
    +'<div class="campo"><label>Data / evento chegando</label><input id="rPrazo" value="'+escA(p.rprazo||"")+'" placeholder="o gatilho"></div></div>'
 
+   +'<h3>O que evita retrabalho <span>pergunte na reunião</span></h3>'
+   +'<div class="campo"><label>Quem dá o ok final no vídeo</label>'
+   +'<input id="rAprova" value="'+escA(p.raprova||"")+'" placeholder="nome e cargo de quem aprova"></div>'
+   +'<div class="campo"><label>Onde o vídeo vai ser usado</label>'+cxm("rUso",USOS,p.ruso||"")+'</div>'
+   +'<div class="campo comvoz"><label>O que NÃO pode aparecer</label>'
+   +'<textarea id="rNao" placeholder="área restrita, cliente confidencial, processo, EPI…">'+esc(p.rnao||"")+'</textarea>'+micHTML("rNao")+'</div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Já existe verba de marketing?</label>'+cx("rVerba",VERBAS,p.rverba||"",false)+'</div>'
+   +'<div class="campo"><label>Tem manual de marca / material?</label>'+cx("rMat",MATERIAL,p.rmat||"",false)+'</div></div>'
+   +'<div class="aviso">Estas três primeiras são o antídoto do <b>retrabalho</b>. Descobrir quem aprova depois de editar é refazer; descobrir o que não pode filmar no dia da gravação é um dia perdido.</div>'
+
    +'<h3>Sugestão do app <span>a partir do estudo</span></h3>'
    +'<div class="pl"><div class="pt">Pilares de conteúdo</div><div class="pv">'
    + pl.pilares.map(function(x,i){ return '<b>'+(i+1)+'.</b> '+esc(x); }).join("<br>")+'</div></div>'
@@ -1731,6 +1833,8 @@ function abreConteudo(){
 function salvaConteudo(){
   var p=acha(_atual); if(!p) return;
   p.rdor=v("rDor"); p.rquer=v("rQuer"); p.rtentou=v("rTentou"); p.rprazo=v("rPrazo");
+  p.raprova=v("rAprova"); p.ruso=v("rUso"); p.rnao=v("rNao");
+  p.rverba=v("rVerba"); p.rmat=v("rMat");
   p.cobj=v("cObj"); p.cpil=v("cPil"); p.cent=v("cEnt");
   grava(); try{ som('salvo'); }catch(e){}
   abre(_atual);
