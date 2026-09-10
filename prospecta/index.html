@@ -361,6 +361,38 @@
       color:var(--accent);margin-bottom:4px}
   .pl .pv{font-size:13px;color:var(--txt2);line-height:1.55}
   .pl .pv b{color:var(--txt)}
+  /* ---------- a proposta impressa ----------
+     Sem biblioteca de PDF: monto a folha e deixo o aparelho imprimir. */
+  #prop{display:none}
+  @media print{
+    body.imprimindo>*{display:none!important}
+    body.imprimindo #prop{display:block!important;background:#fff;color:#1E1B18;
+      font-family:"Montserrat",system-ui,Arial,sans-serif;padding:0;line-height:1.6}
+    body.imprimindo{background:#fff;padding:0}
+    html:has(body.imprimindo){background:#fff}
+    @page{ size:A4 portrait; margin:16mm 15mm; }
+    #prop .pcab{display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding-bottom:13px;border-bottom:1px solid #ddd0c1;margin-bottom:18px}
+    #prop .pcab img{height:26px}
+    #prop .pk{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#BC8B63}
+    #prop .pt{font-family:"DM Serif Display",Georgia,serif;font-size:27px;line-height:1.15}
+    #prop .pm{font-size:11.5px;color:#6b5f52;margin-top:3px}
+    #prop h4{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+      color:#BC8B63;margin:20px 0 6px}
+    #prop p{font-size:12px;color:#3A332C;line-height:1.65}
+    #prop p.obs{font-size:11px;color:#8A7F72;font-style:italic;margin-top:7px}
+    #prop table{width:100%;border-collapse:collapse;margin-top:4px}
+    #prop td{padding:9px 0;border-bottom:1px solid #ece3d5;font-size:12.5px;vertical-align:top}
+    #prop td b{font-weight:700;display:block}
+    #prop td span{display:block;font-size:11px;color:#6b5f52;margin-top:2px}
+    #prop td.v{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;
+      font-weight:700;padding-left:16px}
+    #prop tr.tot td{border-bottom:none;border-top:2px solid #1E1B18;padding-top:12px;
+      font-size:15px;font-weight:800}
+    #prop .pfim{margin-top:26px;padding-top:12px;border-top:1px solid #ddd0c1;
+      font-size:10.5px;color:#8A7F72;text-align:center;line-height:1.7}
+    #prop h4,#prop table{break-inside:avoid}
+  }
   /* ---------- orçamento modular ---------- */
   .ortot{background:var(--accbg);border:1px solid var(--accline);border-radius:12px;
       padding:13px 15px;margin-bottom:12px;text-align:center}
@@ -635,7 +667,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v13";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v14";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
@@ -1546,6 +1578,7 @@ function abreEstudo(){
    +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">O que dá pra ver de fora</div>'
    +'<div class="sub">Preenchido antes de falar com ele. Cada campo aqui vira uma frase do speech — quanto mais completo, menos genérica a abordagem.</div>'
 
+   +'<div class="acoes" style="margin-bottom:12px"><button class="bt" style="flex:1" onclick="abreColar()">Colar ficha de campo</button></div>'
    +'<div id="estKpi"></div>'
 
    +'<h3>O negócio</h3>'
@@ -1783,6 +1816,152 @@ function copiaSpeech(b){
   var o=b.textContent; b.textContent="Copiado ✓"; setTimeout(function(){ b.textContent=o; },1400);
 }
 
+/* =========== FICHA DE CAMPO (o código que vem de fora) ===========
+   Os campos são os mesmos do estudo — se divergirem, o código deixa de encaixar. */
+var CAMPOS_FICHA = ["nome","segmento","cidade","contato","cargo","tel","web"]
+  .concat(CAMPOS_EST)
+  .concat(["rdor","rquer","rtentou","rprazo","raprova","ruso","rnao","rverba","rmat"]);
+
+function leCodigo(txt){
+  txt = String(txt||"").trim();
+  if(!txt) return null;
+  try{
+    if(txt.indexOf("KLIX1:")===0) txt = decodeURIComponent(escape(atob(txt.slice(6))));
+    var o = JSON.parse(txt);
+    return (o && typeof o === "object" && !Array.isArray(o)) ? o : null;
+  }catch(e){ return null; }
+}
+var _ficha = null;
+function abreColar(){
+  var p=acha(_atual); if(!p) return;
+  folha(
+    '<div class="voltar" onclick="abreEstudo()">← Etapa 1 · Estudo</div>'
+   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">Ficha de campo</div>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">Trazer de fora</div>'
+   +'<div class="sub">Cole o código que a Ficha de Campo gerou, ou escolha o arquivo que você baixou dela.</div>'
+   +'<div class="campo"><label>Código</label>'
+   +'<textarea id="fcTxt" placeholder="KLIX1:…" oninput="conferaFicha()" style="min-height:96px;font-family:ui-monospace,Consolas,monospace;font-size:12px"></textarea></div>'
+   +'<div class="acoes" style="margin-bottom:10px"><label class="bt" style="flex:1;text-align:center;cursor:pointer">Escolher arquivo'
+   +'<input type="file" accept=".json,application/json" style="display:none" onchange="fcArquivo(this)"></label></div>'
+   +'<div id="fcRes"></div>'
+   +'<div class="acoes"><button class="bt" onclick="abreEstudo()">Cancelar</button>'
+   +'<button class="bt pri" id="fcOk" onclick="aplicaFicha()" disabled style="opacity:.45">Aplicar</button></div>');
+}
+function fcArquivo(inp){
+  var f = inp.files && inp.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(){ var t=document.getElementById("fcTxt"); if(t){ t.value=String(r.result||""); conferaFicha(); } };
+  r.readAsText(f);
+}
+function conferaFicha(){
+  var p=acha(_atual), box=document.getElementById("fcRes"), bt=document.getElementById("fcOk");
+  if(!p||!box) return;
+  _ficha = leCodigo(v("fcTxt"));
+  if(!_ficha){
+    box.innerHTML = v("fcTxt")
+      ? '<div class="aviso" style="background:var(--naobg);border-color:var(--naoline)">Não consegui ler esse código. Copie de novo pelo botão <b>Código pro Prospecta</b> da ficha.</div>' : "";
+    if(bt){ bt.disabled=true; bt.style.opacity=".45"; }
+    return;
+  }
+  var chaves = Object.keys(_ficha).filter(function(k){ return CAMPOS_FICHA.indexOf(k)>=0; });
+  var fora   = Object.keys(_ficha).filter(function(k){ return CAMPOS_FICHA.indexOf(k)<0; });
+  var nf = String(_ficha.nome||"").trim();
+  /* colar no cliente errado seria estrago silencioso: o app compara e avisa */
+  var difere = nf && nf.toLowerCase() !== String(p.nome||"").toLowerCase();
+  box.innerHTML =
+    '<div class="sig'+(difere?"":" forte")+'"><div class="sl">'+esc(nf||"(sem nome)")+'</div>'
+   +'<div class="sp">'+chaves.length+' campo'+(chaves.length===1?"":"s")+' preenchido'+(chaves.length===1?"":"s")
+   + (fora.length ? ' · '+fora.length+' ignorado'+(fora.length===1?"":"s") : '')+'</div></div>'
+   + (difere
+      ? '<div class="aviso" style="background:var(--naobg);border-color:var(--naoline)">A ficha é de <b>'+esc(nf)+'</b> e você está em <b>'+esc(p.nome)+'</b>. Confira antes de aplicar — o nome do lead vai ser trocado.</div>'
+      : '<div class="aviso">Aplicar <b>não apaga nada</b>: só escreve por cima do que veio preenchido na ficha.</div>');
+  if(bt){ bt.disabled=false; bt.style.opacity="1"; }
+}
+function aplicaFicha(){
+  var p=acha(_atual); if(!p||!_ficha) return;
+  var n=0;
+  CAMPOS_FICHA.forEach(function(k){
+    var val=_ficha[k];
+    if(val===undefined || val===null || String(val).trim()==="") return;
+    p[k] = (["segui","curt","coment","comp","lkseg"].indexOf(k)>=0) ? (Number(val)||0) : String(val).trim();
+    n++;
+  });
+  grava(); try{ som('salvo'); }catch(e){}
+  _ficha=null;
+  abreEstudo();
+}
+
+/* =========== A PROPOSTA (sai em PDF pelo próprio aparelho) =========== */
+var VALIDADE_DIAS = 15;
+function maisDias(n){
+  var d=new Date(); d.setDate(d.getDate()+n);
+  return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();
+}
+function dataHoje(){ return maisDias(0); }
+function linhaProp(l){
+  var det = l.t==="ed"  ? (l.dur+" · pacote "+l.pac+(Number(l.q)>1?" · "+l.q+" peças":"")+((Number(l.ad)||0)>0?" · +"+l.ad+" formato(s) adicional(is)":""))
+          : l.t==="cap" ? ((l.h||0)+" hora(s) de captação no local")
+          : l.t==="fot" ? ((l.pk||"")+" fotos digitais tratadas"+((Number(l.ad)||0)>0?" + "+l.ad+" adicionais":""))
+          : l.t==="pla" ? ((l.n||"")+" vídeos por mês · fidelidade mínima de 3 meses")
+          : "";
+  return '<tr><td><b>'+esc(l.d||"")+'</b>'+(det?'<span>'+esc(det)+'</span>':'')+'</td>'
+       + '<td class="v">'+brl(valorLinha(l))+'</td></tr>';
+}
+function montaProposta(){
+  var p=acha(_atual); if(!p) return "";
+  var itens=(p.orc||[]);
+  var quer=[];
+  if((p.rquer||"").trim()) quer.push((p.rquer||"").trim());
+  if((p.rdor||"").trim())  quer.push((p.rdor||"").trim());
+  var usos=cxLista(p.ruso||"");
+  return ''
+   +'<div class="pcab"><img src="klix.png" alt="Klix Mídia"><div class="pk">Proposta de produção audiovisual</div></div>'
+   +'<div class="pt">'+esc(p.nome||"")+'</div>'
+   +'<div class="pm">'+[esc(p.contato||""),esc(p.cargo||""),esc(p.cidade||"")].filter(Boolean).join(" · ")+'</div>'
+   +'<div class="pm">'+dataHoje()+' · válida até '+maisDias(VALIDADE_DIAS)+'</div>'
+
+   + (quer.length ? '<h4>O que vocês precisam</h4><p>'+esc(quer.join(" ")) +'</p>' : '')
+   + (usos.length ? '<h4>Onde o vídeo vai ser usado</h4><p>'+esc(usos.join(" · "))+'</p>' : '')
+
+   +'<h4>Escopo</h4>'
+   +'<table>'+itens.map(linhaProp).join("")
+   +'<tr class="tot"><td>Investimento total</td><td class="v">'+brl(totalOrc(itens))+'</td></tr></table>'
+   + (temSobConsulta(itens) ? '<p class="obs">Há peça acima de 5 minutos no escopo: esse item é orçado à parte.</p>' : '')
+
+   +'<h4>O que está incluso</h4>'
+   +'<p>Briefing inicial para alinhamento do projeto · entrega dos arquivos em alta qualidade · '
+   +'organização dos arquivos por projeto · envio digital via link.</p>'
+
+   +'<h4>Prazos</h4>'
+   +'<p>A primeira versão é entregue em até <b>7 dias úteis</b> após a captação e/ou o recebimento de '
+   +'todos os materiais necessários. Cada rodada de ajustes tem prazo de até <b>3 dias úteis</b> e, '
+   +'após a aprovação, o arquivo final é entregue em até <b>2 dias úteis</b>. Os prazos podem variar '
+   +'conforme a complexidade e não incluem o tempo de retorno e aprovação do cliente.</p>'
+
+   +'<h4>Ajustes</h4>'
+   +'<p><b>2 rodadas</b> inclusas por pacote. Rodada extra: 15% do valor do pacote, solicitada em até '
+   +'7 dias após a entrega. Alteração de escopo ou de roteiro gera novo orçamento.</p>'
+
+   +'<h4>Formatos</h4>'
+   +'<p>A quantidade de peças e os formatos são definidos no início do projeto. Quando um mesmo '
+   +'conteúdo é adaptado para formatos adicionais, considera-se 1 peça original (100% do valor) '
+   +'mais 50% do valor da peça original para cada desdobramento.</p>'
+
+   +'<div class="pfim">Klix Mídia · produção de vídeo<br>'+esc(quemSou()||"")+'</div>';
+}
+function baixaProposta(){
+  var p=acha(_atual); if(!p) return;
+  if(!p.orc || !p.orc.length){ alert("Monte o orçamento antes: a proposta sai dele."); return; }
+  var d=document.getElementById("prop");
+  if(!d){ d=document.createElement("div"); d.id="prop"; document.body.appendChild(d); }
+  d.innerHTML = montaProposta();
+  document.body.classList.add("imprimindo");
+  setTimeout(function(){
+    window.print();
+    setTimeout(function(){ document.body.classList.remove("imprimindo"); }, 400);
+  }, 120);
+}
+
 /* =========== O ORÇAMENTO ===========
    Tabela oficial da Klix (10/08/2026). Mexeu no PDF, mexe aqui. */
 var DURACOES = ["Até 30s","31 a 60s","1 a 3 min","3 a 5 min","Acima de 5 min"];
@@ -1907,7 +2086,9 @@ function folhaOrc(){
    +'<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)">Isto <b>não é proposta</b>. Serve pra você saber se cabe no bolso dele e pro Igor receber a conta pronta — quem passa valor é ele.</div>'
    +'<div class="acoes"><button class="bt" onclick="orcRefaz()">Refazer sugestão</button>'
    +'<button class="bt pri" onclick="orcCopia(this)">Copiar pro Igor</button></div>'
-   +'<div class="acoes" style="margin-top:6px"><button class="bt" style="flex:1" onclick="orcViraValor(this)">Usar como valor potencial do lead</button></div>');
+   +'<div class="acoes" style="margin-top:6px"><button class="bt" style="flex:1" onclick="orcViraValor(this)">Usar como valor potencial do lead</button></div>'
+   +'<div class="acoes" style="margin-top:6px"><button class="bt pri" style="flex:1" onclick="baixaProposta()">Gerar proposta em PDF</button></div>'
+   +'<div class="aviso">A proposta abre a impressão do aparelho — escolha <b>Salvar como PDF</b>. Ela leva o escopo, os valores e os termos da tabela. <b>Não é contrato</b>.</div>');
   pintaOrc();
 }
 function pintaOrc(){
