@@ -1122,6 +1122,31 @@ if(typeof D.carteira !== "number") D.carteira = 0;
 /* renomeado 27/08: "Carteira de investimentos" -> "Investido". As entradas
    antigas guardaram o nome no registro; migro pra nao ficar historico com dois nomes. */
 if(Array.isArray(D.entradas)) D.entradas.forEach(function(e){ if(e.destN==="Carteira de investimentos") e.destN="Investido"; });
+/* ---- data completa nas entradas (11/09) ----
+   D.entradas guardava so "DD/MM". Sem ano nao da pra calcular dias desde o aporte
+   (IOF) nem faixa de prazo (IR). O Cashbook ja grava dt+iso; aqui eu estendo o
+   mesmo padrao. dt continua existindo: quem exibe nao muda de lugar. */
+function isoDt(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+(function migrarIsoEntradas(){
+  if(!Array.isArray(D.entradas) || !D.entradas.length) return;
+  /* as entradas entram por push, entao o array esta em ordem cronologica.
+     Ando de tras pra frente a partir de hoje: quando o mes SOBE em relacao a
+     entrada seguinte (mais recente), e porque virou o ano. */
+  var hj=new Date(), ano=hj.getFullYear(), mesAnt=hj.getMonth()+1, mudou=false;
+  for(var i=D.entradas.length-1; i>=0; i--){
+    var e=D.entradas[i];
+    if(e.iso){ var p0=String(e.iso).split("-"); if(p0.length===3){ ano=+p0[0]; mesAnt=+p0[1]; } continue; }
+    var p=String(e.dt||"").split("/");
+    if(p.length!==2){ continue; }              /* sem dt legivel: deixo sem iso, nao invento */
+    var dia=+p[0], mes=+p[1];
+    if(!(dia>=1&&dia<=31&&mes>=1&&mes<=12)) continue;
+    if(mes>mesAnt) ano--;                      /* mes maior olhando pra tras = ano anterior */
+    e.iso = ano+"-"+("0"+mes).slice(-2)+"-"+("0"+dia).slice(-2);
+    e.isoAprox = 1;                            /* ano inferido, nao registrado na hora */
+    mesAnt = mes; mudou=true;
+  }
+  if(mudou) try{ localStorage.setItem(KEY, JSON.stringify(D)); }catch(e){}
+})();
 var maxId = 0;
 D.cx.forEach(function(x,i){ if(!x.id) x.id = i+1; if(x.pz === undefined) x.pz = "";
   if(x.vale !== undefined) delete x.vale;   /* conceito aposentado: o vinculo agora e por categoria */
@@ -1332,7 +1357,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v140';
+var VERSAO = 'v141';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -1843,7 +1868,7 @@ document.getElementById("eAdd").addEventListener("click",async function(){
       {titulo:"Retirar mais do que há?", ok:"Retirar assim mesmo", perigo:true})) return;
   c.v += (saiu ? -v : v);
   var h=new Date();
-  D.entradas.push({d:d, v:v, s:(saiu?-1:1), dest:dest, destN:c.n, dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
+  D.entradas.push({d:d, v:v, s:(saiu?-1:1), dest:dest, destN:c.n, iso:isoDt(h), dt:("0"+h.getDate()).slice(-2)+"/"+("0"+(h.getMonth()+1)).slice(-2)});
   document.getElementById("eDesc").value=""; document.getElementById("eVal").value="";
   salvar(); renderTudo(); animarNovo("listaEntradas","first");
   toast(saiu?"Retirada registrada.":"Entrada registrada.","ok");
@@ -3134,7 +3159,7 @@ function renderGastos(){
              aconteceu, e a volta também. Apagar a primeira seria reescrever
              o passado. */
           var hj=new Date();
-          D.entradas.push({d:"Estorno · "+x.d, v:x.v, s:1, dest:cvo.id, destN:cvo.n,
+          D.entradas.push({d:"Estorno · "+x.d, v:x.v, s:1, dest:cvo.id, destN:cvo.n, iso:isoDt(hj),
             dt:("0"+hj.getDate()).slice(-2)+"/"+("0"+(hj.getMonth()+1)).slice(-2)});
         }
         x.est=1;
@@ -3240,7 +3265,7 @@ document.getElementById("gAdd").addEventListener("click",function(){
        o app registra isso em vez de fingir que sabe */
     if(cv){
       cv.v = (cv.v||0) - v;
-      D.entradas.push({d:"Cashbook · "+nome, v:v, s:-1, dest:cv.id, destN:cv.n,
+      D.entradas.push({d:"Cashbook · "+nome, v:v, s:-1, dest:cv.id, destN:cv.n, iso:iso,
         dt:p[2]+"/"+p[1], lid:lid});
     }
     D.vale.l.push({d:nome, v:v, c:cat, dt:p[2]+"/"+p[1], iso:iso, pag:"vista", lid:lid,
@@ -3369,7 +3394,7 @@ window.confirmarFechamento=function(){
     aplicado.push({ cofre:String(o.cx.id), nome:o.cx.n, cor:o.cx.c, v:o.v, cats:o.cats.slice() });
     /* o mesmo lancamento avulso de retirada: o dinheiro sai onde da pra ver */
     D.entradas.push({ d:"Cashbook · "+(v.ciclo||"ciclo"), v:o.v, s:-1,
-      dest:o.cx.id, destN:o.cx.n, dt:dt });
+      dest:o.cx.id, destN:o.cx.n, iso:isoDt(h0), dt:dt });
   });
   var c0=cicloInfo();
   if((v.l||[]).length || aplicado.length){
