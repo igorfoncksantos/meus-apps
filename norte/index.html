@@ -263,6 +263,20 @@
            display:flex; align-items:center; justify-content:center; gap:6px; }
   .navbtn:active{ transform:scale(.96); }
   .navbtn.today{ color:var(--accent); border-color:#1e3a40; }
+  /* botao de atualizar: gira enquanto trabalha; ganha um ponto quando o dia
+     virou e voce estava olhando outra data */
+  .navbtn.refresh{ position:relative; }
+  .navbtn.refresh.girando svg{ animation:__giraref .85s linear infinite; transform-origin:50% 50%; }
+  @keyframes __giraref{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce){ .navbtn.refresh.girando svg{ animation:none; opacity:.5; } }
+  .navbtn.refresh.novo::after{ content:''; position:absolute; top:4px; right:4px; width:7px; height:7px;
+    border-radius:50%; background:var(--accent); box-shadow:0 0 0 2px var(--bg); }
+  /* com um botao a mais, a barra precisa encolher em tela estreita */
+  @media (max-width:392px){
+    .toolbar{ gap:5px; }
+    .toolbar .navbtn{ min-width:36px; padding:0 8px; }
+    .toolbar .navbtn.today{ font-size:13px; padding:0 9px; }
+  }
   .datepill{ flex:1; text-align:center; font-size:13px; font-weight:700; color:var(--mut2); }
   .menu-wrap{ position:relative; }
   .menu{ position:absolute; right:0; top:48px; z-index:40; min-width:272px; padding:7px;
@@ -913,6 +927,7 @@
   <button class="navbtn" id="themeBtn" onclick="openThemePicker()" title="Tema" data-ic="theme"></button>
   <div id="calPop" class="calpop hidden"></div>
   <button class="navbtn today" onclick="goToday()">Hoje</button>
+  <button class="navbtn refresh" id="btRefresh" onclick="refrescarNorte()" title="Atualizar: vira o dia, puxa a sincronização e confere se saiu versão nova" data-ic="sync"></button>
   <button class="navbtn" onclick="nav(1)" data-ic="chevR"></button>
   <div class="menu-wrap">
     <button class="navbtn" onclick="toggleMenu(event)" data-ic="dots"></button>
@@ -981,7 +996,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v91';
+const VERSAO = 'v92';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2057,6 +2072,46 @@ function jumpTo(iso){ if(!iso)return;
   if(!DB.days[iso]){ DB.days[iso]=criaPorNavegacao(iso); }
   cur=iso; render(); }
 function goToday(){ const iso=todayISO(); if(!DB.days[iso])DB.days[iso]=buildNewDay(iso); else resolvePrevia(iso); cur=iso; render(); }
+/* ----- atualizar o app -----
+   O caso real: o note fica ligado a noite toda com o Norte aberto. Quando
+   voce volta, o app ainda esta no dia de ontem, porque a virada so acontecia
+   ao abrir de novo. Este botao vira o dia, puxa a sincronizacao e confere se
+   saiu versao nova — e o app passa a perceber a virada sozinho ao voltar. */
+let _diaBase = null;
+
+async function refrescarNorte(){
+  const b = document.getElementById('btRefresh');
+  if(b && b.dataset.rodando) return;                 /* dois toques nao empilham */
+  if(b){ b.dataset.rodando='1'; b.classList.add('girando'); b.classList.remove('novo'); }
+  const hoje = todayISO();
+  const mudou = (cur !== hoje) || !DB.days[hoje];
+  try{
+    goToday();                                       /* cria o dia com carry-over se ainda nao existe */
+    _diaBase = hoje;
+    if(typeof sbReady==='function' && sbReady()) await pullRemote();
+    if('serviceWorker' in navigator && navigator.serviceWorker.getRegistration){
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(reg) await reg.update();                    /* se saiu versao nova, o banner aparece */
+    }
+  }catch(e){}
+  await new Promise(function(r){ setTimeout(r,450); });   /* o giro precisa durar pra ser visto */
+  if(b){ b.classList.remove('girando'); delete b.dataset.rodando; }
+  toast(mudou ? 'Agora em '+fmtBR(hoje) : 'Norte atualizado');
+}
+
+/* Percebe sozinho que o dia virou, ao voltar pro app. So troca de dia se voce
+   ESTAVA no dia corrente; se estava olhando outra data, respeita onde voce
+   esta e so acende o ponto no botao. */
+function confereVirada(){
+  const hoje = todayISO();
+  if(!_diaBase){ _diaBase = hoje; return; }
+  if(hoje === _diaBase) return;
+  const estavaNoDia = (cur === _diaBase);
+  _diaBase = hoje;
+  if(estavaNoDia){ goToday(); toast('Virou o dia · '+fmtBR(hoje)); }
+  else { const b=document.getElementById('btRefresh'); if(b) b.classList.add('novo'); }
+}
+
 async function newDay(){ closeMenu(); const iso=todayISO()>cur?todayISO():shiftISO(cur,1);
   if(DB.days[iso]&&!await uiConfirm(fmtBR(iso)+' já existe. Recriar do zero apaga o que tem lá. Continuar?',{title:'Recriar o dia?',ok:'Recriar',danger:true}))return;
   DB.days[iso]=buildNewDay(iso); cur=iso; render(); }
@@ -2928,6 +2983,10 @@ async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark');
   maybeLockPin();
 }
 boot();
+_diaBase = todayISO();
+document.addEventListener('visibilitychange',function(){ if(!document.hidden) confereVirada(); });
+window.addEventListener('focus', confereVirada);
+setInterval(confereVirada, 60000);
 (function(){
   if(!('serviceWorker' in navigator) || location.protocol==='file:') return;
   var refreshing=false;
