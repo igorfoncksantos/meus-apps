@@ -382,10 +382,6 @@
   .fds-dobra .ic{ display:flex; }
   .fds-dobra .n{ margin-left:auto; font-size:11px; color:var(--mut2); font-weight:600; }
   /* a de criar se separa das que ja existem: e acao, nao item da lista */
-  .act-list button.fdsnova{ color:var(--fdsc); border-style:dashed; border-color:var(--fdsc);
-        background:transparent; margin-top:2px; }
-  .act-list button.fdsnova .ic svg{ stroke:var(--fdsc); }
-  .fds-barra{ margin:4px 0 13px; }
   /* o fim de semana no seletor de destino: cor propria, pra nao se confundir
      com uma categoria sua */
   .catopt.fdsopt{ color:var(--fdsc); }
@@ -452,15 +448,6 @@
   [data-theme="light"] .ptv .dias.q{ background:#FBE4E3; color:#9A2B26; border-color:#EBB9B6; }
   [data-theme="miri"] .ptv .dias{ background:#F5E8CE; color:#6F4A0C; border-color:#DCC79B; }
   [data-theme="miri"] .ptv .dias.q{ background:#F3DED9; color:#8E3226; border-color:#DCBAB1; }
-  #fdsBar{ margin:0 0 10px; }
-  #fdsBar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
-
-  .fds-barra .l{ display:flex; align-items:baseline; gap:8px; font-size:11px;
-                 color:var(--mut); margin-bottom:5px; }
-  .fds-barra .l b{ color:var(--fdsc); font-weight:800; font-size:12px; }
-  .fds-barra .l .pc{ margin-left:auto; font-variant-numeric:tabular-nums; }
-  .fds-barra .trilho{ height:5px; border-radius:4px; background:var(--panel); overflow:hidden; }
-  .fds-barra .cheio{ height:100%; border-radius:4px; background:var(--fdsc); transition:width .3s ease; }
   /* ha quantos fins de semana ela e empurrada: e o numero que faz voce fazer */
   .fds-tag{ display:inline-block; font-size:9.5px; font-weight:800; padding:2px 7px;
             border-radius:20px; border:1px solid var(--fdsln); background:var(--fdsbg);
@@ -941,6 +928,11 @@
   .semvazio .em{ font-size:34px; margin-bottom:8px; }
   .semvazio .t{ font-size:15px; color:var(--txt); font-weight:600; margin-bottom:4px; }
   .semvazio .d{ font-size:12px; margin-bottom:16px; line-height:1.5; }
+
+  /* a aba do fim de semana reusa o desenho da Semana; o que muda e a cor —
+     redefinir o acento aqui pinta barra, dias, etiqueta e botao de uma vez */
+  .fdsview{ --accent: var(--fdsc); }
+  .fdsdias{ grid-template-columns:repeat(2,1fr); }
   @media print{ .toolbar,.fab,.cadd,.gbtn,.menu,.calpop,#flash,#__welcome,#authOv,nav,.progview{ display:none!important; } body{ padding:15mm 14mm; } }
   /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
      focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
@@ -1002,7 +994,6 @@
 </header>
 
 <!-- no sabado o fim de semana e o assunto: a barra dele vem primeiro -->
-<div class="fds-barra" id="fdsBar" style="display:none"></div>
 <div class="bar">
   <span class="count" id="count">—</span>
   <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
@@ -1027,10 +1018,12 @@
 <!-- o Feito, inteiro, dentro do Norte. Mesma origem: o dado e o mesmo do app solto. -->
 <div id="listasView" class="progview listasview hidden"><iframe id="feitoFrame" title="Listas" loading="lazy"></iframe></div>
 <div id="semView" class="progview semview hidden"></div>
+<div id="fdsView" class="progview semview fdsview hidden"></div>
 <nav>
   <div class="navbar">
     <button class="on" data-v="dia" onclick="switchView('dia')"><span class="ic" data-ic="day"></span>Meu dia</button>
     <button data-v="semana" onclick="switchView('semana')"><span class="ic" data-ic="semana"></span>Semana</button>
+    <button data-v="fds" onclick="switchView('fds')"><span class="ic" data-ic="fds"></span>FDS</button>
     <button data-v="prog" onclick="switchView('prog')"><span class="ic" data-ic="trending"></span>Progresso</button>
     <button data-v="listas" onclick="switchView('listas')"><span class="ic" data-ic="list"></span>Listas</button>
   </div>
@@ -1044,7 +1037,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v94';
+const VERSAO = 'v95';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1264,7 +1257,7 @@ function render(){
     ts.forEach(t=> div.appendChild(itemEl(t,c)));
     host.appendChild(div);
   });
-  pintaFDS(host); pintaBarraFDS();
+  pintaFDS(host);
   // tarefas cuja categoria nao existe mais: aparecem em vez de sumir
   const orfas = day().tasks.filter(t=>!CATS.some(c=>c.id===t.cat)).sort((a,b)=> sortKey(a)-sortKey(b));
   if(orfas.length && !_catFilter){
@@ -1297,7 +1290,7 @@ function render(){
   document.getElementById('footer').textContent = `Norte ${VERSAO} · ${fmtBR(cur)}/${cur.split('-')[0]} · salvo no aparelho.`;
   pintaBarras();   /* as barras dos cartoes nascem na largura de antes; aqui vao pra nova e a transicao roda */
   /* try: _view e declarado mais abaixo no arquivo, e render() roda antes disso no arranque */
-  try{ if(_view==='semana') renderSemana(); }catch(e){}
+  try{ if(_view==='semana') renderSemana(); if(_view==='fds') renderFDS(); }catch(e){}
   save();
 }
 
@@ -1470,62 +1463,13 @@ function dispensaFDS(){ try{ localStorage.setItem('norte-fds-convite','1'); }cat
 function pintaFDS(host){
   const F=fds();
   if(!F.on || _catFilter) return;
-  const noFDS = ehFDS(cur);
-  if(!noFDS){
-    const esperando=F.itens.filter(t=>t.status!=='done'&&t.status!=='canc').length;
-    if(!esperando) return;
-    const d=document.createElement('div'); d.className='fds-dobra';
-    d.onclick=abreFDS;
-    d.innerHTML='<span class="ic">'+svgIc('cal')+'</span>Fim de semana<span class="n">'+
-                esperando+' esperando</span>';
-    host.appendChild(d);
-    return;
-  }
-  const sf=statsFDS();
-  const div=document.createElement('div'); div.className='cat';
-  let h='<div class="chead"><span class="cbar" style="background:var(--fdsc);box-shadow:0 0 8px var(--fdsc)"></span>'+
-        '<span class="cname">Fim de semana</span>'+
-        '<button class="cadd" onclick="openAdd(\'__fds\')">+ tarefa</button></div>';
-  div.innerHTML=h;
-  F.itens.slice().sort((a,b)=> sortKey(a)-sortKey(b)).forEach(t=>{
-    /* cor unica: o fim de semana e uma categoria, e a cor E a categoria.
-       A tarefa aqui saiu da lista da semana — vestir a cor antiga insinuaria
-       uma filiacao que ja nao opera. */
-    const c = {id:'__fds', name:'Fim de semana', color:'var(--fdsc)'};
-    const el=itemEl(t,c);
-    const esp=fdsEspera(t);
-    if(esp>0){
-      const tag=document.createElement('span'); tag.className='fds-tag';
-      tag.textContent='há '+esp+' fds';
-      const alvo=el.querySelector('.meio')||el;
-      alvo.appendChild(tag);
-    }
-    div.appendChild(el);
-  });
-  /* no sabado o fim de semana e o assunto: a secao dele vem ANTES das outras.
-     No resto da semana isso nem se aplica — la ele e a linha recolhida. */
-  if(host.firstChild) host.insertBefore(div, host.firstChild); else host.appendChild(div);
-}
-/* a barra do periodo, no alto: so existe no sabado e no domingo */
-function pintaBarraFDS(){
-  const el=document.getElementById('fdsBar'); if(!el) return;
-  const F=fds();
-  if(!F.on || !ehFDS(cur) || !F.itens.length){ el.style.display='none'; return; }
-  const sf=statsFDS();
-  el.style.display='';
-  el.innerHTML='<div class="l"><b>Fim de semana</b><span>'+sf.doneN+' de '+sf.n+'</span>'+
-               '<span class="pc">'+sf.pct+'%</span></div>'+
-               '<div class="trilho"><div class="cheio" style="width:'+sf.pct+'%"></div></div>';
-}
-function abreFDS(){
-  const F=fds();
-  const ts=F.itens.filter(t=>t.status!=='done'&&t.status!=='canc');
-  sheet('<h3>Fim de semana</h3><div class="fds-sh">Estas esperam o sábado. Se não forem feitas, esperam o próximo — não caem na sua segunda.</div>'+
-    '<div class="act-list">'+
-    ts.map(t=>'<button onclick="closeSheet();openActions(\''+t.id+'\')"><span class="ic">'+svgIc('cal')+'</span>'+escapeHtml(t.title)+'</button>').join('')+
-    /* a porta de criar mora aqui: e onde a decisao "isso e de sabado" acontece */
-    '<button class="fdsnova" onclick="closeSheet();openAdd(\'__fds\')"><span class="ic">'+svgIc('plus')+'</span>Nova tarefa pro fim de semana</button>'+
-    '</div><div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>');
+  const esperando=F.itens.filter(t=>t.status!=='done'&&t.status!=='canc').length;
+  if(!esperando) return;
+  const d=document.createElement('div'); d.className='fds-dobra';
+  d.onclick=function(){ switchView('fds'); };
+  d.innerHTML='<span class="ic">'+svgIc('fds')+'</span>Fim de semana<span class="n">'+
+              esperando+(ehFDS(cur)?' pra hoje':' esperando')+'</span>';
+  host.appendChild(d);
 }
 /* o convite da sexta: aparece quando a ideia se explica sozinha */
 function conviteFDS(){
@@ -1659,6 +1603,72 @@ function renderSemana(){
     lista.appendChild(b);
   }
   pintaBarras();
+}
+
+/* ---- a aba do fim de semana: a mesma ideia da Semana, outro periodo ---- */
+function renderFDS(){
+  const host=document.getElementById('fdsView'); if(!host) return;
+  const F=fds(); F.on=true;                 /* entrar na aba ja e usar */
+  const sab = sabadoDe(cur) || proximoSabado();
+  if(!F.ciclo) F.ciclo=sab;
+  viraFDS();
+  const st=statsFDS();
+  const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const dsab=new Date(sab+'T12:00:00');
+  const ddom=new Date(sab+'T12:00:00'); ddom.setDate(ddom.getDate()+1);
+  const dom=ddom.toISOString().slice(0,10);
+  const agora = ehFDS(cur);
+
+  let h='<div class="semwrap"><div class="semtopo"><h2>'+(agora?'Este fim de semana':'Próximo fim de semana')+'</h2>'+
+        '<span class="faixa">'+dsab.getDate()+' e '+ddom.getDate()+' de '+MES[ddom.getMonth()]+'</span></div>'+
+        '<div class="semsub">O que espera o sábado. Se não for feito, espera o próximo — não cai na sua segunda.</div>';
+
+  if(st.n){
+    h+='<div class="sembar"><div class="l"><b>'+st.doneN+' de '+st.n+'</b><span>'+
+       (st.n-st.doneN)+' abertas</span><span class="pc">'+st.pct+'%</span></div>'+
+       '<div class="trilho"><div class="cheio" style="width:'+st.pct+'%"></div></div></div>';
+  }
+
+  const hoje=todayISO();
+  h+='<div class="semdias fdsdias">';
+  [['sáb',sab],['dom',dom]].forEach(function(p){
+    const pc=dayPct(p[1]);
+    const d=new Date(p[1]+'T12:00:00');
+    h+='<div class="semdia'+(p[1]===hoje?' hoje':'')+(pc===null?' vazio':'')+'" onclick="abreDiaDaSemana(\''+p[1]+'\')">'+
+       '<div class="dw">'+p[0]+'</div><div class="dn">'+d.getDate()+'</div>'+
+       '<div class="dp">'+(pc===null?'—':pc+'%')+'</div>'+
+       '<div class="dtr"><i style="width:'+(pc||0)+'%"></i></div></div>';
+  });
+  h+='</div>';
+  h+='<div class="semsecao">Do fim de semana</div><div id="fdsLista"></div></div>';
+  host.innerHTML=h;
+
+  const lista=document.getElementById('fdsLista');
+  const ts=F.itens.slice().sort(function(a,b){ return sortKey(a)-sortKey(b); });
+  if(!ts.length){
+    lista.innerHTML='<div class="semvazio"><div class="em">🌤️</div>'+
+      '<div class="t">Nada guardado pro fim de semana</div>'+
+      '<div class="d">O que você mandar pra cá sai da lista do dia e volta no sábado.</div>'+
+      '<button class="semadd" onclick="openAdd(\'__fds\')">+ Nova tarefa do fim de semana</button></div>';
+  } else {
+    const c={id:'__fds', name:'Fim de semana', color:'var(--fdsc)'};
+    ts.forEach(function(t){
+      const el=itemEl(t,c);
+      const esp=fdsEspera(t);
+      if(esp>0){
+        const tag=document.createElement('span'); tag.className='fds-tag';
+        tag.textContent='há '+esp+(esp>1?' fins de semana':' fim de semana');
+        (el.querySelector('.meio')||el).appendChild(tag);
+      }
+      lista.appendChild(el);
+    });
+    const b=document.createElement('button');
+    b.className='semadd'; b.textContent='+ tarefa do fim de semana';
+    b.onclick=function(){ openAdd('__fds'); };
+    lista.appendChild(b);
+  }
+  pintaBarras();
+  save();
 }
 
 function flashFx(){ const f=document.getElementById('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); if(navigator.vibrate)navigator.vibrate(16);
@@ -2571,6 +2581,7 @@ const ICONS={
   save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
   download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  fds:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><rect x="13.5" y="12.5" width="5.5" height="6.5" rx="1"/>',
   semana:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/>',
   day:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="8.5 15 11 17.5 15.5 13"/>',
   teclado:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
@@ -2606,10 +2617,12 @@ function switchView(v){ _view=v;
   pv.classList.toggle('hidden', v!=='prog');
   lv.classList.toggle('hidden', v!=='listas');
   const sv=document.getElementById('semView'); if(sv) sv.classList.toggle('hidden', v!=='semana');
+  const fv=document.getElementById('fdsView'); if(fv) fv.classList.toggle('hidden', v!=='fds');
   /* o + e do dia: nas outras abas ele nao tem o que criar */
   if(fab) fab.style.display = (v==='dia') ? '' : 'none';
   if(v==='prog'){ renderProgress(); pv.scrollTop=0; }
   if(v==='semana'){ renderSemana(); document.getElementById('semView').scrollTop=0; }
+  if(v==='fds'){ renderFDS(); document.getElementById('fdsView').scrollTop=0; }
   /* so carrega quando alguem entra: quem nunca abrir Listas nao paga por ela */
   if(v==='listas'){ const fr=document.getElementById('feitoFrame');
     if(!fr.getAttribute('src')) fr.setAttribute('src','feito.html'); }
