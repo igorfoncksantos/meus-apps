@@ -408,7 +408,7 @@
   /* a aba Listas: o Feito traz o proprio respiro, entao a area nao poe mais.
      E ela PARA onde a nav do Norte comeca (88px): sem isso a barra de acoes do
      Feito, que e fixa na base, ficaria por tras da nav — duas barras empilhadas. */
-  .listasview{ padding:0; max-width:none; bottom:calc(88px + env(safe-area-inset-bottom)); }
+  .listasview{ bottom:calc(88px + env(safe-area-inset-bottom)); }
   #feitoFrame{ display:block; width:100%; height:100%; border:0; background:var(--bg); }
   /* a dica embaixo de um campo: explica o que o numero faz, sem virar aviso */
   .field .dica{ margin-top:6px; font-size:11px; line-height:1.45; color:var(--mut2); }
@@ -650,9 +650,13 @@
 
   /* aba Progresso */
   .progview{ position:fixed; inset:0; z-index:15; background:var(--bg); overflow:auto;
-             padding:16px 14px calc(96px + env(safe-area-inset-bottom)); max-width:820px; margin:0 auto; }
+             padding:0; }
+  /* o miolo: largura de leitura, centralizado. A CAIXA cobre a tela — senao
+     o fundo pinta so a faixa do meio e o dia aparece dos lados no note. */
+  .pgwrap{ max-width:820px; margin:0 auto;
+           padding:16px 14px calc(96px + env(safe-area-inset-bottom)); }
   .progview.hidden{ display:none; }
-  .progview{ padding-bottom:104px; }
+  .pgwrap{ padding-bottom:104px; }
   .prog-top{ display:flex; align-items:center; margin:2px 0 16px; }
   .prog-top h2{ font-size:21px; color:var(--txt2); font-weight:800; }
   .prog-seg{ display:flex; gap:8px; margin-bottom:15px; }
@@ -897,7 +901,9 @@
 
 
   /* ---- a semana: a lista que vale de segunda a sexta ---- */
-  .semview{ padding:18px 14px 104px; max-width:460px; margin:0 auto; }
+  .semview{ padding:0; }
+  .semwrap{ max-width:520px; margin:0 auto;
+            padding:18px 14px calc(104px + env(safe-area-inset-bottom)); }
   .semtopo{ display:flex; align-items:baseline; gap:8px; margin-bottom:2px; }
   .semtopo h2{ margin:0; font-size:18px; font-weight:800; letter-spacing:-.3px; }
   .semtopo .faixa{ margin-left:auto; font-size:11px; color:var(--mut2); font-weight:600; }
@@ -1038,7 +1044,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v93';
+const VERSAO = 'v94';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1596,7 +1602,7 @@ function renderSemana(){
   const faixa = dseg.getDate()+' a '+dsex.getDate()+' de '+MES[dsex.getMonth()];
   const ehEsta = (segundaISO(hoje)===seg);
 
-  let h='<div class="semtopo"><h2>'+(ehEsta?'Esta semana':'Semana de '+dseg.getDate()+'/'+(dseg.getMonth()+1))+'</h2>'+
+  let h='<div class="semwrap"><div class="semtopo"><h2>'+(ehEsta?'Esta semana':'Semana de '+dseg.getDate()+'/'+(dseg.getMonth()+1))+'</h2>'+
         '<span class="faixa">'+faixa+'</span></div>'+
         '<div class="semsub">O que vale até sexta, sem dia marcado.</div>';
 
@@ -1621,7 +1627,7 @@ function renderSemana(){
   }
   h+='</div>';
 
-  h+='<div class="semsecao">Da semana</div><div id="semLista"></div>';
+  h+='<div class="semsecao">Da semana</div><div id="semLista"></div></div>';
   host.innerHTML=h;
 
   const lista=document.getElementById('semLista');
@@ -2745,7 +2751,7 @@ function renderProgress(){
   }
 
   if(!tr.length && !cats.length && !temSem) h += '<div class="prog-empty">' + svgIc('trending') + 'Ainda não há dados.</div>';
-  document.getElementById('progView').innerHTML = h;
+  document.getElementById('progView').innerHTML = '<div class="pgwrap">' + h + '</div>';
 }
 
 /* ================= CONTA + SINCRONIZAÇÃO (Supabase) ================= */
