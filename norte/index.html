@@ -895,6 +895,46 @@
   .prog-top h2 .prog-hic svg{ width:22px; height:22px; stroke:var(--accent); }
   .prog-empty svg{ width:40px; height:40px; stroke:var(--mut); display:block; margin:0 auto 10px; }
 
+
+  /* ---- a semana: a lista que vale de segunda a sexta ---- */
+  .semview{ padding:18px 14px 104px; max-width:460px; margin:0 auto; }
+  .semtopo{ display:flex; align-items:baseline; gap:8px; margin-bottom:2px; }
+  .semtopo h2{ margin:0; font-size:18px; font-weight:800; letter-spacing:-.3px; }
+  .semtopo .faixa{ margin-left:auto; font-size:11px; color:var(--mut2); font-weight:600; }
+  .semsub{ font-size:12px; color:var(--mut); margin-bottom:14px; line-height:1.5; }
+  .sembar{ margin:0 0 16px; }
+  .sembar .l{ display:flex; align-items:baseline; gap:8px; font-size:11px; color:var(--mut); margin-bottom:5px; }
+  .sembar .l b{ color:var(--accent); font-weight:800; font-size:12px; }
+  .sembar .l .pc{ margin-left:auto; font-variant-numeric:tabular-nums; }
+  .sembar .trilho{ height:5px; border-radius:4px; background:var(--panel); overflow:hidden; }
+  .sembar .cheio{ height:100%; border-radius:4px; background:var(--accent); transition:width .3s ease; }
+  .semdias{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-bottom:20px; }
+  .semdia{ background:var(--panel); border:1px solid var(--line); border-radius:11px;
+           padding:8px 3px 7px; text-align:center; cursor:pointer; transition:transform .12s; }
+  .semdia:active{ transform:scale(.96); }
+  .semdia .dw{ font-size:9px; font-weight:800; letter-spacing:.6px; color:var(--mut2); text-transform:uppercase; }
+  .semdia .dn{ font-size:16px; font-weight:800; margin:1px 0 3px; }
+  .semdia .dp{ font-size:9.5px; color:var(--mut2); font-variant-numeric:tabular-nums; }
+  .semdia .dtr{ height:3px; border-radius:3px; background:var(--line); overflow:hidden; margin-top:5px; }
+  .semdia .dtr i{ display:block; height:100%; background:var(--accent); border-radius:3px; }
+  .semdia.hoje{ border-color:var(--accent); }
+  .semdia.hoje .dn{ color:var(--accent); }
+  .semdia.vazio .dp{ opacity:.45; }
+  .sem-tag{ display:inline-block; font-size:9.5px; font-weight:800; padding:2px 7px;
+            border-radius:20px; margin-left:7px; color:var(--accent);
+            background:color-mix(in srgb, var(--accent) 16%, transparent); }
+  .semsecao{ font-size:11px; font-weight:800; letter-spacing:.4px; text-transform:uppercase;
+             color:var(--mut2); margin:0 0 8px; }
+  .semvazio{ text-align:center; padding:26px 16px; color:var(--mut); }
+  .semadd{ margin-top:12px; background:none; border:1px dashed #33383e; color:var(--mut2);
+           font-family:inherit; font-size:12px; font-weight:700; border-radius:9px;
+           padding:9px 14px; cursor:pointer; width:100%; }
+  .semadd:active{ transform:scale(.99); }
+  [data-theme="light"] .semadd{ border-color:#cfd4da; color:#6b7278; }
+  [data-theme="miri"] .semadd{ border-color:#D9CDB8; color:#8C8676; }
+  .semvazio .em{ font-size:34px; margin-bottom:8px; }
+  .semvazio .t{ font-size:15px; color:var(--txt); font-weight:600; margin-bottom:4px; }
+  .semvazio .d{ font-size:12px; margin-bottom:16px; line-height:1.5; }
   @media print{ .toolbar,.fab,.cadd,.gbtn,.menu,.calpop,#flash,#__welcome,#authOv,nav,.progview{ display:none!important; } body{ padding:15mm 14mm; } }
   /* iPHONE: campo com fonte menor que 16px faz o Safari AMPLIAR a pagina ao
      focar, e o teclado fixo sai cortado nas duas bordas. 16px e o limiar.
@@ -980,9 +1020,11 @@
 <div id="progView" class="progview hidden"></div>
 <!-- o Feito, inteiro, dentro do Norte. Mesma origem: o dado e o mesmo do app solto. -->
 <div id="listasView" class="progview listasview hidden"><iframe id="feitoFrame" title="Listas" loading="lazy"></iframe></div>
+<div id="semView" class="progview semview hidden"></div>
 <nav>
   <div class="navbar">
     <button class="on" data-v="dia" onclick="switchView('dia')"><span class="ic" data-ic="day"></span>Meu dia</button>
+    <button data-v="semana" onclick="switchView('semana')"><span class="ic" data-ic="semana"></span>Semana</button>
     <button data-v="prog" onclick="switchView('prog')"><span class="ic" data-ic="trending"></span>Progresso</button>
     <button data-v="listas" onclick="switchView('listas')"><span class="ic" data-ic="list"></span>Listas</button>
   </div>
@@ -996,7 +1038,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v92';
+const VERSAO = 'v93';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1248,6 +1290,8 @@ function render(){
   _obsAnim=-1; _subAnim='';
   document.getElementById('footer').textContent = `Norte ${VERSAO} · ${fmtBR(cur)}/${cur.split('-')[0]} · salvo no aparelho.`;
   pintaBarras();   /* as barras dos cartoes nascem na largura de antes; aqui vao pra nova e a transicao roda */
+  /* try: _view e declarado mais abaixo no arquivo, e render() roda antes disso no arranque */
+  try{ if(_view==='semana') renderSemana(); }catch(e){}
   save();
 }
 
@@ -1347,7 +1391,8 @@ function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function findTask(id){
   /* o balde do fim de semana tambem e casa de tarefa: sem isto, abrir uma
      tarefa de sabado nao acharia nada e o menu nao faria nada. */
-  return day().tasks.find(t=>t.id===id) || (DB.fds&&DB.fds.itens||[]).find(t=>t.id===id); }
+  return day().tasks.find(t=>t.id===id) || (DB.fds&&DB.fds.itens||[]).find(t=>t.id===id)
+      || (DB.semana&&DB.semana.itens||[]).find(t=>t.id===id); }
 
 /* ================= FIM DE SEMANA ================= */
 /* O balde vive FORA dos dias: e o que permite a tarefa nao cair na segunda. */
@@ -1488,6 +1533,128 @@ function conviteFDS(){
     '<button class="btn-primary" onclick="ativaFDS()">Ativar</button></div>');
 }
 
+/* ================= A SEMANA ================= */
+/* A lista de segunda a sexta. Vive FORA dos dias, como o balde do fim de
+   semana: sao coisas que valem ate sexta e nao pertencem a nenhum dia. O que
+   nao for feito atravessa pra semana seguinte em vez de entulhar a segunda. */
+function sem(){ if(!DB.semana) DB.semana={itens:[],ciclo:null}; return DB.semana; }
+function segundaISO(iso){ return mondayOf(iso).toISOString().slice(0,10); }
+function sextaDe(iso){ const d=mondayOf(iso); d.setDate(d.getDate()+4); return d.toISOString().slice(0,10); }
+/* virou a semana: o que foi FEITO some, o que nao foi espera a proxima */
+function viraSemana(){
+  const S=sem(); const seg=segundaISO(cur);
+  if(S.ciclo===seg) return;
+  const antes=S.itens.length;
+  if(S.ciclo) S.itens=S.itens.filter(t=>t.status!=='done');
+  S.ciclo=seg;
+  if(antes!==S.itens.length) save();
+}
+function statsSemana(){
+  const ts=sem().itens; let n=0,doneN=0;
+  ts.forEach(t=>{ if(t.status==='canc') return; n++; if(t.status==='done') doneN++; });
+  return {n,doneN,pct:n?Math.round(doneN/n*100):0};
+}
+/* quantas semanas esta tarefa ja atravessou */
+function semEspera(t){
+  if(!t.semDesde) return 0;
+  const a=new Date(t.semDesde+'T12:00:00'), b=new Date(segundaISO(cur)+'T12:00:00');
+  return Math.max(0, Math.round((b-a)/(7*86400000)));
+}
+function mandarSemana(id){
+  const t=findTask(id); if(!t) return;
+  const S=sem(); const primeira=!S.itens.length;
+  if(!S.ciclo) S.ciclo=segundaISO(cur);
+  const d=day(); d.tasks=d.tasks.filter(x=>x.id!==id);
+  const F=DB.fds; if(F&&F.itens) F.itens=F.itens.filter(x=>x.id!==id);
+  delete t.fdsDesde;
+  t.status = (t.status==='done'||t.status==='canc') ? 'pend' : t.status;
+  t.semDesde = segundaISO(cur);
+  S.itens.push(t);
+  save(); render();
+  if(primeira) uiAlert('Ela sai da lista do dia e passa a valer até sexta. Se a semana virar sem que você a faça, ela espera a próxima — não cai no seu dia.',{title:'Pronto — ela é da semana agora'});
+}
+function trazerDaSemana(id){
+  const S=sem(); const i=S.itens.findIndex(t=>t.id===id); if(i<0) return;
+  const t=S.itens.splice(i,1)[0];
+  delete t.semDesde;
+  day().tasks.push(t);
+  save(); render();
+}
+function abreDiaDaSemana(iso){
+  cur=iso; switchView('dia');
+  if(!DB.days[iso]) buildNewDay(iso);
+  render(); window.scrollTo(0,0);
+}
+
+function renderSemana(){
+  const host=document.getElementById('semView'); if(!host) return;
+  viraSemana();
+  const S=sem(), st=statsSemana();
+  const seg=segundaISO(cur), sex=sextaDe(cur), hoje=todayISO();
+  const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const dseg=new Date(seg+'T12:00:00'), dsex=new Date(sex+'T12:00:00');
+  const faixa = dseg.getDate()+' a '+dsex.getDate()+' de '+MES[dsex.getMonth()];
+  const ehEsta = (segundaISO(hoje)===seg);
+
+  let h='<div class="semtopo"><h2>'+(ehEsta?'Esta semana':'Semana de '+dseg.getDate()+'/'+(dseg.getMonth()+1))+'</h2>'+
+        '<span class="faixa">'+faixa+'</span></div>'+
+        '<div class="semsub">O que vale até sexta, sem dia marcado.</div>';
+
+  if(st.n){
+    h+='<div class="sembar"><div class="l"><b>'+st.doneN+' de '+st.n+'</b><span>'+
+       (st.n-st.doneN)+' abertas</span><span class="pc">'+st.pct+'%</span></div>'+
+       '<div class="trilho"><div class="cheio" style="width:'+st.pct+'%"></div></div></div>';
+  }
+
+  /* os cinco dias: e o que situa a lista no tempo, e leva pro dia num toque */
+  const DW=['seg','ter','qua','qui','sex'];
+  h+='<div class="semdias">';
+  for(let i=0;i<5;i++){
+    const d=new Date(seg+'T12:00:00'); d.setDate(d.getDate()+i);
+    const iso=d.toISOString().slice(0,10);
+    const pc=dayPct(iso);
+    const cls='semdia'+(iso===hoje?' hoje':'')+(pc===null?' vazio':'');
+    h+='<div class="'+cls+'" onclick="abreDiaDaSemana(\''+iso+'\')">'+
+       '<div class="dw">'+DW[i]+'</div><div class="dn">'+d.getDate()+'</div>'+
+       '<div class="dp">'+(pc===null?'—':pc+'%')+'</div>'+
+       '<div class="dtr"><i style="width:'+(pc||0)+'%"></i></div></div>';
+  }
+  h+='</div>';
+
+  h+='<div class="semsecao">Da semana</div><div id="semLista"></div>';
+  host.innerHTML=h;
+
+  const lista=document.getElementById('semLista');
+  const ts=S.itens.slice().sort((a,b)=> sortKey(a)-sortKey(b));
+  if(!ts.length){
+    lista.innerHTML='<div class="semvazio"><div class="em">🗓️</div>'+
+      '<div class="t">Nada marcado pra esta semana</div>'+
+      '<div class="d">Coisas que precisam acontecer até sexta, mas não têm dia certo.</div>'+
+      '<button class="navbtn" style="background:var(--accent);color:var(--onacc);border:none;padding:0 16px" onclick="openAdd(\'__sem\')">+ Nova tarefa da semana</button></div>';
+  } else {
+    /* cor unica: a semana e uma categoria, e a cor E a categoria — a tarefa
+       aqui saiu da lista do dia, vestir a cor antiga insinuaria uma filiacao
+       que ja nao opera (mesma regra do fim de semana). */
+    const c={id:'__sem', name:'Semana', color:'var(--accent)'};
+    ts.forEach(t=>{
+      const el=itemEl(t,c);
+      const esp=semEspera(t);
+      if(esp>0){
+        const tag=document.createElement('span'); tag.className='sem-tag';
+        tag.textContent='há '+esp+(esp>1?' semanas':' semana');
+        (el.querySelector('.meio')||el).appendChild(tag);
+      }
+      lista.appendChild(el);
+    });
+    const b=document.createElement('button');
+    b.className='semadd';
+    b.textContent='+ tarefa da semana';
+    b.onclick=()=>openAdd('__sem');
+    lista.appendChild(b);
+  }
+  pintaBarras();
+}
+
 function flashFx(){ const f=document.getElementById('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go'); if(navigator.vibrate)navigator.vibrate(16);
   /* o som e a terceira camada: a tela ja piscava e o aparelho ja vibrava */
   try{ som('feito'); }catch(e){} }
@@ -1565,6 +1732,10 @@ function openActions(id){ const t=findTask(id);
   const noBalde = (DB.fds&&DB.fds.itens||[]).some(x=>x.id===id);
   if(noBalde) acts.splice(1,0,[svgIc('undo'),'Trazer pra hoje',`trazerFDS('${id}')`,'fdsA']);
   else        acts.splice(1,0,[svgIc('cal'),'Mandar pro fim de semana',`mandarFDS('${id}')`,'fdsA']);
+  /* a porta da semana, nos dois sentidos — mesma logica do balde de sabado */
+  const naSemana = (DB.semana&&DB.semana.itens||[]).some(x=>x.id===id);
+  if(naSemana) acts.splice(1,0,[svgIc('undo'),'Trazer pra hoje',`trazerDaSemana('${id}')`,'fdsA']);
+  else         acts.splice(1,0,[svgIc('cal'),'Mandar pra semana',`mandarSemana('${id}')`,'fdsA']);
   sheet(`<h3>${escapeHtml(t.title)}</h3><div class="act-list">`+
     /* fecha ANTES de agir: se a acao abrir outra folha (Editar, Agendar), um
        closeSheet() depois mataria justamente a folha recem-aberta */
@@ -1645,22 +1816,25 @@ async function delTask(id){ const t=findTask(id); if(!t)return;
 /* ---- add / edit ---- */
 let editing=null;
 function openAdd(catId){
-  if(catId!=='__fds' && !CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; }
-  editing=null; _formParaFDS = (catId==='__fds');
+  if(catId!=='__fds' && catId!=='__sem' && !CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; }
+  editing=null; _formParaFDS = (catId==='__fds'); _formParaSem = (catId==='__sem');
   /* veio de dentro de uma categoria: ela ja esta respondida, o seletor sai */
-  showForm({ cat: (catId==='__fds' ? '__fds' : (catId||CATS[0].id)), semCat: !!catId });
+  const _c = (catId==='__fds'||catId==='__sem') ? catId : (catId||CATS[0].id);
+  showForm({ cat: _c, semCat: !!catId });
 }
-let _formParaFDS=false;
+let _formParaFDS=false, _formParaSem=false;
 function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
-  formCat = (t.cat==='__fds') ? null : (t.cat||(CATS[0]&&CATS[0].id)||null); formPrio=t.prio||null;
+  formCat = (t.cat==='__fds'||t.cat==='__sem') ? null : (t.cat||(CATS[0]&&CATS[0].id)||null); formPrio=t.prio||null;
   formRecur = t.rec ? JSON.parse(JSON.stringify(t.rec)) : {type:'none',days:[],dom:20,date:''};
   /* so vale data ainda a frente: agendamento vencido ja virou tarefa do dia */
   const _ag = isoFromSched(t.sched);
   formSched = (_ag && _ag >= todayISO()) ? _ag : '';
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
   /* sem o seletor, o titulo e quem diz onde a tarefa vai cair */
-  const _dest = t.semCat ? (t.cat==='__fds' ? ' no fim de semana' : ' em '+((CATS.find(c=>c.id===t.cat)||{}).name||'')) : '';
+  const _dest = t.semCat ? (t.cat==='__fds' ? ' no fim de semana'
+               : t.cat==='__sem' ? ' pra semana'
+               : ' em '+((CATS.find(c=>c.id===t.cat)||{}).name||'')) : '';
   sheet(`<h3>${editing?'Editar tarefa':'Nova tarefa'+_dest}</h3>
     ${t.semCat ? '' : '<div class="field"><label>Categoria</label><div class="catrow" id="catrow"></div></div>'}
     <div class="field"><label>O que fazer</label><div class="linhamic"><input id="fTitle" value="${escapeAttr(t.title||'')}" placeholder="ex.: Editar 1 reel">${micHTML("fTitle")}</div></div>
@@ -1851,8 +2025,10 @@ function saveForm(){
     aplicaAgenda(t); aplicaQtd(t);
     if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
       t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
+    else if(_formParaSem){ const S=sem(); if(!S.ciclo) S.ciclo=segundaISO(cur);
+      t.semDesde = segundaISO(cur); S.itens.push(t); }
     else { day().tasks.push(t); syncRecurring(t); } }
-  _formParaFDS=false;
+  _formParaFDS=false; _formParaSem=false;
   editing=null; formSched=''; closeSheet(); render();
 }
 /* a quantidade vira a cota da tarefa. O quanto ja foi contado sobrevive a
@@ -2389,6 +2565,7 @@ const ICONS={
   save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
   download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
   trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  semana:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/>',
   day:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="8.5 15 11 17.5 15.5 13"/>',
   teclado:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
   som:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
@@ -2422,9 +2599,11 @@ function switchView(v){ _view=v;
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.getAttribute('data-v')===v));
   pv.classList.toggle('hidden', v!=='prog');
   lv.classList.toggle('hidden', v!=='listas');
+  const sv=document.getElementById('semView'); if(sv) sv.classList.toggle('hidden', v!=='semana');
   /* o + e do dia: nas outras abas ele nao tem o que criar */
   if(fab) fab.style.display = (v==='dia') ? '' : 'none';
   if(v==='prog'){ renderProgress(); pv.scrollTop=0; }
+  if(v==='semana'){ renderSemana(); document.getElementById('semView').scrollTop=0; }
   /* so carrega quando alguem entra: quem nunca abrir Listas nao paga por ela */
   if(v==='listas'){ const fr=document.getElementById('feitoFrame');
     if(!fr.getAttribute('src')) fr.setAttribute('src','feito.html'); }
