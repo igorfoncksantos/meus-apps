@@ -326,6 +326,64 @@
   .secttl{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#c7ced3; margin:2px 0 12px; }
   /* tarefa cuja categoria foi apagada: aparece, em vez de sumir contando */
   .orfa-aviso{ font-size:12px; color:var(--mut); margin:-2px 0 9px 2px; line-height:1.45; }
+  /* ===== lista que atravessa os dias =====
+     A tarefa continua sendo do dia; o que muda e que ela dura a semana. Por
+     isso o cartao separa o que foi feito HOJE do que ficou pra tras: ele e o
+     registro do dia, nao o historico do projeto. */
+  .lchip{ display:inline-block; font-size:10px; font-weight:800; letter-spacing:.5px; text-transform:uppercase;
+          padding:4px 9px; border-radius:20px; margin:0 5px 0 0; vertical-align:1px; line-height:14px;
+          background:var(--accbg); color:var(--accent); border:1px solid var(--accline); }
+  .tag.hoje{ background:var(--accbg); color:var(--accent); border-color:var(--accline); }
+  .hojebox{ margin-top:10px; border:1px solid var(--accline); background:var(--accbg); border-radius:9px; padding:9px 10px; }
+  .hojebox .hl{ font-size:10px; font-weight:800; letter-spacing:.5px; text-transform:uppercase;
+                color:var(--accent); margin-bottom:6px; }
+  .hojebox .subs{ margin-top:0; }
+  .dobra{ display:inline-flex; align-items:center; gap:7px; margin-top:9px; font-size:11px; font-weight:700;
+          color:#6a8c85; cursor:pointer; }
+  .dobra .seta{ font-size:9px; transition:transform .16s ease; }
+  .dobra.aberta .seta{ transform:rotate(90deg); }
+  [data-theme="light"] .dobra,[data-theme="miri"] .dobra{ color:var(--accent); }
+  .sub .quando{ font-size:10px; color:var(--mut); white-space:nowrap; padding-left:8px; margin-left:auto; }
+  .sub .quando + .subdel{ margin-left:6px; }
+
+  /* o interruptor de lista, no bloco de subtarefas do formulario */
+  .listabox{ display:flex; align-items:flex-start; gap:10px; margin-top:10px; padding:11px 12px;
+             background:var(--panel2); border:1px solid var(--line); border-radius:10px; cursor:pointer;
+             transition:border-color .16s ease, background .16s ease; }
+  .listabox.on{ border-color:var(--accline); background:var(--accbg); }
+  .listabox .lbck{ width:20px; height:20px; border-radius:6px; border:2px solid #3a3f45; flex-shrink:0;
+                   margin-top:1px; position:relative; }
+  .listabox.on .lbck{ background:var(--accent); border-color:var(--accent); }
+  .listabox.on .lbck::after{ content:"✓"; color:var(--onacc); font-size:12px; font-weight:800;
+                             position:absolute; inset:0; display:grid; place-items:center; }
+  .listabox .lbtx b{ display:block; font-size:12.5px; font-weight:700; color:var(--txt2); }
+  .listabox .lbtx em{ display:block; font-style:normal; font-size:11px; color:var(--mut);
+                      line-height:1.45; margin-top:3px; }
+  .listabox.on .lbtx b{ color:var(--accent); }
+
+  /* ===== modo reordenar =====
+     Um estado com saida a vista: enquanto ele esta ligado, o cartao nao marca
+     nem abre o menu — so move. */
+  .reordbar{ display:flex; align-items:center; gap:10px; background:var(--accbg); border:1px solid var(--accline);
+             border-radius:10px; padding:9px 12px; margin-bottom:12px; }
+  .reordbar .rt{ flex:1; font-size:12px; font-weight:800; color:var(--accent); letter-spacing:.3px; }
+  .reordbar .rt em{ display:block; font-style:normal; font-size:11px; font-weight:400; color:var(--mut); margin-top:2px; }
+  .reordbar button{ background:var(--accent); color:var(--onacc); border:none; border-radius:8px;
+                    padding:8px 15px; font-size:12px; font-weight:800; cursor:pointer; flex-shrink:0; }
+  .mv{ display:flex; flex-direction:column; gap:3px; flex-shrink:0; }
+  .item > .mv{ margin-top:1px; }
+  .mvb{ width:28px; height:20px; border:1px solid var(--line); background:var(--panel2); border-radius:6px;
+        color:var(--mut); font-size:9px; display:grid; place-items:center; line-height:1; cursor:pointer;
+        padding:0; transition:transform .12s; }
+  .mvb:active{ transform:scale(.86); }
+  .mvb:disabled{ opacity:.3; cursor:default; }
+  .item.emordem{ border-style:dashed; }
+  .sub .mv{ flex-direction:row; margin-left:auto; padding-left:8px; }
+  .sub .mv .mvb{ width:24px; height:18px; }
+  .subrow .mv{ flex-direction:column; }
+  .subrow .mv .mvb{ width:26px; height:17px; }
+  .ordbt{ margin-left:auto; font-size:11px; color:var(--accent); font-weight:800; cursor:pointer; }
+
   /* ===== subtarefa com quantidade (layout A) =====
      O rotulo precisa de min-width:0 pra encolher: sem isso o contador
      empurra um nome longo pra fora do cartao. */
@@ -972,6 +1030,7 @@
     <div class="menu hidden" id="menu">
       <button onclick="newDay()"><span class="mi" data-ic="sunrise"></span>Novo dia <em>puxa pendentes</em></button>
       <button onclick="openCats()"><span class="mi" data-ic="tag"></span>Categorias</button>
+      <button onclick="toggleReord()"><span class="mi" data-ic="dots"></span>Reordenar <em id="prefReord">tarefas e itens</em></button>
       <button onclick="shareDay()"><span class="mi" data-ic="share"></span>Compartilhar o dia</button>
       <button onclick="openSecurity()"><span class="mi" data-ic="sync"></span>Sincronização</button>
       <button onclick="openPinMenu()"><span class="mi" data-ic="lock"></span>Bloqueio por PIN</button>
@@ -999,9 +1058,17 @@
   <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
 </div>
 
+<div class="reordbar hidden" id="reordBar">
+  <span class="rt">⇅ Reordenando<em>Use as setas pra mover tarefas e itens. O resto do cartão fica quieto.</em></span>
+  <button type="button" onclick="toggleReord(false)">Concluir</button>
+</div>
+
 <div class="legend" id="legend"></div>
 
-<div class="secttl" id="catsTitle" onclick="openCats()" style="cursor:pointer;align-items:center;gap:8px">Minhas categorias <span style="margin-left:auto;font-size:11px;color:var(--accent);font-weight:800">＋ gerenciar</span></div>
+<div class="secttl" id="catsTitle" style="align-items:center;gap:8px">
+  <span style="cursor:pointer" onclick="openCats()">Minhas categorias</span>
+  <span class="ordbt" onclick="toggleReord()">⇅ ordem</span>
+  <span style="font-size:11px;color:var(--accent);font-weight:800;cursor:pointer" onclick="openCats()">＋ gerenciar</span></div>
 <div id="cats"></div>
 
 <div class="obs">
@@ -1037,7 +1104,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v95';
+const VERSAO = 'v96';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1147,11 +1214,34 @@ function isBlocked(t){
   return false;
 }
 
+/* ============= a lista que atravessa os dias ============= */
+/* s.dt guarda o DIA em que o item foi marcado. Sem ele o app nao sabe separar
+   o que voce fez hoje do que ja estava feito — era o que fazia o dia nascer
+   com 30% emprestados de ontem. */
+function ehLista(t){ return !!(t && t.lista && t.subs && t.subs.length); }
+function fezEm(t, iso){ return (t.subs||[]).some(s=>s.done && s.dt===iso); }
+function fezHoje(t){ return fezEm(t, cur); }
+function itensDeHoje(t){ return (t.subs||[]).filter(s=>s.done && s.dt===cur); }
+function itensDeAntes(t){ return (t.subs||[]).filter(s=>s.done && s.dt!==cur); }
+function itensAbertos(t){ return (t.subs||[]).filter(s=>!s.done); }
+/* qual lista guarda esta tarefa: o dia, o balde do fim de semana ou o da semana */
+function listaDe(t){
+  if(!t) return null;
+  const D=day(); if(D && D.tasks.indexOf(t)>=0) return D.tasks;
+  const F=DB.fds; if(F && F.itens && F.itens.indexOf(t)>=0) return F.itens;
+  const S=DB.semana; if(S && S.itens && S.itens.indexOf(t)>=0) return S.itens;
+  return null;
+}
+
 /* ============= cálculo do % ============= */
 function frac(t){
   if(isBlocked(t)||t.status==='canc'||t.status==='adiado') return null; // fora do denominador
   if(t.goals){ let d=0,tot=0; for(const k in t.goals){ d+=t.goals[k][0]; tot+=t.goals[k][1]; } return tot?d/tot:0; }
   if(t.cota){ return t.cota[1]? t.cota[0]/t.cota[1] : 0; }
+  /* a LISTA mede o dia, nao o projeto: marcou o item de hoje, a tarefa esta
+     cumprida; nao marcou, esta pendente. Assim o dia nao nasce com a fracao
+     que voce fez ontem, e o item de hoje pesa igual a qualquer outra tarefa. */
+  if(ehLista(t)) return fezHoje(t) ? 1 : 0;
   /* fracao: uma subtarefa em 3/10 vale 0,3, nao zero — a mesma regra
      ponderada do Assistente */
   if(t.subs&&t.subs.length){ let s=0; t.subs.forEach(x=>{ s+=qtdFrac(x); }); return s/t.subs.length; }
@@ -1201,6 +1291,60 @@ function checaMetade(pct){
   _lastPct=pct;
 }
 
+/* ============= mover pra cima e pra baixo =============
+   A ordem a mao vale DENTRO do grupo (decisao 05-A): as ★ continuam em cima,
+   e a seta troca a tarefa com a vizinha da mesma faixa de prioridade e da
+   mesma categoria. O sort do render e estavel, entao a posicao no array e o
+   desempate — mover no array move na tela. */
+let _reord = false;
+function toggleReord(lig){
+  _reord = (lig===undefined) ? !_reord : !!lig;
+  closeMenu();
+  render();
+  try{ if(_reord && navigator.vibrate) navigator.vibrate(10); }catch(e){}
+}
+/* as vizinhas de uma tarefa: mesma lista, mesma categoria, mesmo grupo */
+function vizinhas(t){
+  const L=listaDe(t); if(!L) return [];
+  return L.filter(x=> x.cat===t.cat && sortKey(x)===sortKey(t));
+}
+function moveTask(id, dir){
+  const t=findTask(id); if(!t) return;
+  const L=listaDe(t); if(!L) return;
+  const grupo=vizinhas(t);
+  const g=grupo.indexOf(t), alvo=g+dir;
+  if(g<0 || alvo<0 || alvo>=grupo.length) return;
+  const a=L.indexOf(t), b=L.indexOf(grupo[alvo]);
+  if(a<0||b<0) return;
+  L[a]=grupo[alvo]; L[b]=t;
+  render();
+}
+/* os índices do grupo em que este item aparece na tela */
+function grupoSub(t, i){
+  const idx=t.subs.map((s,k)=>k);
+  if(!ehLista(t)) return idx;
+  const s=t.subs[i];
+  if(!s.done) return idx.filter(k=>!t.subs[k].done);
+  if(s.dt===cur) return idx.filter(k=>t.subs[k].done && t.subs[k].dt===cur);
+  return idx.filter(k=>t.subs[k].done && t.subs[k].dt!==cur);
+}
+function moveSub(id, i, dir){
+  const t=findTask(id); if(!t||!t.subs) return;
+  const g=grupoSub(t,i), p=g.indexOf(i), q=p+dir;
+  if(p<0 || q<0 || q>=g.length) return;
+  const j=g[q];
+  const tmp=t.subs[i]; t.subs[i]=t.subs[j]; t.subs[j]=tmp;
+  render();
+}
+/* as setas de uma linha; desabilitadas nas pontas em vez de sumir, pra que a
+   coluna nao mude de largura de uma linha pra outra */
+function mvHTML(acao, i, tot){
+  const cima = acao.replace('@',String(-1)), baixo = acao.replace('@',String(1));
+  return '<span class="mv">'+
+    '<button type="button" class="mvb" '+(i<=0?'disabled':'')+' onclick="event.stopPropagation();'+cima+'" aria-label="Mover pra cima">▲</button>'+
+    '<button type="button" class="mvb" '+(i>=tot-1?'disabled':'')+' onclick="event.stopPropagation();'+baixo+'" aria-label="Mover pra baixo">▼</button></span>';
+}
+
 /* ============= ordenação dentro da categoria ============= */
 function sortKey(t){
   // prioridade manda mais que status
@@ -1234,6 +1378,7 @@ function render(){
     }
   }catch(e){}
 
+  document.getElementById('reordBar').classList.toggle('hidden', !_reord);
   // legend (só aparece se houver categorias)
   const lg=document.getElementById('legend');
   if(!CATS.length){ lg.classList.add('hidden'); }
@@ -1306,11 +1451,12 @@ function itemEl(t,c){
   if(t.prio==='urgente') chips+=` <span class="pchip urg">★★★ Urgente</span>`;
   if(t.prio==='max') chips+=` <span class="pchip">★★ Prioridade máxima</span>`;
   if(t.prio==='star') chips+=` <span class="pchip star">★ Prioridade</span>`;
+  if(ehLista(t)) chips+=` <span class="lchip">lista</span>`;
   if(t.recur) chips+=` <span class="rchip">↻ ${t.recur}</span>`;
   if(t.carriedFrom) chips+=` <span class="cflag">↩ veio de ${t.carriedFrom}</span>`;
   if(t.wasSched) chips+=` <span class="cflag schedtoday">🗓 programada pra hoje</span>`;
 
-  let inner=`<div class="t" onclick="openActions('${t.id}')" style="cursor:pointer">${escapeHtml(t.title)}${chips}</div>`;
+  let inner=`<div class="t"${_reord?'':` onclick="openActions('${t.id}')" style="cursor:pointer"`}>${escapeHtml(t.title)}${chips}</div>`;
   if(t.meta) inner+=`<div class="m">${t.status==='done'?'✓ ':''}${escapeHtml(t.meta)}</div>`;
 
   // METAS
@@ -1338,29 +1484,91 @@ function itemEl(t,c){
       /* a barra anda com o microfeito: 3/10 numa subtarefa ja empurra ela */
       let somaF=0; t.subs.forEach(s=>{ somaF+=qtdFrac(s); });
       inner+=tbar(d,t.subs.length,somaF/t.subs.length,'sub:'+t.id);
-      inner+=`<div class="subs">`+t.subs.map((s,i)=>{
-        const q = temQtd(s)
-          ? `<span class="conta" onclick="event.stopPropagation()">` +
-            `<button type="button" class="qb" onclick="subQtd('${t.id}',${i},-1)" ${(s.q||0)<=0?'disabled':''} aria-label="Menos um">−</button>` +
-            `<span class="qn">${s.q||0}/${s.qm}</span>` +
-            `<button type="button" class="qb" onclick="subQtd('${t.id}',${i},1)" ${(s.q||0)>=s.qm?'disabled':''} aria-label="Mais um">+</button></span>`
-          : '';
-        return `<div class="sub ${s.done?'sdone':''}${(t.id+'|'+i)===_subAnim?' new':''}" onclick="subTog('${t.id}',${i})"><span class="sbox"></span><span class="slab">${escapeHtml(s.label)}</span>${q}<span class="subdel" onclick="event.stopPropagation();subDel('${t.id}',${i})">✕</span></div>`;
-      }).join('')+`</div>`;
+      /* a barra continua contando o projeto inteiro; quem mede o dia é o % lá em cima */
+      if(ehLista(t)) inner+=listaHTML(t);
+      else inner+=`<div class="subs">`+t.subs.map((s,i)=>subHTML(t,s,i)).join('')+`</div>`;
     }
-    inner+=`<div class="subadd" onclick="addSub('${t.id}')">+ subtarefa</div>`;
+    inner+=`<div class="subadd" onclick="addSub('${t.id}')">+ ${ehLista(t)?'item':'subtarefa'}</div>`;
   }
 
   let tag, tagCls;
-  if(isBlocked(t) && t.status!=='sched'){ tag='Agendada'; tagCls='sched'; }   // bloqueada (recorrência) aparece como agendada
+  /* fez o item de hoje: o cartao diz isso, senao a tarefa passa o dia inteiro
+     marcada como pendente mesmo com a parte de hoje cumprida */
+  if(ehLista(t) && t.status!=='done' && t.status!=='canc' && fezHoje(t)){ tag='Feito hoje'; tagCls='hoje'; }
+  else if(isBlocked(t) && t.status!=='sched'){ tag='Agendada'; tagCls='sched'; }   // bloqueada (recorrência) aparece como agendada
   else { tag = {pend:'Pendente',done:'Feito',canc:'Cancelado',sched:(t.sched?('Agendada · '+t.sched):'Agendada'),adiado:'Adiado'}[t.status]; tagCls=t.status; }
   const boxClick = isBlocked(t) ? `openActions('${t.id}')` : `toggleDone('${t.id}')`;
-  /* a etiqueta vai DENTRO do texto, flutuando: assim o titulo corre ao lado
-     dela e as subtarefas usam a largura inteira do cartao embaixo dela */
-  el.innerHTML=`<div class="box" onclick="${boxClick}"></div><div class="txt">
-     <span class="tag ${tagCls}" onclick="openActions('${t.id}')">${tag}</span>${inner}</div>`;
+  /* no modo reordenar a coluna de setas entra como terceiro filho do cartão:
+     o .item já é flex, então ela alinha no topo sem layout novo. E o cartão
+     para de marcar e de abrir o menu — ali ele só move. */
+  let setas='';
+  if(_reord){
+    const g=vizinhas(t), gi=g.indexOf(t);
+    setas = mvHTML("moveTask('"+t.id+"',@)", gi, g.length);
+    el.classList.add('emordem');
+  }
+  const cliqueBox = _reord ? '' : ` onclick="${boxClick}"`;
+  const cliqueTag = _reord ? '' : ` onclick="openActions('${t.id}')"`;
+  el.innerHTML=`<div class="box"${cliqueBox}></div><div class="txt">
+     <span class="tag ${tagCls}"${cliqueTag}>${tag}</span>${inner}</div>${setas}`;
   return el;
 }
+/* ===== a linha de uma subtarefa =====
+   Uma função só: a lista desenha a mesma linha em três lugares (o que foi
+   feito hoje, o que foi feito antes, e o que falta). */
+function subHTML(t,s,i){
+  const q = temQtd(s)
+    ? `<span class="conta" onclick="event.stopPropagation()">` +
+      `<button type="button" class="qb" onclick="subQtd('${t.id}',${i},-1)" ${(s.q||0)<=0?'disabled':''} aria-label="Menos um">−</button>` +
+      `<span class="qn">${s.q||0}/${s.qm}</span>` +
+      `<button type="button" class="qb" onclick="subQtd('${t.id}',${i},1)" ${(s.q||0)>=s.qm?'disabled':''} aria-label="Mais um">+</button></span>`
+    : '';
+  /* quando foi feito: só nas listas, e só no que ficou pra trás — o de hoje
+     está na caixa "hoje", repetir a data ali não diria nada */
+  const quando = (ehLista(t) && s.done && s.dt && s.dt!==cur) ? `<span class="quando">${diaCurto(s.dt)}</span>` : '';
+  const g = _reord ? grupoSub(t,i) : null;
+  const fim = _reord
+    ? mvHTML("moveSub('"+t.id+"',"+i+",@)", g.indexOf(i), g.length)
+    : `<span class="subdel" onclick="event.stopPropagation();subDel('${t.id}',${i})">✕</span>`;
+  const clique = _reord ? '' : ` onclick="subTog('${t.id}',${i})"`;
+  return `<div class="sub ${s.done?'sdone':''}${(t.id+'|'+i)===_subAnim?' new':''}"${clique}><span class="sbox"></span><span class="slab">${escapeHtml(s.label)}</span>${q}${quando}${fim}</div>`;
+}
+/* "ontem", "seg", "ter"… na semana que passou; DD/MM quando já está longe */
+const _DIAS=['dom','seg','ter','qua','qui','sex','sáb'];
+function diaCurto(iso){
+  try{
+    const d=new Date(iso+'T12:00:00'), hoje=new Date(cur+'T12:00:00');
+    const dif=Math.round((hoje-d)/86400000);
+    if(dif===1) return 'ontem';
+    if(dif>1 && dif<7) return _DIAS[d.getDay()];
+    return fmtBR(iso);
+  }catch(e){ return ''; }
+}
+/* ===== o cartão de uma lista =====
+   O de hoje em cima e datado, o dos dias anteriores recolhido, o que falta na
+   frente. O cartão vira o registro do dia, não o histórico do projeto. */
+const _dobras={};
+function toggleDobra(id){ _dobras[id]=!_dobras[id]; render(); }
+function listaHTML(t){
+  const idx=t.subs.map((s,i)=>({s,i}));
+  const hoje=idx.filter(x=>x.s.done && x.s.dt===cur);
+  const antes=idx.filter(x=>x.s.done && x.s.dt!==cur);
+  const abertos=idx.filter(x=>!x.s.done);
+  let o='';
+  if(hoje.length){
+    o+='<div class="hojebox"><div class="hl">hoje</div><div class="subs">'+
+       hoje.map(x=>subHTML(t,x.s,x.i)).join('')+'</div></div>';
+  }
+  if(antes.length){
+    const ab=!!_dobras[t.id];
+    o+='<div class="dobra'+(ab?' aberta':'')+'" onclick="event.stopPropagation();toggleDobra(\''+t.id+'\')">'+
+       '<span class="seta">▸</span>'+antes.length+' feito'+(antes.length>1?'s':'')+' antes</div>';
+    if(ab) o+='<div class="subs">'+antes.map(x=>subHTML(t,x.s,x.i)).join('')+'</div>';
+  }
+  if(abertos.length) o+='<div class="subs">'+abertos.map(x=>subHTML(t,x.s,x.i)).join('')+'</div>';
+  return o;
+}
+
 /* ===== a barra anda com o microfeito =====
    pc vem da FRACAO quando ela e passada (3/10 numa subtarefa move a barra),
    e a contagem d/tot continua sendo subtarefas FECHADAS.
@@ -1679,10 +1887,10 @@ function toggleDone(id){ const t=findTask(id);
   /* marcar enche ate o alvo, desmarcar zera — o mesmo par das subtarefas.
      Sem isso o contador ficava cheio com a tarefa pendente. */
   if(t.status==='done'){ t.status='pend';
-    if(t.subs)t.subs.forEach(s=>{ s.done=false; if(s.qm>0)s.q=0; });
+    if(t.subs)t.subs.forEach(s=>{ s.done=false; delete s.dt; if(s.qm>0)s.q=0; });
     if(t.cota)t.cota[0]=0; }
   else{ t.status='done';
-    if(t.subs)t.subs.forEach(s=>{ s.done=true; if(s.qm>0)s.q=s.qm; }); if(t.goals)for(const k in t.goals)t.goals[k][0]=t.goals[k][1]; if(t.cota)t.cota[0]=t.cota[1]; flashFx(); }
+    if(t.subs)t.subs.forEach(s=>{ s.done=true; if(!s.dt)s.dt=cur; if(s.qm>0)s.q=s.qm; }); if(t.goals)for(const k in t.goals)t.goals[k][0]=t.goals[k][1]; if(t.cota)t.cota[0]=t.cota[1]; flashFx(); }
   render();
 }
 let _subTid=null, _subAnim='';
@@ -1715,6 +1923,9 @@ function subQtd(id,i,d){
 }
 function subDel(id,i){ const t=findTask(id); t.subs.splice(i,1); if(!t.subs.length)delete t.subs; render(); }
 function subTog(id,i){ const t=findTask(id); const s=t.subs[i]; s.done=!s.done;
+  /* a data do dia em que foi marcado — e o que deixa o cartao mostrar "hoje"
+     separado do que ja estava feito, e o que faz o % do dia ser do dia */
+  if(s.done) s.dt=cur; else delete s.dt;
   /* com quantidade, marcar enche ate o alvo e desmarcar zera — o mesmo que
      "concluir tarefa" ja faz com as metas. Sem isso o quadradinho diria
      "feito" com o numero dizendo 3/10. */
@@ -1838,15 +2049,17 @@ function openAdd(catId){
   const _c = (catId==='__fds'||catId==='__sem') ? catId : (catId||CATS[0].id);
   showForm({ cat: _c, semCat: !!catId });
 }
-let _formParaFDS=false, _formParaSem=false;
+let _formParaFDS=false, _formParaSem=false, formLista=false;
 function editTask(id){ editing=id; showForm(findTask(id)); }
 function showForm(t){
   formCat = (t.cat==='__fds'||t.cat==='__sem') ? null : (t.cat||(CATS[0]&&CATS[0].id)||null); formPrio=t.prio||null;
+  setTimeout(attSetasRows,0);   /* as pontas da coluna de setas, quando a folha já existe */
   formRecur = t.rec ? JSON.parse(JSON.stringify(t.rec)) : {type:'none',days:[],dom:20,date:''};
   /* so vale data ainda a frente: agendamento vencido ja virou tarefa do dia */
   const _ag = isoFromSched(t.sched);
   formSched = (_ag && _ag >= todayISO()) ? _ag : '';
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
+  formLista = !!t.lista;
   /* sem o seletor, o titulo e quem diz onde a tarefa vai cair */
   const _dest = t.semCat ? (t.cat==='__fds' ? ' no fim de semana'
                : t.cat==='__sem' ? ' pra semana'
@@ -1865,7 +2078,12 @@ function showForm(t){
       <div class="dica">A tarefa vira um contador <b>− 0/5 +</b> e anda no percentual do dia a cada toque, sem precisar estar concluída.</div></div>
     <div class="field"><label>Subtarefas (opcional)</label>
       <div id="subRows">${subRows}</div>
-      <button type="button" class="cadd" style="margin-top:2px" onclick="addSubRow()">+ subtarefa</button></div>
+      <button type="button" class="cadd" style="margin-top:2px" onclick="addSubRow()">+ subtarefa</button>
+      <div class="listabox ${t.lista?'on':''}" id="listaBox" onclick="toggleListaForm()">
+        <span class="lbck"></span>
+        <span class="lbtx"><b>É uma lista que atravessa os dias</b>
+        <em>Os itens não têm dia certo nem ordem. O dia conta como cumprido quando você marca pelo menos um — e o cartão mostra o de hoje separado do que já foi.</em></span>
+      </div></div>
     <div class="field"><label>Agendar</label>
       <button type="button" class="recbtn" onclick="abreAgenda()">
         <span class="agic">${svgIc('cal')}</span><span id="agTxt">${agTexto()}</span>
@@ -2008,13 +2226,38 @@ function quickAddCat(){ const row=document.getElementById('catrow'); if(!row)ret
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); commit(); } else if(e.key==='Escape'){ done=true; refreshCatrow(); } });
   inp.addEventListener('blur',()=>commit());
 }
+/* a linha de subtarefa no formulário: campo, setas, quantidade e ✕.
+   As setas mexem no DOM direto (estas linhas não passam pelo render). */
 function subRowHtml(val,qm){ return `<div class="subrow" style="display:flex;gap:8px;margin-bottom:6px">
     <input class="subin" value="${escapeAttr(val||'')}" placeholder="ex.: Garrafa 1" style="flex:1;min-width:0">
+    <span class="mv">
+      <button type="button" class="mvb" onclick="moveRow(this,-1)" aria-label="Mover pra cima">▲</button>
+      <button type="button" class="mvb" onclick="moveRow(this,1)" aria-label="Mover pra baixo">▼</button></span>
     <input class="subqm" type="number" inputmode="numeric" min="1" value="${qm>0?qm:''}" placeholder="qtd" title="Quantidade (opcional)" style="width:62px;flex-shrink:0;text-align:center">
-    <button type="button" onclick="this.parentNode.remove()" style="width:40px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);color:var(--canc);border-radius:9px;font-size:15px;cursor:pointer">✕</button></div>`; }
+    <button type="button" onclick="delRow(this)" style="width:40px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);color:var(--canc);border-radius:9px;font-size:15px;cursor:pointer">✕</button></div>`; }
+function linhasSub(){ return [...document.querySelectorAll('#subRows .subrow')]; }
+/* a primeira não sobe e a última não desce: desabilitadas, não escondidas,
+   pra coluna não mudar de largura de uma linha pra outra */
+function attSetasRows(){ const r=linhasSub();
+  r.forEach((row,i)=>{ const b=row.querySelectorAll('.mvb');
+    if(b[0])b[0].disabled=(i===0); if(b[1])b[1].disabled=(i===r.length-1); }); }
+function moveRow(bt,dir){
+  const row=bt.closest('.subrow'); if(!row) return;
+  const alvo = dir<0 ? row.previousElementSibling : row.nextElementSibling;
+  if(!alvo || !alvo.classList.contains('subrow')) return;
+  if(dir<0) row.parentNode.insertBefore(row,alvo); else row.parentNode.insertBefore(alvo,row);
+  attSetasRows();
+  try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
+}
+function delRow(bt){ const row=bt.closest('.subrow'); if(row) row.remove(); attSetasRows(); }
 function addSubRow(){ const c=document.getElementById('subRows'); c.insertAdjacentHTML('beforeend', subRowHtml(''));
   const rows=c.querySelectorAll('.subrow'); const last=rows[rows.length-1]; last.classList.add('new');
+  attSetasRows();
   const inp=last.querySelector('.subin'); if(inp)inp.focus(); }
+/* o interruptor de lista, no próprio bloco de subtarefas */
+function toggleListaForm(){ formLista=!formLista;
+  const b=document.getElementById('listaBox'); if(b) b.classList.toggle('on', formLista); }
+
 function pickPrio(el){ formPrio=el.dataset.p||null; el.parentNode.querySelectorAll('.popt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
 function saveForm(){
   const title=document.getElementById('fTitle').value.trim(); if(!title){ uiAlert('Escreva o que fazer.'); return; }
@@ -2033,18 +2276,23 @@ function saveForm(){
         const o={label:ns.label,done:old?old.done:false};
         /* o alvo vem do formulario; o quanto ja foi contado sobrevive a edicao */
         if(ns.qm>0){ o.qm=ns.qm; o.q=Math.min(ns.qm, (old&&old.q)||0); o.done=(o.q>=o.qm); }
+        /* o dia em que o item foi marcado sobrevive à edição da tarefa:
+           sem isto, mexer no título de um item apagaria o registro do dia */
+        if(old&&old.dt&&o.done) o.dt=old.dt;
         return o; }); }
     else delete t.subs;
+    if(formLista && t.subs && t.subs.length) t.lista=true; else delete t.lista;
     aplicaAgenda(t); aplicaQtd(t);
     syncRecurring(t); }
   else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr;
+    if(formLista && subs.length) t.lista=true;
     aplicaAgenda(t); aplicaQtd(t);
     if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
       t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
     else if(_formParaSem){ const S=sem(); if(!S.ciclo) S.ciclo=segundaISO(cur);
       t.semDesde = segundaISO(cur); S.itens.push(t); }
     else { day().tasks.push(t); syncRecurring(t); } }
-  _formParaFDS=false; _formParaSem=false;
+  _formParaFDS=false; _formParaSem=false; formLista=false;
   editing=null; formSched=''; closeSheet(); render();
 }
 /* a quantidade vira a cota da tarefa. O quanto ja foi contado sobrevive a
@@ -2388,6 +2636,8 @@ function tecEstado(){ try{ const e = localStorage.getItem('apps-teclado');
 function tecEscolha(){ return tecEstado() === 'nao' ? 'aparelho' : 'app'; }
 function pintaPrefs(){
   const a = document.getElementById('prefTec'); if(a) a.textContent = TEC_ROT[tecEstado()];
+  const r = document.getElementById('prefReord');
+  if(r) r.textContent = _reord ? 'ligado — toque pra concluir' : 'tarefas e itens';
   const b = document.getElementById('prefSom');
   const on = (typeof somLigado === 'function') ? somLigado() : true;
   if(b) b.textContent = on ? 'ligado' : 'desligado';
@@ -2633,6 +2883,7 @@ function dayFrac(t,iso){
   if(t.rec && !recFiresOn(t.rec,iso)) return null;
   if(t.goals){ let d=0,tot=0; for(const k in t.goals){ d+=t.goals[k][0]; tot+=t.goals[k][1]; } return tot?d/tot:0; }
   if(t.cota){ return t.cota[1]? t.cota[0]/t.cota[1] : 0; }
+  if(t.lista && t.subs && t.subs.length) return t.subs.some(s=>s.done&&s.dt===iso) ? 1 : 0;
   if(t.subs&&t.subs.length){ const dd=t.subs.filter(s=>s.done).length; return dd/t.subs.length; }
   return t.status==='done'?1:0;
 }
