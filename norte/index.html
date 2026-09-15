@@ -326,6 +326,13 @@
   .secttl{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#c7ced3; margin:2px 0 12px; }
   /* tarefa cuja categoria foi apagada: aparece, em vez de sumir contando */
   .orfa-aviso{ font-size:12px; color:var(--mut); margin:-2px 0 9px 2px; line-height:1.45; }
+  /* a categoria de origem, na Semana: forma de chip, cor só no ponto */
+  .catchip{ display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:800;
+            letter-spacing:.5px; text-transform:uppercase; padding:4px 9px; border-radius:20px;
+            margin:0 5px 0 0; vertical-align:1px; line-height:14px;
+            background:var(--panel2); color:var(--mut2); border:1px solid var(--line); }
+  .catchip .cdot2{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
   /* ===== lista que atravessa os dias =====
      A tarefa continua sendo do dia; o que muda e que ela dura a semana. Por
      isso o cartao separa o que foi feito HOJE do que ficou pra tras: ele e o
@@ -1104,7 +1111,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v97';
+const VERSAO = 'v98';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1739,8 +1746,9 @@ function trazerDaSemana(id){
   save(); render();
 }
 function abreDiaDaSemana(iso){
+  if(!DB.days[iso]) DB.days[iso]=criaPorNavegacao(iso);
+  else resolvePrevia(iso);
   cur=iso; switchView('dia');
-  if(!DB.days[iso]) buildNewDay(iso);
   render(); window.scrollTo(0,0);
 }
 
@@ -1796,6 +1804,14 @@ function renderSemana(){
     const c={id:'__sem', name:'Semana', color:'var(--accent)'};
     ts.forEach(t=>{
       const el=itemEl(t,c);
+      /* de onde ela veio: tarefa criada direto na semana nao tem categoria e
+         fica sem a pastilha — "Atribuir categoria" no menu resolve */
+      const origem=CATS.find(x=>x.id===t.cat);
+      if(origem){
+        const ch=document.createElement('span'); ch.className='catchip';
+        ch.innerHTML='<span class="cdot2" style="background:'+origem.color+'"></span>'+escapeHtml(origem.name);
+        const alvo=el.querySelector('.t'); if(alvo) alvo.appendChild(ch);
+      }
       const esp=semEspera(t);
       if(esp>0){
         const tag=document.createElement('span'); tag.className='sem-tag';
