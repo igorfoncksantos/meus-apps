@@ -1104,7 +1104,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v96';
+const VERSAO = 'v97';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1951,6 +1951,7 @@ function openActions(id){ const t=findTask(id);
     [svgIc('cal'),'Agendar (data)',`schedTask('${id}')`],
     t.status==='adiado'?[svgIc('play'),'Retomar',`setStatus('${id}','pend')`]:[svgIc('pause'),'Adiar',`setStatus('${id}','adiado')`],
     t.status==='canc'?[svgIc('rotate'),'Reativar',`setStatus('${id}','pend')`]:[svgIc('x'),'Cancelar',`setStatus('${id}','canc')`],
+    [svgIc('tag'),'Atribuir categoria',`atribuirCat('${id}')`],
     [svgIc('pen'),'Editar',`editTask('${id}')`],
     [svgIc('trash'),'Apagar',`delTask('${id}')`,'del'],
   ];
@@ -1968,6 +1969,37 @@ function openActions(id){ const t=findTask(id);
        closeSheet() depois mataria justamente a folha recem-aberta */
     acts.map(a=>`<button class="${a[3]||''}" onclick="closeSheet();${a[2]}"><span class="ic">${a[0]}</span>${a[1]}</button>`).join('')+
     `</div><div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>`);
+}
+/* ===== atribuir categoria =====
+   Usa a pastilha do formulário (.catopt), pra escolher categoria ser a mesma
+   coisa nos dois lugares. A atual vem marcada: a folha diz onde a tarefa está,
+   não só pra onde ela pode ir. */
+function atribuirCat(id){
+  const t=findTask(id); if(!t) return;
+  if(!CATS.length){
+    sheet('<h3>Atribuir categoria</h3>'+
+      '<div class="fds-sh">Você ainda não tem categorias. Crie uma e ela aparece aqui.</div>'+
+      '<div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button>'+
+      '<button class="btn-primary" onclick="closeSheet();openCats()">Criar categoria</button></div>');
+    return;
+  }
+  const atual = CATS.find(c=>c.id===t.cat);
+  sheet('<h3>Atribuir categoria</h3>'+
+    '<div class="fds-sh">'+(atual ? 'Agora em <b>'+escapeHtml(atual.name)+'</b>.' :
+      'Esta tarefa está <b>sem categoria</b>.')+' Toque na que ela deve pertencer.</div>'+
+    '<div class="catrow">'+ CATS.map(c=>
+      '<div class="catopt '+(t.cat===c.id?'sel':'')+'" onclick="setCat(\''+id+'\',\''+c.id+'\')">'+
+      '<span class="dot" style="background:'+c.color+'"></span>'+escapeHtml(c.name)+'</div>').join('')+
+    '</div>'+
+    '<div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>');
+}
+function setCat(id,cid){
+  const t=findTask(id); if(!t) return;
+  t.cat=cid;
+  /* tarefa recorrente guarda a categoria no registro dela: sem isto, amanhã a
+     cópia voltaria na categoria antiga e pareceria que a troca não pegou */
+  if(t.rid) syncRecurring(t);
+  closeSheet(); render();
 }
 function setStatus(id,s){ const t=findTask(id); t.status=s; if(s==='done')flashFx(); render(); }
 function setPrio(id,p){ findTask(id).prio=p; render(); }
