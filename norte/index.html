@@ -326,13 +326,6 @@
   .secttl{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#c7ced3; margin:2px 0 12px; }
   /* tarefa cuja categoria foi apagada: aparece, em vez de sumir contando */
   .orfa-aviso{ font-size:12px; color:var(--mut); margin:-2px 0 9px 2px; line-height:1.45; }
-  /* a categoria de origem, na Semana: forma de chip, cor só no ponto */
-  .catchip{ display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:800;
-            letter-spacing:.5px; text-transform:uppercase; padding:4px 9px; border-radius:20px;
-            margin:0 5px 0 0; vertical-align:1px; line-height:14px;
-            background:var(--panel2); color:var(--mut2); border:1px solid var(--line); }
-  .catchip .cdot2{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-
   /* ===== lista que atravessa os dias =====
      A tarefa continua sendo do dia; o que muda e que ela dura a semana. Por
      isso o cartao separa o que foi feito HOJE do que ficou pra tras: ele e o
@@ -1111,7 +1104,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v98';
+const VERSAO = 'v99';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1798,27 +1791,16 @@ function renderSemana(){
       '<div class="d">Coisas que precisam acontecer até sexta, mas não têm dia certo.</div>'+
       '<button class="navbtn" style="background:var(--accent);color:var(--onacc);border:none;padding:0 16px" onclick="openAdd(\'__sem\')">+ Nova tarefa da semana</button></div>';
   } else {
-    /* cor unica: a semana e uma categoria, e a cor E a categoria — a tarefa
-       aqui saiu da lista do dia, vestir a cor antiga insinuaria uma filiacao
-       que ja nao opera (mesma regra do fim de semana). */
-    const c={id:'__sem', name:'Semana', color:'var(--accent)'};
-    ts.forEach(t=>{
-      const el=itemEl(t,c);
-      /* de onde ela veio: tarefa criada direto na semana nao tem categoria e
-         fica sem a pastilha — "Atribuir categoria" no menu resolve */
-      const origem=CATS.find(x=>x.id===t.cat);
-      if(origem){
-        const ch=document.createElement('span'); ch.className='catchip';
-        ch.innerHTML='<span class="cdot2" style="background:'+origem.color+'"></span>'+escapeHtml(origem.name);
-        const alvo=el.querySelector('.t'); if(alvo) alvo.appendChild(ch);
+    pintaPorCategoria(lista, ts, {
+      aba:'sem', rotuloSolto:'Sem categoria', corSolta:'var(--accent)',
+      extra:function(el,t){
+        const esp=semEspera(t);
+        if(esp>0){
+          const tag=document.createElement('span'); tag.className='sem-tag';
+          tag.textContent='há '+esp+(esp>1?' semanas':' semana');
+          (el.querySelector('.meio')||el).appendChild(tag);
+        }
       }
-      const esp=semEspera(t);
-      if(esp>0){
-        const tag=document.createElement('span'); tag.className='sem-tag';
-        tag.textContent='há '+esp+(esp>1?' semanas':' semana');
-        (el.querySelector('.meio')||el).appendChild(tag);
-      }
-      lista.appendChild(el);
     });
     const b=document.createElement('button');
     b.className='semadd';
@@ -1827,6 +1809,45 @@ function renderSemana(){
     lista.appendChild(b);
   }
   pintaBarras();
+}
+
+/* ===== o modelo do Dia nas abas de periodo =====
+   Mesma estrutura de la: um cabecalho por categoria (barra na cor + nome +
+   "+ tarefa") e o cartao vestindo a cor dela. O que nasceu direto na aba nao
+   tem categoria e fica num grupo proprio, com a cor da aba — assim ninguem
+   some, e "Atribuir categoria" no menu move pra onde deve. */
+function grupoCab(c, onAdd){
+  const div=document.createElement('div'); div.className='cat';
+  div.innerHTML='<div class="chead"><span class="cbar" style="background:'+c.color+';box-shadow:0 0 8px '+c.color+'99"></span>'+
+    '<span class="cname">'+escapeHtml(c.name)+'</span>'+
+    '<button class="cadd" onclick="'+onAdd+'">+ tarefa</button></div>';
+  return div;
+}
+function pintaPorCategoria(lista, ts, ctx){
+  const porCat={}, soltas=[];
+  ts.forEach(function(t){
+    const c=CATS.find(function(x){ return x.id===t.cat; });
+    if(c){ (porCat[c.id]=porCat[c.id]||[]).push(t); } else soltas.push(t);
+  });
+  CATS.forEach(function(c){
+    const arr=porCat[c.id]; if(!arr||!arr.length) return;
+    const div=grupoCab(c, "openAddEm('"+ctx.aba+"','"+c.id+"')");
+    arr.forEach(function(t){ const el=itemEl(t,c); if(ctx.extra) ctx.extra(el,t); div.appendChild(el); });
+    lista.appendChild(div);
+  });
+  if(soltas.length){
+    const c={ id:'__'+ctx.aba, name:ctx.rotuloSolto, color:ctx.corSolta };
+    const div=grupoCab(c, "openAdd('__"+ctx.aba+"')");
+    soltas.forEach(function(t){ const el=itemEl(t,c); if(ctx.extra) ctx.extra(el,t); div.appendChild(el); });
+    lista.appendChild(div);
+  }
+}
+/* "+ tarefa" de dentro de uma categoria, numa aba de periodo: a tarefa nasce
+   NA ABA e ja com a categoria — sem isso o botao criaria no dia. */
+function openAddEm(aba, catId){
+  editing=null;
+  _formParaFDS=(aba==='fds'); _formParaSem=(aba==='sem');
+  showForm({ cat:catId, semCat:true });
 }
 
 /* ---- a aba do fim de semana: a mesma ideia da Semana, outro periodo ---- */
@@ -1875,16 +1896,16 @@ function renderFDS(){
       '<div class="d">O que você mandar pra cá sai da lista do dia e volta no sábado.</div>'+
       '<button class="semadd" onclick="openAdd(\'__fds\')">+ Nova tarefa do fim de semana</button></div>';
   } else {
-    const c={id:'__fds', name:'Fim de semana', color:'var(--fdsc)'};
-    ts.forEach(function(t){
-      const el=itemEl(t,c);
-      const esp=fdsEspera(t);
-      if(esp>0){
-        const tag=document.createElement('span'); tag.className='fds-tag';
-        tag.textContent='há '+esp+(esp>1?' fins de semana':' fim de semana');
-        (el.querySelector('.meio')||el).appendChild(tag);
+    pintaPorCategoria(lista, ts, {
+      aba:'fds', rotuloSolto:'Sem categoria', corSolta:'var(--fdsc)',
+      extra:function(el,t){
+        const esp=fdsEspera(t);
+        if(esp>0){
+          const tag=document.createElement('span'); tag.className='fds-tag';
+          tag.textContent='há '+esp+(esp>1?' fins de semana':' fim de semana');
+          (el.querySelector('.meio')||el).appendChild(tag);
+        }
       }
-      lista.appendChild(el);
     });
     const b=document.createElement('button');
     b.className='semadd'; b.textContent='+ tarefa do fim de semana';
@@ -2109,9 +2130,12 @@ function showForm(t){
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
   formLista = !!t.lista;
   /* sem o seletor, o titulo e quem diz onde a tarefa vai cair */
+  const _nomeCat = ((CATS.find(c=>c.id===t.cat)||{}).name||'');
   const _dest = t.semCat ? (t.cat==='__fds' ? ' no fim de semana'
                : t.cat==='__sem' ? ' pra semana'
-               : ' em '+((CATS.find(c=>c.id===t.cat)||{}).name||'')) : '';
+               : (_formParaFDS ? ' em '+_nomeCat+' · fim de semana'
+                 : _formParaSem ? ' em '+_nomeCat+' · semana'
+                 : ' em '+_nomeCat)) : '';
   sheet(`<h3>${editing?'Editar tarefa':'Nova tarefa'+_dest}</h3>
     ${t.semCat ? '' : '<div class="field"><label>Categoria</label><div class="catrow" id="catrow"></div></div>'}
     <div class="field"><label>O que fazer</label><div class="linhamic"><input id="fTitle" value="${escapeAttr(t.title||'')}" placeholder="ex.: Editar 1 reel">${micHTML("fTitle")}</div></div>
