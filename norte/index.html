@@ -947,7 +947,7 @@
 
   /* ---- a semana: a lista que vale de segunda a sexta ---- */
   .semview{ padding:0; }
-  .semwrap{ max-width:520px; margin:0 auto;
+  .semwrap{ max-width:820px; margin:0 auto;
             padding:18px 14px calc(104px + env(safe-area-inset-bottom)); }
   .semtopo{ display:flex; align-items:baseline; gap:8px; margin-bottom:2px; }
   .semtopo h2{ margin:0; font-size:18px; font-weight:800; letter-spacing:-.3px; }
@@ -1079,7 +1079,7 @@
 
 <footer id="footer">Norte · toque no quadradinho pra concluir · toque na tag pra ações.</footer>
 
-<button class="fab" onclick="openAdd()" data-ic="plus"></button>
+<button class="fab" onclick="fabAdd()" data-ic="plus"></button>
 
 <div id="progView" class="progview hidden"></div>
 <!-- o Feito, inteiro, dentro do Norte. Mesma origem: o dado e o mesmo do app solto. -->
@@ -1104,7 +1104,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v99';
+const VERSAO = 'v100';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2111,6 +2111,13 @@ async function delTask(id){ const t=findTask(id); if(!t)return;
 
 /* ---- add / edit ---- */
 let editing=null;
+/* o + decide o destino pela aba aberta: no Dia cria tarefa do dia, na
+   Semana cria na semana, no fim de semana cai no balde do fds */
+function fabAdd(){
+  if(_view==='semana') return openAdd('__sem');
+  if(_view==='fds')    return openAdd('__fds');
+  openAdd();
+}
 function openAdd(catId){
   if(catId!=='__fds' && catId!=='__sem' && !CATS.length){ uiAlert('Crie uma categoria primeiro.'); openCats(); return; }
   editing=null; _formParaFDS = (catId==='__fds'); _formParaSem = (catId==='__sem');
@@ -2940,8 +2947,8 @@ function switchView(v){ _view=v;
   lv.classList.toggle('hidden', v!=='listas');
   const sv=document.getElementById('semView'); if(sv) sv.classList.toggle('hidden', v!=='semana');
   const fv=document.getElementById('fdsView'); if(fv) fv.classList.toggle('hidden', v!=='fds');
-  /* o + e do dia: nas outras abas ele nao tem o que criar */
-  if(fab) fab.style.display = (v==='dia') ? '' : 'none';
+  /* o + vale onde existe tarefa pra criar; em Progresso e Listas, nao */
+  if(fab) fab.style.display = (v==='dia'||v==='semana'||v==='fds') ? '' : 'none';
   if(v==='prog'){ renderProgress(); pv.scrollTop=0; }
   if(v==='semana'){ renderSemana(); document.getElementById('semView').scrollTop=0; }
   if(v==='fds'){ renderFDS(); document.getElementById('fdsView').scrollTop=0; }
