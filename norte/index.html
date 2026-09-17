@@ -325,6 +325,11 @@
     .tbin .navbtn.today{ font-size:13px; padding:0 9px; }
   }
   .datepill{ flex:1; text-align:center; font-size:13px; font-weight:700; color:var(--mut2); }
+  /* MEDIDO em 390px: sobram 59px na barra, entao a data cabe numa linha. O
+     piso de 375px existe porque abaixo dele o espaco aperta de verdade e o
+     ultimo botao comecaria a ser cortado — foi o que me fez descartar isso
+     em 27/07, quando eu ainda nao tinha a medida. */
+  @media (min-width:375px){ .datepill{ white-space:nowrap; } }
   .menu-wrap{ position:relative; }
   .menu{ position:absolute; right:0; top:48px; z-index:40; min-width:272px; padding:7px;
          background:rgba(18,21,25,.97); border:1px solid var(--line); border-radius:16px;
@@ -353,7 +358,7 @@
   header h1{ font-size:22px; color:#fff; margin-top:5px; font-weight:700; }
 
   .bar{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
-  .bar .count{ font-size:12px; color:var(--txt); font-weight:600; }
+  .bar .count{ font-size:13px; color:var(--txt); font-weight:600; }
   .track{ flex:1; height:12px; background:#1c1f22; border-radius:20px; overflow:hidden; }
   .fill{ height:100%; background:var(--green); border-radius:20px; transition:width .4s cubic-bezier(.4,1.3,.5,1); }
 
@@ -431,6 +436,12 @@
   .subrow .mv{ flex-direction:column; }
   .subrow .mv .mvb{ width:26px; height:17px; }
   .ordbt{ margin-left:auto; font-size:11px; color:var(--accent); font-weight:800; cursor:pointer; }
+  /* area de toque de 40px sem mudar nada de tamanho aos olhos: o ::before e
+     invisivel e cresce pra fora. Mesma receita do quadradinho em 28/08. */
+  .ordbt,.secttl span,.subadd,.cat .cname{ position:relative; }
+  .ordbt::before,.secttl span::before,.subadd::before,.cat .cname::before{
+    content:""; position:absolute; left:0; right:0; top:50%; height:40px;
+    transform:translateY(-50%); }
 
   /* ===== subtarefa com quantidade (layout A) =====
      O rotulo precisa de min-width:0 pra encolher: sem isso o contador
@@ -622,7 +633,7 @@
   .sub.sdone .sbox{ background:var(--green); border-color:var(--green); position:relative; }
   .sub.sdone .sbox::after{ content:"✓"; color:#05130b; font-size:10px; font-weight:800; position:absolute; top:-2px; left:2px; }
   .sub.sdone{ color:var(--mut); }
-  .sub .subdel{ margin-left:auto; color:var(--mut); font-size:12px; padding:0 4px; }
+  .sub .subdel{ margin-left:auto; color:var(--mut); font-size:13px; padding:0 4px; }
   .subadd{ display:inline-block; margin-top:9px; font-size:11px; font-weight:700; color:#6a8c85;
            border:1px dashed #2c4a45; border-radius:7px; padding:5px 11px; cursor:pointer; }
   .subadd:active{ transform:scale(.95); }
@@ -651,7 +662,8 @@
   .gitem .gfill{ height:100%; background:var(--accent); border-radius:20px; transition:width .3s; }
   .gr .gnum{ flex:1; text-align:center; font-size:11px; font-weight:700; color:var(--txt); font-variant-numeric:tabular-nums; }
   .gbtn{ width:26px; height:26px; flex-shrink:0; border-radius:7px; border:1px solid #2a3238; background:#141a1e;
-         color:var(--accent); font-size:16px; font-weight:800; cursor:pointer; line-height:1; }
+        /* 15px: o 16 era o unico uso desse degrau na tela toda */
+         color:var(--accent); font-size:15px; font-weight:800; cursor:pointer; line-height:1; }
   .gbtn:active{ transform:scale(.86); }
 
   /* Patrick Hand embutida: a de antes (Segoe Print) so existe no Windows, e
@@ -995,7 +1007,7 @@
 
   /* ícones SVG minimalistas */
   .navbtn svg{ width:19px; height:19px; }
-  .navbtn.today{ font-size:14px; }
+  .navbtn.today{ font-size:13px; }
   .fab svg{ width:26px; height:26px; stroke-width:2.4; }
   .mi svg{ width:17px; height:17px; stroke:var(--accent); }
   .menu .mdel .mi svg{ stroke:#ff6b7a; }
@@ -1013,8 +1025,10 @@
 
   /* ---- a semana: a lista que vale de segunda a sexta ---- */
   .semview{ padding:0; }
+  /* 12px, o mesmo respiro do corpo do app: com 14 a Semana e o FDS ficavam
+     2px a direita do Dia, e a tela deslocava ao trocar de aba. */
   .semwrap{ max-width:820px; margin:0 auto;
-            padding:18px 14px calc(104px + env(safe-area-inset-bottom)); }
+            padding:18px 12px calc(104px + env(safe-area-inset-bottom)); }
   .semtopo{ display:flex; align-items:baseline; gap:8px; margin-bottom:2px; }
   .semtopo h2{ margin:0; font-size:18px; font-weight:800; letter-spacing:-.3px; }
   .semtopo .faixa{ margin-left:auto; font-size:11px; color:var(--mut2); font-weight:600; }
@@ -1169,7 +1183,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v105';
+const VERSAO = 'v106';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
