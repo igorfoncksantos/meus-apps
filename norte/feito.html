@@ -638,7 +638,13 @@
      Feito solto (640) — era a unica aba que tinha ficado estreita. A pilula
      de acoes continua em 560: ela flutua centralizada, e alargar so esticaria
      os botoes. */
-  body{ max-width:820px !important; }
+  body{ max-width:820px !important;
+        /* o respiro de baixo conta a nav do Norte (88px) alem da propria
+           barra de acoes — senao o ultimo item da lista fica embaixo delas */
+        padding-bottom:calc(200px + env(safe-area-inset-bottom)) !important; }
+  /* a barra de acoes flutua ACIMA da nav do Norte. E ela que sobe, nao a aba:
+     encurtar a aba abria uma fresta com o Meu Dia aparecendo por tras. */
+  .acoes{ bottom:calc(99px + env(safe-area-inset-bottom)) !important; }
 </style>
 </head>
 <body>
