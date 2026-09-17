@@ -1183,7 +1183,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v106';
+const VERSAO = 'v107';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1233,7 +1233,12 @@ function openCats(){ closeMenu();
     <div class="field"><label>Cor</label><div class="swatches" id="ncSw">${swatchesHtml()}</div></div>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button><button class="btn-primary" onclick="addCat()">+ Adicionar</button></div>`);
 }
-const PALETTE = ['#3EE6A0','#25E0DA','#38A8FF','#7C8CFF','#C874FF','#FF6BC0','#FF5D73','#FF9142','#FFC24A','#FFE24A','#9BF24A','#B0B8C4','#FFFFFF','#000000'];
+/* as 12 primeiras nasceram pro tema Escuro (brilham a 11:1 la, mas somem a
+   1,4-2,6:1 no creme do Miri). As cinco terrosas do fim passam de 3:1 nos
+   dois — sao a familia que o Miri pedia, e nao estragam nenhum outro tema. */
+const PALETTE = ['#3EE6A0','#25E0DA','#38A8FF','#7C8CFF','#C874FF','#FF6BC0','#FF5D73','#FF9142','#FFC24A','#FFE24A','#9BF24A',
+                 '#B5533A','#A8761C','#5F7A4A','#3E6B7A','#8B5570',
+                 '#B0B8C4','#FFFFFF','#000000'];
 function palette(){ const t=document.documentElement.getAttribute('data-theme')||'dark';
   return (t==='dark'||t==='neon'||t==='hud') ? PALETTE.filter(c=>c!=='#000000') : PALETTE.filter(c=>c!=='#FFFFFF'); }
 let ncColorSel = PALETTE[0];
