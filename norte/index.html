@@ -145,7 +145,10 @@
   [data-theme="miri"] .box{ border-color:#C7B7A2; }
   [data-theme="miri"] .sub{ color:#6E6656; }
   [data-theme="miri"] .sub .sbox{ border-color:#C7B7A2; }
-  [data-theme="miri"] .legend{ background:#F3EFE5; }
+  /* sem caixa em volta: no Escuro, Neon e HUD ela ja e transparente, e a
+     largura cheia deixava 451px de creme vazio ao lado dos chips. Soltos,
+     eles viram pastilhas sobre o taupe — como os botoes do mes no Daybook. */
+  [data-theme="miri"] .legend{ background:transparent; }
   [data-theme="miri"] .goals-box{ background:#f6efe1; border-color:#e2d3bb; }
   [data-theme="miri"] .gbtn{ background:#E4DCCB; color:#4A443A; }
   [data-theme="miri"] .subadd{ color:#5E574A; border-color:#C5BCA6; }
@@ -365,7 +368,7 @@
   .legend .ci .cdot{ width:11px; height:11px; border-radius:50%; }
   .legend .ci.add{ color:var(--accent); font-weight:800; }
   [data-theme="light"] .legend .ci{ background:#fff; border-color:rgba(0,0,0,.10); }
-  [data-theme="miri"] .legend .ci{ background:#EDE7DB; border-color:rgba(52,48,40,.14); }
+  [data-theme="miri"] .legend .ci{ background:#F3EFE5; border-color:rgba(52,48,40,.16); }
   [data-theme="light"] .legend .ci.on,[data-theme="miri"] .legend .ci.on{ border-color:var(--accent); }
 
   .secttl{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#c7ced3; margin:2px 0 12px; }
@@ -1166,7 +1169,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v104';
+const VERSAO = 'v105';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
