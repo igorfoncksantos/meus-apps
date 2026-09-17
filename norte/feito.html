@@ -632,12 +632,11 @@
   @supports (-webkit-touch-callout: none) {
     input, textarea, select { font-size: 16px !important; }
   }
-  /* embutido no Norte: quem manda no cabecalho e o app de fora */
+  /* ================= embutido no Norte ================= */
+  /* quem manda no cabecalho e o app de fora */
   header{ display:none !important; }
-  /* e uma ABA do Norte, entao usa a largura de leitura dele (820), nao a do
-     Feito solto (640) — era a unica aba que tinha ficado estreita. A pilula
-     de acoes continua em 560: ela flutua centralizada, e alargar so esticaria
-     os botoes. */
+  /* e uma ABA do Norte: a largura de leitura de la (820) vem do proprio
+     iframe; aqui o corpo so acompanha. */
   body{ max-width:820px !important;
         /* o respiro de baixo conta a nav do Norte (88px) alem da propria
            barra de acoes — senao o ultimo item da lista fica embaixo delas */
@@ -645,7 +644,67 @@
   /* a barra de acoes flutua ACIMA da nav do Norte. E ela que sobe, nao a aba:
      encurtar a aba abria uma fresta com o Meu Dia aparecendo por tras. */
   .acoes{ bottom:calc(99px + env(safe-area-inset-bottom)) !important; }
+  /* O FUNDO E DO NORTE. Sem isto, cada lado pinta o proprio degrade a partir
+     da propria borda e aparece uma emenda vertical nos 820 — e pior, o
+     Neon e o HUD (que desenham aurora e grade no body) ficariam presos
+     dentro da faixa. Transparente, o fundo atravessa a tela inteira. */
+  html,body{ background:transparent !important; }
+
+  /* ===== os cinco temas do Norte =====
+     Os nomes batem com os de la, entao o Feito so repete no data-theme o que
+     o Norte disser. O tema Escuro e o padrao e nao precisa de bloco. */
+  :root[data-theme="light"]{
+    --bg:#f4f5f7; --panel:#ffffff; --panel2:#f0f2f5; --line:#e4e7eb; --line2:#d6dae0;
+    --txt:#1a1d21; --txt2:#0f1216; --mut:#6b7278; --mut2:#7a828a;
+    --accent:#0E8C80; --acc-d:#0a6e64; --acc-l:#0b6f65; --acc-bd:#bcdfda;
+    --acc-bg:#e7f6f4; --onacc:#ffffff;
+    --green:#1f7a4d; --grn-l:#176040; --grn-bd:#b6e2c8; --grn-bg:#dff5e8; --ongrn:#ffffff;
+    --amber:#8a6d1e; --amb-l:#71581a; --amb-bd:#ecdca6; --amb-bg:#fdf3d9;
+    --red:#b83a44; --red-l:#932e36; --red-bd:#f0c0c4; --red-bg:#fbe0e2;
+    --violet:#6a55c0; --orange:#a8511a;
+    --lapis:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230E8C80' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+    --lapis-foco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b6f65' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  }
+  :root[data-theme="miri"]{
+    --bg:#F3EFE5; --panel:#FBF7EE; --panel2:#F7F2E9; --line:#E3D9C7; --line2:#D9CEBA;
+    --txt:#46423A; --txt2:#2f2b23; --mut:#7E7768; --mut2:#6E6656;
+    --accent:#b05c45; --acc-d:#944a35; --acc-l:#8c4531; --acc-bd:#E0C8BC;
+    --acc-bg:#F6EDE6; --onacc:#FBF7EE;
+    --green:#40774f; --grn-l:#345f40; --grn-bd:#C6DCC9; --grn-bg:#EAF2EA; --ongrn:#FBF7EE;
+    --amber:#8a6218; --amb-l:#735014; --amb-bd:#E6D6AE; --amb-bg:#F6EEDC;
+    --red:#a03c31; --red-l:#853027; --red-bd:#E5C4BC; --red-bg:#F7E6E1;
+    --violet:#635394; --orange:#a3552f;
+    --lapis:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b05c45' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+    --lapis-foco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c4531' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  }
+  :root[data-theme="neon"]{
+    --bg:#0a0f1c; --panel:rgba(255,255,255,.055); --panel2:rgba(255,255,255,.04); --line:rgba(255,255,255,.13); --line2:rgba(255,255,255,.2);
+    --txt:#e6f3f1; --txt2:#f3fbfa; --mut:#93b0bd; --mut2:#b2c9d2;
+    --accent:#2FD9C9; --acc-d:#1fb3a6; --acc-l:#8ee9df; --acc-bd:rgba(47,217,201,.42);
+    --acc-bg:rgba(47,217,201,.12); --onacc:#04131a;
+    --green:#22c55e; --grn-l:#7ee2b8; --grn-bd:rgba(34,197,94,.4); --grn-bg:rgba(34,197,94,.1); --ongrn:#04120a;
+    --amber:#FBBF24; --amb-l:#f0b45e; --amb-bd:rgba(251,191,36,.35); --amb-bg:rgba(251,191,36,.08);
+    --red:#f87171; --red-l:#f0a3b4; --red-bd:rgba(248,113,113,.35); --red-bg:rgba(248,113,113,.1);
+    --violet:#A78BFA; --orange:#F97316;
+    --lapis:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232FD9C9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+    --lapis-foco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238ee9df' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  }
+  :root[data-theme="hud"]{
+    --bg:#060f12; --panel:rgba(10,24,25,.8); --panel2:rgba(9,20,22,.72); --line:rgba(47,217,201,.22); --line2:rgba(47,217,201,.34);
+    --txt:#cfeeeb; --txt2:#eafffb; --mut:#6fb7ae; --mut2:#8fcfc7;
+    --accent:#2FD9C9; --acc-d:#1fb3a6; --acc-l:#8ee9df; --acc-bd:rgba(47,217,201,.4);
+    --acc-bg:rgba(47,217,201,.1); --onacc:#04131a;
+    --green:#22c55e; --grn-l:#7ee2b8; --grn-bd:rgba(34,197,94,.4); --grn-bg:rgba(34,197,94,.1); --ongrn:#04120a;
+    --amber:#FBBF24; --amb-l:#f0b45e; --amb-bd:rgba(251,191,36,.35); --amb-bg:rgba(251,191,36,.08);
+    --red:#f87171; --red-l:#f0a3b4; --red-bd:rgba(248,113,113,.35); --red-bg:rgba(248,113,113,.1);
+    --violet:#A78BFA; --orange:#F97316;
+    --lapis:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232FD9C9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+    --lapis-foco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238ee9df' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
+  }
 </style>
+<script>/* embutido: veste o tema do Norte ANTES de pintar, senao pisca */
+try{ var _t=localStorage.getItem("assist-theme")||"dark";
+     if(_t!=="dark") document.documentElement.setAttribute("data-theme",_t); }catch(e){}</script>
 </head>
 <body>
 <div id="flash"></div>
@@ -3471,16 +3530,20 @@
    origin: trocar no Stash troca aqui, e a aba embutida acompanha. O iframe
    ainda recebe aviso do pai por postMessage, que e o caminho que nao depende
    de o evento storage chegar. */
-var TEMAS_F=["","editorial","cockpit"];
-var TNOME_F={"":"Padrao",editorial:"Cofre Editorial",cockpit:"Cockpit Data"};
+/* embutido: os temas sao os do NORTE, e quem troca e o menu de la. O ciclo
+   proprio fica sem uso (o botao dele mora no cabecalho, que esta escondido). */
+var TEMAS_F=["","light","miri","neon","hud"];
+var TNOME_F={"":"Escuro",light:"Claro",miri:"Miri",neon:"Neon Glass",hud:"Cockpit HUD"};
 function aplicaTemaF(t){
   if(t) document.documentElement.setAttribute("data-theme",t);
   else document.documentElement.removeAttribute("data-theme");
-  var mc={"":"#000000",editorial:"#F4F0E6",cockpit:"#060f12"}[t||""];
+  var mc={"":"#000000",light:"#f4f5f7",miri:"#F3EFE5",neon:"#0a0f1c",hud:"#060f12"}[t||""];
   var m=document.querySelector('meta[name="theme-color"]');
   if(m&&mc) m.setAttribute("content",mc);
 }
-function temaAtualF(){ try{ return localStorage.getItem("stash-theme")||""; }catch(e){ return ""; } }
+/* a chave e a do NORTE (assist-theme), nao a do Stash: dentro do Norte quem
+   manda no tema e o Norte. 'dark' e o padrao e vai como atributo vazio. */
+function temaAtualF(){ try{ var t=localStorage.getItem("assist-theme")||"dark"; return t==="dark"?"":t; }catch(e){ return ""; } }
 function cicloTemaF(){
   var t=TEMAS_F[(TEMAS_F.indexOf(temaAtualF())+1)%TEMAS_F.length];
   try{ localStorage.setItem("stash-theme",t); }catch(e){}
@@ -3491,7 +3554,9 @@ aplicaTemaF(temaAtualF());
 /* a versao no rodape: sem ela nao da pra saber se o aparelho ja atualizou */
 try{ var _vn=document.getElementById("verNum"); if(_vn && window.__VER) _vn.textContent=window.__VER; }catch(e){}
 /* outra aba do mesmo app trocou */
-window.addEventListener("storage",function(e){ if(e.key==="stash-theme") aplicaTemaF(e.newValue||""); });
+/* o Norte trocou o tema com a aba aberta. O evento storage nao chega no
+   documento que escreveu, mas chega neste — que e outro. */
+window.addEventListener("storage",function(e){ if(e.key==="assist-theme") aplicaTemaF(temaAtualF()); });
 /* o app de fora avisou a aba embutida */
 window.addEventListener("message",function(e){
   if(e && e.data && typeof e.data==="object" && e.data.tema!==undefined) aplicaTemaF(e.data.tema||"");
