@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon-v2.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Exo+2:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Cormorant:wght@300;400;500&family=Exo+2:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="supabase.js"></script>
 <style>
   :root{
@@ -88,42 +88,76 @@
   [data-theme="light"] footer{ color:#767d85; }
 
   /* ==== tema MIRI (creme/taupe do Daybook) ==== */
+  /* os valores sao os do :root do Daybook: o taupe e o FUNDO, o creme e o
+     cartao, e o destaque e o proprio taupe escuro (a aba ativa e o dia de
+     hoje, la). Terracota nao existe no Daybook — saiu daqui. */
   :root[data-theme="miri"]{
-    --bg:#F3EFE5; --panel:#FBF7EE; --panel2:#F7F2E9; --line:#E3D9C7; --line2:#E7DECF;
-    --txt:#46423A; --txt2:#2f2b23; --mut:#7E7768; --mut2:#6E6656;
-    --accent:#c06a52; --green:#5c9a6b; --star:#C9922E; --orange:#b3603f;
-    --onacc:#FBF7EE; --accbg:#F6EDE6; --accline:#E0C8BC;
-    --note-txt:#8a6d1e; --note-txt2:#7a6a2a; --note-line:#E3D9C7;
+    --bg:#9A9585; --panel:#F3EFE5; --panel2:#EDE7DB; --line:#DED7C8; --line2:#D3CBB8;
+    --txt:#46423A; --txt2:#2f2b23; --mut:#6E6656; --mut2:#7E7768;
+    /* um tom abaixo do #5E574A do Daybook de proposito: ha texto pintado com
+       var(--accent) INLINE pelo JS, e cor inline nenhuma regra de tema alcanca.
+       Em #5E574A esse texto dava 2,4:1 sobre o taupe; em #4A443A da 3,2:1 — e
+       como fundo de botao segue otimo (7,8:1 com o creme por cima). */
+    --accent:#4A443A; --green:#4E7A52; --star:#9C7522; --orange:#98603A;
+    --onacc:#F3EFE5; --accbg:#EDE8DC; --accline:#C5BCA6;
+    --note-txt:#7a6626; --note-txt2:#6d5c2a; --note-line:#DED7C8;
+    /* o que fica SOLTO sobre o taupe. MEDIDO: #9A9585 tem luminancia 0,32
+       — e um tom MEDIO, e contra ele nem o branco puro chega a 3:1 (2,87).
+       Entao aqui se ESCURECE, nao se clareia. */
+    --sobrebg:#2f2b23; --sobrebg2:#3F3A31;
+    /* a excecao: o wordmark. No Daybook o nome do app e o rotulo do mes sao
+       creme sobre o taupe — decorativos, nao leitura. */
+    --deco:#EFE9DC;
   }
-  [data-theme="miri"] header h1{ color:#2f2b23; }
-  [data-theme="miri"] .navbtn{ background:#EFE7D8; color:#46423A; }
-  [data-theme="miri"] .menu{ background:#FBF7EE; }
+  /* Cormorant no titulo, Montserrat no corpo — as duas do Daybook */
+  [data-theme="miri"] body{ font-family:"Montserrat","Segoe UI",Arial,sans-serif; }
+  [data-theme="miri"] header h1{ font-family:"Cormorant",Georgia,serif; font-weight:400;
+    font-size:26px; letter-spacing:2.2px; color:var(--sobrebg); }
+  [data-theme="miri"] .kicker{ font-family:"Cormorant",Georgia,serif; font-weight:400;
+    letter-spacing:2.6px; color:var(--deco); }
+  /* o que vive direto no taupe */
+  [data-theme="miri"] .secttl,[data-theme="miri"] .count,[data-theme="miri"] footer{ color:var(--sobrebg2); }
+  /* a barra do topo e um CARTAO creme, como a barra Dia/Semana/Mes do
+     Daybook. Resolve a data e os botoes numa regra so, e e mais fiel do
+     que manter a barra no taupe. */
+  [data-theme="miri"] .toolbar{ background:color-mix(in srgb, #F3EFE5 93%, transparent);
+    border-bottom-color:#DED7C8; }
+  [data-theme="miri"] .datepill{ color:#3F3A31; }
+  [data-theme="miri"] .track{ background:rgba(52,48,40,.26); }
+  /* tudo o que vive direto no taupe, escuro */
+  [data-theme="miri"] .cat .cadd,[data-theme="miri"] .semadd{ color:#3F3A31; border-color:#7E7768; }
+  [data-theme="miri"] .ordbt,[data-theme="miri"] .obs-h,[data-theme="miri"] .dobra{ color:#3F3A31; }
+  [data-theme="miri"] .secttl .ed,[data-theme="miri"] .secttl small,
+  [data-theme="miri"] .secttl span{ color:#4A443A; }
+  /* o + nota vive na barra de Notas, fora de .cat — a regra de la nao o alcanca */
+  [data-theme="miri"] .obs-h .cadd{ color:#3F3A31; border-color:#7E7768; }
+  [data-theme="miri"] .navbtn{ background:#F3EFE5; color:#46423A; }
+  [data-theme="miri"] .menu{ background:#F3EFE5; }
   [data-theme="miri"] .menu button{ color:#46423A; }
-  [data-theme="miri"] .menu button:active{ background:#EFE7D8; }
-  [data-theme="miri"] .track,[data-theme="miri"] .tbar .ttrack,[data-theme="miri"] .gitem .gtrack{ background:#E7DECF; }
-  [data-theme="miri"] .item{ background:#FBF7EE; box-shadow:0 1px 2px rgba(70,60,40,.06); }
-  [data-theme="miri"] .item.done{ background:#eaf1e6; }
+  [data-theme="miri"] .menu button:active{ background:#E4DCCB; }
+  [data-theme="miri"] .tbar .ttrack,[data-theme="miri"] .gitem .gtrack{ background:#DED7C8; }
+  [data-theme="miri"] .item{ background:#F3EFE5; box-shadow:0 2px 6px rgba(52,48,40,.14); }
+  [data-theme="miri"] .item.done{ background:#EAF0E4; }
   [data-theme="miri"] .item.prio{ background:#f7efdc; }
   [data-theme="miri"] .item.priomax{ background:#f6e6dc; }
   [data-theme="miri"] .item.canc{ background:#f4e6e2; }
-  [data-theme="miri"] .item.adiado{ background:#eceee6; }
+  [data-theme="miri"] .item.adiado{ background:#EDEBE1; }
   [data-theme="miri"] .box{ border-color:#C7B7A2; }
   [data-theme="miri"] .sub{ color:#6E6656; }
   [data-theme="miri"] .sub .sbox{ border-color:#C7B7A2; }
-  [data-theme="miri"] .secttl{ color:#6E6656; }
-  [data-theme="miri"] .legend{ background:#FBF7EE; }
-  [data-theme="miri"] .cat .cadd{ border-color:#D9CDB8; color:#8C8676; }
+  [data-theme="miri"] .legend{ background:#F3EFE5; }
   [data-theme="miri"] .goals-box{ background:#f6efe1; border-color:#e2d3bb; }
-  [data-theme="miri"] .gbtn{ background:#f0e6d3; color:#c06a52; }
-  [data-theme="miri"] .subadd{ color:#a6604a; border-color:#e0cdbe; }
-  [data-theme="miri"] .sub .subdel{ color:#8C8676; }
+  [data-theme="miri"] .gbtn{ background:#E4DCCB; color:#4A443A; }
+  [data-theme="miri"] .subadd{ color:#5E574A; border-color:#C5BCA6; }
+  [data-theme="miri"] .sub .subdel{ color:#6E6656; }
   [data-theme="miri"] .tag.pend{ background:#f4e7c6; color:#8a6a1e; border-color:#e2cf9e; }
-  [data-theme="miri"] .tag.done{ background:#e3efd9; color:#4a7a3d; border-color:#cfe0b8; }
+  [data-theme="miri"] .tag.done{ background:#E3EBDC; color:#3E6B45; border-color:#C6D4C3; }
   [data-theme="miri"] .tag.canc{ background:#f3ddd6; color:#b0503a; border-color:#e6c3b6; }
   [data-theme="miri"] .tag.sched{ background:#ece3e8; color:#8a5a78; border-color:#dcc9d4; }
-  [data-theme="miri"] .tag.adiado{ background:#e2e8ee; color:#5a7088; border-color:#cdd8e2; }
-  [data-theme="miri"] .rchip{ background:#e3efd9; color:#4a7a3d; border-color:#cfe0b8; }
-  [data-theme="miri"] .sheet{ background:#FBF7EE; }
+  /* era azul — a unica cor fora da familia terrosa na tela inteira */
+  [data-theme="miri"] .tag.adiado{ background:#E6E4DA; color:#5A5749; border-color:#CFCCBC; }
+  [data-theme="miri"] .rchip{ background:#E3EBDC; color:#3E6B45; border-color:#C6D4C3; }
+  [data-theme="miri"] .sheet{ background:#F3EFE5; }
 
   /* ===== TEMA NEON GLASS ===== */
   :root[data-theme="neon"]{
@@ -232,14 +266,14 @@
   [data-theme="hud"] .fab{ background:#2FD9C9; color:#04191a; box-shadow:0 0 22px rgba(47,217,201,.55),0 8px 22px rgba(0,0,0,.4); }
   [data-theme="miri"] .field input,[data-theme="miri"] .field textarea,[data-theme="miri"] .field select,
   [data-theme="miri"] .catopt,[data-theme="miri"] .popt,[data-theme="miri"] .wdopt{ background:#F3EDE0; border-color:#DED2BC; color:#46423A; }
-  [data-theme="miri"] .wdopt.sel{ border-color:#c06a52; background:#f4e6df; color:#a6543c; }
+  [data-theme="miri"] .wdopt.sel{ border-color:#5E574A; background:#E4DCCB; color:#3F3A31; }
   [data-theme="miri"] .recbtn,[data-theme="miri"] .rtype{ background:#F3EDE0; border-color:#DED2BC; color:#46423A; }
-  [data-theme="miri"] .rtype.sel{ border-color:#c06a52; background:#f4e6df; color:#a6543c; }
+  [data-theme="miri"] .rtype.sel{ border-color:#5E574A; background:#E4DCCB; color:#3F3A31; }
   [data-theme="miri"] .recpanel{ border-color:#E3D9C7; }
-  [data-theme="miri"] .calpop.inline{ background:#FBF7EE; }
-  [data-theme="miri"] .btn-ghost{ background:#EFE7D8; color:#46423A; }
+  [data-theme="miri"] .calpop.inline{ background:#F3EFE5; }
+  [data-theme="miri"] .btn-ghost{ background:#E4DCCB; color:#46423A; }
   [data-theme="miri"] .act-list button{ background:#F3EDE0; border-color:#E3D9C7; color:#46423A; }
-  [data-theme="miri"] .calpop{ background:#FBF7EE; }
+  [data-theme="miri"] .calpop{ background:#F3EFE5; }
   [data-theme="miri"] .calpop .ch button{ background:#EFE7D8; border-color:#DED2BC; color:#46423A; }
   [data-theme="miri"] .calpop .cell{ color:#5E574A; }
   [data-theme="miri"] .calpop .cell.other{ color:#c3b8a2; }
@@ -248,7 +282,6 @@
   [data-theme="miri"] .oi{ color:#7a6a3a; }
   [data-theme="miri"] .obs-empty{ color:#b0a67e; }
   [data-theme="miri"] .chkrow{ color:#46423A; border-color:#E3D9C7; }
-  [data-theme="miri"] footer{ color:#78715F; }
 
   *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html,body{ background:var(--bg); }
@@ -309,7 +342,7 @@
   .menu .mdel:hover{ background:rgba(239,68,68,.10); }
   .menu .mdel:active{ background:rgba(239,68,68,.18); }
   [data-theme="light"] .menu{ background:rgba(255,255,255,.98); }
-  [data-theme="miri"] .menu{ background:rgba(251,247,238,.98); }
+  [data-theme="miri"] .menu{ background:rgba(243,239,229,.98); }
   .hidden{ display:none !important; }
 
   header{ border-bottom:3px solid var(--accent); padding-bottom:14px; margin-bottom:16px; text-align:center; }
@@ -331,7 +364,8 @@
   .legend .ci:active{ transform:scale(.96); }
   .legend .ci .cdot{ width:11px; height:11px; border-radius:50%; }
   .legend .ci.add{ color:var(--accent); font-weight:800; }
-  [data-theme="light"] .legend .ci,[data-theme="miri"] .legend .ci{ background:#fff; border-color:rgba(0,0,0,.10); }
+  [data-theme="light"] .legend .ci{ background:#fff; border-color:rgba(0,0,0,.10); }
+  [data-theme="miri"] .legend .ci{ background:#EDE7DB; border-color:rgba(52,48,40,.14); }
   [data-theme="light"] .legend .ci.on,[data-theme="miri"] .legend .ci.on{ border-color:var(--accent); }
 
   .secttl{ font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:1.2px; color:#c7ced3; margin:2px 0 12px; }
@@ -689,8 +723,11 @@
 
   /* FAB */
   .fab{ position:fixed; right:18px; bottom:calc(90px + env(safe-area-inset-bottom)); width:56px; height:56px; border-radius:50%;
-        background:var(--accent); color:#04191a; border:none; font-size:29px; font-weight:400; cursor:pointer; z-index:30;
-        box-shadow:0 8px 26px rgba(47,217,201,.4); display:flex; align-items:center; justify-content:center; }
+        /* --onacc e o token de "texto em cima do acento": o #04191a de antes
+           so servia sobre o teal, e ficaria preto sobre o acento escuro do Miri */
+        background:var(--accent); color:var(--onacc); border:none; font-size:29px; font-weight:400; cursor:pointer; z-index:30;
+        box-shadow:0 8px 26px color-mix(in srgb, var(--accent) 40%, transparent);
+        display:flex; align-items:center; justify-content:center; }
   .fab:active{ transform:scale(.9); }
 
   /* nav flutuante inferior (estilo Stash) */
@@ -707,11 +744,16 @@
   nav button *{ pointer-events:none; }
   nav button .ic{ line-height:0; opacity:.5; transition:opacity .2s,transform .25s; display:flex; }
   nav button .ic svg{ width:23px; height:23px; }
-  nav button.on{ color:var(--accent); background:linear-gradient(180deg,rgba(47,217,201,.17),rgba(47,217,201,.05)); }
+  /* o fundo sai do proprio acento do tema: cravado em teal, ele pintava uma
+     pastilha verde-agua no Claro e no Miri, que nao tem essa cor. No escuro
+     o resultado e identico ao de antes, porque la o acento E o teal. */
+  nav button.on{ color:var(--accent);
+    background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 17%, transparent),
+                                       color-mix(in srgb, var(--accent) 5%, transparent)); }
   nav button.on .ic{ opacity:1; transform:translateY(-1px) scale(1.07); }
   nav button:active{ transform:scale(.93); }
   [data-theme="light"] nav .navbar{ background:rgba(255,255,255,.9); border-color:rgba(0,0,0,.06); }
-  [data-theme="miri"] nav .navbar{ background:rgba(251,247,238,.9); border-color:rgba(0,0,0,.06); }
+  [data-theme="miri"] nav .navbar{ background:rgba(243,239,229,.94); border-color:rgba(52,48,40,.12); }
 
   /* aba Progresso */
   /* inset comeca na altura da barra: ela fica visivel em cima da aba */
@@ -1003,7 +1045,6 @@
            padding:9px 14px; cursor:pointer; width:100%; }
   .semadd:active{ transform:scale(.99); }
   [data-theme="light"] .semadd{ border-color:#cfd4da; color:#6b7278; }
-  [data-theme="miri"] .semadd{ border-color:#D9CDB8; color:#8C8676; }
   .semvazio .em{ font-size:34px; margin-bottom:8px; }
   .semvazio .t{ font-size:15px; color:var(--txt); font-weight:600; margin-bottom:4px; }
   .semvazio .d{ font-size:12px; margin-bottom:16px; line-height:1.5; }
@@ -1125,7 +1166,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v103';
+const VERSAO = 'v104';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
