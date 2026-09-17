@@ -634,6 +634,11 @@
   }
   /* embutido no Norte: quem manda no cabecalho e o app de fora */
   header{ display:none !important; }
+  /* e uma ABA do Norte, entao usa a largura de leitura dele (820), nao a do
+     Feito solto (640) — era a unica aba que tinha ficado estreita. A pilula
+     de acoes continua em 560: ela flutua centralizada, e alargar so esticaria
+     os botoes. */
+  body{ max-width:820px !important; }
 </style>
 </head>
 <body>
