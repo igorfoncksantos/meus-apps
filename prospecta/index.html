@@ -424,6 +424,18 @@
   /* cabecalho da ficha: o lapis mora no canto e NAO empurra o texto
      (o padding-right reserva a faixa dele) */
   .fhead{position:relative;padding-right:42px}
+  .fkick{font-size:10px;font-weight:800;letter-spacing:.1em;
+      text-transform:uppercase;color:var(--accent)}
+  /* modo edicao: a caixa nasce no lugar do titulo, sem abrir outra tela.
+     O padding-right reserva a faixa dos dois botoes. */
+  .fhead.edit{background:var(--accbg);border:1px solid var(--accline);
+      border-radius:14px;padding:12px 88px 2px 12px;margin:0 0 12px}
+  .fhead.edit .fkick{margin-bottom:9px}
+  /* os campos sobre o fundo bege precisam se destacar dele */
+  .fhead.edit .campo input,.fhead.edit .opx{background:var(--panel)}
+  .fbts{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:2}
+  .fbts .fedit{position:static}
+  .fedit.ok{border-color:var(--accent);background:var(--accent);color:var(--onacc)}
   .fedit{position:absolute;top:-2px;right:0;width:34px;height:34px;padding:0;
       display:flex;align-items:center;justify-content:center;
       border:1px solid var(--line2);border-radius:10px;
@@ -681,7 +693,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v16";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v17";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
@@ -1272,6 +1284,7 @@ function salvaLead(){
 var _atual=null, _modelo="local";
 function abre(id){
   var p=acha(id); if(!p) return; _atual=id;
+  _editTopo=false;   /* a ficha sempre abre em modo leitura */
   try{ if(alerta(p).k==="atr") som('atencao'); }catch(e){}
   _modelo = /escola|infantil|educa/i.test(p.segmento||"") ? "escola"
           : (p.fonte==="Indicação" ? "indicacao" : (p.gatilho ? "gatilho" : "local"));
@@ -1282,15 +1295,7 @@ function abre(id){
     : '<div style="font-size:12.5px;color:var(--mut2);padding:4px 0">Nenhum toque registrado.</div>';
 
   folha(
-    '<div class="fhead">'
-   +'<button class="fedit" onclick="abreEditarTopo()" title="Editar dados do lead" aria-label="Editar dados do lead"><span data-ic="pen"></span></button>'
-   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">#'
-      + p.id + ' · ' + esc(ETAPAS[p.etapa]) + '</div>'
-   +'<div class="fnome">'+esc(p.nome)
-      + (p.cargo ? '<span class="fcargo">· '+esc(p.cargo)+'</span>' : '')+'</div>'
-   +'<div class="sub">'+[esc(p.segmento),esc(p.cidade),esc(p.fonte),
-        (TEMPS.filter(function(t){return t.k===p.temp;})[0]||{n:""}).n].filter(Boolean).join(" · ")+'</div>'
-   +'</div>'
+    '<div class="fhead" id="fhead">' + topoHTML(p) + '</div>'
 
    +(a.k==="atr"||a.k==="hoje" ? '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)"><b>'+esc(a.txt)+'</b> — '+esc(p.acao||"defina a próxima ação")+'</div>' : '')
 
@@ -2342,48 +2347,86 @@ function coletaFicha(p){
 function salvaFicha(){
   var p=acha(_atual); if(!p) return;
   coletaFicha(p);
+  /* se o título estava aberto pra edição, ele VENCE: é o que acabou de ser
+     mexido, e coletaFicha() acima leu os campos antigos do corpo. */
+  if(!aplicaTopo(p)) return;
   fecha(); pinta();
 }
 
-/* ---- editar o topo da ficha (o lápis do canto) ----
-   Nome, segmento, cidade e fonte só existiam na criação do lead: errou ao
-   cadastrar, ficava errado pra sempre. Aqui dá pra corrigir. */
-function abreEditarTopo(){
-  var p=acha(_atual); if(!p) return;
-  /* abrir uma folha FECHA a anterior (folha() chama fecha()). Sem isto,
-     o que estivesse digitado na ficha e não salvo se perderia em silêncio. */
-  coletaFicha(p);
-  folha(
-    '<div class="voltar" onclick="abre(_atual)">← ' + esc(p.nome) + '</div>'
-   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">Editar lead</div>'
-   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">Os dados do topo</div>'
-   +'<div class="sub">É o que aparece no cabeçalho da ficha e no cartão do CRM.</div>'
+/* ================= o título da ficha =================
+   Nome, segmento, cidade e fonte só existiam na CRIAÇÃO do lead: errou ao
+   cadastrar, ficava errado pra sempre. O lápis abre os campos NO LUGAR —
+   o próprio cabeçalho vira a caixa de edição, a ficha continua atrás.
+   Só o que está no título entra aqui; o resto já se edita no corpo. */
+var _editTopo = false;
 
+function topoHTML(p){ return _editTopo ? topoEdit(p) : topoLer(p); }
+
+function topoLer(p){
+  return '<button class="fedit" onclick="editaTopo()" title="Editar o título" aria-label="Editar o título"><span data-ic="pen"></span></button>'
+   +'<div class="fkick">#' + p.id + ' · ' + esc(ETAPAS[p.etapa]) + '</div>'
+   +'<div class="fnome">'+esc(p.nome)
+      + (p.cargo ? '<span class="fcargo">· '+esc(p.cargo)+'</span>' : '')+'</div>'
+   +'<div class="sub">'+[esc(p.segmento),esc(p.cidade),esc(p.fonte),
+        (TEMPS.filter(function(t){return t.k===p.temp;})[0]||{n:""}).n].filter(Boolean).join(" · ")+'</div>';
+}
+
+function topoEdit(p){
+  return '<div class="fbts">'
+     +'<button class="fedit" onclick="cancelaTopo()" title="Cancelar" aria-label="Cancelar"><span data-ic="x"></span></button>'
+     +'<button class="fedit ok" onclick="salvaTopoInline()" title="Salvar" aria-label="Salvar"><span data-ic="check"></span></button>'
+   +'</div>'
+   +'<div class="fkick">#' + p.id + ' · editando o título</div>'
    +'<div class="campo"><label>Empresa / lead</label><input id="tNome" value="'+escA(p.nome||"")+'"></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Cargo</label><input id="tCargo" value="'+escA(p.cargo||"")+'" placeholder="ex.: Dentista"></div>'
+   +'<div class="campo"><label>Etapa</label>'
+   + cx("tEtapa", ETAPAS.map(function(e,i){ return {v:i, n:e}; }), p.etapa, false)+'</div></div>'
    +'<div class="dupla">'
    +'<div class="campo"><label>Segmento</label>'+cx("tSeg",D.listas.segmentos,p.segmento)+'</div>'
    +'<div class="campo"><label>Cidade</label><input id="tCid" value="'+escA(p.cidade||"")+'"></div></div>'
    +'<div class="dupla">'
    +'<div class="campo"><label>Fonte</label>'+cx("tFonte",D.listas.fontes,p.fonte)+'</div>'
    +'<div class="campo"><label>Temperatura</label>'
-   + cx("tTemp", TEMPS.map(function(t){ return {v:t.k, n:t.n}; }), p.temp||"frio", false)+'</div></div>'
-   +'<div class="dupla">'
-   +'<div class="campo"><label>Contato</label><input id="tCont" value="'+escA(p.contato||"")+'"></div>'
-   +'<div class="campo"><label>Cargo</label><input id="tCargo" value="'+escA(p.cargo||"")+'"></div></div>'
-   +'<div class="aviso">O cargo aparece ao lado do nome, no topo. Se o lead for uma <b>empresa</b>, o cargo é de quem você fala lá dentro.</div>'
-
-   +'<div class="acoes"><button class="bt" onclick="abre(_atual)">Cancelar</button>'
-   +'<button class="bt pri" onclick="salvaTopo()">Salvar</button></div>');
+   + cx("tTemp", TEMPS.map(function(t){ return {v:t.k, n:t.n}; }), p.temp||"frio", false)+'</div></div>';
 }
-function salvaTopo(){
+
+/* repinta SÓ o cabeçalho: a ficha inteira continua na tela, com o que
+   estiver digitado nela intacto */
+function pintaTopo(){
+  var el=document.getElementById("fhead"); if(!el) return;
   var p=acha(_atual); if(!p) return;
-  var nome=v("tNome");
-  /* lead sem nome some da lista: some o campo do que se pode esvaziar */
-  if(!nome){ var e=document.getElementById("tNome"); if(e) e.focus(); return; }
-  p.nome=nome; p.segmento=v("tSeg"); p.cidade=v("tCid"); p.fonte=v("tFonte");
-  p.temp=v("tTemp")||"frio"; p.contato=v("tCont"); p.cargo=v("tCargo");
+  el.className = "fhead" + (_editTopo ? " edit" : "");
+  el.innerHTML = topoHTML(p);
+  if(window.paintIcons) window.paintIcons(el);
+  if(typeof cxPinta === "function") cxPinta();   /* acende o rótulo das caixas */
+}
+function editaTopo(){ _editTopo=true; pintaTopo(); }
+function cancelaTopo(){ _editTopo=false; pintaTopo(); }
+
+/* grava os campos do título. Devolve false só quando o nome está vazio —
+   lead sem nome some da lista, então é o único que não pode esvaziar. */
+function aplicaTopo(p){
+  if(!p || !document.getElementById("tNome")) return true;   /* não está em edição */
+  var nome = v("tNome");
+  if(!nome){ var e=document.getElementById("tNome"); if(e) e.focus(); return false; }
+  p.nome=nome; p.cargo=v("tCargo");
+  p.segmento=v("tSeg"); p.cidade=v("tCid"); p.fonte=v("tFonte");
+  p.temp=v("tTemp")||"frio"; p.etapa=+v("tEtapa");
+  /* etapa, temperatura e cargo também existem mais abaixo na ficha, e ela
+     continua aberta atrás. Sem sincronizar os dois lados, salvar a ficha
+     depois sobrescreveria com o valor velho o que acabou de ser corrigido. */
+  if(document.getElementById("eEtapa")) cxSet("eEtapa", String(p.etapa));
+  if(document.getElementById("eTemp"))  cxSet("eTemp", p.temp);
+  var ec=document.getElementById("eCargo"); if(ec) ec.value=p.cargo;
+  return true;
+}
+function salvaTopoInline(){
+  var p=acha(_atual); if(!p) return;
+  if(!aplicaTopo(p)) return;
   try{ som('salvo'); }catch(e){}
-  pinta(); abre(_atual);
+  _editTopo=false; pintaTopo();
+  pinta();   /* o cartão do CRM e o funil acompanham na hora */
 }
 function registraToque(){
   var p=acha(_atual); if(!p) return;
