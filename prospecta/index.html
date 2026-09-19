@@ -421,6 +421,20 @@
       background:var(--panel);border:1px solid var(--line);border-radius:20px;
       padding:9px 13px;color:var(--txt2)}
   .orcadd button:active{background:var(--accbg);border-color:var(--accline);color:var(--accent)}
+  /* cabecalho da ficha: o lapis mora no canto e NAO empurra o texto
+     (o padding-right reserva a faixa dele) */
+  .fhead{position:relative;padding-right:42px}
+  .fedit{position:absolute;top:-2px;right:0;width:34px;height:34px;padding:0;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid var(--line2);border-radius:10px;
+      background:var(--panel);color:var(--mut);font-size:14px;cursor:pointer}
+  .fedit:active{transform:scale(.94);color:var(--accent)}
+  /* alvo de 44px sem crescer na tela */
+  .fedit::before{content:"";position:absolute;inset:-5px}
+  .fnome{font-family:'DM Serif Display',Georgia,serif;font-size:23px;
+      margin:3px 0 2px;line-height:1.15}
+  .fcargo{font-family:inherit;font-size:12.5px;font-weight:600;
+      color:var(--mut);margin-left:7px}
   .voltar{font-size:11px;font-weight:700;color:var(--mut);cursor:pointer;
       display:inline-block;
       /* alvo de 44px sem mexer no desenho: o padding cresce, a margem devolve */
@@ -667,7 +681,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v15";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v16";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
@@ -1058,6 +1072,8 @@ function folha(html){
   document.body.appendChild(_folha);
   /* as caixas de opcao nascem sem rotulo: aqui elas acendem */
   if(typeof cxPinta === "function") cxPinta();
+  /* a folha nasce depois do pinta(): sem isto, [data-ic] dentro dela fica vazio */
+  if(window.paintIcons) window.paintIcons(_folha);
 }
 function fecha(){ if(typeof cxFecha === "function") cxFecha();
   if(_folha&&_folha.parentNode) _folha.parentNode.removeChild(_folha); _folha=null; }
@@ -1266,11 +1282,15 @@ function abre(id){
     : '<div style="font-size:12.5px;color:var(--mut2);padding:4px 0">Nenhum toque registrado.</div>';
 
   folha(
-    '<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">#'
+    '<div class="fhead">'
+   +'<button class="fedit" onclick="abreEditarTopo()" title="Editar dados do lead" aria-label="Editar dados do lead"><span data-ic="pen"></span></button>'
+   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">#'
       + p.id + ' · ' + esc(ETAPAS[p.etapa]) + '</div>'
-   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:23px;margin:3px 0 2px">'+esc(p.nome)+'</div>'
+   +'<div class="fnome">'+esc(p.nome)
+      + (p.cargo ? '<span class="fcargo">· '+esc(p.cargo)+'</span>' : '')+'</div>'
    +'<div class="sub">'+[esc(p.segmento),esc(p.cidade),esc(p.fonte),
         (TEMPS.filter(function(t){return t.k===p.temp;})[0]||{n:""}).n].filter(Boolean).join(" · ")+'</div>'
+   +'</div>'
 
    +(a.k==="atr"||a.k==="hoje" ? '<div class="aviso" style="background:var(--alertabg);border-color:var(--alertaline)"><b>'+esc(a.txt)+'</b> — '+esc(p.acao||"defina a próxima ação")+'</div>' : '')
 
@@ -2305,8 +2325,11 @@ function copiaMsg(b){
   var o=b.textContent; b.textContent="Copiado ✓"; setTimeout(function(){ b.textContent=o; },1400);
 }
 
-function salvaFicha(){
-  var p=acha(_atual); if(!p) return;
+/* grava o que está na tela da ficha, SEM fechar nada.
+   A guarda do eEtapa é obrigatória: com a ficha fechada, v() devolve ""
+   e isso APAGARIA os campos em vez de preservá-los. */
+function coletaFicha(p){
+  if(!p || !document.getElementById("eEtapa")) return false;
   p.etapa = +v("eEtapa");
   p.acao=v("eAcao"); p.quando=v("eQuando"); p.ultimo=v("eUlt");
   p.valor=Number(v("eVal"))||0; p.prob=Number(v("eProb"))||0;
@@ -2314,7 +2337,53 @@ function salvaFicha(){
   p.contato=v("eCont"); p.cargo=v("eCargo"); p.tel=v("eTel"); p.web=v("eWeb");
   p.gatilho=v("eGat"); p.nota=v("eNota");
   if(!ativo(p)){ p.quando=""; }   /* fechado ou perdido não cobra mais */
+  return true;
+}
+function salvaFicha(){
+  var p=acha(_atual); if(!p) return;
+  coletaFicha(p);
   fecha(); pinta();
+}
+
+/* ---- editar o topo da ficha (o lápis do canto) ----
+   Nome, segmento, cidade e fonte só existiam na criação do lead: errou ao
+   cadastrar, ficava errado pra sempre. Aqui dá pra corrigir. */
+function abreEditarTopo(){
+  var p=acha(_atual); if(!p) return;
+  /* abrir uma folha FECHA a anterior (folha() chama fecha()). Sem isto,
+     o que estivesse digitado na ficha e não salvo se perderia em silêncio. */
+  coletaFicha(p);
+  folha(
+    '<div class="voltar" onclick="abre(_atual)">← ' + esc(p.nome) + '</div>'
+   +'<div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)">Editar lead</div>'
+   +'<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:22px;margin:3px 0 2px">Os dados do topo</div>'
+   +'<div class="sub">É o que aparece no cabeçalho da ficha e no cartão do CRM.</div>'
+
+   +'<div class="campo"><label>Empresa / lead</label><input id="tNome" value="'+escA(p.nome||"")+'"></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Segmento</label>'+cx("tSeg",D.listas.segmentos,p.segmento)+'</div>'
+   +'<div class="campo"><label>Cidade</label><input id="tCid" value="'+escA(p.cidade||"")+'"></div></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Fonte</label>'+cx("tFonte",D.listas.fontes,p.fonte)+'</div>'
+   +'<div class="campo"><label>Temperatura</label>'
+   + cx("tTemp", TEMPS.map(function(t){ return {v:t.k, n:t.n}; }), p.temp||"frio", false)+'</div></div>'
+   +'<div class="dupla">'
+   +'<div class="campo"><label>Contato</label><input id="tCont" value="'+escA(p.contato||"")+'"></div>'
+   +'<div class="campo"><label>Cargo</label><input id="tCargo" value="'+escA(p.cargo||"")+'"></div></div>'
+   +'<div class="aviso">O cargo aparece ao lado do nome, no topo. Se o lead for uma <b>empresa</b>, o cargo é de quem você fala lá dentro.</div>'
+
+   +'<div class="acoes"><button class="bt" onclick="abre(_atual)">Cancelar</button>'
+   +'<button class="bt pri" onclick="salvaTopo()">Salvar</button></div>');
+}
+function salvaTopo(){
+  var p=acha(_atual); if(!p) return;
+  var nome=v("tNome");
+  /* lead sem nome some da lista: some o campo do que se pode esvaziar */
+  if(!nome){ var e=document.getElementById("tNome"); if(e) e.focus(); return; }
+  p.nome=nome; p.segmento=v("tSeg"); p.cidade=v("tCid"); p.fonte=v("tFonte");
+  p.temp=v("tTemp")||"frio"; p.contato=v("tCont"); p.cargo=v("tCargo");
+  try{ som('salvo'); }catch(e){}
+  pinta(); abre(_atual);
 }
 function registraToque(){
   var p=acha(_atual); if(!p) return;
