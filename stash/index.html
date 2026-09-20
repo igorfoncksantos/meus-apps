@@ -133,6 +133,17 @@
   /* ===== calculadora flutuante ===== */
   /* o icone mora no cabecalho, que fica preso no topo — assim ele esta sempre
      a vista sem brigar com o botao de sincronizacao, que ja ocupa o canto. */
+  /* atualizar: mesma casca dos vizinhos do cabecalho; gira enquanto trabalha */
+  header .refresh{ width:38px; height:38px; flex-shrink:0; background:transparent;
+      border:1px solid var(--line); color:var(--mut); border-radius:11px;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+      transition:color .15s,border-color .15s }
+  header .refresh:hover{ color:var(--accent); border-color:var(--accent) }
+  header .refresh:active{ transform:scale(.92) }
+  header .refresh.girando svg{ animation:__giraref .85s linear infinite; transform-origin:50% 50% }
+  @keyframes __giraref{ to{ transform:rotate(360deg) } }
+  /* quem pediu menos movimento nao perde o retorno: o botao apaga em vez de girar */
+  @media (prefers-reduced-motion:reduce){ header .refresh.girando svg{ animation:none; opacity:.45 } }
   header .calcpill{ position:relative; width:38px; height:38px; flex-shrink:0; border-radius:11px;
     display:grid; place-items:center; cursor:pointer; padding:0;
     background:transparent; border:1px solid var(--line); color:var(--mut);
@@ -845,6 +856,11 @@
       <rect x="4" y="2" width="16" height="20" rx="3"/><path d="M8 6.5h8"/>
       <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01M8.5 15h.01M12 15h.01M15.5 15h.01M8.5 18.5h3.5M15.5 18.5h.01"/></svg>
   </button>
+  <button class="refresh" id="btRefresh" onclick="atualizarStash()" title="Atualizar: puxa a sincronização e confere se saiu versão nova" aria-label="Atualizar">
+    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+  </button>
   <div class="sv" id="salvo">salvo</div>
 </header>
 
@@ -1357,7 +1373,7 @@ function sinal(el, aberto){
   el.textContent = aberto ? MENOS : MAIS;
   el.setAttribute('aria-expanded', aberto ? 'true' : 'false');
 }
-var VERSAO = 'v141';
+var VERSAO = 'v142';
 /* a lista dos cofres sem meta e os grupos do editor de agregado nascem
    fechados: e o estado que cabe na tela. */
 var _semAberto = false;
@@ -3456,6 +3472,33 @@ document.addEventListener("keydown",function(e){
   if(e.key==="Enter" && e.target && e.target.classList && e.target.classList.contains("r")) e.target.blur();
 });
 function renderTudo(){ renderPatrimonio(); renderAporte(); renderGastos(); }
+
+/* ----- atualizar o app (o botao do cabeçalho) -----
+   O app fica aberto no aparelho por horas e a conferência de versão nova só
+   roda de 60 em 60s; a sincronização, de 15 em 15. Este botão força as duas
+   na hora e redesenha a tela, porque o pull pode ter trazido número novo.
+   ⚠️ Ele NÃO vira ciclo nem fecha mês: isso grava histórico e é decisão sua,
+   não efeito colateral de tocar em "atualizar". */
+async function atualizarStash(){
+  var b = document.getElementById("btRefresh");
+  if(b && b.dataset.rodando) return;              /* dois toques não empilham */
+  if(b){ b.dataset.rodando="1"; b.classList.add("girando"); }
+  var sincronizou = false;
+  try{
+    if(typeof window.__syncAgora === "function"){
+      sincronizou = (await window.__syncAgora()) === "ok";
+    }
+    if("serviceWorker" in navigator && navigator.serviceWorker.getRegistration){
+      var reg = await navigator.serviceWorker.getRegistration();
+      if(reg) await reg.update();                 /* saiu versão nova? o banner aparece */
+    }
+  }catch(e){}
+  try{ renderTudo(); }catch(e){}
+  /* o giro precisa durar pra ser visto: sem isso ele pisca e parece que nada aconteceu */
+  await new Promise(function(r){ setTimeout(r,450); });
+  if(b){ b.classList.remove("girando"); delete b.dataset.rodando; }
+  try{ toast(sincronizou ? "Stash atualizado" : "Versão conferida"); }catch(e){}
+}
 try{ var _p=localStorage.getItem("apps-priv");
      if(_p===null) _p=localStorage.getItem("stash-priv");   /* a chave de antes */
      PRIV=(_p==="1"); }catch(e){}

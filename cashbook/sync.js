@@ -118,6 +118,16 @@
     if(!window.__syncPoll){ window.__syncPoll=setInterval(function(){ if(ready()&&document.visibilityState!=='hidden'){ pullRemote(); if(JSON.stringify(getBlob())!==_lastBlob) schedulePush(); } },15000); }
     if(!window.__syncVis){ window.__syncVis=1; document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible'&&ready())pullRemote(); }); }
   }
+  /* ---- sincronizar AGORA, a pedido do app (o botao de atualizar) ----
+     pullRemote e schedulePush vivem dentro deste IIFE; sem esta porta o app
+     so podia esperar o ciclo de 15s. Devolve "off" quando nao ha conta. */
+  window.__syncAgora = async function(){
+    if(!ready()) return 'off';
+    await pullRemote();
+    try{ if(JSON.stringify(getBlob())!==_lastBlob) schedulePush(); }catch(e){}
+    return 'ok';
+  };
+
   function markSess(){ try{ sessionStorage.setItem(LK.sess,'1'); }catch(e){} }
   function onSignedIn(){ if(_synced)return; _synced=true; try{ if(session&&session.user&&session.user.email)_set(LK.login,session.user.email); }catch(e){} localStorage.removeItem(LK.nag);
     try{history.replaceState(null,'',location.pathname);}catch(e){} closeOv(); subscribeRT(); pullRemote(); toast('Conectado ✓'); updateBtn(); setTimeout(function(){ _initDone=true; },3000); }
