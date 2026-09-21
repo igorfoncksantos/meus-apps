@@ -1193,7 +1193,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v109';
+const VERSAO = 'v110';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1402,6 +1402,48 @@ function vizinhas(t){
   const L=listaDe(t); if(!L) return [];
   return L.filter(x=> x.cat===t.cat && sortKey(x)===sortKey(t));
 }
+/* Como uma tarefa é reconhecida de um dia pro outro: o id NÃO serve — o
+   buildNewDay gera um novo a cada dia. A chave é o rid da rotina, ou o par
+   categoria+título pra quem veio por carry-over. */
+function chaveOrd(t){ return t.rid ? 'r:'+t.rid : 'c:'+(t.cat||'')+'|'+(t.title||''); }
+
+/* Reordena uma lista seguindo a ordem de referência. Quem não está na
+   referência fica no fim, na ordem em que já estava — decorate/sort/undecorate
+   com o índice de desempate, pra não depender da estabilidade do sort. */
+function aplicaOrdem(lista, ordemRef, chaveDe){
+  const pos = new Map();
+  ordemRef.forEach((c,i)=>{ if(!pos.has(c)) pos.set(c,i); });
+  return lista
+    .map((x,i)=>({ x:x, i:i, p: pos.has(chaveDe(x)) ? pos.get(chaveDe(x)) : Infinity }))
+    .sort((a,b)=> (a.p-b.p) || (a.i-b.i))
+    .map(o=>o.x);
+}
+
+/* a ordem das TAREFAS desce pros dias futuros que já existem (você pode ter
+   navegado pra frente antes de organizar). Dias passados ficam como estão. */
+function propagaOrdemTarefas(){
+  const D=day(); if(!D || !D.tasks) return;
+  const ref = D.tasks.map(chaveOrd);
+  Object.keys(DB.days).filter(k=>k>cur).forEach(k=>{
+    const L = DB.days[k].tasks;
+    if(!L || L.length<2) return;
+    DB.days[k].tasks = aplicaOrdem(L, ref, chaveOrd);
+  });
+}
+
+/* idem pras SUBTAREFAS: acha a mesma tarefa nos dias à frente e reordena os
+   itens dela pelos rótulos, que é o que sobrevive de um dia pro outro. */
+function propagaOrdemSubs(t){
+  if(!t || !t.subs) return;
+  const chave = chaveOrd(t);
+  const ref = t.subs.map(s=>s.label);
+  Object.keys(DB.days).filter(k=>k>cur).forEach(k=>{
+    const alvo = (DB.days[k].tasks||[]).find(x=>chaveOrd(x)===chave);
+    if(!alvo || !alvo.subs || alvo.subs.length<2) return;
+    alvo.subs = aplicaOrdem(alvo.subs, ref, s=>s.label);
+  });
+}
+
 function moveTask(id, dir){
   const t=findTask(id); if(!t) return;
   const L=listaDe(t); if(!L) return;
@@ -1411,6 +1453,8 @@ function moveTask(id, dir){
   const a=L.indexOf(t), b=L.indexOf(grupo[alvo]);
   if(a<0||b<0) return;
   L[a]=grupo[alvo]; L[b]=t;
+  /* só o dia tem dias seguintes — no fim de semana e na semana a lista é uma só */
+  if(L === (day()||{}).tasks) propagaOrdemTarefas();
   render();
 }
 /* os índices do grupo em que este item aparece na tela */
@@ -1433,6 +1477,7 @@ function moveSub(id, i, dir){
      Não pergunta o escopo de propósito — ordem é organização, não conteúdo:
      ninguém quer reorganizar a mesma lista todo santo dia. */
   if(t.rid) syncRecurring(t);
+  propagaOrdemSubs(t);   /* e nos dias à frente que já existem */
   render();
 }
 /* as setas de uma linha; desabilitadas nas pontas em vez de sumir, pra que a
