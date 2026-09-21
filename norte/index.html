@@ -1193,7 +1193,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v108';
+const VERSAO = 'v109';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1428,6 +1428,11 @@ function moveSub(id, i, dir){
   if(p<0 || q<0 || q>=g.length) return;
   const j=g[q];
   const tmp=t.subs[i]; t.subs[i]=t.subs[j]; t.subs[j]=tmp;
+  /* a ordem das subtarefas vale pros próximos dias: o molde guarda subLabels,
+     e sem sincronizar aqui a rotina voltaria amanhã na ordem antiga.
+     Não pergunta o escopo de propósito — ordem é organização, não conteúdo:
+     ninguém quer reorganizar a mesma lista todo santo dia. */
+  if(t.rid) syncRecurring(t);
   render();
 }
 /* as setas de uma linha; desabilitadas nas pontas em vez de sumir, pra que a
@@ -2802,8 +2807,11 @@ function buildNewDay(iso, carrega){
      fica no dia em que foi escrito — e continua la. */
   const obs = ((prev&&prev.obs)||[]).map(notaDe).filter(o=>o.fix)
     .map(o=>({ t:o.t, dt:o.dt||iso, fix:true }));
-  const tasks=[];
-  // as diárias do usuário entram por DB.recurring, logo abaixo
+  /* As recorrências do dia vão pra um mapa por rid, e o carry-over pra outro
+     mapa pela tarefa de origem. Só DEPOIS a ordem é montada — seguindo a do
+     dia anterior. Antes isto era empilhado direto em duas levas (recorrentes
+     primeiro, carry-over depois) e a organização se perdia toda virada. */
+  const recNovas = new Map();
   const [Y,M,D]=iso.split('-').map(Number); const wd=new Date(Y,M-1,D).getDay(); const dim=new Date(Y,M,0).getDate();
   (DB.recurring||[]).forEach(e=>{ const r=e.rec; if(!r)return; if(!CATS.find(c=>c.id===e.cat))return;
     let hit=false;
@@ -2816,9 +2824,10 @@ function buildNewDay(iso, carrega){
     if(e.goals)nt.goals=JSON.parse(JSON.stringify(e.goals));
     if(e.cota)nt.cota=[0,e.cota[1]];
     if(e.subLabels)nt.subs=e.subLabels.map(l=>({label:l,done:false}));
-    tasks.push(nt);
+    recNovas.set(e.rid, nt);
   });
   // carry-over do dia anterior — SO quando o dia vira de verdade
+  const carry = new Map();
   if(carrega!==false && prev){ prev.tasks.forEach(t=>{
     if(t.recur==='diária') return;                 // diárias já recriadas
     if(t.rid) return;                              // recorrências do usuário já recriadas acima
@@ -2827,8 +2836,23 @@ function buildNewDay(iso, carrega){
     if(t.prio) nt.prio=null;                        // prioridade é do dia (METAS é exceção, mas ela é diária)
     if(t.status!=='sched'){ nt.carriedFrom=fmtBR(prevIso); nt.status = t.status==='adiado'?'adiado':'pend'; }
     // subtarefas: mantém progresso? regra: carrega o progresso
-    tasks.push(nt);
+    carry.set(t.id, nt);
   }); }
+
+  /* a ordem do dia novo é a de ontem: percorro as tarefas do dia anterior na
+     ordem em que ficaram e vou colocando a versão nova de cada uma */
+  const tasks=[];
+  const postos = new Set();
+  if(prev){ prev.tasks.forEach(t=>{
+    if(t.rid && recNovas.has(t.rid) && !postos.has('r'+t.rid)){
+      tasks.push(recNovas.get(t.rid)); postos.add('r'+t.rid); return; }
+    if(carry.has(t.id) && !postos.has('c'+t.id)){
+      tasks.push(carry.get(t.id)); postos.add('c'+t.id); }
+  }); }
+  /* o que não existia ontem — rotina criada hoje, ou primeira vez que ela cai
+     neste dia da semana — entra no fim, que é onde se procura o que é novo */
+  recNovas.forEach((nt,rid)=>{ if(!postos.has('r'+rid)) tasks.push(nt); });
+  carry.forEach((nt,id)=>{ if(!postos.has('c'+id)) tasks.push(nt); });
   activateSchedTasks(tasks, iso);   // se hoje for o dia programado de alguma agendada, ela ja nasce ativa
   return {tasks, obs};
 }
