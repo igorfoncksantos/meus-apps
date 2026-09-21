@@ -938,6 +938,16 @@
   .auth-card{ width:100%; max-width:380px; background:linear-gradient(160deg,#12161a,#0a0d10); border:1px solid #23282e;
               border-radius:22px; padding:26px 22px 22px; box-shadow:0 24px 70px rgba(0,0,0,.6);
               animation:wcpop .42s cubic-bezier(.2,.9,.3,1); max-height:92vh; overflow:auto; }
+  /* escolha de escopo da rotina: duas saidas empilhadas, cada uma dizendo
+     o que vai acontecer — o rotulo sozinho nao conta a consequencia */
+  .escopo{ margin:10px 0 2px; }
+  .escopo button{ display:block; width:100%; text-align:left; background:#0b0e11;
+        border:1px solid #22272c; color:var(--txt); padding:12px 14px; border-radius:12px;
+        margin-bottom:8px; cursor:pointer; font-family:inherit; }
+  .escopo button:active{ background:#181c21; }
+  .escopo button.forte{ border-color:var(--accent); }
+  .escopo b{ display:block; font-size:14px; margin-bottom:2px; }
+  .escopo small{ display:block; font-size:11.5px; color:var(--mut); line-height:1.45; }
   .auth-ic{ font-size:42px; text-align:center; margin-bottom:6px; }
   .auth-card h2{ color:#fff; font-size:21px; text-align:center; margin-bottom:9px; }
   .auth-card p{ color:#9aa2a8; font-size:14px; line-height:1.55; text-align:center; margin-bottom:16px; }
@@ -1183,7 +1193,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v107';
+const VERSAO = 'v108';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2020,10 +2030,16 @@ function addSub(id){ _subTid=id; sheet(`<h3>➕ Nova subtarefa</h3>
     <div class="field"><input id="subQtd" type="number" inputmode="numeric" min="1" placeholder="quantidade (opcional) — ex.: 10"></div>
     <div class="actions"><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" onclick="saveSub()">Adicionar</button></div>`);
   setTimeout(()=>{ const el=document.getElementById('subInput'); if(el){ el.focus(); el.addEventListener('keydown',e=>{ if(e.key==='Enter')saveSub(); }); } },90); }
-function saveSub(){ const el=document.getElementById('subInput'); const v=el?el.value.trim():''; if(!v){ if(el)el.focus(); return; }
+async function saveSub(){ const el=document.getElementById('subInput'); const v=el?el.value.trim():''; if(!v){ if(el)el.focus(); return; }
   const qe=document.getElementById('subQtd'); const qm=qe?Math.floor(Number(qe.value)||0):0;
   const t=findTask(_subTid); if(!t)return; if(!t.subs)t.subs=[];
+  const _antes = t.rid ? moldeDe(t) : null;
   const nova={label:v,done:false}; if(qm>0){ nova.qm=qm; nova.q=0; } t.subs.push(nova);
+  const ok = await escopoRotina(t, _antes, {
+    msg: '<b>'+escapeHtml(t.title)+'</b> é uma rotina. A subtarefa nova entra onde?',
+    dDia: 'Vale só hoje. Amanhã a rotina volta sem ela.',
+    dSerie: 'Passa a nascer junto com a rotina, todo dia que ela aparecer.' });
+  if(!ok){ t.subs.pop(); if(!t.subs.length) delete t.subs; return; }
   _subAnim=_subTid+'|'+(t.subs.length-1); if(t.status==='done')t.status='pend'; closeSheet();
   if(navigator.vibrate)navigator.vibrate(12); render(); }
 /* ===== quantidade na subtarefa =====
@@ -2042,7 +2058,16 @@ function subQtd(id,i,d){
   if(navigator.vibrate) navigator.vibrate(8);
   render();
 }
-function subDel(id,i){ const t=findTask(id); t.subs.splice(i,1); if(!t.subs.length)delete t.subs; render(); }
+async function subDel(id,i){ const t=findTask(id);
+  const _antes = t.rid ? moldeDe(t) : null;
+  const _bkSubs = JSON.parse(JSON.stringify(t.subs||[]));
+  t.subs.splice(i,1); if(!t.subs.length)delete t.subs;
+  const ok = await escopoRotina(t, _antes, {
+    msg: '<b>'+escapeHtml(t.title)+'</b> é uma rotina. Apagar esse item vale onde?',
+    dDia: 'Some só hoje. Amanhã a rotina volta com ele.',
+    dSerie: 'Deixa de nascer junto com a rotina daqui em diante.' });
+  if(!ok){ t.subs=_bkSubs; return; }
+  render(); }
 function subTog(id,i){ const t=findTask(id); const s=t.subs[i]; s.done=!s.done;
   /* a data do dia em que foi marcado — e o que deixa o cartao mostrar "hoje"
      separado do que ja estava feito, e o que faz o % do dia ser do dia */
@@ -2114,12 +2139,16 @@ function atribuirCat(id){
     '</div>'+
     '<div class="actions"><button class="btn-ghost" onclick="closeSheet()">Fechar</button></div>');
 }
-function setCat(id,cid){
+async function setCat(id,cid){
   const t=findTask(id); if(!t) return;
+  const _antes = t.rid ? moldeDe(t) : null;
+  const _bkCat = t.cat;
   t.cat=cid;
-  /* tarefa recorrente guarda a categoria no registro dela: sem isto, amanhã a
-     cópia voltaria na categoria antiga e pareceria que a troca não pegou */
-  if(t.rid) syncRecurring(t);
+  /* a categoria vive no molde da recorrência: mudar aqui mudaria todos os dias.
+     Por isso pergunta — antes ela ia junto sem avisar. */
+  const ok = await escopoRotina(t, _antes, {
+    msg: '<b>'+escapeHtml(t.title)+'</b> é uma rotina. Trocar a categoria vale onde?' });
+  if(!ok){ t.cat=_bkCat; return; }
   closeSheet(); render();
 }
 function setStatus(id,s){ const t=findTask(id); t.status=s; if(s==='done')flashFx(); render(); }
@@ -2422,7 +2451,7 @@ function toggleListaForm(){ formLista=!formLista;
   const b=document.getElementById('listaBox'); if(b) b.classList.toggle('on', formLista); }
 
 function pickPrio(el){ formPrio=el.dataset.p||null; el.parentNode.querySelectorAll('.popt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel'); }
-function saveForm(){
+async function saveForm(){
   const title=document.getElementById('fTitle').value.trim(); if(!title){ uiAlert('Escreva o que fazer.'); return; }
   const meta=document.getElementById('fMeta').value.trim();
   const fr=(formRecur&&formRecur.type&&formRecur.type!=='none')?JSON.parse(JSON.stringify(formRecur)):null;
@@ -2432,7 +2461,12 @@ function saveForm(){
     const qm=Math.floor(Number((r.querySelector('.subqm')||{}).value)||0);
     const o={label:l.trim(),done:false}; if(qm>0){ o.qm=qm; o.q=0; } return o;
   }).filter(Boolean);
-  if(editing){ const t=findTask(editing); t.title=title; t.meta=meta; t.cat=formCat; t.prio=formPrio; t.recur=recur;
+  if(editing){ const t=findTask(editing);
+    /* guardo o estado inteiro ANTES de mexer: se for rotina e o usuário
+       desistir na pergunta de escopo, preciso devolver a tarefa como estava */
+    const _bk = t.rid ? JSON.parse(JSON.stringify(t)) : null;
+    const _antes = t.rid ? moldeDe(t) : null;
+    t.title=title; t.meta=meta; t.cat=formCat; t.prio=formPrio; t.recur=recur;
     if(fr)t.rec=fr; else delete t.rec;
     if(subs.length){ // preserva o done das que continuam
       t.subs=subs.map(ns=>{ const old=(t.subs||[]).find(o=>o.label===ns.label);
@@ -2446,7 +2480,11 @@ function saveForm(){
     else delete t.subs;
     if(formLista && t.subs && t.subs.length) t.lista=true; else delete t.lista;
     aplicaAgenda(t); aplicaQtd(t);
-    syncRecurring(t); }
+    const ok = await escopoRotina(t, _antes, {
+      msg: '<b>'+escapeHtml(t.title)+'</b> se repete'+(t.recur?' ('+escapeHtml(t.recur)+')':'')+'. Onde essa alteração vale?' });
+    if(!ok){ /* desistiu: devolve a tarefa como estava e sai sem fechar nada */
+      Object.keys(t).forEach(function(k){ delete t[k]; }); Object.assign(t, _bk);
+      return; } }
   else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr;
     if(formLista && subs.length) t.lista=true;
     aplicaAgenda(t); aplicaQtd(t);
@@ -3262,6 +3300,41 @@ function uiConfirm(msg,o){ o=o||{}; return new Promise(function(res){ window.__u
   uiModal('<div class="auth-ic'+(o.danger?' danger':'')+'">'+(o.danger?svgIc('trash'):svgIc('help'))+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
     '<div class="actions"><button class="btn-ghost" onclick="__uiRes(false)">'+(o.cancel||'Cancelar')+'</button>'+
     '<button class="'+(o.danger?'btn-danger':'btn-primary')+'" onclick="__uiRes(true)">'+(o.ok||'Confirmar')+'</button></div>'); }); }
+/* Tres saidas, nao duas: este dia, daqui em diante, ou desistir. O uiConfirm
+   so tem sim/nao e aqui "nao" seria ambiguo. Devolve "dia" | "serie" | null. */
+function uiEscopo(o){ o=o||{}; return new Promise(function(res){
+  window.__uiRes=function(v){ uiCloseM(); res(v); };
+  uiModal('<div class="auth-ic">'+svgIc('rotate')+'</div>'+
+    '<h2>'+(o.title||'Isso é uma rotina')+'</h2>'+
+    '<p>'+(o.msg||'')+'</p>'+
+    '<div class="escopo">'+
+      '<button onclick="__uiRes(\'dia\')"><b>Só neste dia</b>'+
+        '<small>'+(o.dDia||'Vale só aqui. Na próxima vez ela volta como era.')+'</small></button>'+
+      '<button class="forte" onclick="__uiRes(\'serie\')"><b>Deste dia em diante</b>'+
+        '<small>'+(o.dSerie||'Muda aqui e em todas as próximas. Os dias já passados ficam como estão.')+'</small></button>'+
+    '</div>'+
+    '<div class="actions"><button class="btn-ghost" onclick="__uiRes(null)">Cancelar</button></div>'); }); }
+
+/* O que o molde da recorrência leva pros próximos dias. Se nada disto mudou,
+   não há escopo a escolher — a pergunta só atrapalharia. */
+function moldeDe(t){
+  return JSON.stringify({
+    title: t.title, meta: t.meta||'', cat: t.cat, prio: t.prio||null,
+    rec: t.rec||null, recur: t.recur||null,
+    subs: (t.subs||[]).map(function(s){ return s.label; }),
+    cota: t.cota ? t.cota[1] : null
+  });
+}
+/* pergunta o escopo e aplica. Devolve false se o usuário desistiu. */
+async function escopoRotina(t, antes, o){
+  if(!t.rid){ return true; }                      /* não é rotina: nada a perguntar */
+  if(moldeDe(t) === antes){ syncRecurring(t); return true; }   /* nada que o molde carregue mudou */
+  const esc = await uiEscopo(o||{});
+  if(esc === null) return false;
+  if(esc === 'serie') syncRecurring(t);
+  return true;
+}
+
 function uiAlert(msg,o){ o=o||{}; return new Promise(function(res){ window.__uiRes=function(){ uiCloseM(); res(); };
   uiModal('<div class="auth-ic">'+svgIc('info')+'</div>'+(o.title?'<h2>'+o.title+'</h2>':'')+'<p>'+msg+'</p>'+
     '<div class="actions"><button class="btn-primary" onclick="__uiRes()">'+(o.ok||'Ok')+'</button></div>'); }); }
