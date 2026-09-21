@@ -188,7 +188,8 @@
     '<div class="sync-err" id="syncErr"></div>'+
     '<div class="sync-act"><button class="sbtn-p" id="syGo" onclick="window.__enter()" style="width:100%">Entrar ou criar conta</button></div>'+
     '<button class="sync-link" onclick="window.__forgot()">Esqueci a senha</button>'+
-    '<button class="sync-link" onclick="window.__codeLogin()">Entrar por link no e-mail</button>'); }
+    '<button class="sync-link" onclick="window.__codeLogin()">Entrar por link no e-mail</button>'+
+    (window.abrirNovidades?'<button class="sync-link" onclick="window.abrirNovidades()">Novidades do app</button>':'')); }
   /* ---------- o som ----------
      Preferencia do APARELHO, como o PIN: uma chave so pros cinco apps. */
   /* ---------- teclado do app (preferencia do aparelho) ---------- */
@@ -298,6 +299,10 @@
       closeOv(); toast('Senha definida ✓');
     }catch(x){ err('Erro: '+(x.message||x)); } };
 
+  function _novidadesBotao(){
+    if(!window.abrirNovidades) return "";
+    return '<button onclick="window.abrirNovidades()">' + IC.info + ' Novidades</button>';
+  }
   function _diagHtml(){
     var d={}; try{ d=JSON.parse(localStorage.getItem(LK.diag)||'{}'); }catch(e){}
     function q(iso){ if(!iso) return 'nunca'; var t=new Date(iso), m=Math.round((Date.now()-t)/60000);
@@ -311,7 +316,7 @@
   window.openSync=function(){
     if(!ready()){ showConnect(); return; }
     screen('<div class="sync-ic">'+IC.sync+'</div><h2>Sincronização</h2><p>Conectado como <b style="color:#f0f2f4">'+(localStorage.getItem(LK.login)||(session.user&&session.user.email)||'')+'</b><br>Seus dados aparecem nos seus aparelhos.</p>'+
-      _diagHtml()+'<div class="sync-list"><button onclick="window.__mkpw()">'+IC.pen+' Senha da conta</button><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button>'+_somBotao()+_tecBotao()+'<button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
+      _diagHtml()+'<div class="sync-list"><button onclick="window.__mkpw()">'+IC.pen+' Senha da conta</button><button onclick="window.__pin()">'+IC.lock+' Bloqueio por PIN</button>'+_somBotao()+_tecBotao()+_novidadesBotao()+'<button class="d" onclick="window.__dc()">Sair da conta (parar de sincronizar)</button></div>'+
       '<div class="sync-act"><button class="sbtn-p" onclick="window.__sc()">Fechar</button></div>'); };
   window.__dc=async function(){ if(!await uiConfirm('Você vai parar de sincronizar neste aparelho. Os dados continuam aqui, só não atualizam no outro. Pra voltar, é só entrar de novo.',{title:'Sair da conta?',ok:'Sair',danger:true}))return;
     _synced=false; try{ if(sb)await sb.auth.signOut(); }catch(e){} if(_rtChan){ try{sb.removeChannel(_rtChan);}catch(e){} _rtChan=null; }

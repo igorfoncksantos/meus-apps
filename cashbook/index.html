@@ -1364,6 +1364,7 @@ window.addEventListener("message",function(e){
 <script>window.__SYNC_CFG={app:'cashbook',keys:['gastos-*','vale-*'],accent:'#3ddb84',name:'Cashbook'};</script>
 <script src="supabase.js"></script>
 <script src="sync.js"></script>
+<script src="novidades.js" data-app="cashbook"></script>
 <script src="som.js"></script>
 <script src="keypad.js"></script>
 <style>
@@ -1460,7 +1461,7 @@ window.addEventListener("message",function(e){
    rodape mostrava a versao nova com o aparelho preso na velha — o pior tipo
    de indicador, o que voce confere e ele confirma o que nao e.
    O HTML e o que o operador guardou; pagina velha, constante velha. */
-var VERSAO = "v60";   /* mesma versao do sw.js — mexeu num, mexe no outro:
+var VERSAO = "v61";   /* mesma versao do sw.js — mexeu num, mexe no outro:
                        node _fixsync/sobe-versao.js cashbook */
 (function(){
   try{ var el=document.getElementById("verApp"); if(el) el.textContent = VERSAO; }catch(e){}

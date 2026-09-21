@@ -1129,6 +1129,7 @@
       <div class="mdiv"></div>
       <button onclick="tecEscolher(event)"><span class="mi" data-ic="teclado"></span>Teclado <em id="prefTec">—</em></button>
       <button onclick="somTrocar2(event)"><span class="mi" id="prefSomIc" data-ic="som"></span>Som <em id="prefSom">—</em></button>
+      <button onclick="abrirNovidades()"><span class="mi" data-ic="info"></span>Novidades <em data-nv-ver>—</em></button>
       <div class="mdiv"></div>
       <button class="mdel" onclick="wipeAll()"><span class="mi" data-ic="trash"></span>Zerar tudo</button>
     </div>
@@ -1193,7 +1194,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v110';
+const VERSAO = 'v111';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -3786,6 +3787,7 @@ setInterval(confereVirada, 60000);
 </script>
 <script src="som.js"></script>
 <script src="keypad.js"></script>
+<script src="novidades.js" data-app="norte"></script>
 
 
 
