@@ -33,6 +33,7 @@
   --accent:#8A5A2B;      /* caramelo escuro — o que a tabela já usa em texto */
   --accent-soft:#BC8B63; /* caramelo do manual — preenchimento, barras, faixas */
   --accent-wash:rgba(188,139,99,.16);
+  --onda:rgba(188,139,99,.30);
   /* ---- semânticas: não existem na marca, então nascem terrosas p/ conviver ---- */
   --ok:#3F6F52;
   --ok-wash:rgba(63,111,82,.13);
@@ -51,6 +52,7 @@
     --line:#3A312A; --line2:#4E4237;
     --ink:#F3ECE3; --ink2:#D8CCBC; --mut:#A29687;
     --accent:#D3A176; --accent-soft:#BC8B63; --accent-wash:rgba(188,139,99,.18);
+    --onda:rgba(211,161,118,.26);
     --ok:#7FB894; --ok-wash:rgba(127,184,148,.15);
     --warn:#D3A176; --warn-wash:rgba(211,161,118,.16);
     --crit:#E08379; --crit-wash:rgba(224,131,121,.15);
@@ -63,6 +65,7 @@
   --line:#3A312A; --line2:#4E4237;
   --ink:#F3ECE3; --ink2:#D8CCBC; --mut:#A29687;
   --accent:#D3A176; --accent-soft:#BC8B63; --accent-wash:rgba(188,139,99,.18);
+  --onda:rgba(211,161,118,.26);
   --ok:#7FB894; --ok-wash:rgba(127,184,148,.15);
   --warn:#D3A176; --warn-wash:rgba(211,161,118,.16);
   --crit:#E08379; --crit-wash:rgba(224,131,121,.15);
@@ -95,7 +98,31 @@ button{font:inherit;color:inherit;cursor:pointer}
 .nav button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
   background:none;border:0;padding:7px 9px;border-radius:7px;color:var(--ink2);font-weight:500;
   font-size:13px}
-.nav button:hover{background:var(--surface2)}
+/* A onda nasce EXATAMENTE onde o mouse entrou (o JS grava --mx/--my) e se
+   abre pelo item. O fundo sólido do hover sai: ele cobriria a onda inteira.
+   isolation + z-index:-1 põe a onda atrás do texto sem vazar pra trás do
+   botão — os rótulos são texto solto, não dá pra empilhar um por um. */
+.nav button{position:relative;overflow:hidden;isolation:isolate}
+.nav button::before{
+  content:"";position:absolute;z-index:-1;
+  left:var(--mx,50%);top:var(--my,50%);
+  width:0;height:0;border-radius:50%;
+  background:var(--onda);
+  transform:translate(-50%,-50%);
+  opacity:0;pointer-events:none;
+  transition:width .52s cubic-bezier(.22,.7,.28,1),
+             height .52s cubic-bezier(.22,.7,.28,1),
+             opacity .22s ease-out;
+}
+@media (hover:hover){
+  .nav button:hover::before{width:300px;height:300px;opacity:1}
+  /* saindo, a onda some mais rápido do que entrou: o gesto de sair é seco */
+  .nav button:not(:hover)::before{transition:width .2s,height .2s,opacity .16s}
+}
+@media (prefers-reduced-motion:reduce){
+  .nav button::before{transition:opacity .12s}
+  .nav button:hover::before{width:300px;height:300px}
+}
 .nav button[aria-current="true"]{background:var(--accent-wash);color:var(--ink);font-weight:600}
 .nav .dot{width:5px;height:5px;border-radius:50%;background:var(--line2);flex:0 0 auto}
 .nav button[aria-current="true"] .dot{background:var(--accent-soft)}
@@ -973,6 +1000,18 @@ tbody tr:hover{background:var(--surface2)}
 <script>
 (function(){
   var nav=document.getElementById('nav');
+  /* o ponto onde o mouse entrou vira o centro da onda; sem isso ela sairia
+     sempre do meio e o efeito perderia a relação com o gesto */
+  if (window.matchMedia('(hover:hover)').matches){
+    nav.addEventListener('pointerover',function(e){
+      var b=e.target.closest('button[data-t]'); if(!b) return;
+      if(b.contains(e.relatedTarget)) return;       // só na entrada, não entre filhos
+      var r=b.getBoundingClientRect();
+      b.style.setProperty('--mx',(e.clientX-r.left)+'px');
+      b.style.setProperty('--my',(e.clientY-r.top)+'px');
+    });
+  }
+
   nav.addEventListener('click',function(e){
     var b=e.target.closest('button[data-t]'); if(!b) return;
     nav.querySelectorAll('button[data-t]').forEach(function(x){x.setAttribute('aria-current','false')});
@@ -1013,7 +1052,7 @@ tbody tr:hover{background:var(--surface2)}
 </style>
 <script>
 (function(){
-  var VERSAO = 'v2';
+  var VERSAO = 'v3';
   var el = document.getElementById('kh-versao');
   if (el) el.textContent = 'Klix Hub ' + VERSAO;
 
