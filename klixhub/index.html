@@ -7,7 +7,8 @@
 <meta name="description" content="A operação da Klix Mídia num lugar só.">
 <title>Klix Hub</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icone-192.png">
+<link rel="icon" type="image/svg+xml" href="icone.svg">
+<link rel="icon" type="image/png" href="icone-192.png">
 <link rel="apple-touch-icon" href="icone-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Klix Hub">
@@ -83,8 +84,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .brand{padding:17px 16px 14px;border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:9px}
-.play{width:0;height:0;border-left:11px solid var(--accent-soft);
-  border-top:7px solid transparent;border-bottom:7px solid transparent;flex:0 0 auto}
+.play{width:15px;height:19px;flex:0 0 auto;display:block}
 .bname{font-family:"DM Serif Display",Georgia,serif;font-size:19px;line-height:1;letter-spacing:.2px}
 .bname small{font-family:Montserrat,sans-serif;font-size:9.5px;font-weight:700;letter-spacing:1.6px;
   text-transform:uppercase;color:var(--mut);display:block;margin-top:3px}
@@ -247,7 +247,7 @@ tbody tr:hover{background:var(--surface2)}
 <div class="app">
   <aside class="side">
     <div class="brand">
-      <div class="play" aria-hidden="true"></div>
+      <svg class="play" viewBox="0 0 140 174" aria-hidden="true"><path d="M 16 14 L 124 87 L 16 160 Z" fill="var(--accent-soft)" stroke="var(--accent-soft)" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/></svg>
       <div class="bname">Klix<small>Hub</small></div>
     </div>
     <nav class="nav" id="nav">
@@ -1013,7 +1013,7 @@ tbody tr:hover{background:var(--surface2)}
 </style>
 <script>
 (function(){
-  var VERSAO = 'v1';
+  var VERSAO = 'v2';
   var el = document.getElementById('kh-versao');
   if (el) el.textContent = 'Klix Hub ' + VERSAO;
 

@@ -1,7 +1,7 @@
 /* Rede primeiro: vale mais chegar atualizado que chegar rapido.
    O cache so serve pra quando nao houver rede. */
-var CACHE = 'meusapps-klixhub-v1';
-var ARQ = ['./', './index.html', './manifest.json', './icone-192.png', './icone-512.png'];
+var CACHE = 'meusapps-klixhub-v2';
+var ARQ = ['./', './index.html', './manifest.json', './icone.svg', './icone-192.png', './icone-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ARQ).catch(function () {}); }));
