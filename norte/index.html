@@ -625,6 +625,13 @@
   .act-list button.prioU .ic svg{ stroke:#ff5252; }
   .rchip{ color:#7ee2b8; background:#0f2b1a; border-color:#1f5c37; }
   .cflag{ display:inline-block; font-size:9px; font-weight:700; letter-spacing:.3px; text-transform:uppercase; color:var(--mut2); margin:0 5px 0 0; }
+  /* prazo (deadline): neutro longe, ambar perto (<=3 dias), vermelho vencido.
+     Usa os tokens do tema (--line/--star/--canc), entao nao precisa de override por tema. */
+  .dlchip{ display:inline-block; font-size:10px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; border-radius:20px; padding:4px 9px; line-height:14px; margin:0 5px 0 0; border:1px solid var(--line); color:var(--mut2); background:transparent; vertical-align:middle; }
+  .dlchip.perto{ background:var(--star); color:#1a1204; border-color:var(--star); }
+  .dlchip.venceu{ background:var(--canc); color:#fff; border-color:var(--canc); }
+  .item.done .dlchip, .item.canc .dlchip{ opacity:.5; }
+  .item.blocked .dlchip{ position:relative; z-index:2; }
 
   .subs{ margin-top:9px; display:flex; flex-direction:column; gap:6px; }
   .sub{ display:flex; align-items:flex-start; gap:9px; font-size:12px; color:#b7c0c6; cursor:pointer; }
@@ -1194,7 +1201,7 @@ let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v111';
+const VERSAO = 'v112';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1598,6 +1605,7 @@ function itemEl(t,c){
   if(t.prio==='star') chips+=` <span class="pchip star">★ Prioridade</span>`;
   if(ehLista(t)) chips+=` <span class="lchip">lista</span>`;
   if(t.recur) chips+=` <span class="rchip">↻ ${t.recur}</span>`;
+  { const _p=prazoInfo(t); if(_p) chips+=` <span class="dlchip ${_p.cls}">${_p.txt}</span>`; }
   if(t.carriedFrom) chips+=` <span class="cflag">↩ veio de ${t.carriedFrom}</span>`;
   if(t.wasSched) chips+=` <span class="cflag schedtoday">🗓 programada pra hoje</span>`;
 
@@ -2146,6 +2154,7 @@ function openActions(id){ const t=findTask(id);
     t.prio==='max'?[svgIc('star'),'Tirar máxima',`setPrio('${id}',null)`,'prioB']:[svgIc('star'),'Prioridade máxima',`setPrio('${id}','max')`,'prioB'],
     t.prio==='urgente'?[svgIc('alert'),'Tirar urgente',`setPrio('${id}',null)`,'prioU']:[svgIc('alert'),'URGENTE',`setPrio('${id}','urgente')`,'prioU'],
     [svgIc('cal'),'Agendar (data)',`schedTask('${id}')`],
+    t.prazo?[svgIc('flag'),'Prazo · até '+fmtBR(t.prazo),`prazoTask('${id}')`]:[svgIc('flag'),'Prazo (deadline)',`prazoTask('${id}')`],
     t.status==='adiado'?[svgIc('play'),'Retomar',`setStatus('${id}','pend')`]:[svgIc('pause'),'Adiar',`setStatus('${id}','adiado')`],
     t.status==='canc'?[svgIc('rotate'),'Reativar',`setStatus('${id}','pend')`]:[svgIc('x'),'Cancelar',`setStatus('${id}','canc')`],
     [svgIc('tag'),'Atribuir categoria',`atribuirCat('${id}')`],
@@ -2205,6 +2214,29 @@ async function setCat(id,cid){
 function setStatus(id,s){ const t=findTask(id); t.status=s; if(s==='done')flashFx(); render(); }
 function setPrio(id,p){ findTask(id).prio=p; render(); }
 let _schedId=null;
+/* ---- prazo (deadline) ----
+   Diferente de Agendar: agendar diz QUANDO a tarefa aparece; o prazo diz ATE
+   QUANDO ela precisa estar feita. A tarefa continua no dia (e no carry-over) e
+   o cartao mostra a distancia. Guardo ISO completo (AAAA-MM-DD): o dd/mm do
+   agendar perde o ano. A distancia e medida contra o dia que esta na tela
+   (cur), pra um dia antigo continuar lendo como ele era. */
+function prazoInfo(t){
+  if(!t||!t.prazo) return null;
+  const ref = cur || todayISO();
+  const dias = Math.round((new Date(t.prazo+'T12:00:00')-new Date(ref+'T12:00:00'))/86400000);
+  const br = fmtBR(t.prazo);
+  if(t.status==='done'||t.status==='canc') return {dias, cls:'', txt:'até '+br};
+  if(dias<0)   return {dias, cls:'venceu', txt:'venceu '+br+' · '+(-dias)+(dias===-1?' dia':' dias')};
+  if(dias===0) return {dias, cls:'perto', txt:'prazo hoje'};
+  if(dias===1) return {dias, cls:'perto', txt:'prazo amanhã'};
+  if(dias<=3)  return {dias, cls:'perto', txt:'até '+br+' · '+dias+' dias'};
+  return {dias, cls:'', txt:'até '+br};
+}
+function prazoTexto(iso){
+  if(!iso) return 'Sem prazo';
+  const d=new Date(iso+'T12:00:00');
+  return WD[d.getDay()]+', '+d.getDate()+' de '+MES[d.getMonth()];
+}
 function isoFromSched(s){ if(!s||s.indexOf('/')<0)return ''; const [d,m]=s.split('/'); return `${cur.slice(0,4)}-${m}-${d}`; }
 let _schedISO='', schedCalM='';
 function schedTask(id){ _schedId=id; const t=findTask(id);
@@ -2267,6 +2299,29 @@ function pickSchedDay(iso){ if(iso<todayISO())return;
 function saveSched(){ if(!_schedISO){ uiAlert('Escolha uma data no calendário.'); return; }
   const [y,m,d]=_schedISO.split('-'); const t=findTask(_schedId); t.status='sched'; t.sched=d+'/'+m; closeSheet(); save(); render(); }
 function clearSched(){ const t=findTask(_schedId); if(t){ t.status='pend'; t.sched=null; } closeSheet(); render(); }
+/* prazo pelo menu da tarefa: mesma folha e mesmo calendario do Agendar */
+let _prazoId=null, _prazoISO='', prazoCalM='';
+function prazoTask(id){ _prazoId=id; const t=findTask(id); if(!t) return;
+  const hoje=todayISO();
+  _prazoISO = t.prazo||'';
+  prazoCalM = ((_prazoISO && _prazoISO>=hoje) ? _prazoISO : hoje).slice(0,8)+'01';
+  sheet(`<h3>⏳ Prazo da tarefa</h3>
+    <div class="field"><label>Até quando precisa estar feita</label><div id="prazoCalHost"></div>
+    <div class="schedlbl" id="prazoLbl"></div></div>
+    <div class="actions"><button class="btn-danger" onclick="clearPrazo()">Tirar</button><button class="btn-ghost" onclick="closeSheet()">Cancelar</button><button class="btn-primary" onclick="savePrazo()">Definir</button></div>`);
+  renderPrazoCal(); }
+function prazoCalShift(n){ prazoCalM=mesAdiante(prazoCalM,n); renderPrazoCal(); }
+function renderPrazoCal(){ const host=document.getElementById('prazoCalHost'); if(!host)return;
+  host.innerHTML=htmlCalFuturo(prazoCalM, _prazoISO, 'pickPrazoDay', 'prazoCalShift'); prazoLabel(); }
+function prazoLabel(){ const el=document.getElementById('prazoLbl'); if(!el)return;
+  if(!_prazoISO){ el.textContent='Nenhum prazo escolhido.'; el.classList.remove('on'); return; }
+  const dias=Math.round((new Date(_prazoISO+'T12:00:00')-new Date(todayISO()+'T12:00:00'))/86400000);
+  el.textContent=prazoTexto(_prazoISO)+(dias<0?' — já passou':dias===0?' — é hoje':dias===1?' — amanhã':' — em '+dias+' dias'); el.classList.add('on'); }
+function pickPrazoDay(iso){ if(iso<todayISO())return; _prazoISO=iso;
+  if(iso.slice(0,7)!==prazoCalM.slice(0,7)) prazoCalM=iso.slice(0,8)+'01'; renderPrazoCal(); }
+function savePrazo(){ if(!_prazoISO){ uiAlert('Escolha uma data no calendário.'); return; }
+  const t=findTask(_prazoId); if(t) t.prazo=_prazoISO; closeSheet(); save(); render(); }
+function clearPrazo(){ const t=findTask(_prazoId); if(t) delete t.prazo; closeSheet(); save(); render(); }
 async function delTask(id){ const t=findTask(id); if(!t)return;
   const rec = t.rid && (DB.recurring||[]).some(x=>x.rid===t.rid);
   if(!await uiConfirm(rec?'Apagar esta tarefa e PARAR a recorrência dela?':'Apagar esta tarefa?',{title:'Apagar tarefa?',ok:'Apagar',danger:true}))return;
@@ -2298,6 +2353,7 @@ function showForm(t){
   /* so vale data ainda a frente: agendamento vencido ja virou tarefa do dia */
   const _ag = isoFromSched(t.sched);
   formSched = (_ag && _ag >= todayISO()) ? _ag : '';
+  formPrazo = t.prazo||'';
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
   formLista = !!t.lista;
   /* sem o seletor, o titulo e quem diz onde a tarefa vai cair */
@@ -2310,7 +2366,7 @@ function showForm(t){
   sheet(`<h3>${editing?'Editar tarefa':'Nova tarefa'+_dest}</h3>
     ${t.semCat ? '' : '<div class="field"><label>Categoria</label><div class="catrow" id="catrow"></div></div>'}
     <div class="field"><label>O que fazer</label><div class="linhamic"><input id="fTitle" value="${escapeAttr(t.title||'')}" placeholder="ex.: Editar 1 reel">${micHTML("fTitle")}</div></div>
-    <div class="field"><label>Detalhe (opcional)</label><input id="fMeta" value="${escapeAttr(t.meta||'')}" placeholder="ex.: deadline 20/08"></div>
+    <div class="field"><label>Detalhe (opcional)</label><input id="fMeta" value="${escapeAttr(t.meta||'')}" placeholder="ex.: mandar pro Léo revisar"></div>
     <div class="field"><label>Prioridade</label><div class="prow">
       <div class="popt ${!t.prio?'sel':''}" data-p="" onclick="pickPrio(this)">Normal</div>
       <div class="popt ${t.prio==='star'?'sel':''}" data-p="star" onclick="pickPrio(this)">★</div>
@@ -2331,6 +2387,11 @@ function showForm(t){
       <button type="button" class="recbtn" onclick="abreAgenda()">
         <span class="agic">${svgIc('cal')}</span><span id="agTxt">${agTexto()}</span>
         <span style="margin-left:auto;opacity:.55">▾</span></button></div>
+    <div class="field"><label>Prazo (deadline)</label>
+      <button type="button" class="recbtn" onclick="abrePrazo()">
+        <span class="agic">${svgIc('flag')}</span><span id="prTxt">${prazoTexto(formPrazo)}</span>
+        <span style="margin-left:auto;opacity:.55">▾</span></button>
+      <div class="dica">Agendar diz <b>quando</b> a tarefa aparece; o prazo diz <b>até quando</b> ela precisa estar feita. Ela continua no dia e o cartão mostra a distância.</div></div>
     <div class="field"><label>Recorrência</label>
       <button type="button" class="recbtn" onclick="toggleRecPanel()"><span id="recBtnTxt">Não se repete</span><span style="margin-left:auto;opacity:.55">▾</span></button>
       <div id="recPanel" class="recpanel hidden">
@@ -2451,6 +2512,30 @@ function renderAgCal(){
 }
 function pickAgDay(iso){ if(iso<todayISO())return; formSched=iso; agSync(); fechaAgenda(); }
 function tiraAgenda(){ formSched=''; agSync(); fechaAgenda(); }
+/* ---- Prazo de dentro do formulario: reusa o overlay do Agendar ---- */
+let formPrazo='', prCalM='';
+function prSync(){ const el=document.getElementById('prTxt'); if(el) el.textContent=prazoTexto(formPrazo); }
+function abrePrazo(){
+  prCalM=((formPrazo && formPrazo>=todayISO()) ? formPrazo : todayISO()).slice(0,8)+'01';
+  let ov=document.getElementById('agOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='agOv'; ov.className='authov agov';
+    ov.onclick=function(e){ if(e.target===ov) fechaAgenda(); };
+    document.body.appendChild(ov); }
+  ov.classList.remove('hidden'); renderPrCal();
+}
+function prCalShift(n){ prCalM=mesAdiante(prCalM,n); renderPrCal(); }
+function renderPrCal(){
+  const ov=document.getElementById('agOv'); if(!ov)return;
+  ov.innerHTML='<div class="auth-card agcard">'+
+    '<h2>Prazo da tarefa</h2>'+
+    htmlCalFuturo(prCalM, formPrazo, 'pickPrDay', 'prCalShift')+
+    '<div class="agrod">'+
+      (formPrazo ? '<button type="button" class="btn-danger" onclick="tiraPrazo()">Tirar</button>' : '')+
+      '<button type="button" class="btn-ghost" onclick="fechaAgenda()">Fechar</button>'+
+    '</div></div>';
+}
+function pickPrDay(iso){ if(iso<todayISO())return; formPrazo=iso; prSync(); fechaAgenda(); }
+function tiraPrazo(){ formPrazo=''; prSync(); fechaAgenda(); }
 function refreshCatrow(){ const row=document.getElementById('catrow'); if(!row)return;
   row.innerHTML = CATS.map(c=>`<div class="catopt ${formCat===c.id?'sel':''}" data-cat="${c.id}" onclick="pickCat(this)"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>`).join('')
     + `<div class="catopt" style="border-style:dashed" onclick="quickAddCat()"><span class="dot" style="background:var(--mut)"></span>+ nova</div>`;
@@ -2530,7 +2615,7 @@ async function saveForm(){
         return o; }); }
     else delete t.subs;
     if(formLista && t.subs && t.subs.length) t.lista=true; else delete t.lista;
-    aplicaAgenda(t); aplicaQtd(t);
+    aplicaAgenda(t); aplicaPrazo(t); aplicaQtd(t);
     const ok = await escopoRotina(t, _antes, {
       msg: '<b>'+escapeHtml(t.title)+'</b> se repete'+(t.recur?' ('+escapeHtml(t.recur)+')':'')+'. Onde essa alteração vale?' });
     if(!ok){ /* desistiu: devolve a tarefa como estava e sai sem fechar nada */
@@ -2538,14 +2623,14 @@ async function saveForm(){
       return; } }
   else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr;
     if(formLista && subs.length) t.lista=true;
-    aplicaAgenda(t); aplicaQtd(t);
+    aplicaAgenda(t); aplicaPrazo(t); aplicaQtd(t);
     if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
       t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
     else if(_formParaSem){ const S=sem(); if(!S.ciclo) S.ciclo=segundaISO(cur);
       t.semDesde = segundaISO(cur); S.itens.push(t); }
     else { day().tasks.push(t); syncRecurring(t); } }
   _formParaFDS=false; _formParaSem=false; formLista=false;
-  editing=null; formSched=''; closeSheet(); render();
+  editing=null; formSched=''; formPrazo=''; closeSheet(); render();
 }
 /* a quantidade vira a cota da tarefa. O quanto ja foi contado sobrevive a
    edicao, limitado ao alvo novo — baixar o alvo abaixo do contado fecha. */
@@ -2562,6 +2647,7 @@ function aplicaQtd(t){
 }
 /* a data escolhida no formulario vira o agendamento da tarefa. Tirar a data
    devolve ela pro dia; nao mexe em tarefa que nunca foi agendada. */
+function aplicaPrazo(t){ if(formPrazo) t.prazo=formPrazo; else delete t.prazo; }
 function aplicaAgenda(t){
   if(formSched){
     const [y,m,d]=formSched.split('-');
@@ -3099,6 +3185,7 @@ const ICONS={
   /* mesmo tracado do Feito — o microfone e o mesmo desenho em todo app */
   pin:'<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14l-1.5-4.5V6a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v6.5L5 17z"/>',
   arrow:'<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/>',
+  flag:'<path d="M5 22V3.5"/><path d="M5 4h11.5l-1.6 4 1.6 4H5"/>',
   list:'<line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.4"/><circle cx="4.5" cy="12" r="1.4"/><circle cx="4.5" cy="18" r="1.4"/>',
   mic:'<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
   bio:'<path d="M2 12C2 6.5 6.5 2 12 2a10 10 0 0 1 8 4"/><path d="M5 19.5C5.5 18 6 15 6 12c0-.7.12-1.37.34-2"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M21.8 16c.2-2 .13-5.35 0-6"/><path d="M9 6.8a6 6 0 0 1 9 5.2c0 .47 0 1.17-.02 2"/>',

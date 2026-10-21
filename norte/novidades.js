@@ -30,6 +30,7 @@
      ========================================================================= */
   var DADOS = {
     norte: [
+      ['v112', '2026-10-21', 'Prazo (deadline) com data: no formulário, no menu e no cartão'],
       ['v111', '2026-09-21', 'Este painel: o resumo do que mudou, dentro do menu'],
       ['v110', '2026-09-21', 'Reordenar vale também nos dias futuros já abertos'],
       ['v109', '2026-09-21', 'A ordem que você deixa num dia segue nos dias seguintes'],
