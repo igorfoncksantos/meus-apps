@@ -99,6 +99,7 @@
       ['v29', '2026-09-02', 'Som no app: a recompensa e o aviso, não o teclado']
     ],
     prospecta: [
+      ['v19', '2026-10-23', 'Mandar no WhatsApp: abre a conversa já com a mensagem pronta'],
       ['v18', '2026-09-21', 'Novidades: o resumo do que mudou, nas configurações'],
       ['v17', '2026-09-19', 'O título da ficha se edita no lugar, sem abrir folha'],
       ['v16', '2026-09-19', 'Editar os dados do topo da ficha'],

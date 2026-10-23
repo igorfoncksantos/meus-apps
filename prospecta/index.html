@@ -693,7 +693,7 @@ function perguntaQuem(){
   );
 }
 
-var VERSAO = "v18";   /* mesma versão do sw.js — mexeu num, mexe no outro.
+var VERSAO = "v19";   /* mesma versão do sw.js — mexeu num, mexe no outro.
                         ⚠️ só o número: é assim que o sobe-versao.js acha */
 var CHAVE = "prospecta-v1";
 var D = { pros:[], dias:{}, listas:null, prox:1 };
@@ -1306,7 +1306,9 @@ function abre(id){
    +'<h3>Mensagem pronta</h3>'
    +'<div class="modelos" id="mods"></div><div class="msg" id="msgTxt"></div>'
    +'<div class="acoes"><button class="bt" onclick="copiaMsg(this)">Copiar</button>'
-   +'<button class="bt pri" onclick="registraToque()">Registrar toque</button></div>'
+   +'<button class="bt pri" id="btZap" onclick="mandaZap(this)">Mandar no WhatsApp</button>'
+   +'<button class="bt" id="btToque" onclick="registraToque()">Registrar toque</button></div>'
+   +'<div class="aviso" id="zapHint" hidden></div>'
    +'<div class="aviso">Cada toque entrega algo. <b>“Viu minha mensagem?” irrita</b> — “lembrei de vocês e fiz essa referência” encanta.</div>'
 
    +'<h3>Acompanhamento</h3>'
@@ -2328,6 +2330,29 @@ function salvaConteudo(irPraOrc){
 function copiaMsg(b){
   try{ navigator.clipboard.writeText(montaMsg()); }catch(e){}
   var o=b.textContent; b.textContent="Copiado ✓"; setTimeout(function(){ b.textContent=o; },1400);
+}
+/* Abre o WhatsApp do lead JA COM A MENSAGEM escrita: ela le, ajusta uma
+   palavra se quiser e envia. O app prepara, a pessoa dispara. Disparo
+   automatico pra quem nunca escreveu e proibido pela Meta e derruba o numero
+   - e o numero da Klix e o canal de atendimento da Miri. */
+function mandaZap(b){
+  var p=acha(_atual); if(!p) return;
+  var c=leTel(p.tel);
+  var h=document.getElementById("zapHint");
+  if(!c || c.tipo!=="zap"){
+    if(h){ h.hidden=false; h.innerHTML = (c && c.tipo==="mail")
+      ? 'O contato cadastrado é um <b>e-mail</b>. Pra abrir no WhatsApp, coloque o <b>telefone com DDD</b> no campo Telefone / e-mail e salve.'
+      : 'Sem telefone na ficha. Coloque o <b>número com DDD</b> no campo Telefone / e-mail e salve.'; }
+    return;
+  }
+  if(h) h.hidden=true;
+  var url = c.url + "?text=" + encodeURIComponent(montaMsg());
+  try{ som('salvo'); }catch(e){}
+  window.open(url, "_blank");
+  /* a conversa abriu em outra aba; quando ela voltar, o proximo passo ja esta aceso */
+  var t=document.getElementById("btToque");
+  if(t){ t.className="bt pri"; t.textContent="Enviou? Registrar toque"; }
+  if(b){ var o=b.textContent; b.textContent="Abrindo…"; setTimeout(function(){ b.textContent=o; },1400); }
 }
 
 /* grava o que está na tela da ficha, SEM fechar nada.
