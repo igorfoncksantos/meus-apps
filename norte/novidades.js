@@ -30,6 +30,7 @@
      ========================================================================= */
   var DADOS = {
     norte: [
+      ['v113', '2026-11-09', 'Varredura: dez correções (apagar na Semana e no FDS, fusão da 1ª sincronização, restaurar backup, recorrência ao editar, esqueci a senha, agendar com ano), convite de sexta ligado e código antigo removido'],
       ['v112', '2026-10-21', 'Prazo (deadline) com data: no formulário, no menu e no cartão'],
       ['v111', '2026-09-21', 'Este painel: o resumo do que mudou, dentro do menu'],
       ['v110', '2026-09-21', 'Reordenar vale também nos dias futuros já abertos'],

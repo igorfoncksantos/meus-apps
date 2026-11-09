@@ -127,7 +127,7 @@
   /* tudo o que vive direto no taupe, escuro */
   [data-theme="miri"] .cat .cadd,[data-theme="miri"] .semadd{ color:#3F3A31; border-color:#7E7768; }
   [data-theme="miri"] .ordbt,[data-theme="miri"] .obs-h,[data-theme="miri"] .dobra{ color:#3F3A31; }
-  [data-theme="miri"] .secttl .ed,[data-theme="miri"] .secttl small,
+  [data-theme="miri"] .secttl small,
   [data-theme="miri"] .secttl span{ color:#4A443A; }
   /* o + nota vive na barra de Notas, fora de .cat — a regra de la nao o alcanca */
   [data-theme="miri"] .obs-h .cadd{ color:#3F3A31; border-color:#7E7768; }
@@ -205,7 +205,7 @@
   [data-theme="neon"] .cat .cbar{ box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); }
   [data-theme="neon"] .goals-box{ background:rgba(255,255,255,.05); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-color:rgba(255,255,255,.1); }
   [data-theme="neon"] .obs-box{ background:rgba(255,255,255,.045); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-color:rgba(255,255,255,.1); }
-  [data-theme="neon"] .prog-chart,[data-theme="neon"] .prog-seg button,[data-theme="neon"][data-theme="neon"] .prog-sum{
+  [data-theme="neon"] .prog-seg button{
     background:rgba(255,255,255,.05); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-color:rgba(255,255,255,.1); }
   [data-theme="neon"] .menu{ background:rgba(14,20,28,.9); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.1); }
   [data-theme="neon"] .menu button{ color:var(--txt); }
@@ -257,7 +257,7 @@
   [data-theme="hud"] .item.adiado{ background:rgba(16,26,32,.7); }
   [data-theme="hud"] .tag{ font-family:"JetBrains Mono",ui-monospace,monospace; border-radius:3px; letter-spacing:.5px; }
   [data-theme="hud"] .goals-box,[data-theme="hud"] .obs-box{ background:rgba(10,24,25,.6); border-color:rgba(47,217,201,.2); border-radius:9px; }
-  [data-theme="hud"] .prog-chart,[data-theme="hud"] .prog-seg button,[data-theme="hud"][data-theme="hud"] .prog-sum{
+  [data-theme="hud"] .prog-seg button{
     background:rgba(10,24,25,.6); border-color:rgba(47,217,201,.2); border-radius:9px; }
   [data-theme="hud"] .prog-seg button.on{ background:var(--accent); color:#04191a; }
   [data-theme="hud"] .menu{ background:rgba(8,18,20,.95); border:1px solid rgba(47,217,201,.22); }
@@ -792,23 +792,9 @@
   .prog-seg{ display:flex; gap:8px; margin-bottom:15px; }
   .prog-seg button{ flex:1; padding:11px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--mut); font-size:13px; font-weight:700; cursor:pointer; transition:.15s; }
   .prog-seg button.on{ background:var(--accent); color:#04191a; border-color:var(--accent); }
-  .prog-metric{ margin-bottom:9px; }
   .prog-seg button:active{ transform:scale(.97); }
-  .prog-chart{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px 8px 10px; }
   .prog-empty{ text-align:center; color:var(--mut); padding:46px 20px; font-size:14px; line-height:1.7; }
-  .prog-legend{ display:flex; flex-wrap:wrap; gap:9px 16px; margin:2px 2px 13px; }
-  .prog-legend .pl{ display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--mut2); font-weight:600; }
-  .prog-legend .pl i{ width:12px; height:12px; border-radius:5px; display:inline-block; box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 3px rgba(0,0,0,.4); }
-  .prog-legend .pl b{ color:var(--txt2); font-weight:800; }
-  .prog-metric button.count.on{ background:#22C55E; border-color:#22C55E; color:#04120a; }
-  .prog-sum{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:13px 15px; margin-top:13px;
-             font-size:14px; line-height:1.65; color:var(--mut2); }
-  .prog-sum .sh{ display:flex; align-items:center; gap:7px; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--accent); margin-bottom:8px; }
-  .prog-sum .sh svg{ width:14px; height:14px; stroke:var(--accent); }
-  .prog-sum p{ margin:0; }
-  .prog-sum p+p{ margin-top:6px; }
-  .prog-sum b{ color:var(--txt2); font-weight:800; }
-  .prog-sum .up{ color:#5fd6a6; font-weight:800; } .prog-sum .down{ color:#ff9aa2; font-weight:800; } .prog-sum .flat{ color:var(--mut2); font-weight:800; }
+
 
   /* modal / sheet */
   .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
@@ -1196,12 +1182,11 @@
 <script>
 /* ================= modelo ================= */
 /* app vem SEM categorias — cada pessoa cria as suas */
-const DEFAULT_CATS = [];
 let CATS = [];   // carregado do DB (DB.cats)
 const catById = id => CATS.find(c=>c.id===id) || CATS[0];
 const KEY = 'assistente-v3';
 /* mesma versao do sw.js — mexeu num, mexe no outro */
-const VERSAO = 'v112';
+const VERSAO = 'v113';
 let DB, cur;   // DB.days = {iso:{tasks:[],obs:[]}}, cur = iso atual
 
 function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -1224,7 +1209,6 @@ function load(){
   CATS = DB.cats;
   // SEMPRE abre no dia de hoje. Se hoje ainda não existe, cria puxando os
   // pendentes do dia anterior (carry-over automático ao abrir, em qualquer aparelho).
-  migrarDiariasFixas();
   const t = todayISO();
   if(!DB.days[t]){ DB.days[t] = Object.keys(DB.days).length ? buildNewDay(t) : emptyDay(); save(); }
   else if(resolvePrevia(t)) save();
@@ -1293,7 +1277,10 @@ function day(){ return DB.days[cur]; }
 function activateSchedTasks(tasks, iso){
   const dd=iso.slice(8,10), mm=iso.slice(5,7); let ch=false;
   (tasks||[]).forEach(t=>{ if(t.status==='sched' && t.sched){
-    const p=t.sched.split('/'); if(p[0]===dd && p[1]===mm){ t.status='pend'; t.wasSched=true; delete t.sched; ch=true; }
+    const p=t.sched.split('/');
+    /* schedISO carrega o ano (desde v113); o dd/mm fica pra quem foi agendada antes */
+    const bate = t.schedISO ? (t.schedISO===iso) : (p[0]===dd && p[1]===mm);
+    if(bate){ t.status='pend'; t.wasSched=true; delete t.sched; delete t.schedISO; ch=true; }
   }});
   return ch;
 }
@@ -1323,9 +1310,6 @@ function isBlocked(t){
 function ehLista(t){ return !!(t && t.lista && t.subs && t.subs.length); }
 function fezEm(t, iso){ return (t.subs||[]).some(s=>s.done && s.dt===iso); }
 function fezHoje(t){ return fezEm(t, cur); }
-function itensDeHoje(t){ return (t.subs||[]).filter(s=>s.done && s.dt===cur); }
-function itensDeAntes(t){ return (t.subs||[]).filter(s=>s.done && s.dt!==cur); }
-function itensAbertos(t){ return (t.subs||[]).filter(s=>!s.done); }
 /* qual lista guarda esta tarefa: o dia, o balde do fim de semana ou o da semana */
 function listaDe(t){
   if(!t) return null;
@@ -1768,7 +1752,7 @@ function sabadoDe(iso){
 /* virou o fim de semana: o que foi FEITO some, o que nao foi espera o proximo */
 function viraFDS(){
   const F=fds(); if(!F.on) return;
-  const sab=sabadoDe(cur); if(!sab) return;
+  const sab=sabadoDe(todayISO()); if(!sab) return;   /* o fds REAL, nao o da tela */
   if(F.ciclo===sab) return;
   const antes=F.itens.length;
   F.itens=F.itens.filter(t=>t.status!=='done');
@@ -1791,19 +1775,26 @@ function fdsEspera(t){
 function mandarFDS(id){
   const t=findTask(id); if(!t) return;
   const F=fds(); const novo=!F.on;
-  F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+  F.on=true; if(!F.ciclo) F.ciclo=cicloFDSHoje();
   const d=day(); d.tasks=d.tasks.filter(x=>x.id!==id);
+  /* se era da semana, sai de la — uma tarefa nao mora em dois baldes */
+  const S=DB.semana; if(S&&S.itens) S.itens=S.itens.filter(x=>x.id!==id);
+  delete t.semDesde;
   t.status = (t.status==='done'||t.status==='canc') ? 'pend' : t.status;
   t.fdsDesde = sabadoDe(cur) || proximoSabado();
   F.itens.push(t);
   save(); render();
   if(novo) uiAlert('O que você mandar pro fim de semana some da lista da semana e volta no sábado. Se não fizer, ele espera o próximo — não cai na sua segunda.',{title:'Pronto — ela volta no sábado'});
 }
-function proximoSabado(){
-  const dt=new Date(cur+'T12:00:00');
+function proximoSabadoDe(iso){
+  const dt=new Date(iso+'T12:00:00');
   while(dt.getDay()!==6) dt.setDate(dt.getDate()+1);
   return dt.toISOString().slice(0,10);
 }
+function proximoSabado(){ return proximoSabadoDe(cur); }
+/* a identidade do ciclo vem de HOJE: com a data da tela, abrir a aba num
+   sabado antigo apontava o ciclo pro passado e a virada seguinte purgava */
+function cicloFDSHoje(){ const h=todayISO(); return sabadoDe(h)||proximoSabadoDe(h); }
 function trazerFDS(id){
   const F=fds(); const i=F.itens.findIndex(t=>t.id===id); if(i<0) return;
   const t=F.itens.splice(i,1)[0];
@@ -1812,7 +1803,7 @@ function trazerFDS(id){
   save(); render();
 }
 function ativaFDS(){
-  const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+  const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=cicloFDSHoje();
   try{ localStorage.setItem('norte-fds-convite','1'); }catch(e){}
   save(); render(); closeSheet();
 }
@@ -1853,7 +1844,9 @@ function segundaISO(iso){ return mondayOf(iso).toISOString().slice(0,10); }
 function sextaDe(iso){ const d=mondayOf(iso); d.setDate(d.getDate()+4); return d.toISOString().slice(0,10); }
 /* virou a semana: o que foi FEITO some, o que nao foi espera a proxima */
 function viraSemana(){
-  const S=sem(); const seg=segundaISO(cur);
+  /* o ciclo e a semana REAL (de hoje), nunca a da data na tela: navegar pra
+     semana passada apagava o que ja tinha sido feito nesta */
+  const S=sem(); const seg=segundaISO(todayISO());
   if(S.ciclo===seg) return;
   const antes=S.itens.length;
   if(S.ciclo) S.itens=S.itens.filter(t=>t.status!=='done');
@@ -2008,7 +2001,7 @@ function renderFDS(){
   const host=document.getElementById('fdsView'); if(!host) return;
   const F=fds(); F.on=true;                 /* entrar na aba ja e usar */
   const sab = sabadoDe(cur) || proximoSabado();
-  if(!F.ciclo) F.ciclo=sab;
+  if(!F.ciclo) F.ciclo=cicloFDSHoje();
   viraFDS();
   const st=statsFDS();
   const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -2237,12 +2230,13 @@ function prazoTexto(iso){
   const d=new Date(iso+'T12:00:00');
   return WD[d.getDay()]+', '+d.getDate()+' de '+MES[d.getMonth()];
 }
-function isoFromSched(s){ if(!s||s.indexOf('/')<0)return ''; const [d,m]=s.split('/'); return `${cur.slice(0,4)}-${m}-${d}`; }
+function isoFromSched(s,t){ if(t&&t.schedISO) return t.schedISO;   /* com ano, quando existe */
+  if(!s||s.indexOf('/')<0)return ''; const [d,m]=s.split('/'); return `${cur.slice(0,4)}-${m}-${d}`; }
 let _schedISO='', schedCalM='';
 function schedTask(id){ _schedId=id; const t=findTask(id);
   const hoje=todayISO();
   /* uma data ja agendada so vale como escolha se ainda estiver a frente */
-  const jaTem=isoFromSched(t.sched);
+  const jaTem=isoFromSched(t.sched,t);
   _schedISO = (jaTem && jaTem>=hoje) ? jaTem : '';
   schedCalM = (_schedISO||hoje).slice(0,8)+'01';
   sheet(`<h3>📅 Agendar tarefa</h3>
@@ -2297,8 +2291,8 @@ function pickSchedDay(iso){ if(iso<todayISO())return;
   if(iso.slice(0,7)!==schedCalM.slice(0,7)) schedCalM=iso.slice(0,8)+'01';
   renderSchedCal(); }
 function saveSched(){ if(!_schedISO){ uiAlert('Escolha uma data no calendário.'); return; }
-  const [y,m,d]=_schedISO.split('-'); const t=findTask(_schedId); t.status='sched'; t.sched=d+'/'+m; closeSheet(); save(); render(); }
-function clearSched(){ const t=findTask(_schedId); if(t){ t.status='pend'; t.sched=null; } closeSheet(); render(); }
+  const [y,m,d]=_schedISO.split('-'); const t=findTask(_schedId); t.status='sched'; t.sched=d+'/'+m; t.schedISO=_schedISO; closeSheet(); save(); render(); }
+function clearSched(){ const t=findTask(_schedId); if(t){ t.status='pend'; t.sched=null; delete t.schedISO; } closeSheet(); render(); }
 /* prazo pelo menu da tarefa: mesma folha e mesmo calendario do Agendar */
 let _prazoId=null, _prazoISO='', prazoCalM='';
 function prazoTask(id){ _prazoId=id; const t=findTask(id); if(!t) return;
@@ -2326,7 +2320,9 @@ async function delTask(id){ const t=findTask(id); if(!t)return;
   const rec = t.rid && (DB.recurring||[]).some(x=>x.rid===t.rid);
   if(!await uiConfirm(rec?'Apagar esta tarefa e PARAR a recorrência dela?':'Apagar esta tarefa?',{title:'Apagar tarefa?',ok:'Apagar',danger:true}))return;
   if(t.rid)DB.recurring=(DB.recurring||[]).filter(x=>x.rid!==t.rid);
-  day().tasks=day().tasks.filter(x=>x.id!==id); render(); }
+  /* a tarefa pode morar na semana ou no fim de semana, nao so no dia */
+  const L=listaDe(t); if(L){ const i=L.indexOf(t); if(i>=0) L.splice(i,1); }
+  render(); }
 
 /* ---- add / edit ---- */
 let editing=null;
@@ -2351,7 +2347,7 @@ function showForm(t){
   setTimeout(attSetasRows,0);   /* as pontas da coluna de setas, quando a folha já existe */
   formRecur = t.rec ? JSON.parse(JSON.stringify(t.rec)) : {type:'none',days:[],dom:20,date:''};
   /* so vale data ainda a frente: agendamento vencido ja virou tarefa do dia */
-  const _ag = isoFromSched(t.sched);
+  const _ag = isoFromSched(t.sched,t);
   formSched = (_ag && _ag >= todayISO()) ? _ag : '';
   formPrazo = t.prazo||'';
   const subRows = (t.subs||[]).map(s=>subRowHtml(s.label,s.qm)).join('');
@@ -2620,11 +2616,13 @@ async function saveForm(){
       msg: '<b>'+escapeHtml(t.title)+'</b> se repete'+(t.recur?' ('+escapeHtml(t.recur)+')':'')+'. Onde essa alteração vale?' });
     if(!ok){ /* desistiu: devolve a tarefa como estava e sai sem fechar nada */
       Object.keys(t).forEach(function(k){ delete t[k]; }); Object.assign(t, _bk);
-      return; } }
+      return; }
+    /* ligou recorrencia numa tarefa comum: registra a rotina, senao ela nunca renasce */
+    if(!t.rid && t.rec) syncRecurring(t); }
   else{ const t={id:uid(),cat:formCat,title,meta,status:'pend',prio:formPrio,recur}; if(subs.length)t.subs=subs; if(fr)t.rec=fr;
     if(formLista && subs.length) t.lista=true;
     aplicaAgenda(t); aplicaPrazo(t); aplicaQtd(t);
-    if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+    if(_formParaFDS){ const F=fds(); F.on=true; if(!F.ciclo) F.ciclo=cicloFDSHoje();
       t.fdsDesde = sabadoDe(cur) || proximoSabado(); F.itens.push(t); }
     else if(_formParaSem){ const S=sem(); if(!S.ciclo) S.ciclo=segundaISO(cur);
       t.semDesde = segundaISO(cur); S.itens.push(t); }
@@ -2651,9 +2649,9 @@ function aplicaPrazo(t){ if(formPrazo) t.prazo=formPrazo; else delete t.prazo; }
 function aplicaAgenda(t){
   if(formSched){
     const [y,m,d]=formSched.split('-');
-    t.status='sched'; t.sched=d+'/'+m;
+    t.status='sched'; t.sched=d+'/'+m; t.schedISO=formSched;
   } else if(t.status==='sched'){
-    t.status='pend'; t.sched=null;
+    t.status='pend'; t.sched=null; delete t.schedISO;
   }
 }
 function escapeAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
@@ -2798,7 +2796,7 @@ function obsViraTarefaEm(catId){
   const nova = { id:uid(), cat:(praFDS?null:catId), title:txt, meta:'', status:'pend', prio:null };
   if(praFDS){
     const F=fds(); const primeiraVez=!F.on;
-    F.on=true; if(!F.ciclo) F.ciclo=sabadoDe(cur)||null;
+    F.on=true; if(!F.ciclo) F.ciclo=cicloFDSHoje();
     nova.fdsDesde = sabadoDe(cur) || proximoSabado();
     F.itens.push(nova);
     if(_obsEdit>=0 && _obsEdit<L.length) L.splice(_obsEdit,1);
@@ -2897,24 +2895,14 @@ function confereVirada(){
   else { const b=document.getElementById('btRefresh'); if(b) b.classList.add('novo'); }
 }
 
-async function newDay(){ closeMenu(); const iso=todayISO()>cur?todayISO():shiftISO(cur,1);
+async function newDay(){ closeMenu(); const hoje=todayISO(); const iso=hoje>cur?hoje:shiftISO(cur,1);
   if(DB.days[iso]&&!await uiConfirm(fmtBR(iso)+' já existe. Recriar do zero apaga o que tem lá. Continuar?',{title:'Recriar o dia?',ok:'Recriar',danger:true}))return;
-  DB.days[iso]=buildNewDay(iso); cur=iso; render(); }
-/* Migracao de uma vez so: as tres diarias que viviam no codigo viram
-   recorrencias normais. So roda pra quem tem as categorias delas; pra
-   qualquer outra pessoa nao acontece nada. */
-function migrarDiariasFixas(){
-  if(DB.migrouDiarias) return;
-  DB.migrouDiarias = 1;
-  DB.recurring = DB.recurring || [];
-  const tem = id => (DB.cats||[]).some(c=>c.id===id);
-  const jaTem = t => DB.recurring.some(e=>e.title===t);
-  const add = e => { if(!tem(e.cat) || jaTem(e.title)) return; e.rid='r'+uid(); e.rec={type:'diario'}; e.recur='diária'; DB.recurring.push(e); };
-  add({cat:'lever',title:'METAS',meta:'Cota de produção do dia · zera todo dia',prio:'max',goals:{posts:[0,1],stories:[0,4],ads:[0,2]}});
-  add({cat:'lever',title:'Criativos do dia',meta:'Espelho da cota · 1 post · 4 stories · 2 ads',prio:null,cota:[0,7]});
-  add({cat:'pessoal',title:'Beber 2 garrafas de água',meta:'',prio:null,subLabels:['Garrafa 1','Garrafa 2']});
-}
-
+  /* dia FUTURO nasce como previa, sem puxar nada: os pendentes entram quando ele
+     chegar (regra de 03/09). Antes ja levava os pendentes de agora, e o que fosse
+     feito hoje a tarde reaparecia amanha como pendente. */
+  DB.days[iso] = iso>hoje ? criaPorNavegacao(iso) : buildNewDay(iso);
+  cur=iso; render();
+  if(iso>hoje) toast('Os pendentes de hoje entram em '+fmtBR(iso)+' quando o dia chegar.'); }
 /* dia aberto na mao: nasce so com o que e dele. Se for no futuro, fica
    marcado como PREVIA — o carry-over dele ainda esta por vir. */
 function criaPorNavegacao(iso){
@@ -3055,7 +3043,10 @@ function closeSheet(){ document.querySelectorAll('#sheetOverlay').forEach(functi
 function backup(){ closeMenu(); const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='assistente-backup.json'; a.click(); }
 function restore(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader();
-  r.onload=()=>{ try{ DB=JSON.parse(r.result); cur=DB.days[todayISO()]?todayISO():Object.keys(DB.days).sort().pop(); save(); render(); uiAlert('Backup restaurado.'); }catch(x){ uiAlert('Arquivo inválido.'); } };
+  r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d||!d.days) throw 0;
+      /* normalizeDB religa CATS no banco novo: sem isso a tela mostrava as categorias
+         antigas e o proximo salvar gravava uma coisa mostrando outra */
+      DB=d; _catFilter=null; normalizeDB(); save(); render(); uiAlert('Backup restaurado.'); }catch(x){ uiAlert('Arquivo inválido.'); } };
   r.readAsText(f); }
 function exportPDF(){ closeMenu(); window.print(); }
 function shareDay(){ closeMenu();
@@ -3127,7 +3118,7 @@ function showShared(p){
     });
     body+='</div>';
   });
-  if(p.obs&&p.obs.length){ body+=`<div class="obs"><div class="obs-h"><span class="cbar"></span>🖋️ Notas</div><div class="obs-box">`+p.obs.map(o=>`<div class="oi">${escapeHtml(o)}</div>`).join('')+`</div></div>`; }
+  if(p.obs&&p.obs.length){ body+=`<div class="obs"><div class="obs-h"><span class="cbar"></span>🖋️ Notas</div><div class="obs-box">`+p.obs.map(o=>`<div class="oi">${escapeHtml(notaDe(o).t)}</div>`).join('')+`</div></div>`; }
   body+='</div>';
   document.body.innerHTML=body; window.__shared=p;
 }
@@ -3267,8 +3258,6 @@ function dayPct(iso){ const dd=DB.days[iso]; if(!dd||!dd.tasks) return null;
   return n? Math.round(sum/n*100) : null; }
 function mondayOf(iso){ const [y,m,d]=iso.split('-').map(Number); const dt=new Date(y,m-1,d); const wd=(dt.getDay()+6)%7; dt.setDate(dt.getDate()-wd); return dt; }
 function pad2(n){ return String(n).padStart(2,'0'); }
-/* a linha do grafico segue o teal do tema — no claro ele e mais fundo */
-function corAcento(){ return (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'#2FD9C9').trim(); }
 /* ---- o que esta travado ----
    O carriedFrom guarda so "veio de ontem", nao a data de origem — entao a
    conta e caminhando pelos dias que EXISTEM (pular um fim de semana sem
@@ -3397,7 +3386,7 @@ function renderProgress(){
 const SUPA_URL='https://ldvbnknynxnlbgmgrkjf.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkdmJua255bnhubGJnbWdya2pmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczODI2MTcsImV4cCI6MjEwMjk1ODYxN30.pxZ9BiP0bKpaN7t0L1bDpENQH5C25fjOHtuYlq-p6j0';
 const APP_ID='norte';
-let sb=null, session=null, _pushT=null, _myStamp=null, _rtChan=null, _pending=null, _suppressPush=false;
+let sb=null, session=null, _pushT=null, _myStamp=null, _rtChan=null, _suppressPush=false;
 function sbReady(){ return !!(sb && session); }
 function markSession(){ try{ sessionStorage.setItem('norte-sess','1'); }catch(e){} }
 async function initSupa(){ try{ if(window.supabase && SUPA_URL.indexOf('http')===0){
@@ -3416,11 +3405,24 @@ function hasLocalData(){ return (DB&&DB.days&&Object.values(DB.days).some(d=>d.t
 function normalizeDB(){ if(!DB||!DB.days)DB={days:{}}; if(!DB.cats)DB.cats=[]; if(!DB.recurring)DB.recurring=[]; CATS=DB.cats;
   const t=todayISO(); if(!DB.days[t]) DB.days[t]=Object.keys(DB.days).length?buildNewDay(t):emptyDay(); else resolvePrevia(t); cur=t; }
 function mergeDB(a,b){ const out={days:{},cats:[],recurring:(a.recurring&&a.recurring.length?a.recurring:(b.recurring||[]))};
+  if(a.migrouDiarias||b.migrouDiarias) out.migrouDiarias=1;
   const cm={}; [].concat(a.cats||[],b.cats||[]).forEach(c=>{ if(!cm[c.id])cm[c.id]=c; }); out.cats=Object.values(cm);
   const ds=new Set([].concat(Object.keys(a.days||{}),Object.keys(b.days||{})));
   ds.forEach(d=>{ const da=(a.days&&a.days[d])||{tasks:[],obs:[]}, db=(b.days&&b.days[d])||{tasks:[],obs:[]};
     const tm={}; [].concat(da.tasks||[],db.tasks||[]).forEach(t=>{ if(!tm[t.id])tm[t.id]=t; });
-    out.days[d]={tasks:Object.values(tm), obs:Array.from(new Set([].concat(da.obs||[],db.obs||[])))}; });
+    /* nota e objeto desde setembro: o Set so unia texto igual quando era string */
+    const om={}; [].concat(da.obs||[],db.obs||[]).forEach(o=>{ const k=notaDe(o).t; if(!om[k])om[k]=o; });
+    out.days[d]={tasks:Object.values(tm), obs:Object.values(om)}; });
+  /* os baldes da semana e do fim de semana vivem FORA dos dias: a fusao antiga
+     so olhava os dias e descartava os dois no primeiro aparelho sincronizado */
+  function balde(x,y,temOn){ if(!x&&!y) return null;
+    const tm={}; [].concat((x&&x.itens)||[],(y&&y.itens)||[]).forEach(t=>{ if(!tm[t.id])tm[t.id]=t; });
+    const cx=(x&&x.ciclo)||'', cy=(y&&y.ciclo)||'';
+    const o={itens:Object.values(tm), ciclo:(cx>cy?cx:cy)||null};
+    if(temOn) o.on=!!((x&&x.on)||(y&&y.on));
+    return o; }
+  const F=balde(a.fds,b.fds,true); if(F) out.fds=F;
+  const S=balde(a.semana,b.semana,false); if(S) out.semana=S;
   return out; }
 async function pullRemote(){ if(!sbReady())return;
   try{ const {data,error}=await sb.from('app_state').select('data,updated_at').eq('user_id',session.user.id).eq('app',APP_ID).maybeSingle();
@@ -3549,14 +3551,6 @@ async function connectEnter(){ const e=((val('cnEmail')||'')+'').trim().toLowerC
     session=ses; localStorage.setItem('norte-login',e); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
     markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Conta criada ✓');
   }catch(x){ busy(false); authErr('Erro: '+(x.message||x)); } }
-async function connectLogin(){ const e=val('cnEmail'), pw=val('cnPw');
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
-  if(!pw){ authErr('Digite a senha.'); return; }
-  await doLogin(e,pw); }
-async function connectSignup(){ const e=val('cnEmail'), pw=val('cnPw');
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
-  if(pw.length<6){ authErr('A senha precisa de ao menos 6 caracteres.'); return; }
-  await doSignup(e,pw); }
 function showCodeLogin(){ authScreen('<div class="auth-ic">'+svgIc('mail')+'</div><h2>Entrar por e-mail</h2>'+
   '<p>Mando um <b>link de acesso</b> pro seu e-mail. Abra o link neste mesmo aparelho.</p>'+
   '<div class="field"><label>Seu e-mail</label><input id="mlEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value="'+(localStorage.getItem("norte-login")||"")+'"></div>'+
@@ -3726,63 +3720,7 @@ function openPinMenu(){ closeMenu();
     '<button class="del" onclick="showPin(\'offcur\')"><span class="ic">'+svgIc('ban')+'</span>Desativar PIN</button></div>'+
     '<div class="actions"><button class="btn-primary" onclick="closeAuth()">Fechar</button></div>'); bioLinha(); }
 function maybeLockPin(){ if(localStorage.getItem('norte-pin') && !sessionStorage.getItem('norte-sess')) showPin('unlock'); }
-function showSignup(){ closeMenu(); authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>Criar sua conta</h2>'+
-  '<div class="field"><label>E-mail (será seu login)</label><input id="suEmail" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></div>'+
-  '<div class="field"><label>Senha</label><input id="suPw" type="password" placeholder="mín. 6 caracteres"></div>'+
-  '<div class="field"><label>Confirmar senha</label><input id="suPw2" type="password" placeholder="repita a senha"></div>'+
-  '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Cancelar</button><button class="btn-primary" onclick="signupNext()">Continuar</button></div>'); }
-function signupNext(){ const e=val('suEmail'),p=val('suPw'),p2=val('suPw2');
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ authErr('Digite um e-mail válido.'); return; }
-  if(p.length<6){ authErr('A senha precisa de ao menos 6 caracteres.'); return; }
-  if(p!==p2){ authErr('As senhas não conferem.'); return; }
-  _pending={email:e,pw:p}; showReminder(); }
-function showReminder(){ authScreen('<div class="auth-ic">📝</div><h2>Anote sua senha!</h2>'+
-  '<p>Guarde sua senha num lugar seguro — você vai precisar dela pra entrar em outro aparelho.</p>'+
-  '<p class="auth-note">Dá pra recuperar por e-mail se esquecer, mas anotar é mais rápido.</p>'+
-  '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-ghost" onclick="showSignup()">Voltar</button><button class="btn-primary" id="suGo" onclick="signupGo()">Criar conta e entrar</button></div>'); }
-async function signupGo(){ const b=document.getElementById('suGo'); if(b){ b.textContent='Criando…'; b.disabled=true; }
-  await doSignup(_pending.email,_pending.pw); if(b){ b.disabled=false; b.textContent='Criar conta e entrar'; } }
-async function doSignup(email,pw){ if(!sb){ authErr('Sem conexão. Tente de novo com internet.'); return; }
-  try{ let r=await sb.auth.signUp({email:email,password:pw});
-    if(r.error){ if(/registered|exists/i.test(r.error.message)){ r=await sb.auth.signInWithPassword({email:email,password:pw});
-        if(r.error){ authErr('Esse e-mail já tem conta e a senha não confere. Use "Entrar" ou "Esqueci a senha".'); return; } }
-      else { authErr(r.error.message); return; } }
-    session=(r.data&&r.data.session)||null;
-    if(!session){ const s=await sb.auth.signInWithPassword({email:email,password:pw}); session=(s.data&&s.data.session)||null; }
-    if(!session){ authErr('Conta criada — confirme o e-mail e entre.'); return; }
-    localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
-    markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Conta criada ✓');
-  }catch(e){ authErr('Erro: '+(e.message||e)); } }
-function showLogin(){ closeMenu(); authScreen('<div class="auth-ic">🔓</div><h2>Entrar na sua conta</h2>'+
-  '<div class="field"><label>E-mail</label><input id="lgEmail" type="email" inputmode="email" value="'+(localStorage.getItem('norte-login')||'')+'"></div>'+
-  '<div class="field"><label>Senha</label><input id="lgPw" type="password"></div>'+
-  '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-ghost" onclick="closeAuth()">Cancelar</button><button class="btn-primary" onclick="loginGo()">Entrar</button></div>'+
-  '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>'); }
-async function loginGo(){ await doLogin(val('lgEmail'),val('lgPw')); }
-async function doLogin(email,pw){ if(!sb){ authErr('Sem conexão.'); return; }
-  try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
-    if(r.error){ authErr(((r.error.message||'')+'').replace(/^Invalid login credentials$/i,'E-mail ou senha incorretos.')); return; }
-    session=r.data.session; localStorage.setItem('norte-login',email); localStorage.setItem('norte-pwhash',await sha(pw)); localStorage.removeItem('norte-nag');
-    markSession(); closeAuth(); subscribeRT(); await pullRemote(); toast('Entrou ✓');
-  }catch(e){ authErr('Erro: '+(e.message||e)); } }
-function showLock(){ authScreen('<div class="auth-ic">'+svgIc('lock')+'</div><h2>Norte</h2><p>Digite sua senha pra entrar.</p>'+
-  '<div class="field"><label>E-mail</label><input id="lkEmail" type="email" value="'+(localStorage.getItem('norte-login')||'')+'" readonly></div>'+
-  '<div class="field"><label>Senha</label><input id="lkPw" type="password"></div>'+
-  '<div class="auth-err" id="authErr"></div>'+
-  '<div class="actions"><button class="btn-primary" style="flex:1" onclick="unlockGo()">Entrar</button></div>'+
-  '<button class="auth-link" onclick="forgotPw()">Esqueci a senha</button>',{lock:true}); }
-async function unlockGo(){ const pw=val('lkPw'), email=localStorage.getItem('norte-login');
-  if(!pw){ authErr('Digite a senha.'); return; }
-  if(sb){ try{ const r=await sb.auth.signInWithPassword({email:email,password:pw});
-      if(!r.error){ session=r.data.session; localStorage.setItem('norte-pwhash',await sha(pw)); markSession(); closeAuth(); subscribeRT(); pullRemote(); return; }
-      if(/invalid|credential/i.test(r.error.message)){ if(await sha(pw)===localStorage.getItem('norte-pwhash')){ markSession(); closeAuth(); return; } authErr('Senha incorreta.'); return; }
-    }catch(e){} }
-  if(await sha(pw)===localStorage.getItem('norte-pwhash')){ markSession(); closeAuth(); toast('Modo offline'); }
-  else authErr('Senha incorreta.'); }
-async function forgotPw(){ const email=localStorage.getItem('norte-login')||val('lgEmail')||await uiPrompt('Qual o e-mail da sua conta?',{type:'email',placeholder:'voce@email.com'});
+async function forgotPw(){ const email=localStorage.getItem('norte-login')||val('cnEmail')||await uiPrompt('Qual o e-mail da sua conta?',{type:'email',placeholder:'voce@email.com'});
   if(!email)return; if(!sb){ uiAlert('Precisa de internet pra recuperar.'); return; }
   try{ await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href.split('#')[0]});
     uiAlert('Enviei um link de recuperação pro seu e-mail. Abra o link NESTE aparelho pra definir uma nova senha.'); }catch(e){ uiAlert('Erro ao enviar: '+(e.message||e)); } }
@@ -3814,17 +3752,6 @@ async function changePwGo(){ const a=val('cpPw'),b=val('cpPw2'); if(a.length<6){
   if(!sbReady()){ authErr('Precisa estar online e logado.'); return; }
   try{ const r=await sb.auth.updateUser({password:a}); if(r.error){ authErr(r.error.message); return; }
     localStorage.setItem('norte-pwhash',await sha(a)); closeAuth(); toast('Senha trocada ✓'); }catch(e){ authErr('Erro: '+(e.message||e)); } }
-async function removeAccountLocal(){
-  const pw=await uiPrompt('Digite sua senha pra remover a proteção deste aparelho. O Norte volta ao modo local (sem sincronizar); seus dados continuam salvos aqui.',{type:'password',title:'Tirar a senha?',ok:'Tirar senha'});
-  if(pw===null||pw==='')return;
-  let ok=false; if(sb){ try{ const r=await sb.auth.signInWithPassword({email:localStorage.getItem('norte-login'),password:pw}); if(!r.error)ok=true; }catch(e){} }
-  if(!ok && await sha(pw)===localStorage.getItem('norte-pwhash'))ok=true;
-  if(!ok){ uiAlert('Senha incorreta.'); return; }
-  try{ if(sb) await sb.auth.signOut(); }catch(e){}
-  if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan=null; }
-  session=null; localStorage.removeItem('norte-login'); localStorage.removeItem('norte-pwhash'); localStorage.removeItem('norte-syncedAt'); localStorage.setItem('norte-nag','1');
-  closeAuth(); toast('Modo local ✓'); }
-
 /* boot */
 async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark'); load(); paintIcons();
   const h=location.hash;
@@ -3834,8 +3761,13 @@ async function boot(){ applyTheme(localStorage.getItem('assist-theme')||'dark');
     }catch(e){ /* link inválido → segue app normal */ }
   }
   render();
+  /* o convite de sexta pro fim de semana: a funcao existia e ninguem a chamava */
+  if(localStorage.getItem('welcome-norte')) conviteFDS();
   await initSupa();
-  if(sb) sb.auth.onAuthStateChange(function(ev,ses){ if(ses){ session=ses; if(ev==='SIGNED_IN') onSignedIn(); } });
+  if(sb) sb.auth.onAuthStateChange(function(ev,ses){
+    /* o link de "esqueci a senha" volta pra ca — os outros 4 apps ja tratavam, o Norte nao */
+    if(ev==='PASSWORD_RECOVERY'){ session=ses||session; showRecovery(); return; }
+    if(ses){ session=ses; if(ev==='SIGNED_IN') onSignedIn(); } });
   if(session){ onSignedIn(); }                                   /* já logado (sessão salva ou link do e-mail) -> sincroniza direto, sem pedir nada */
   else if(!localStorage.getItem('welcome-norte')){ document.getElementById('__welcome').classList.remove('hidden'); }
   else if(!localStorage.getItem('norte-nag') && !sessionStorage.getItem('norte-upseen')){ sessionStorage.setItem('norte-upseen','1'); setTimeout(showUpgrade,500); }
